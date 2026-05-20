@@ -19,6 +19,37 @@ The interesting system is not a TTS engine with better audio quality. It is a po
 
 Speech is the behavior. Audio rendering is just the transport.
 
+## Two Tracks
+
+This pivot should be treated as two related but distinct tracks:
+
+1. Practical speaking policy
+   - learns turn-taking, timing, repair, and conversational control over a controllable TTS or voice output layer
+   - this is the first productizable milestone
+2. Sound-first motor learning
+   - learns acoustic imitation and sound control directly
+   - this is the deeper research path inspired by infant babbling and oscillator-based generation
+
+Track 1 solves the near-term conversation problem.
+Track 2 explores the more ambitious sound-learning problem without blocking progress on Track 1.
+
+## Learning Sequence
+
+The recommended sequence is:
+
+1. Offline simulation first
+   - replay recorded dialogues
+   - generate simulated user responses
+   - keep runs repeatable and measurable
+2. Deterministic or prompt-based baseline first
+   - use a small explicit action set
+   - make the baseline easy to inspect and debug
+3. Distill into a smaller learned policy
+   - once the behavior is stable, compress the policy
+4. RL only after the environment is shaped
+   - use RL or PPO later, not on day one
+   - only after rewards, simulator behavior, and action space are stable
+
 ## What Changes
 
 Corollary today is centered on closed-loop perception:
@@ -112,6 +143,24 @@ Uses downstream signals to update the policy:
 - conversation continues smoothly or stalls
 - the agent has to repeat itself
 
+For Track 1, those downstream signals are conversational and behavioral.
+For Track 2, those signals can be acoustic similarity and imitation success.
+
+## LLM Role
+
+The LLM should be treated as a teacher and long-term semantic store, not the initial online policy.
+
+Good uses:
+
+- semantic memory
+- trajectory labeling
+- critique and explanation
+- high-level planning
+
+Not the first use:
+
+- direct low-level policy control before the action space is stable
+
 ## Learning Target
 
 The cleanest initial target is not "general speech."
@@ -124,6 +173,11 @@ Start with a narrower, measurable skill:
 - interruption handling
 
 That keeps the first loop trainable and lets the project accumulate evidence instead of vibes.
+
+For the first milestone, the policy should operate over a controllable speech layer rather than raw waveform generation.
+That lets us measure turn-taking and repair before we take on full acoustic synthesis.
+
+The first implementation should therefore be a deterministic or prompt-based controller over a small action set, with the learned policy coming later through distillation.
 
 ## Recommended First Milestone
 
@@ -167,6 +221,9 @@ Suggested progression:
    - attach semantics once the acoustic side is no longer brittle
 
 The main risk to avoid is rewarding text too early. If that happens, the system can learn symbol association without learning to actually produce the sound.
+
+This is the Track 2 research lane, not the first product lane.
+It is the right place to explore babbling, imitation, oscillators, and neural acoustic control.
 
 ## SAG Expansion
 
@@ -218,6 +275,9 @@ This is why a neural network is worth checking out:
 - but as the trainable mechanism that can shape sound over time
 
 In other words, SAG can be the memory and grounding layer, while the neural part learns the continuous control policy that makes sound production work.
+
+For the practical speaking-policy track, the neural controller can stay behind a controllable TTS layer at first.
+That gives us a simpler policy-learning problem while preserving a path toward deeper acoustic learning later.
 
 ## Evaluation Ideas
 
