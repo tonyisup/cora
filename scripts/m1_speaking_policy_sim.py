@@ -524,7 +524,7 @@ class DeterministicSpeakingPolicy:
 
     def __init__(
         self,
-        silence_threshold_ms: float = 300.0,
+        silence_threshold_ms: float = 200.0,
         user_response_timeout_ms: float = 2000.0,
         collision_overlap_threshold_ms: float = 200.0,
         repair_text: str = "Sorry, go ahead.",
