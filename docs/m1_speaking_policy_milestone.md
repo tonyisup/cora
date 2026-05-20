@@ -189,10 +189,13 @@ All metrics are computed per-run and aggregated across N trials (default N=50).
 
 ### Phase 4: Analysis & Distillation Prep (1 day)
 
-1. Compare deterministic vs prompt-based metrics
-2. Identify decision patterns suitable for distillation
-3. Document findings in `docs/m1_speaking_policy_results.md`
-4. Define distillation spec for Milestone 2
+1. Connect a real LLM callable to `PromptSpeakingPolicy`
+2. Add harder scripted scenarios that trigger clarification, repair, and
+   interruption handling
+3. Re-run deterministic vs prompt-based trials and compare metrics
+4. Analyze decision logs for patterns suitable for distillation
+5. Document findings in `docs/m1_speaking_policy_results.md`
+6. Define the distillation spec for Milestone 2 only after the policies diverge
 
 ## File Map
 
@@ -224,8 +227,8 @@ tests/
 classifier (e.g., logistic regression or small MLP) trained on logged
 (state, action) pairs from Milestone 1.
 
-**Milestone 3:** Replace scripted user with LLM user agent (Tier 2).
-Retrain distilled policy on more diverse conversations.
+**Milestone 3:** Replace scripted user with LLM user agent (Tier 2) and
+retrain the distilled policy on more diverse conversations.
 
 **Milestone 4:** Introduce RL/PPO with shaped reward:
   reward = turn_continuation_bonus - interruption_penalty - collision_penalty

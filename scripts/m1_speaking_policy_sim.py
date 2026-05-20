@@ -698,6 +698,227 @@ class DeterministicSpeakingPolicy:
         self._clarify_utterance = ""
 
 
+# ── Prompt-Based Policy (Phase 3) ────────────────────────────────────────────
+
+@dataclass
+class PromptPolicyConfig:
+    """Configuration for the prompt-based speaking policy."""
+    llm_callable: Optional[Any] = None
+    model_name: str = "mock"
+    max_retries: int = 3
+    timeout_s: float = 10.0
+    temperature: float = 0.1
+
+
+class PromptSpeakingPolicy:
+    """
+    LLM prompt-based speaking policy (Phase 3 calibration baseline).
+
+    Receives the same perception context as the deterministic policy but
+    delegates the decision to an LLM prompt. Logs explanations for analysis.
+
+    This is a calibration baseline, not the product policy.
+    """
+
+    DECISION_PROMPT = """You are a speaking policy for a conversational AI agent.
+Your job is to decide when the agent should speak, wait, clarify, repair, or yield
+in a turn-taking conversation.
+
+Rules:
+- Speak only when it's the agent's turn (user has finished speaking + brief silence)
+- Wait while the user is speaking
+- Yield immediately if the user interrupts the agent mid-sentence
+- Repair (say "Sorry, go ahead.") if the agent and user spoke simultaneously
+- Clarify (ask user to repeat) if the agent spoke and the user didn't respond
+- Keep responses natural and conversational
+
+Current conversation state:
+- Agent state: {state}
+- Last user utterance: "{user_text}"
+- Last agent utterance: "{agent_text}"
+- Silence duration: {silence_ms}ms
+- VAD energy: {energy_db} dB
+- Attribution: {attribution}
+- Has queued utterance: {has_queued}
+- Recent history:
+{history}
+
+Available actions: speak, wait, clarify, repair, yield
+
+What should the agent do next? Respond with:
+ACTION: <one of: speak, wait, clarify, repair, yield>
+EXPLANATION: <1-2 sentences explaining why>
+TEXT: <the exact text to speak, or "none">"""
+
+    def __init__(self, config: Optional[PromptPolicyConfig] = None):
+        self.config = config or PromptPolicyConfig()
+        self.state = AgentState.IDLE
+        self._queued_utterance: str = ""
+        self._last_user_text: str = ""
+        self._last_agent_text: str = ""
+        self._history: List[Dict[str, str]] = []
+        self._last_spoken_script: str = ""
+        self._log: List[Dict[str, Any]] = []
+
+    def reset(self):
+        self.state = AgentState.IDLE
+        self._queued_utterance = ""
+        self._last_user_text = ""
+        self._last_agent_text = ""
+        self._history = []
+        self._last_spoken_script = ""
+        self._log = []
+
+    @property
+    def decision_log(self) -> List[Dict[str, Any]]:
+        return list(self._log)
+
+    def decide(
+        self,
+        perception: PerceptionFrame,
+        user_info: Dict[str, Any],
+        agent_script_line: str = "",
+    ) -> tuple[Action, str]:
+        # Only queue if the script line is new
+        if agent_script_line and agent_script_line != self._queued_utterance and agent_script_line != self._last_spoken_script:
+            self._queued_utterance = agent_script_line
+
+        context = self._build_context(perception, user_info, agent_script_line)
+        action, text, explanation = self._query_llm(context)
+
+        self._log.append({
+            "time_ms": perception.time_ms,
+            "state": self.state.value,
+            "perception": {
+                "attribution": perception.attribution,
+                "silence_duration_ms": perception.silence_duration_ms,
+                "vad_energy_db": round(perception.vad_energy_db, 1),
+                "user_speaking": user_info.get("user_speaking", False),
+            },
+            "action": action.value,
+            "text": text,
+            "explanation": explanation,
+            "model": self.config.model_name,
+        })
+
+        if action == Action.SPEAK and text:
+            self.state = AgentState.SPEAK
+            self._last_spoken_script = text
+            self._queued_utterance = ""
+        elif action == Action.YIELD:
+            self.state = AgentState.LISTEN
+        elif action == Action.REPAIR:
+            self.state = AgentState.LISTEN
+
+        return (action, text)
+
+    def on_speech_start(self, text: str, time_ms: float):
+        self.state = AgentState.SPEAK
+        self._last_agent_text = text
+        self._history.append({"speaker": "agent", "text": text})
+
+    def on_speech_end(self, text: str, time_ms: float):
+        self.state = AgentState.LISTEN
+        self._queued_utterance = ""
+
+    def on_yield(self, time_ms: float):
+        self.state = AgentState.LISTEN
+
+    def queue_utterance(self, text: str):
+        self._queued_utterance = text
+
+    def on_user_text(self, text: str):
+        self._last_user_text = text
+        self._history.append({"speaker": "user", "text": text})
+
+    def _build_context(
+        self,
+        perception: PerceptionFrame,
+        user_info: Dict[str, Any],
+        agent_script_line: str,
+    ) -> Dict[str, Any]:
+        recent_history = self._history[-3:] if self._history else []
+        history_lines = []
+        for h in recent_history:
+            history_lines.append(f'  {h["speaker"].capitalize()}: "{h["text"]}"')
+        history_str = "\n".join(history_lines) if history_lines else "  (none)"
+
+        return {
+            "state": self.state.value,
+            "user_text": self._last_user_text or "(none)",
+            "agent_text": self._last_agent_text or "(none)",
+            "silence_ms": int(perception.silence_duration_ms),
+            "energy_db": round(perception.vad_energy_db, 1),
+            "attribution": perception.attribution,
+            "has_queued": str(bool(self._queued_utterance)),
+            "history": history_str,
+        }
+
+    def _query_llm(self, context: Dict[str, Any]) -> tuple[Action, str, str]:
+        if self.config.llm_callable is None:
+            return self._deterministic_fallback(context)
+        prompt = self.DECISION_PROMPT.format(**context)
+        try:
+            response = self.config.llm_callable(prompt)
+            return self._parse_response(response)
+        except Exception:
+            return self._deterministic_fallback(context)
+
+    def _parse_response(self, response: str) -> tuple[Action, str, str]:
+        action = Action.WAIT
+        text = ""
+        explanation = ""
+        for line in response.strip().split("\n"):
+            line = line.strip()
+            if line.upper().startswith("ACTION:"):
+                try:
+                    action = Action(line.split(":", 1)[1].strip().lower())
+                except ValueError:
+                    action = Action.WAIT
+            elif line.upper().startswith("EXPLANATION:"):
+                explanation = line.split(":", 1)[1].strip()
+            elif line.upper().startswith("TEXT:"):
+                text = line.split(":", 1)[1].strip()
+                if text.lower() in ("none", "", "n/a"):
+                    text = ""
+        if action == Action.SPEAK and not text:
+            action = Action.WAIT
+        return (action, text, explanation)
+
+    def _deterministic_fallback(self, context: Dict[str, Any]) -> tuple[Action, str, str]:
+        state = self.state
+        attribution = context["attribution"]
+        silence_ms = context["silence_ms"]
+        has_queued = context["has_queued"] == "True"
+        queued_text = self._queued_utterance
+
+        if state == AgentState.IDLE:
+            if attribution == "world":
+                self.state = AgentState.LISTEN
+                return (Action.WAIT, "", "User started speaking")
+            if attribution == "silence" and has_queued:
+                return (Action.SPEAK, queued_text, "Opening the conversation")
+            return (Action.WAIT, "", "Waiting for user")
+
+        if state == AgentState.LISTEN:
+            if attribution == "world":
+                return (Action.WAIT, "", "User is speaking")
+            if attribution in ("silence", "world") and has_queued:
+                if silence_ms > 200:
+                    return (Action.SPEAK, queued_text, f"User finished, silence={silence_ms}ms")
+            return (Action.WAIT, "", f"Waiting, silence={silence_ms}ms")
+
+        if state == AgentState.SPEAK:
+            if attribution == "both":
+                return (Action.YIELD, "", "Collision detected")
+            return (Action.WAIT, "", "Still speaking")
+
+        if state == AgentState.REPAIR:
+            return (Action.REPAIR, "Sorry, go ahead.", "Repairing after collision")
+
+        return (Action.WAIT, "", "Default wait")
+
+
 # ── Simulator ────────────────────────────────────────────────────────────────
 
 @dataclass
@@ -711,6 +932,13 @@ class SimulatorConfig:
     verbose: bool = False
     output_path: Optional[str] = None
     seed: int = 42
+    # Policy selection: "deterministic" or "prompt"
+    policy_type: str = "deterministic"
+    # Prompt policy config (only used when policy_type="prompt")
+    prompt_config: PromptPolicyConfig = field(default_factory=PromptPolicyConfig)
+    # Deterministic policy config
+    det_silence_threshold_ms: float = 200.0
+    det_user_response_timeout_ms: float = 2000.0
 
 
 class SpeakingPolicySimulator:
@@ -719,9 +947,16 @@ class SpeakingPolicySimulator:
     def __init__(self, config: SimulatorConfig):
         self.config = config
         self.perception = SimulatedPerception()
-        self.policy = DeterministicSpeakingPolicy()
         self.user = ScriptedUser(config.user_config)
         self.metrics: List[TrialMetrics] = []
+        # Create the appropriate policy
+        if config.policy_type == "prompt":
+            self.policy = PromptSpeakingPolicy(config.prompt_config)
+        else:
+            self.policy = DeterministicSpeakingPolicy(
+                silence_threshold_ms=config.det_silence_threshold_ms,
+                user_response_timeout_ms=config.det_user_response_timeout_ms,
+            )
 
     def run_all(self) -> AggregatedMetrics:
         """Run all trials and return aggregated metrics."""
@@ -1003,7 +1238,7 @@ class SpeakingPolicySimulator:
 
 def main():
     parser = argparse.ArgumentParser(
-        description="M1 Speaking Policy Simulator (Phase 1)"
+        description="M1 Speaking Policy Simulator"
     )
     parser.add_argument("--trials", type=int, default=50, help="Number of trials")
     parser.add_argument("--output", type=str, default=None, help="Output JSON path")
@@ -1011,6 +1246,9 @@ def main():
     parser.add_argument("--seed", type=int, default=42, help="Random seed")
     parser.add_argument("--max-duration", type=int, default=60000,
                         help="Max trial duration in ms")
+    parser.add_argument("--policy", type=str, default="deterministic",
+                        choices=["deterministic", "prompt"],
+                        help="Policy type: deterministic or prompt")
     args = parser.parse_args()
 
     config = SimulatorConfig(
@@ -1019,9 +1257,10 @@ def main():
         output_path=args.output,
         seed=args.seed,
         max_trial_duration_ms=float(args.max_duration),
+        policy_type=args.policy,
     )
 
-    print(f"M1 Speaking Policy Simulator — Phase 1")
+    print(f"M1 Speaking Policy Simulator — {args.policy} policy")
     print(f"  Trials: {config.num_trials}")
     print(f"  Seed: {config.seed}")
     print(f"  Max duration: {config.max_trial_duration_ms:.0f}ms per trial")
