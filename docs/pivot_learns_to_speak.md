@@ -187,6 +187,38 @@ Word nodes can then connect to both:
 
 That gives the system a bidirectional bridge between sound and meaning instead of treating speech as a separate downstream renderer.
 
+## Oscillator + Neural Controller
+
+The transcript suggests a useful pattern:
+
+- a rhythmic driver keeps the system active
+- a recurrent substrate holds transient state
+- a trainable readout shapes that state into a target output
+
+That is a good fit for the sound-first phase.
+
+Possible division of labor:
+
+- driver / oscillator bank
+  - provides stable rhythmic input
+  - keeps the acoustic system moving
+- recurrent acoustic substrate
+  - holds short-term sound state
+  - supports temporal pattern generation
+- neural controller / readout
+  - maps target goals to actual sound production
+  - learns from similarity feedback
+- SAG
+  - stores abstractions, labels, and exemplar links
+  - connects sound patterns to concepts later
+
+This is why a neural network is worth checking out:
+
+- not as a replacement for SAG
+- but as the trainable mechanism that can shape sound over time
+
+In other words, SAG can be the memory and grounding layer, while the neural part learns the continuous control policy that makes sound production work.
+
 ## Evaluation Ideas
 
 Possible metrics:
