@@ -308,8 +308,12 @@ This project becomes the self-speaking loop.
 
 ## Open Questions
 
-- What is the smallest speech behavior we can learn first?
-- What feedback signal is strong enough to train on?
-- Do we optimize for conversation success, not speaker imitation?
-- Is text the intermediate representation, or do we learn a richer utterance plan?
-- What parts should stay deterministic for safety and testability?
+## Still Open
+
+These are the remaining design questions that need a concrete spec:
+
+- The exact first action set for Track 1
+- The design of the offline simulator and simulated user responses
+- The precise reward function for Track 1
+- The boundary between SAG, policy model, and prompt baseline
+- The first acoustic primitives to formalize for Track 2
