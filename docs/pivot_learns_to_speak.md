@@ -137,6 +137,56 @@ Build a "speaking policy" demo that can choose among a small action set:
 
 Success means the policy improves conversation flow under repeated trials.
 
+## Sound-First Development Path
+
+The first reinforcement signal should be purely acoustic.
+
+That means:
+
+- input is a target sound
+- output is a produced sound
+- reward is acoustic similarity between target and output
+- no text label is required at first
+
+This makes the earliest problem a motor-learning loop, not a symbol-grounding loop.
+
+Suggested progression:
+
+1. Sound shape imitation
+   - pitch contour
+   - duration
+   - loudness envelope
+   - onset timing
+2. Repeatability
+   - the same sound should converge across trials
+3. Weak terminal confirmation
+   - "correct / incorrect" as a secondary reinforcement signal
+4. Text association
+   - connect sound patterns to words only after the sounds are stable
+5. Meaning and context
+   - attach semantics once the acoustic side is no longer brittle
+
+The main risk to avoid is rewarding text too early. If that happens, the system can learn symbol association without learning to actually produce the sound.
+
+## SAG Expansion
+
+The SAG should eventually store more than word abstractions.
+
+It should also hold acoustic abstractions:
+
+- sound prototypes
+- sound families
+- phoneme-like clusters
+- exemplar recordings
+- confidence over the mapping between sound and concept
+
+Word nodes can then connect to both:
+
+- the collection of words that define them
+- the collection of sounds that express them
+
+That gives the system a bidirectional bridge between sound and meaning instead of treating speech as a separate downstream renderer.
+
 ## Evaluation Ideas
 
 Possible metrics:
@@ -171,4 +221,3 @@ This project becomes the self-speaking loop.
 - Do we optimize for conversation success, not speaker imitation?
 - Is text the intermediate representation, or do we learn a richer utterance plan?
 - What parts should stay deterministic for safety and testability?
-
