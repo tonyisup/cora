@@ -487,6 +487,18 @@ HARD_NEGATIVE_TEMPLATES = [
         "agent_speaking": False,
         "expected_action": "wait",
     },
+    {
+        "name": "idle_no_queue_silence",
+        "description": "Idle/listen state, no queue, short silence, no user speech. Agent should wait rather than clarify.",
+        "state": "listen",
+        "attribution": "silence",
+        "silence_duration_ms": 150.0,
+        "vad_energy_db": -58.0,
+        "has_queued_utterance": False,
+        "user_speaking": False,
+        "agent_speaking": False,
+        "expected_action": "wait",
+    },
 ]
 
 
