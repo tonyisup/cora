@@ -181,21 +181,60 @@ SCENARIOS: List[Scenario] = [
 
 MODELS: List[ModelSpec] = [
     ModelSpec(name="hermes/openai-codex:gpt-5.4-mini", kind="hermes", model="gpt-5.4-mini"),
-    ModelSpec(name="hermes/openai-codex:gpt-5.4", kind="hermes", model="gpt-5.4"),
-    ModelSpec(name="hermes/openai-codex:gpt-5.5", kind="hermes", model="gpt-5.5"),
-    ModelSpec(name="openrouter/owl-alpha", kind="openrouter", model="openrouter/owl-alpha"),
-    ModelSpec(name="openrouter/liquid-lfm-2.5-1.2b-instruct:free", kind="openrouter", model="liquid/lfm-2.5-1.2b-instruct:free"),
-    ModelSpec(name="openrouter/openai-gpt-oss-safeguard-20b", kind="openrouter", model="openai/gpt-oss-safeguard-20b"),
-    ModelSpec(name="nvidia/nemotron-nano-9b-v2", kind="openrouter", model="nvidia/nemotron-nano-9b-v2"),
-    ModelSpec(name="meta-llama/llama-3.2-3b-instruct", kind="openrouter", model="meta-llama/llama-3.2-3b-instruct"),
-    ModelSpec(name="ibm-granite/granite-4.1-8b", kind="openrouter", model="ibm-granite/granite-4.1-8b"),
-    ModelSpec(name="deepseek/deepseek-r1-distill-llama-70b", kind="openrouter", model="deepseek/deepseek-r1-distill-llama-70b"),
-    ModelSpec(name="google/gemma-4-26b-a4b-instruct", kind="openrouter", model="google/gemma-4-26b-a4b-instruct"),
-    ModelSpec(name="anthropic/claude-3.5-haiku", kind="openrouter", model="anthropic/claude-3.5-haiku"),
-    ModelSpec(name="google/gemini-3.1-flash-lite", kind="openrouter", model="google/gemini-3.1-flash-lite"),
-    ModelSpec(name="moonshotai/kimi-k2.5-flash", kind="openrouter", model="moonshotai/kimi-k2.5-flash"),
-    ModelSpec(name="minimax/minimax-m2.5-flash", kind="openrouter", model="minimax/minimax-m2.5-flash")
+    ModelSpec(name="hermes/openai-codex:gpt-5.4-codex", kind="hermes", model="gpt-5.3-codex"),
+    # ModelSpec(name="hermes/openai-codex:gpt-5.5", kind="hermes", model="gpt-5.5"),
+    # ModelSpec(name="openrouter/owl-alpha", kind="openrouter", model="openrouter/owl-alpha"),
+    # ModelSpec(name="openrouter/liquid-lfm-2.5-1.2b-instruct:free", kind="openrouter", model="liquid/lfm-2.5-1.2b-instruct:free"),
+    # ModelSpec(name="openrouter/openai-gpt-oss-safeguard-20b", kind="openrouter", model="openai/gpt-oss-safeguard-20b"),
+    # ModelSpec(name="nvidia/nemotron-nano-9b-v2", kind="openrouter", model="nvidia/nemotron-nano-9b-v2"),
+    # ModelSpec(name="meta-llama/llama-3.2-3b-instruct", kind="openrouter", model="meta-llama/llama-3.2-3b-instruct"),
+    # ModelSpec(name="ibm-granite/granite-4.1-8b", kind="openrouter", model="ibm-granite/granite-4.1-8b"),
+    # ModelSpec(name="deepseek/deepseek-r1-distill-llama-70b", kind="openrouter", model="deepseek/deepseek-r1-distill-llama-70b"),
+    # ModelSpec(name="google/gemma-4-26b-a4b-instruct", kind="openrouter", model="google/gemma-4-26b-a4b-instruct"),
+    # ModelSpec(name="anthropic/claude-3.5-haiku", kind="openrouter", model="anthropic/claude-3.5-haiku"),
+    # ModelSpec(name="google/gemini-3.1-flash-lite", kind="openrouter", model="google/gemini-3.1-flash-lite"),
+    # ModelSpec(name="moonshotai/kimi-k2.5-flash", kind="openrouter", model="moonshotai/kimi-k2.5-flash"),
+    # ModelSpec(name="minimax/minimax-m2.5-flash", kind="openrouter", model="minimax/minimax-m2.5-flash")
 ]
+
+FEW_SHOT_PREFIX = (
+    "Few-shot examples of the required decision style:\n\n"
+    "Example 1\n"
+    "State: listen\n"
+    "Attribution: silence\n"
+    "Silence duration: 500ms\n"
+    "Has queued utterance: yes\n"
+    "Expected: ACTION: speak\n"
+    "Explanation: The user is silent and a queued response exists, so it is the agent's turn.\n"
+    "Text: Hello! How can I help you today?\n\n"
+    "Example 2\n"
+    "State: speak\n"
+    "Attribution: both\n"
+    "Silence duration: 0ms\n"
+    "Has queued utterance: no\n"
+    "Expected: ACTION: yield\n"
+    "Explanation: The user and agent overlapped, so the agent should yield immediately.\n"
+    "Text: none\n\n"
+    "Example 3\n"
+    "State: listen\n"
+    "Attribution: silence\n"
+    "Silence duration: 2500ms\n"
+    "Has queued utterance: no\n"
+    "Last agent utterance: Could you repeat that?\n"
+    "Last user utterance: (no reply)\n"
+    "Expected: ACTION: clarify\n"
+    "Explanation: The agent asked a question and the user did not answer, so the right recovery is clarification.\n"
+    "Text: Sorry — could you repeat that?\n\n"
+    "Example 4\n"
+    "State: repair\n"
+    "Attribution: silence\n"
+    "Silence duration: 0ms\n"
+    "Has queued utterance: no\n"
+    "Repair utterance queued: Sorry, go ahead.\n"
+    "Expected: ACTION: repair\n"
+    "Explanation: The repair state already contains a repair utterance, so emit it now.\n"
+    "Text: Sorry, go ahead.\n\n"
+)
 
 
 def read_openrouter_key() -> str:
@@ -296,13 +335,14 @@ def call_openrouter(prompt: str, model: str, timeout_s: float) -> Dict[str, Any]
         }
 
 
-def benchmark_model(model: ModelSpec) -> Dict[str, Any]:
+def benchmark_model(model: ModelSpec, few_shot: bool = False) -> Dict[str, Any]:
     rows: List[Dict[str, Any]] = []
     for scenario in SCENARIOS:
+        prompt = (FEW_SHOT_PREFIX + "\n" + scenario.prompt) if few_shot else scenario.prompt
         if model.kind == "hermes":
-            out = call_hermes(scenario.prompt, model.model, model.timeout_s)
+            out = call_hermes(prompt, model.model, model.timeout_s)
         else:
-            out = call_openrouter(scenario.prompt, model.model, model.timeout_s)
+            out = call_openrouter(prompt, model.model, model.timeout_s)
 
         parsed_action = parse_action(out["content"])
         parsed_text = parse_text(out["content"])
@@ -327,6 +367,7 @@ def benchmark_model(model: ModelSpec) -> Dict[str, Any]:
         "model": model.name,
         "kind": model.kind,
         "model_id": model.model,
+        "few_shot": few_shot,
         "results": rows,
         "summary": {
             "accuracy": correct / len(rows),
@@ -343,6 +384,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Scenario-level benchmark for speaking-policy models")
     parser.add_argument("--models", type=str, default="", help="Comma-separated subset of model names or ids")
     parser.add_argument("--output", type=str, default=None, help="Output JSON path")
+    parser.add_argument("--few-shot", action="store_true", help="Prepend few-shot decision examples to every prompt")
     args = parser.parse_args()
 
     models = MODELS
@@ -355,6 +397,7 @@ def main() -> int:
     started = dt.datetime.now(dt.UTC).isoformat()
     payload: Dict[str, Any] = {
         "started_at": started,
+        "few_shot": args.few_shot,
         "scenarios": [{"name": s.name, "expected_action": s.expected_action} for s in SCENARIOS],
         "models": [],
     }
@@ -363,7 +406,7 @@ def main() -> int:
     print()
     for model in models:
         print(f"[{model.name}] running...")
-        model_result = benchmark_model(model)
+        model_result = benchmark_model(model, few_shot=args.few_shot)
         payload["models"].append(model_result)
         s = model_result["summary"]
         print(
