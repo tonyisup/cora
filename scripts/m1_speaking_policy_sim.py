@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-"""M1 — Speaking Policy Simulator (Phase 1: Harness + Scripted User).
+from __future__ import annotations
+
+"""M1 — Speaking Policy Simulator.
 
 Offline simulated environment for evaluating speaking policies.
 No live audio hardware. All TTS is synthetic via Broca (edge-tts).
@@ -8,6 +10,12 @@ The simulator runs N trials of a conversation between:
   - A speaking policy (deterministic state machine or prompt-based)
   - A scripted user agent (Tier 1: deterministic FSM)
 
+Usage:
+    .venv/bin/python scripts/m1_speaking_policy_sim.py --trials 50
+    .venv/bin/python scripts/m1_speaking_policy_sim.py --policy prompt --trials 50
+    .venv/bin/python scripts/m1_speaking_policy_sim.py --policy deterministic --seed 42
+"""
+"""
 Each trial produces per-turn metrics. Aggregated metrics are written as JSON.
 
 Usage:
@@ -17,7 +25,6 @@ Usage:
     .venv/bin/python scripts/m1_speaking_policy_sim.py --verbose
 """
 
-from __future__ import annotations
 
 import argparse
 import asyncio
@@ -266,11 +273,17 @@ class UserBehaviorConfig:
     response_gap_mean_ms: float = 400.0
     response_gap_std_ms: float = 150.0
 
-    # Interruption
+    # Interruption — user starts speaking while agent is still speaking
     interrupt_probability: float = 0.10
-    interrupt_min_agent_duration_ms: float = 3000.0  # only interrupt if agent speaks > 3s
+    interrupt_min_agent_duration_ms: float = 1500.0  # lowered from 3000; agent must speak > 1.5s
+    interrupt_delay_mean_ms: float = 800.0  # how far into agent speech the interrupt starts
+    interrupt_delay_std_ms: float = 300.0
 
-    # Clarification
+    # Clarification — user doesn't respond after agent speaks (triggers clarify)
+    no_response_probability: float = 0.08  # 8% chance user doesn't respond at all
+    no_response_delay_ms: float = 3500.0  # how long agent waits before clarifying
+
+    # Clarification triggers in agent text (user asks for clarification)
     clarification_triggers: List[str] = field(default_factory=lambda: [
         "i'm not sure", "what do you mean", "can you explain",
     ])
@@ -294,8 +307,12 @@ class UserBehaviorConfig:
 
 # Pre-defined conversation scripts — each is a list of (agent_utterance, user_response) pairs.
 # The scripted user follows these but adds timing variation and stochastic behaviors.
+# Special user_response values:
+#   "__INTERRUPT__" — user interrupts this agent utterance
+#   "__SILENCE__"   — user doesn't respond (triggers clarify)
+#   "__OVERLAP__"   — user starts speaking simultaneously (collision)
 CONVERSATION_SCRIPTS = [
-    # Script 0: Simple Q&A
+    # Script 0: Simple Q&A (baseline)
     [
         ("Hello! How can I help you today?", "Hi, I have a question about my account."),
         ("Sure, what would you like to know?", "I'm not sure what my current balance is."),
@@ -338,11 +355,49 @@ CONVERSATION_SCRIPTS = [
         ("Is there anything else?", "No, that's all I needed."),
         ("Have a great day!", "You too."),
     ],
+    # Script 5: Interruption scenario — user interrupts agent mid-utterance
+    [
+        ("Hello! I'd like to tell you about our new premium service tier.", "__INTERRUPT__"),
+        ("Oh, sorry, go ahead.", "Yes, I was wondering if there's a discount for annual plans."),
+        ("Great question! We do offer a 20% discount for annual commitments.", "That sounds good. What's the monthly equivalent?"),
+        ("It works out to about $8 per month.", "Perfect, I'll take it."),
+    ],
+    # Script 6: No-response scenario — user doesn't respond (triggers clarify)
+    [
+        ("Hi there! I have your test results ready.", "__SILENCE__"),
+        ("Hello? Can you hear me?", "Oh, sorry, I was muted. What were the results?"),
+        ("Everything looks normal. No concerns.", "That's great news. Thank you."),
+    ],
+    # Script 7: Collision scenario — both speak at once
+    [
+        ("Thanks for calling. How can I help?", "__OVERLAP__"),
+        ("Sorry, you go first.", "I was going to ask about my refund status."),
+        ("Sure, let me look that up.", "Thank you."),
+        ("Your refund was processed yesterday.", "Oh, I haven't seen it yet."),
+        ("It can take 3-5 business days to appear.", "Okay, I'll wait. Thanks."),
+    ],
+    # Script 8: Mixed stress scenario — interruption + no-response + normal
+    [
+        ("Welcome to tech support. I understand you're having issues.", "Yes, my laptop keeps crashing."),
+        ("Let me walk you through some troubleshooting steps.", "__INTERRUPT__"),
+        ("Sorry, go ahead.", "I already tried restarting it."),
+        ("Okay, let's try a different approach then.", "Okay."),
+        ("I'm going to need to put you on hold for a moment.", "__SILENCE__"),
+        ("Hello? Are you still there?", "Yes, I'm here. What's next?"),
+        ("I've found the issue. It's a driver conflict.", "Can you fix it remotely?"),
+        ("Yes, I'll take care of it now.", "Thank you so much."),
+    ],
 ]
 
 
 class ScriptedUser:
-    """Tier 1: Deterministic scripted user agent with stochastic behaviors."""
+    """Tier 1: Deterministic scripted user agent with stochastic behaviors.
+
+    Supports special response tokens in conversation scripts:
+    - "__INTERRUPT__" — user interrupts agent mid-utterance
+    - "__OVERLAP__"   — user starts speaking simultaneously (collision)
+    - "__SILENCE__"   — user doesn't respond (triggers agent clarify)
+    """
 
     def __init__(self, config: Optional[UserBehaviorConfig] = None, seed: int = 0):
         self.config = config or UserBehaviorConfig()
@@ -357,6 +412,11 @@ class ScriptedUser:
         self._will_interrupt: bool = False
         self._will_clarify: bool = False
         self._will_correct: bool = False
+        self._will_overlap: bool = False
+        self._will_not_respond: bool = False
+        self._interrupt_at_ms: float = 0.0  # absolute time to start interrupting
+        self._agent_speaking = False
+        self._agent_just_finished = False
 
     def reset(self, script_id: Optional[int] = None, seed: int = 0):
         """Reset for a new trial."""
@@ -370,6 +430,9 @@ class ScriptedUser:
         self._will_interrupt = False
         self._will_clarify = False
         self._will_correct = False
+        self._will_overlap = False
+        self._will_not_respond = False
+        self._interrupt_at_ms = 0.0
         self._agent_speaking = False
         self._agent_just_finished = False
 
@@ -401,11 +464,41 @@ class ScriptedUser:
     def done(self) -> bool:
         return self._turn_idx >= len(self._script)
 
+    @property
+    def _next_response_is_interrupt(self) -> bool:
+        return self.user_response == "__INTERRUPT__"
+
+    @property
+    def _next_response_is_overlap(self) -> bool:
+        return self.user_response == "__OVERLAP__"
+
+    @property
+    def _next_response_is_silence(self) -> bool:
+        return self.user_response == "__SILENCE__"
+
     def on_agent_speech_start(self, text: str, time_ms: float):
-        # Decide if user will interrupt
+        """Called when the agent starts speaking."""
         self._will_interrupt = False
         self._will_clarify = False
         self._will_correct = False
+        self._will_overlap = False
+        # Note: do NOT reset _will_not_respond here — it must survive across
+        # the clarify utterance so the user responds after the clarify.
+        self._agent_speaking = True
+
+        # Check for special response tokens
+        if self._next_response_is_interrupt:
+            self._will_interrupt = True
+            # Schedule the interrupt to happen partway through agent speech
+            interrupt_delay = max(200.0, self.rng.gauss(
+                self.config.interrupt_delay_mean_ms,
+                self.config.interrupt_delay_std_ms,
+            ))
+            self._interrupt_at_ms = time_ms + interrupt_delay
+        elif self._next_response_is_overlap:
+            self._will_overlap = True
+        elif self._next_response_is_silence:
+            self._will_not_respond = True
 
         # Check for clarification triggers in agent text
         text_lower = text.lower()
@@ -417,12 +510,36 @@ class ScriptedUser:
 
     def on_agent_speech_end(self, text: str, duration_ms: float, time_ms: float):
         """Called when the agent finishes speaking. Returns response delay."""
-        # Decide if user will interrupt (only if agent spoke long enough)
+        self._agent_speaking = False
+        self._agent_just_finished = True
+
+        # If user was set to not respond to the previous agent utterance,
+        # they should now respond to the clarify
+        if self._will_not_respond:
+            self._will_not_respond = False
+            delay = self._sample_response_delay()
+            self._response_delay_ms = delay
+            self._turn_duration_ms = self._sample_turn_duration()
+            return delay
+
+        # Stochastic interruption (only if agent spoke long enough)
         if duration_ms >= self.config.interrupt_min_agent_duration_ms:
             if self.rng.random() < self.config.interrupt_probability:
                 self._will_interrupt = True
+                interrupt_delay = max(200.0, self.rng.gauss(
+                    self.config.interrupt_delay_mean_ms,
+                    self.config.interrupt_delay_std_ms,
+                ))
+                self._interrupt_at_ms = time_ms + interrupt_delay
 
-        # Compute response delay
+        # Stochastic no-response
+        if self.rng.random() < self.config.no_response_probability:
+            self._will_not_respond = True
+            self._response_delay_ms = -1.0
+            self._turn_duration_ms = 0.0
+            return 0.0
+
+        # Normal response delay
         delay = self._sample_response_delay()
         self._response_delay_ms = delay
         self._turn_duration_ms = self._sample_turn_duration()
@@ -430,16 +547,17 @@ class ScriptedUser:
 
     def on_agent_yield(self, time_ms: float):
         """Called when the agent yields (stops speaking due to interruption)."""
+        self._agent_speaking = False
         # User takes over immediately
-        self._response_delay_ms = 50.0  # quick takeover
+        self._response_delay_ms = 50.0
         self._turn_duration_ms = self._sample_turn_duration()
 
     def get_perception(self, time_ms: float) -> Dict[str, Any]:
         """Get the user's current state for perception simulation."""
         return {
-            "user_speaking": self.state == UserState.SPEAKING,
+            "user_speaking": self.state in (UserState.SPEAKING, UserState.INTERRUPTING),
             "user_interrupting": self.state == UserState.INTERRUPTING,
-            "user_text": self._current_response if self.state == UserState.SPEAKING else "",
+            "user_text": self._current_response if self.state in (UserState.SPEAKING, UserState.INTERRUPTING) else "",
         }
 
     def tick(self, time_ms: float, dt_ms: float) -> Optional[Dict[str, Any]]:
@@ -450,21 +568,44 @@ class ScriptedUser:
         if self.done:
             return None
 
-        prev_state = self.state
+        # Handle overlap: user starts speaking at the same time as agent
+        if self._will_overlap and self.state == UserState.SILENT and self._agent_speaking:
+            self._will_overlap = False
+            self.state = UserState.SPEAKING
+            # Get the actual response (next turn's user response, or a default)
+            self._current_response = self._get_actual_response()
+            self._speaking_start_ms = time_ms
+            return {
+                "type": "user_speech_start",
+                "text": self._current_response,
+                "time_ms": time_ms,
+                "will_clarify": False,
+                "will_correct": False,
+            }
 
-        # State machine
+        # Handle interrupt: user starts speaking while agent is still speaking
+        if self._will_interrupt and self.state == UserState.SILENT:
+            if time_ms >= self._interrupt_at_ms:
+                self._will_interrupt = False
+                self.state = UserState.INTERRUPTING
+                self._current_response = self._get_actual_response()
+                self._speaking_start_ms = time_ms
+                return {
+                    "type": "user_interrupt",
+                    "text": self._current_response,
+                    "time_ms": time_ms,
+                    "will_clarify": False,
+                    "will_correct": False,
+                }
+
+        # Normal state machine
         if self.state == UserState.SILENT:
             if self._response_delay_ms > 0:
                 self._response_delay_ms -= dt_ms
                 if self._response_delay_ms <= 0:
-                    # Start speaking
-                    if self._will_interrupt:
-                        self.state = UserState.INTERRUPTING
-                        event_type = "user_interrupt"
-                    else:
-                        self.state = UserState.SPEAKING
-                        event_type = "user_speech_start"
-                    self._current_response = self.user_response
+                    self.state = UserState.SPEAKING
+                    event_type = "user_speech_start"
+                    self._current_response = self._get_actual_response()
                     self._speaking_start_ms = time_ms
                     return {
                         "type": event_type,
@@ -477,7 +618,6 @@ class ScriptedUser:
         elif self.state in (UserState.SPEAKING, UserState.INTERRUPTING):
             elapsed = time_ms - self._speaking_start_ms
             if elapsed >= self._turn_duration_ms:
-                # Stop speaking
                 self.state = UserState.SILENT
                 event = {
                     "type": "user_speech_end",
@@ -489,6 +629,19 @@ class ScriptedUser:
                 return event
 
         return None
+
+    def _get_actual_response(self) -> str:
+        """
+        Get the actual user response text, handling special tokens.
+        For __INTERRUPT__, __OVERLAP__, __SILENCE__, return the next
+        turn's user response (the one after the special token).
+        """
+        # Look ahead past special tokens to find the real response
+        for i in range(self._turn_idx, len(self._script)):
+            resp = self._script[i][1]
+            if resp not in ("__INTERRUPT__", "__OVERLAP__", "__SILENCE__"):
+                return resp
+        return "I see. Go on."  # fallback
 
     def _sample_response_delay(self) -> float:
         delay = self.rng.gauss(
@@ -642,16 +795,11 @@ class DeterministicSpeakingPolicy:
 
         # ── SPEAK: monitor for collisions and completion ──
         if self.state == AgentState.SPEAK:
-            # Collision detected
+            # Collision detected — yield immediately and queue repair
             if perception.attribution == "both":
-                if self._overlap_duration_ms >= self.collision_overlap_threshold_ms:
-                    # Significant overlap — yield and queue repair
-                    self._repair_utterance = self.repair_text
-                    self.state = AgentState.REPAIR
-                    return (Action.YIELD, "")
-                else:
-                    # Brief overlap — just yield
-                    return (Action.YIELD, "")
+                self._repair_utterance = self.repair_text
+                self.state = AgentState.REPAIR
+                return (Action.YIELD, "")
 
             return (Action.WAIT, "")
 
@@ -684,7 +832,9 @@ class DeterministicSpeakingPolicy:
         self._user_responded_after_speech = False
 
     def on_yield(self, time_ms: float):
-        self.state = AgentState.LISTEN
+        # Preserve REPAIR state — the repair utterance should play next
+        if self.state != AgentState.REPAIR:
+            self.state = AgentState.LISTEN
         self._overlap_start_ms = 0.0
         self._overlap_duration_ms = 0.0
 
@@ -696,6 +846,57 @@ class DeterministicSpeakingPolicy:
         self._history.append({"speaker": "user", "text": text})
         # Cancel any pending clarify — user responded
         self._clarify_utterance = ""
+
+
+# ── OpenRouter LLM Callable ──────────────────────────────────────────────────
+
+def openrouter_llm_callable(prompt: str, model: str = "openrouter/owl-alpha", timeout_s: float = 30.0) -> str:
+    """Call OpenRouter API as an LLM callable for the prompt policy.
+
+    Uses the OpenRouter API with the specified model. Reads API key from
+    hermes config at ~/.hermes/.env.
+
+    Usage:
+        config = PromptPolicyConfig(llm_callable=openrouter_llm_callable, model_name="openrouter/owl-alpha")
+    """
+    import os as _os
+    import json as _json
+
+    # Read API key from hermes config
+    _env_path = _os.path.expanduser("~/.hermes/.env")
+    _api_key = ""
+    if _os.path.exists(_env_path):
+        with open(_env_path) as _f:
+            for _line in _f:
+                if _line.strip().startswith("OPENROUTER_API_KEY="):
+                    _api_key = _line.strip().split("=", 1)[1]
+                    break
+
+    if not _api_key:
+        raise RuntimeError("OPENROUTER_API_KEY not found in ~/.hermes/.env")
+
+    import urllib.request
+    import urllib.error
+
+    req_data = _json.dumps({
+        "model": model,
+        "messages": [{"role": "user", "content": prompt}],
+        "max_tokens": 200,
+    }).encode()
+
+    req = urllib.request.Request(
+        "https://openrouter.ai/api/v1/chat/completions",
+        data=req_data,
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {_api_key}",
+        },
+        method="POST",
+    )
+    with urllib.request.urlopen(req, timeout=timeout_s) as resp:
+        result = _json.loads(resp.read())
+        content = result["choices"][0]["message"]["content"]
+        return content.strip()
 
 
 # ── Prompt-Based Policy (Phase 3) ────────────────────────────────────────────
@@ -768,6 +969,7 @@ TEXT: <the exact text to speak, or "none">"""
         self._history = []
         self._last_spoken_script = ""
         self._log = []
+        self._llm_cache = {}
 
     @property
     def decision_log(self) -> List[Dict[str, Any]]:
@@ -858,9 +1060,16 @@ TEXT: <the exact text to speak, or "none">"""
         if self.config.llm_callable is None:
             return self._deterministic_fallback(context)
         prompt = self.DECISION_PROMPT.format(**context)
+        # Cache based on prompt content to avoid redundant LLM calls
+        if not hasattr(self, '_llm_cache'):
+            self._llm_cache = {}
+        if prompt in self._llm_cache:
+            return self._llm_cache[prompt]
         try:
             response = self.config.llm_callable(prompt)
-            return self._parse_response(response)
+            result = self._parse_response(response)
+            self._llm_cache[prompt] = result
+            return result
         except Exception:
             return self._deterministic_fallback(context)
 
@@ -927,7 +1136,7 @@ class SimulatorConfig:
     num_trials: int = 50
     time_step_ms: float = 30.0       # simulation tick (matches VAD frame)
     max_trial_duration_ms: float = 60000.0  # 60s max per trial
-    max_turns_per_trial: int = 20
+    max_turns_per_trial: int = 30
     user_config: UserBehaviorConfig = field(default_factory=UserBehaviorConfig)
     verbose: bool = False
     output_path: Optional[str] = None
@@ -988,6 +1197,8 @@ class SpeakingPolicySimulator:
         agent_speech_text = ""
         agent_speech_start_ms = 0.0
         collision_active = False
+        _pending_repair = False
+        _pending_clarify = False
 
         # Queue the first agent utterance
         if not self.user.done:
@@ -1002,6 +1213,14 @@ class SpeakingPolicySimulator:
                 if user_event["type"] in ("user_speech_start", "user_interrupt"):
                     user_speaking = True
                     self.policy.on_user_text(user_event["text"])
+
+                    # Track repair/clarify success: user responded
+                    if _pending_repair:
+                        m.repairs_successful += 1
+                        _pending_repair = False
+                    if _pending_clarify:
+                        m.clarifications_successful += 1
+                        _pending_clarify = False
 
                     if user_event["type"] == "user_interrupt" and agent_speaking:
                         m.interruptions += 1
@@ -1097,9 +1316,8 @@ class SpeakingPolicySimulator:
                 # Repair utterance — agent speaks briefly then yields floor
                 m.repairs_attempted += 1
                 repair_text = text
-                # Simulate repair speech (short ~1s)
                 repair_duration_ms = 1000.0
-                # The repair is "spoken" inline — we track it as a turn
+                self.policy.on_speech_start(repair_text, time_ms)
                 turn_records.append(TurnRecord(
                     turn_idx=m.total_turns,
                     speaker="agent",
@@ -1114,14 +1332,17 @@ class SpeakingPolicySimulator:
                 m.agent_turns += 1
                 last_turn_end_ms = time_ms + repair_duration_ms
                 last_speaker = "agent"
-                # After repair, user takes over — advance time past repair
                 time_ms += repair_duration_ms
+                self.policy.on_speech_end(repair_text, time_ms)
+                # Notify user that agent finished speaking
+                self.user.on_agent_speech_end(repair_text, repair_duration_ms, time_ms)
+                _pending_repair = True
 
             elif action == Action.CLARIFY:
                 m.clarifications += 1
                 clarify_text = text
-                # Simulate clarify speech
                 clarify_duration_ms = 1200.0
+                self.policy.on_speech_start(clarify_text, time_ms)
                 turn_records.append(TurnRecord(
                     turn_idx=m.total_turns,
                     speaker="agent",
@@ -1137,6 +1358,10 @@ class SpeakingPolicySimulator:
                 last_turn_end_ms = time_ms + clarify_duration_ms
                 last_speaker = "agent"
                 time_ms += clarify_duration_ms
+                self.policy.on_speech_end(clarify_text, time_ms)
+                # Notify user that agent finished speaking
+                self.user.on_agent_speech_end(clarify_text, clarify_duration_ms, time_ms)
+                _pending_clarify = True
 
             # 6. Simulate agent speech duration (based on text length)
             if agent_speaking:
@@ -1249,7 +1474,15 @@ def main():
     parser.add_argument("--policy", type=str, default="deterministic",
                         choices=["deterministic", "prompt"],
                         help="Policy type: deterministic or prompt")
+    parser.add_argument("--llm", action="store_true",
+                        help="Use hermes CLI as LLM callable for prompt policy")
     args = parser.parse_args()
+
+    # Configure prompt policy
+    prompt_config = PromptPolicyConfig()
+    if args.llm:
+        prompt_config.llm_callable = openrouter_llm_callable
+        prompt_config.model_name = "openrouter/owl-alpha"
 
     config = SimulatorConfig(
         num_trials=args.trials,
@@ -1258,6 +1491,7 @@ def main():
         seed=args.seed,
         max_trial_duration_ms=float(args.max_duration),
         policy_type=args.policy,
+        prompt_config=prompt_config,
     )
 
     print(f"M1 Speaking Policy Simulator — {args.policy} policy")

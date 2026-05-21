@@ -1,0 +1,295 @@
+{
+  "started_at": "2026-05-21T17:19:04.184596+00:00",
+  "scenarios": [
+    {
+      "name": "speak_on_silence",
+      "expected_action": "speak"
+    },
+    {
+      "name": "wait_while_user_speaks",
+      "expected_action": "wait"
+    },
+    {
+      "name": "yield_on_interrupt",
+      "expected_action": "yield"
+    },
+    {
+      "name": "yield_on_collision",
+      "expected_action": "yield"
+    },
+    {
+      "name": "clarify_after_silence",
+      "expected_action": "clarify"
+    },
+    {
+      "name": "repair_in_repair_state",
+      "expected_action": "repair"
+    }
+  ],
+  "models": [
+    {
+      "model": "hermes/current-config",
+      "kind": "hermes",
+      "model_id": "",
+      "results": [
+        {
+          "scenario": "speak_on_silence",
+          "expected_action": "speak",
+          "parsed_action": "speak",
+          "parsed_text": "Hello! How can I help you today?",
+          "latency_s": 3.825,
+          "ok": true,
+          "content": "ACTION: speak\nEXPLANATION: The user is silent and there is a queued utterance, so it is appropriate to speak.\nTEXT: Hello! How can I help you today?",
+          "error": null,
+          "model_used": "hermes:current-config"
+        },
+        {
+          "scenario": "wait_while_user_speaks",
+          "expected_action": "wait",
+          "parsed_action": "wait",
+          "parsed_text": "",
+          "latency_s": 3.512,
+          "ok": true,
+          "content": "ACTION: wait\nEXPLANATION: The user is still speaking, so I should hold and not interrupt.\nTEXT: none",
+          "error": null,
+          "model_used": "hermes:current-config"
+        },
+        {
+          "scenario": "yield_on_interrupt",
+          "expected_action": "yield",
+          "parsed_action": "yield",
+          "parsed_text": "",
+          "latency_s": 3.003,
+          "ok": true,
+          "content": "ACTION: yield\nEXPLANATION: The user interrupted the agent mid-sentence, so I should yield immediately.\nTEXT: none",
+          "error": null,
+          "model_used": "hermes:current-config"
+        },
+        {
+          "scenario": "yield_on_collision",
+          "expected_action": "yield",
+          "parsed_action": "yield",
+          "parsed_text": "",
+          "latency_s": 4.443,
+          "ok": true,
+          "content": "ACTION: yield\nEXPLANATION: The user is overlapping and there is no queued utterance, so I should yield the turn.\nTEXT: none",
+          "error": null,
+          "model_used": "hermes:current-config"
+        },
+        {
+          "scenario": "clarify_after_silence",
+          "expected_action": "clarify",
+          "parsed_action": "wait",
+          "parsed_text": "",
+          "latency_s": 4.513,
+          "ok": false,
+          "content": "ACTION: wait\nEXPLANATION: The user is silent but there is no queued utterance to speak, so I should wait.\nTEXT: none",
+          "error": null,
+          "model_used": "hermes:current-config"
+        },
+        {
+          "scenario": "repair_in_repair_state",
+          "expected_action": "repair",
+          "parsed_action": "repair",
+          "parsed_text": "Sorry, go ahead.",
+          "latency_s": 4.928,
+          "ok": true,
+          "content": "ACTION: repair\nEXPLANATION: The policy is already in repair state, so I should emit the queued repair utterance.\nTEXT: Sorry, go ahead.",
+          "error": null,
+          "model_used": "hermes:current-config"
+        }
+      ],
+      "summary": {
+        "accuracy": 0.8333333333333334,
+        "parse_rate": 1.0,
+        "avg_latency_s": 4.037,
+        "p95_latency_s": 4.928,
+        "correct": 5,
+        "scenarios": 6
+      }
+    },
+    {
+      "model": "openrouter/liquid-lfm-2.5-1.2b-instruct:free",
+      "kind": "openrouter",
+      "model_id": "liquid/lfm-2.5-1.2b-instruct:free",
+      "results": [
+        {
+          "scenario": "speak_on_silence",
+          "expected_action": "speak",
+          "parsed_action": "wait",
+          "parsed_text": "",
+          "latency_s": 0.663,
+          "ok": false,
+          "content": "ACTION: wait\nEXPLANATION: Ready to listen.",
+          "error": null,
+          "model_used": "liquid/lfm-2.5-1.2b-instruct-20260120:free"
+        },
+        {
+          "scenario": "wait_while_user_speaks",
+          "expected_action": "wait",
+          "parsed_action": "wait",
+          "parsed_text": "",
+          "latency_s": 0.442,
+          "ok": true,
+          "content": "ACTION: wait  \nEXPLANATION: The user is still speaking and a queued utterance exists.",
+          "error": null,
+          "model_used": "liquid/lfm-2.5-1.2b-instruct-20260120:free"
+        },
+        {
+          "scenario": "yield_on_interrupt",
+          "expected_action": "yield",
+          "parsed_action": "wait",
+          "parsed_text": "",
+          "latency_s": 0.457,
+          "ok": false,
+          "content": "ACTION: wait  \nEXPLANATION: The user is still speaking and an utterance is queued.",
+          "error": null,
+          "model_used": "liquid/lfm-2.5-1.2b-instruct-20260120:free"
+        },
+        {
+          "scenario": "yield_on_collision",
+          "expected_action": "yield",
+          "parsed_action": "wait",
+          "parsed_text": "(overlap)",
+          "latency_s": 0.687,
+          "ok": false,
+          "content": "ACTION: wait  \nEXPLANATION: The user was silent, so the system should wait and yield while the user speaks.  \nTEXT: (overlap)",
+          "error": null,
+          "model_used": "liquid/lfm-2.5-1.2b-instruct-20260120:free"
+        },
+        {
+          "scenario": "clarify_after_silence",
+          "expected_action": "clarify",
+          "parsed_action": "wait",
+          "parsed_text": "",
+          "latency_s": 0.595,
+          "ok": false,
+          "content": "ACTION: wait\nEXPLANATION: The user is not currently speaking, so no action is needed.",
+          "error": null,
+          "model_used": "liquid/lfm-2.5-1.2b-instruct-20260120:free"
+        },
+        {
+          "scenario": "repair_in_repair_state",
+          "expected_action": "repair",
+          "parsed_action": "wait",
+          "parsed_text": "",
+          "latency_s": 0.4,
+          "ok": false,
+          "content": "ACTION: wait  \nEXPLANATION: User is not speaking, so we wait for input.",
+          "error": null,
+          "model_used": "liquid/lfm-2.5-1.2b-instruct-20260120:free"
+        }
+      ],
+      "summary": {
+        "accuracy": 0.16666666666666666,
+        "parse_rate": 1.0,
+        "avg_latency_s": 0.541,
+        "p95_latency_s": 0.687,
+        "correct": 1,
+        "scenarios": 6
+      }
+    },
+    {
+      "model": "openrouter/openai-gpt-oss-safeguard-20b",
+      "kind": "openrouter",
+      "model_id": "openai/gpt-oss-safeguard-20b",
+      "results": [
+        {
+          "scenario": "speak_on_silence",
+          "expected_action": "speak",
+          "parsed_action": null,
+          "parsed_text": "",
+          "latency_s": 1.179,
+          "ok": false,
+          "content": "We need to follow the speaking policy. Rules: speak only when the user is silent and a queued utterance exists; wait while the user is speaking; yield on collision; clarify after no reply; repair when already in repair state.\n\nCurrent state: listen. Attribution: silence. Silence duration: 400ms. Has queued utterance: yes. Last agent utterance: Hello! How can I help you today? Last user utterance: none.\n\nThus we have a queued utterance and user silent. Should speak. So ACTION: speak. Explanation: user silent, queued utterance. Text: likely the queued utterance? But we already said last utterance was \"Hello! How can I help you today?\" That was the last agent utterance. But there's a queued",
+          "error": null,
+          "model_used": "openai/gpt-oss-safeguard-20b"
+        },
+        {
+          "scenario": "wait_while_user_speaks",
+          "expected_action": "wait",
+          "parsed_action": "wait",
+          "parsed_text": "",
+          "latency_s": 0.466,
+          "ok": true,
+          "content": "ACTION: wait\nEXPLANATION: The user is currently speaking, so we must wait",
+          "error": null,
+          "model_used": "openai/gpt-oss-safeguard-20b"
+        },
+        {
+          "scenario": "yield_on_interrupt",
+          "expected_action": "yield",
+          "parsed_action": null,
+          "parsed_text": "",
+          "latency_s": 0.92,
+          "ok": false,
+          "content": "We need to act according to policy: \"speak only when the user is silent and a queued utterance exists; wait while the user is speaking; yield immediately if the user interrupts the agent mid-sentence; clarify after no reply; repair when already in repair state.\"\n\nCurrent state: speak. There's a queued utterance? No. Last agent utterance: \"Hello! I would like to tell you about our new service tier.\" Last user utterance: \"Sorry to interrupt, but I need help right now.\"\n\nWe must choose action. The user is not silent—they are speaking. So we should wait? But user is speaking. Policy says \"wait while user is speaking.\" So ACTION: wait. Explanation: because user is currently speaking. TEXT: none.",
+          "error": null,
+          "model_used": "openai/gpt-oss-safeguard-20b"
+        },
+        {
+          "scenario": "yield_on_collision",
+          "expected_action": "yield",
+          "parsed_action": null,
+          "parsed_text": "",
+          "latency_s": 1.241,
+          "ok": false,
+          "content": "We need to interpret the rules. The state is speak. We have a queued utterance? none. Last agent utterance is \"Hello! I would like to tell you about our new service tier.\" Last user utterance is \"(overlap)\" meaning user is speaking? The rule: speak only when the user is silent and a queued utterance exists; wait while the user is speaking; yield on collision; clarify after no reply; repair when already in repair state.\n\nCurrently we are in speak state. But the last user utterance is overlap, meaning the user is speaking at the same time? So we should yield? Actually, rules: \"wait while user is speaking\" if we are not speaking. But we have speak state, maybe we are supposed to speak but user",
+          "error": null,
+          "model_used": "openai/gpt-oss-safeguard-20b"
+        },
+        {
+          "scenario": "clarify_after_silence",
+          "expected_action": "clarify",
+          "parsed_action": null,
+          "parsed_text": "",
+          "latency_s": 0.588,
+          "ok": false,
+          "content": "We need to output a response according to the policy. The policy says: speak only when the user is silent and a queued utterance exists; wait while the user is speaking; yield on collision; clarify after no reply; repair when already in repair state.\n\nCurrent state: listen. Attribution: silence. Silence duration 2500ms. Has queued utterance: no. Last user utterance: \"Yes, it keeps making a weird noise.\"\n\nThus user is presumably speaking? Wait, the policy says we are in state listen, attribution silence means no user utterance detected? Actually last user utterance is given. But it's not silent? However we have silence duration 2500ms meaning the user hasn't spoken for 2500 ms. We also have no queued utterance.",
+          "error": null,
+          "model_used": "openai/gpt-oss-safeguard-20b"
+        },
+        {
+          "scenario": "repair_in_repair_state",
+          "expected_action": "repair",
+          "parsed_action": null,
+          "parsed_text": "",
+          "latency_s": 0.563,
+          "ok": false,
+          "content": "We need to produce a reply according to the policy. The state is \"repair\". The last agent utterance: \"Sorry, go ahead.\" Last user utterance: (none). Silence duration 0ms, no queued utterance, repair utterance queued: \"Sorry, go ahead.\" So we are in repair state. According to rules: speak only when the user is silent and a queued utterance exists; wait while the user is speaking; yield on collision; clarify after no reply; repair when already in repair state.\n\nWe are currently in repair state, and we have a repair utterance queued. The last user utterance is none, but presumably user is silent. We should speak the repair utterance? However the state is repair, which may indicate we should respond",
+          "error": null,
+          "model_used": "openai/gpt-oss-safeguard-20b"
+        }
+      ],
+      "summary": {
+        "accuracy": 0.16666666666666666,
+        "parse_rate": 0.16666666666666666,
+        "avg_latency_s": 0.826,
+        "p95_latency_s": 1.241,
+        "correct": 1,
+        "scenarios": 6
+      }
+    }
+  ],
+  "ranked": [
+    {
+      "model": "hermes/current-config",
+      "accuracy": 0.8333333333333334,
+      "parse_rate": 1.0,
+      "avg_latency_s": 4.037
+    },
+    {
+      "model": "openrouter/liquid-lfm-2.5-1.2b-instruct:free",
+      "accuracy": 0.16666666666666666,
+      "parse_rate": 1.0,
+      "avg_latency_s": 0.541
+    },
+    {
+      "model": "openrouter/openai-gpt-oss-safeguard-20b",
+      "accuracy": 0.16666666666666666,
+      "parse_rate": 0.16666666666666666,
+      "avg_latency_s": 0.826
+    }
+  ],
+  "finished_at": "2026-05-21T17:19:36.623831+00:00"
+}
