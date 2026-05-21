@@ -1,0 +1,81 @@
+{
+  "checkpoint": "results/m2_model_checkpoints/distilled_v3/final_model.pt",
+  "device": "cpu",
+  "guarded": true,
+  "dataset_report": {
+    "accuracy": 0.9863171123461851,
+    "per_action_accuracy": {
+      "speak": 1.0,
+      "wait": 0.9863636516719598,
+      "clarify": 0.8602150537634409,
+      "repair": 0.9319727891156463,
+      "yield": 1.0
+    },
+    "samples": 297598
+  },
+  "scenario_report": {
+    "accuracy": 1.0,
+    "results": [
+      {
+        "name": "speak_on_silence",
+        "expected": "speak",
+        "predicted": "speak",
+        "correct": true
+      },
+      {
+        "name": "wait_while_user_speaks",
+        "expected": "wait",
+        "predicted": "wait",
+        "correct": true
+      },
+      {
+        "name": "yield_on_interrupt",
+        "expected": "yield",
+        "predicted": "yield",
+        "correct": true
+      },
+      {
+        "name": "yield_on_collision",
+        "expected": "yield",
+        "predicted": "yield",
+        "correct": true
+      },
+      {
+        "name": "clarify_after_silence",
+        "expected": "clarify",
+        "predicted": "clarify",
+        "correct": true
+      },
+      {
+        "name": "repair_in_repair_state",
+        "expected": "repair",
+        "predicted": "repair",
+        "correct": true
+      }
+    ]
+  },
+  "checkpoint_meta": {
+    "epoch": 10,
+    "val_accuracy": 0.9862583168945802,
+    "args": {
+      "mode": "distill",
+      "data": [
+        "results/m2_data_deterministic.jsonl",
+        "results/m2_data_teacher.jsonl",
+        "results/m2_data_hardneg_v2.jsonl"
+      ],
+      "teacher_data": null,
+      "hardneg_data": null,
+      "output_dir": "results/m2_model_checkpoints/distilled_v3",
+      "epochs": 10,
+      "batch_size": 512,
+      "lr": 0.0005,
+      "hidden_dim": 64,
+      "dropout": 0.1,
+      "alpha": 0.6,
+      "temperature": 2.0,
+      "val_split": 0.1,
+      "seed": 42
+    }
+  }
+}
