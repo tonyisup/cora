@@ -1,0 +1,123 @@
+{
+  "started_at": "2026-05-21T22:38:13.454752+00:00",
+  "few_shot": false,
+  "scenarios": [
+    {
+      "name": "speak_on_silence",
+      "expected_action": "speak"
+    },
+    {
+      "name": "wait_while_user_speaks",
+      "expected_action": "wait"
+    },
+    {
+      "name": "yield_on_interrupt",
+      "expected_action": "yield"
+    },
+    {
+      "name": "yield_on_collision",
+      "expected_action": "yield"
+    },
+    {
+      "name": "clarify_after_silence",
+      "expected_action": "clarify"
+    },
+    {
+      "name": "repair_in_repair_state",
+      "expected_action": "repair"
+    }
+  ],
+  "models": [
+    {
+      "model": "local-omlx/gemma-4-26b-a4b-it-4bit",
+      "kind": "local-omlx",
+      "model_id": "gemma-4-26b-a4b-it-4bit",
+      "few_shot": false,
+      "results": [
+        {
+          "scenario": "speak_on_silence",
+          "expected_action": "speak",
+          "parsed_action": "speak",
+          "parsed_text": "Hello! How can I help you today?",
+          "latency_s": 4.366,
+          "ok": true,
+          "content": "ACTION: speak\nEXPLANATION: A queued utterance exists and the user is silent.\nTEXT: Hello! How can I help you today?",
+          "error": null,
+          "model_used": "gemma-4-26b-a4b-it-4bit"
+        },
+        {
+          "scenario": "wait_while_user_speaks",
+          "expected_action": "wait",
+          "parsed_action": "wait",
+          "parsed_text": "",
+          "latency_s": 1.01,
+          "ok": true,
+          "content": "ACTION: wait\nEXPLANATION: The user is currently speaking as indicated by the attribution and the content of the last utterance.\nTEXT: none",
+          "error": null,
+          "model_used": "gemma-4-26b-a4b-it-4bit"
+        },
+        {
+          "scenario": "yield_on_interrupt",
+          "expected_action": "yield",
+          "parsed_action": "yield",
+          "parsed_text": "",
+          "latency_s": 0.933,
+          "ok": true,
+          "content": "ACTION: yield\nEXPLANATION: The user is currently speaking, so the agent must yield to avoid collision.\nTEXT: none",
+          "error": null,
+          "model_used": "gemma-4-26b-a4b-it-4bit"
+        },
+        {
+          "scenario": "yield_on_collision",
+          "expected_action": "yield",
+          "parsed_action": "wait",
+          "parsed_text": "",
+          "latency_s": 0.91,
+          "ok": false,
+          "content": "ACTION: wait\nEXPLANATION: The user is currently speaking, so the policy must wait and yield.\nTEXT: none",
+          "error": null,
+          "model_used": "gemma-4-26b-a4b-it-4bit"
+        },
+        {
+          "scenario": "clarify_after_silence",
+          "expected_action": "clarify",
+          "parsed_action": "wait",
+          "parsed_text": "",
+          "latency_s": 0.938,
+          "ok": false,
+          "content": "ACTION: wait\nEXPLANATION: The user is currently silent and there are no queued utterances to process.\nTEXT: none",
+          "error": null,
+          "model_used": "gemma-4-26b-a4b-it-4bit"
+        },
+        {
+          "scenario": "repair_in_repair_state",
+          "expected_action": "repair",
+          "parsed_action": "repair",
+          "parsed_text": "Sorry, go ahead.",
+          "latency_s": 0.996,
+          "ok": true,
+          "content": "ACTION: repair\nEXPLANATION: The system is in a repair state with a queued utterance to address previous silence.\nTEXT: Sorry, go ahead.",
+          "error": null,
+          "model_used": "gemma-4-26b-a4b-it-4bit"
+        }
+      ],
+      "summary": {
+        "accuracy": 0.6666666666666666,
+        "parse_rate": 1.0,
+        "avg_latency_s": 1.525,
+        "p95_latency_s": 4.366,
+        "correct": 4,
+        "scenarios": 6
+      }
+    }
+  ],
+  "ranked": [
+    {
+      "model": "local-omlx/gemma-4-26b-a4b-it-4bit",
+      "accuracy": 0.6666666666666666,
+      "parse_rate": 1.0,
+      "avg_latency_s": 1.525
+    }
+  ],
+  "finished_at": "2026-05-21T22:38:22.609606+00:00"
+}

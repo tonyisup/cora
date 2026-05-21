@@ -1,0 +1,123 @@
+{
+  "started_at": "2026-05-21T22:37:02.317304+00:00",
+  "few_shot": false,
+  "scenarios": [
+    {
+      "name": "speak_on_silence",
+      "expected_action": "speak"
+    },
+    {
+      "name": "wait_while_user_speaks",
+      "expected_action": "wait"
+    },
+    {
+      "name": "yield_on_interrupt",
+      "expected_action": "yield"
+    },
+    {
+      "name": "yield_on_collision",
+      "expected_action": "yield"
+    },
+    {
+      "name": "clarify_after_silence",
+      "expected_action": "clarify"
+    },
+    {
+      "name": "repair_in_repair_state",
+      "expected_action": "repair"
+    }
+  ],
+  "models": [
+    {
+      "model": "local-omlx/gemma-4-26b-a4b-it-4bit",
+      "kind": "local-omlx",
+      "model_id": "gemma-4-26b-a4b-it-4bit",
+      "few_shot": false,
+      "results": [
+        {
+          "scenario": "speak_on_silence",
+          "expected_action": "speak",
+          "parsed_action": "speak",
+          "parsed_text": "Hello! How can I help you today?",
+          "latency_s": 18.049,
+          "ok": true,
+          "content": "ACTION: speak\nEXPLANATION: The user is silent and there is a queued utterance to be delivered.\nTEXT: Hello! How can I help you today?",
+          "error": null,
+          "model_used": "gemma-4-26b-a4b-it-4bit"
+        },
+        {
+          "scenario": "wait_while_user_speaks",
+          "expected_action": "wait",
+          "parsed_action": "wait",
+          "parsed_text": "",
+          "latency_s": 0.915,
+          "ok": true,
+          "content": "ACTION: wait\nEXPLANATION: The user is currently speaking and has not yet reached a silence threshold.\nTEXT: none",
+          "error": null,
+          "model_used": "gemma-4-26b-a4b-it-4bit"
+        },
+        {
+          "scenario": "yield_on_interrupt",
+          "expected_action": "yield",
+          "parsed_action": "yield",
+          "parsed_text": "",
+          "latency_s": 0.982,
+          "ok": true,
+          "content": "ACTION: yield\nEXPLANATION: The user interrupted with an urgent request, necessitating an immediate yield to the user.\nTEXT: none",
+          "error": null,
+          "model_used": "gemma-4-26b-a4b-it-4bit"
+        },
+        {
+          "scenario": "yield_on_collision",
+          "expected_action": "yield",
+          "parsed_action": "wait",
+          "parsed_text": "",
+          "latency_s": 0.925,
+          "ok": false,
+          "content": "ACTION: wait\nEXPLANATION: The user is currently speaking, so the policy must wait and not interrupt.\nTEXT: none",
+          "error": null,
+          "model_used": "gemma-4-26b-a4b-it-4bit"
+        },
+        {
+          "scenario": "clarify_after_silence",
+          "expected_action": "clarify",
+          "parsed_action": "wait",
+          "parsed_text": "",
+          "latency_s": 0.971,
+          "ok": false,
+          "content": "ACTION: wait\nEXPLANATION: The agent should wait because there is no queued utterance and the user is currently silent.\nTEXT: none",
+          "error": null,
+          "model_used": "gemma-4-26b-a4b-it-4bit"
+        },
+        {
+          "scenario": "repair_in_repair_state",
+          "expected_action": "repair",
+          "parsed_action": "repair",
+          "parsed_text": "",
+          "latency_s": 1.023,
+          "ok": true,
+          "content": "ACTION: repair\nEXPLANATION: The system is in a repair state due to silence, but no queued utterance is available to resolve the state.\nTEXT: none",
+          "error": null,
+          "model_used": "gemma-4-26b-a4b-it-4bit"
+        }
+      ],
+      "summary": {
+        "accuracy": 0.6666666666666666,
+        "parse_rate": 1.0,
+        "avg_latency_s": 3.811,
+        "p95_latency_s": 18.049,
+        "correct": 4,
+        "scenarios": 6
+      }
+    }
+  ],
+  "ranked": [
+    {
+      "model": "local-omlx/gemma-4-26b-a4b-it-4bit",
+      "accuracy": 0.6666666666666666,
+      "parse_rate": 1.0,
+      "avg_latency_s": 3.811
+    }
+  ],
+  "finished_at": "2026-05-21T22:37:25.190669+00:00"
+}

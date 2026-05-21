@@ -54,134 +54,120 @@ class ModelSpec:
     model: str
     timeout_s: float = 60.0
 
+SYSTEM_PROMPT = """/nothink\n"
+            <|im_start|>system\n"
+            "nothinking\n"
+            "Do not overthink. Be direct and strict with the formatting. Do not add any additional text or explanation.
+            "You are a speaking policy.\n"
+            "Rules: speak only when the user is silent and a queued utterance exists;\n"
+            "wait while the user is speaking; yield on collision; clarify after no reply;\n"
+            "repair when already in repair state.\n\n"
+            "REPLY ONLY IN THE FOLLOWING FORMAT EXACTLY WITH NO ADDITIONAL TEXT:\n"
+            "ACTION: <speak|wait|clarify|repair|yield>\n"
+            "EXPLANATION: <1 sentence>\n"
+            "TEXT: <text or none>\n"
+            "<|im_end|>\n"""
 
 SCENARIOS: List[Scenario] = [
     Scenario(
         name="speak_on_silence",
         expected_action="speak",
         prompt=(
-            "You are a speaking policy.\n"
-            "Rules: speak only when the user is silent and a queued utterance exists;\n"
-            "wait while the user is speaking; yield on collision; clarify after no reply;\n"
-            "repair when already in repair state.\n\n"
+            SYSTEM_PROMPT + "\n" +
+            "<|im_start|>user\n"
             "State: listen\n"
             "Attribution: silence\n"
             "Silence duration: 400ms\n"
             "Has queued utterance: yes\n"
             "Last agent utterance: Hello! How can I help you today?\n"
-            "Last user utterance: (none)\n\n"
-            "Reply exactly with:\n"
-            "ACTION: <speak|wait|clarify|repair|yield>\n"
-            "EXPLANATION: <1 sentence>\n"
-            "TEXT: <text or none>"
+            "Last user utterance: (none)\n"
+            "<|im_end|>\n"
         ),
     ),
     Scenario(
         name="wait_while_user_speaks",
         expected_action="wait",
         prompt=(
-            "You are a speaking policy.\n"
-            "Rules: speak only when the user is silent and a queued utterance exists;\n"
-            "wait while the user is speaking; yield on collision; clarify after no reply;\n"
-            "repair when already in repair state.\n\n"
+            SYSTEM_PROMPT + "\n" +
+            "<|im_start|>user\n"    
             "State: listen\n"
             "Attribution: user\n"
             "Silence duration: 120ms\n"
             "Has queued utterance: yes\n"
             "Last agent utterance: Okay, tell me more.\n"
             "Last user utterance: I'm still talking about the account issue.\n\n"
-            "Reply exactly with:\n"
-            "ACTION: <speak|wait|clarify|repair|yield>\n"
-            "EXPLANATION: <1 sentence>\n"
-            "TEXT: <text or none>"
+            "<|im_end|>\n"
         ),
     ),
     Scenario(
         name="yield_on_interrupt",
         expected_action="yield",
         prompt=(
-            "You are a speaking policy.\n"
-            "Rules: speak only when the user is silent and a queued utterance exists;\n"
-            "wait while the user is speaking; yield immediately if the user interrupts\n"
-            "the agent mid-sentence; clarify after no reply; repair when already in repair state.\n\n"
+            SYSTEM_PROMPT + "\n" +
+            "<|im_start|>user\n"
             "State: speak\n"
             "Attribution: user\n"
             "Silence duration: 0ms\n"
             "Has queued utterance: no\n"
             "Last agent utterance: Hello! I would like to tell you about our new service tier.\n"
             "Last user utterance: Sorry to interrupt, but I need help right now.\n\n"
-            "Reply exactly with:\n"
-            "ACTION: <speak|wait|clarify|repair|yield>\n"
-            "EXPLANATION: <1 sentence>\n"
-            "TEXT: <text or none>"
+            "<|im_end|>\n"
         ),
     ),
     Scenario(
         name="yield_on_collision",
         expected_action="yield",
         prompt=(
-            "You are a speaking policy.\n"
-            "Rules: speak only when the user is silent and a queued utterance exists;\n"
-            "wait while the user is speaking; yield on collision; clarify after no reply;\n"
-            "repair when already in repair state.\n\n"
+            SYSTEM_PROMPT + "\n" +
+            "<|im_start|>user\n"
             "State: speak\n"
             "Attribution: both\n"
             "Silence duration: 0ms\n"
             "Has queued utterance: no\n"
             "Last agent utterance: Hello! I would like to tell you about our new service tier.\n"
-            "Last user utterance: (overlap)\n\n"
-            "Reply exactly with:\n"
-            "ACTION: <speak|wait|clarify|repair|yield>\n"
-            "EXPLANATION: <1 sentence>\n"
-            "TEXT: <text or none>"
+            "Last user utterance: (overlap)\n"
+            "<|im_end|>\n"
         ),
     ),
     Scenario(
         name="clarify_after_silence",
         expected_action="clarify",
         prompt=(
-            "You are a speaking policy.\n"
-            "Rules: speak only when the user is silent and a queued utterance exists;\n"
-            "wait while the user is speaking; yield on collision; clarify after no reply;\n"
-            "repair when already in repair state.\n\n"
+            SYSTEM_PROMPT + "\n" +
+            "<|im_start|>user\n"
             "State: listen\n"
             "Attribution: silence\n"
             "Silence duration: 2500ms\n"
             "Has queued utterance: no\n"
             "Last agent utterance: Could you describe the sound?\n"
-            "Last user utterance: Yes, it keeps making a weird noise.\n\n"
-            "Reply exactly with:\n"
-            "ACTION: <speak|wait|clarify|repair|yield>\n"
-            "EXPLANATION: <1 sentence>\n"
-            "TEXT: <text or none>"
+            "Last user utterance: Yes, it keeps making a weird noise.\n"
+            "<|im_end|>\n"
         ),
     ),
     Scenario(
         name="repair_in_repair_state",
         expected_action="repair",
         prompt=(
-            "You are a speaking policy.\n"
-            "Rules: speak only when the user is silent and a queued utterance exists;\n"
-            "wait while the user is speaking; yield on collision; clarify after no reply;\n"
-            "repair when already in repair state.\n\n"
+            SYSTEM_PROMPT + "\n" +
+            "<|im_start|>user\n"
             "State: repair\n"
             "Attribution: silence\n"
             "Silence duration: 0ms\n"
             "Has queued utterance: no\n"
             "Repair utterance queued: Sorry, go ahead.\n"
             "Last agent utterance: Sorry, go ahead.\n"
-            "Last user utterance: (none)\n\n"
-            "Reply exactly with:\n"
-            "ACTION: <speak|wait|clarify|repair|yield>\n"
-            "EXPLANATION: <1 sentence>\n"
-            "TEXT: <text or none>"
+            "Last user utterance: (none)\n"
+            "<|im_end|>\n"
         ),
     ),
 ]
 
 MODELS: List[ModelSpec] = [
-    ModelSpec(name="hermes/openai-codex:gpt-5.4-mini", kind="hermes", model="gpt-5.4-mini"),
-    ModelSpec(name="hermes/openai-codex:gpt-5.4-codex", kind="hermes", model="gpt-5.3-codex"),
+    ModelSpec(name="local-omlx/gemma-4-26b-a4b-it-4bit", kind="local-omlx", model="gemma-4-26b-a4b-it-4bit"),
+    # ModelSpec(name="local-omlx/gemma-4-e4b-it-4bit", kind="local-omlx", model="gemma-4-e4b-it-4bit"),
+    # ModelSpec(name="local-omlx/Qwen3.5-9B-MLX-4bit", kind="local-omlx", model="Qwen3.5-9B-MLX-4bit"),
+    # ModelSpec(name="hermes/openai-codex:gpt-5.4-mini", kind="hermes", model="gpt-5.4-mini"),
+    # ModelSpec(name="hermes/openai-codex:gpt-5.4-codex", kind="hermes", model="gpt-5.3-codex"),
     # ModelSpec(name="hermes/openai-codex:gpt-5.5", kind="hermes", model="gpt-5.5"),
     # ModelSpec(name="openrouter/owl-alpha", kind="openrouter", model="openrouter/owl-alpha"),
     # ModelSpec(name="openrouter/liquid-lfm-2.5-1.2b-instruct:free", kind="openrouter", model="liquid/lfm-2.5-1.2b-instruct:free"),
@@ -284,16 +270,21 @@ def call_hermes(prompt: str, model: str, timeout_s: float) -> Dict[str, Any]:
         "model_used": f"hermes:{model or 'current-config'}",
     }
 
+LOCAL_OMLX_URL = "http://127.0.0.1:8666/v1/chat/completions"
 
-def call_openrouter(prompt: str, model: str, timeout_s: float) -> Dict[str, Any]:
-    key = read_openrouter_key()
+
+def call_local_omlx(prompt: str, model: str, timeout_s: float) -> Dict[str, Any]:
+    return call_openrouter(prompt, model, timeout_s, key="a2b4", url=LOCAL_OMLX_URL)
+
+def call_openrouter(prompt: str, model: str, timeout_s: float, key: str = None, url: str = OPENROUTER_URL) -> Dict[str, Any]:
+    key = key or read_openrouter_key()
     payload = {
         "model": model,
         "messages": [{"role": "user", "content": prompt}],
         "max_tokens": 160,
     }
     req = urllib.request.Request(
-        OPENROUTER_URL,
+        url,
         data=json.dumps(payload).encode(),
         headers={
             "Content-Type": "application/json",
@@ -339,8 +330,11 @@ def benchmark_model(model: ModelSpec, few_shot: bool = False) -> Dict[str, Any]:
     rows: List[Dict[str, Any]] = []
     for scenario in SCENARIOS:
         prompt = (FEW_SHOT_PREFIX + "\n" + scenario.prompt) if few_shot else scenario.prompt
+
         if model.kind == "hermes":
             out = call_hermes(prompt, model.model, model.timeout_s)
+        elif model.kind == "local-omlx":
+            out = call_local_omlx(prompt, model.model, model.timeout_s)
         else:
             out = call_openrouter(prompt, model.model, model.timeout_s)
 

@@ -1,0 +1,299 @@
+{
+  "started_at": "2026-05-21T21:58:59.438154+00:00",
+  "few_shot": false,
+  "scenarios": [
+    {
+      "name": "speak_on_silence",
+      "expected_action": "speak"
+    },
+    {
+      "name": "wait_while_user_speaks",
+      "expected_action": "wait"
+    },
+    {
+      "name": "yield_on_interrupt",
+      "expected_action": "yield"
+    },
+    {
+      "name": "yield_on_collision",
+      "expected_action": "yield"
+    },
+    {
+      "name": "clarify_after_silence",
+      "expected_action": "clarify"
+    },
+    {
+      "name": "repair_in_repair_state",
+      "expected_action": "repair"
+    }
+  ],
+  "models": [
+    {
+      "model": "local-omlx/Qwen3.5-27B-Claude-4.6-Opus-Distilled-MLX-4bit",
+      "kind": "local-omlx",
+      "model_id": "Qwen3.5-27B-Claude-4.6-Opus-Distilled-MLX-4bit",
+      "few_shot": false,
+      "results": [
+        {
+          "scenario": "speak_on_silence",
+          "expected_action": "speak",
+          "parsed_action": null,
+          "parsed_text": "",
+          "latency_s": 31.447,
+          "ok": false,
+          "content": "Let me analyze the dialogue state and apply the speaking policy rules:\n\nCurrent state analysis:\n- State: listen\n- Attribution: silence (user is not speaking)\n- Silence duration: 400ms\n- Has queued utterance: yes\n- Last agent utterance: \"Hello! How can I help you today?\"\n- Last user utterance: (none) - this is the initial greeting\n\nApplying the rules:\n1. \"speak only when the user is silent and a queued utterance exists\" - User is silent ✓ AND has queued utterance ✓ → Condition met for SPEAK\n2. \"wait while the user is speaking\" - User is not speaking, so this doesn't apply\n3. \"yield on collision\" - No collision",
+          "error": null,
+          "model_used": "Qwen3.5-27B-Claude-4.6-Opus-Distilled-MLX-4bit"
+        },
+        {
+          "scenario": "wait_while_user_speaks",
+          "expected_action": "wait",
+          "parsed_action": null,
+          "parsed_text": "",
+          "latency_s": 12.754,
+          "ok": false,
+          "content": "Let me analyze this conversation state step by step.\n\n**Current State Analysis:**\n- State: listen (user is speaking)\n- Attribution: user (current speaker is user)\n- Silence duration: 120ms (very brief, user just spoke)\n- Has queued utterance: yes (agent has something ready to say)\n- Last user utterance: \"I'm still talking about the account issue.\"\n\n**Applying the Policy Rules:**\n\n1. **\"Speak only when the user is silent and a queued utterance exists\"**\n   - User is NOT silent (state is \"listen\", silence is only 120ms, user just spoke)\n   - Queued utterance: YES\n   - Condition for SPEAK: NOT met (",
+          "error": null,
+          "model_used": "Qwen3.5-27B-Claude-4.6-Opus-Distilled-MLX-4bit"
+        },
+        {
+          "scenario": "yield_on_interrupt",
+          "expected_action": "yield",
+          "parsed_action": null,
+          "parsed_text": "",
+          "latency_s": 12.668,
+          "ok": false,
+          "content": "Let me analyze this conversation state carefully against the speaking policy rules:\n\nCurrent State Analysis:\n- Current action state: speak\n- Attribution: user (user is currently speaking)\n- Silence duration: 0ms (user is actively speaking, no pause)\n- Has queued utterance: no\n- User just said: \"Sorry to interrupt, but I need help right now.\"\n\nApplying the rules:\n1. \"speak only when the user is silent and a queued utterance exists\" - NOT met. User is speaking (0ms silence), and there's no queued utterance.\n2. \"wait while the user is speaking\" - YES, this applies. The user has attribution and 0ms silence means they're actively speaking.\n3. \"",
+          "error": null,
+          "model_used": "Qwen3.5-27B-Claude-4.6-Opus-Distilled-MLX-4bit"
+        },
+        {
+          "scenario": "yield_on_collision",
+          "expected_action": "yield",
+          "parsed_action": null,
+          "parsed_text": "",
+          "latency_s": 12.685,
+          "ok": false,
+          "content": "Let me analyze the current state against the speaking policy rules:\n\n**Current State Analysis:**\n- State: speak\n- Attribution: both (indicates overlap/both parties speaking)\n- Silence duration: 0ms (no silence - active speaking happening)\n- Has queued utterance: no\n- Last user utterance: (overlap) - user is speaking simultaneously with agent\n\n**Evaluating Each Rule:**\n\n1. \"speak only when the user is silent and a queued utterance exists\"\n   - User is NOT silent (overlap detected, silence = 0ms)\n   - No queued utterance exists\n   - → CANNOT speak\n\n2. \"wait while the user is speaking\"\n   - User IS speaking (overlap, attribution: both",
+          "error": null,
+          "model_used": "Qwen3.5-27B-Claude-4.6-Opus-Distilled-MLX-4bit"
+        },
+        {
+          "scenario": "clarify_after_silence",
+          "expected_action": "clarify",
+          "parsed_action": null,
+          "parsed_text": "",
+          "latency_s": 12.717,
+          "ok": false,
+          "content": "Let me analyze the current state:\n\n1. State: listen\n2. User is currently silent (2500ms of silence)\n3. No queued utterance available\n4. Last agent utterance was \"Could you describe the sound?\"\n5. User responded \"Yes, it keeps making a weird noise.\" - which acknowledged but didn't fully describe the sound\n\nAccording to the speaking policy:\n- Speak: only when user is silent AND a queued utterance exists\n- Wait: while user is speaking\n- Yield: on collision\n- Clarify: after no reply (or incomplete reply that needs more detail)\n- Repair: when already in repair state\n\nAnalysis:\n- User is silent for 2500ms (2.5 seconds)",
+          "error": null,
+          "model_used": "Qwen3.5-27B-Claude-4.6-Opus-Distilled-MLX-4bit"
+        },
+        {
+          "scenario": "repair_in_repair_state",
+          "expected_action": "repair",
+          "parsed_action": null,
+          "parsed_text": "",
+          "latency_s": 13.017,
+          "ok": false,
+          "content": "Let me analyze the current state against the speaking policy rules:\n\nCurrent State Analysis:\n- State: repair\n- Attribution: silence\n- Silence duration: 0ms\n- Has queued utterance: no\n- Repair utterance queued: \"Sorry, go ahead.\"\n- Last agent utterance: \"Sorry, go ahead.\"\n- Last user utterance: (none)\n\nChecking each rule:\n1. \"speak only when the user is silent and a queued utterance exists\" - User is silent ✓, but no queued utterance ✗ → Cannot speak\n2. \"wait while the user is speaking\" - User is not speaking (silence) → Not applicable\n3. \"yield on collision\" - No collision detected → Not applicable\n4.",
+          "error": null,
+          "model_used": "Qwen3.5-27B-Claude-4.6-Opus-Distilled-MLX-4bit"
+        }
+      ],
+      "summary": {
+        "accuracy": 0.0,
+        "parse_rate": 0.0,
+        "avg_latency_s": 15.881,
+        "p95_latency_s": 31.447,
+        "correct": 0,
+        "scenarios": 6
+      }
+    },
+    {
+      "model": "local-omlx/gemma-4-e4b-it-4bit",
+      "kind": "local-omlx",
+      "model_id": "gemma-4-e4b-it-4bit",
+      "few_shot": false,
+      "results": [
+        {
+          "scenario": "speak_on_silence",
+          "expected_action": "speak",
+          "parsed_action": "wait",
+          "parsed_text": "",
+          "latency_s": 6.02,
+          "ok": false,
+          "content": "ACTION: wait\nEXPLANATION: The user is silent, and I should wait for their response.\nTEXT: none",
+          "error": null,
+          "model_used": "gemma-4-e4b-it-4bit"
+        },
+        {
+          "scenario": "wait_while_user_speaks",
+          "expected_action": "wait",
+          "parsed_action": "wait",
+          "parsed_text": "",
+          "latency_s": 1.005,
+          "ok": true,
+          "content": "agent\nACTION: wait\nEXPLANATION: The user is still talking, so the agent must remain silent.\nTEXT: none",
+          "error": null,
+          "model_used": "gemma-4-e4b-it-4bit"
+        },
+        {
+          "scenario": "yield_on_interrupt",
+          "expected_action": "yield",
+          "parsed_action": "wait",
+          "parsed_text": "",
+          "latency_s": 0.798,
+          "ok": false,
+          "content": "ACTION: wait\nEXPLANATION: The user is in a state to speak, but the agent must wait for the user to finish speaking.\nTEXT: none",
+          "error": null,
+          "model_used": "gemma-4-e4b-it-4bit"
+        },
+        {
+          "scenario": "yield_on_collision",
+          "expected_action": "yield",
+          "parsed_action": "wait",
+          "parsed_text": "",
+          "latency_s": 0.58,
+          "ok": false,
+          "content": "ACTION: wait\nEXPLANATION: I must wait while the user is speaking.\nTEXT: none",
+          "error": null,
+          "model_used": "gemma-4-e4b-it-4bit"
+        },
+        {
+          "scenario": "clarify_after_silence",
+          "expected_action": "clarify",
+          "parsed_action": "wait",
+          "parsed_text": "",
+          "latency_s": 0.852,
+          "ok": false,
+          "content": "agent\nACTION: wait\nEXPLANATION: The user is currently speaking and has not indicated a pause.\nTEXT: none",
+          "error": null,
+          "model_used": "gemma-4-e4b-it-4bit"
+        },
+        {
+          "scenario": "repair_in_repair_state",
+          "expected_action": "repair",
+          "parsed_action": "wait",
+          "parsed_text": "",
+          "latency_s": 0.649,
+          "ok": false,
+          "content": "ACTION: wait\nEXPLANATION: The user is silent and a repair utterance has been acknowledged.\nTEXT: none",
+          "error": null,
+          "model_used": "gemma-4-e4b-it-4bit"
+        }
+      ],
+      "summary": {
+        "accuracy": 0.16666666666666666,
+        "parse_rate": 1.0,
+        "avg_latency_s": 1.651,
+        "p95_latency_s": 6.02,
+        "correct": 1,
+        "scenarios": 6
+      }
+    },
+    {
+      "model": "local-omlx/Qwen3.5-9B-MLX-4bit",
+      "kind": "local-omlx",
+      "model_id": "Qwen3.5-9B-MLX-4bit",
+      "few_shot": false,
+      "results": [
+        {
+          "scenario": "speak_on_silence",
+          "expected_action": "speak",
+          "parsed_action": "speak",
+          "parsed_text": "Hello! How can I help you today?",
+          "latency_s": 6.102,
+          "ok": true,
+          "content": "ACTION: speak\nEXPLANATION: Since the user has been silent for 400ms and there is a queued utterance, it is time to deliver the response.\nTEXT: Hello! How can I help you today?",
+          "error": null,
+          "model_used": "Qwen3.5-9B-MLX-4bit"
+        },
+        {
+          "scenario": "wait_while_user_speaks",
+          "expected_action": "wait",
+          "parsed_action": "speak",
+          "parsed_text": "I'm still talking about the account issue.",
+          "latency_s": 1.527,
+          "ok": false,
+          "content": "ACTION: speak\nEXPLANATION: The user has been silent for the required duration and there is a queued utterance ready to be played.\nTEXT: I'm still talking about the account issue.",
+          "error": null,
+          "model_used": "Qwen3.5-9B-MLX-4bit"
+        },
+        {
+          "scenario": "yield_on_interrupt",
+          "expected_action": "yield",
+          "parsed_action": "wait",
+          "parsed_text": "",
+          "latency_s": 1.424,
+          "ok": false,
+          "content": "ACTION: wait\nEXPLANATION: The user is currently speaking and there is no queued utterance for the agent, so the agent must yield the floor.\nTEXT: none",
+          "error": null,
+          "model_used": "Qwen3.5-9B-MLX-4bit"
+        },
+        {
+          "scenario": "yield_on_collision",
+          "expected_action": "yield",
+          "parsed_action": "yield",
+          "parsed_text": "",
+          "latency_s": 1.402,
+          "ok": true,
+          "content": "ACTION: yield\nEXPLANATION: The user is currently speaking and has overwritten the queued utterance, so the agent must pause to avoid audio collision.\nTEXT: none",
+          "error": null,
+          "model_used": "Qwen3.5-9B-MLX-4bit"
+        },
+        {
+          "scenario": "clarify_after_silence",
+          "expected_action": "clarify",
+          "parsed_action": "wait",
+          "parsed_text": "",
+          "latency_s": 1.366,
+          "ok": false,
+          "content": "ACTION: wait\nEXPLANATION: Since there is no queued utterance and the user is currently speaking, the system must wait before responding.\nTEXT: none",
+          "error": null,
+          "model_used": "Qwen3.5-9B-MLX-4bit"
+        },
+        {
+          "scenario": "repair_in_repair_state",
+          "expected_action": "repair",
+          "parsed_action": "repair",
+          "parsed_text": "Sorry, go ahead.",
+          "latency_s": 1.348,
+          "ok": true,
+          "content": "ACTION: repair\nEXPLANATION: I will repeat the queued repair phrase since I am currently in the repair state.\nTEXT: Sorry, go ahead.",
+          "error": null,
+          "model_used": "Qwen3.5-9B-MLX-4bit"
+        }
+      ],
+      "summary": {
+        "accuracy": 0.5,
+        "parse_rate": 1.0,
+        "avg_latency_s": 2.195,
+        "p95_latency_s": 6.102,
+        "correct": 3,
+        "scenarios": 6
+      }
+    }
+  ],
+  "ranked": [
+    {
+      "model": "local-omlx/Qwen3.5-9B-MLX-4bit",
+      "accuracy": 0.5,
+      "parse_rate": 1.0,
+      "avg_latency_s": 2.195
+    },
+    {
+      "model": "local-omlx/gemma-4-e4b-it-4bit",
+      "accuracy": 0.16666666666666666,
+      "parse_rate": 1.0,
+      "avg_latency_s": 1.651
+    },
+    {
+      "model": "local-omlx/Qwen3.5-27B-Claude-4.6-Opus-Distilled-MLX-4bit",
+      "accuracy": 0.0,
+      "parse_rate": 0.0,
+      "avg_latency_s": 15.881
+    }
+  ],
+  "finished_at": "2026-05-21T22:00:57.821029+00:00"
+}
