@@ -1,0 +1,1339 @@
+{
+  "started_at": "2026-05-21T17:35:40.631522+00:00",
+  "scenarios": [
+    {
+      "name": "speak_on_silence",
+      "expected_action": "speak"
+    },
+    {
+      "name": "wait_while_user_speaks",
+      "expected_action": "wait"
+    },
+    {
+      "name": "yield_on_interrupt",
+      "expected_action": "yield"
+    },
+    {
+      "name": "yield_on_collision",
+      "expected_action": "yield"
+    },
+    {
+      "name": "clarify_after_silence",
+      "expected_action": "clarify"
+    },
+    {
+      "name": "repair_in_repair_state",
+      "expected_action": "repair"
+    }
+  ],
+  "models": [
+    {
+      "model": "hermes/openai-codex:gpt-5.4-mini",
+      "kind": "hermes",
+      "model_id": "gpt-5.4-mini",
+      "results": [
+        {
+          "scenario": "speak_on_silence",
+          "expected_action": "speak",
+          "parsed_action": "speak",
+          "parsed_text": "Hello! How can I help you today?",
+          "latency_s": 5.828,
+          "ok": true,
+          "content": "ACTION: speak\nEXPLANATION: The user is silent and a queued utterance is available, so the policy says to speak.\nTEXT: Hello! How can I help you today?",
+          "error": null,
+          "model_used": "hermes:gpt-5.4-mini"
+        },
+        {
+          "scenario": "wait_while_user_speaks",
+          "expected_action": "wait",
+          "parsed_action": "wait",
+          "parsed_text": "",
+          "latency_s": 2.633,
+          "ok": true,
+          "content": "ACTION: wait\nEXPLANATION: The user is still speaking, so I should not take the floor yet.\nTEXT: none",
+          "error": null,
+          "model_used": "hermes:gpt-5.4-mini"
+        },
+        {
+          "scenario": "yield_on_interrupt",
+          "expected_action": "yield",
+          "parsed_action": "yield",
+          "parsed_text": "",
+          "latency_s": 3.604,
+          "ok": true,
+          "content": "ACTION: yield\nEXPLANATION: The user interrupted the agent mid-sentence, so I should yield immediately.\nTEXT: none",
+          "error": null,
+          "model_used": "hermes:gpt-5.4-mini"
+        },
+        {
+          "scenario": "yield_on_collision",
+          "expected_action": "yield",
+          "parsed_action": "yield",
+          "parsed_text": "",
+          "latency_s": 5.659,
+          "ok": true,
+          "content": "ACTION: yield\nEXPLANATION: The user is overlapping with the agent, so this is a collision and the policy says to yield.\nTEXT: none",
+          "error": null,
+          "model_used": "hermes:gpt-5.4-mini"
+        },
+        {
+          "scenario": "clarify_after_silence",
+          "expected_action": "clarify",
+          "parsed_action": "wait",
+          "parsed_text": "",
+          "latency_s": 5.364,
+          "ok": false,
+          "content": "ACTION: wait\nEXPLANATION: The user has responded but there is no queued utterance to deliver, so I should remain idle.\nTEXT: none",
+          "error": null,
+          "model_used": "hermes:gpt-5.4-mini"
+        },
+        {
+          "scenario": "repair_in_repair_state",
+          "expected_action": "repair",
+          "parsed_action": "repair",
+          "parsed_text": "Sorry, go ahead.",
+          "latency_s": 3.863,
+          "ok": true,
+          "content": "ACTION: repair\nEXPLANATION: The conversation is already in repair state, so I should emit the queued repair utterance.\nTEXT: Sorry, go ahead.",
+          "error": null,
+          "model_used": "hermes:gpt-5.4-mini"
+        }
+      ],
+      "summary": {
+        "accuracy": 0.8333333333333334,
+        "parse_rate": 1.0,
+        "avg_latency_s": 4.492,
+        "p95_latency_s": 5.828,
+        "correct": 5,
+        "scenarios": 6
+      }
+    },
+    {
+      "model": "hermes/openai-codex:gpt-5.4",
+      "kind": "hermes",
+      "model_id": "gpt-5.4",
+      "results": [
+        {
+          "scenario": "speak_on_silence",
+          "expected_action": "speak",
+          "parsed_action": "speak",
+          "parsed_text": "",
+          "latency_s": 7.658,
+          "ok": true,
+          "content": "ACTION: speak\nEXPLANATION: The user is silent, a queued utterance exists, and nothing in the current state blocks speaking.\nTEXT: none",
+          "error": null,
+          "model_used": "hermes:gpt-5.4"
+        },
+        {
+          "scenario": "wait_while_user_speaks",
+          "expected_action": "wait",
+          "parsed_action": "wait",
+          "parsed_text": "",
+          "latency_s": 7.315,
+          "ok": true,
+          "content": "ACTION: wait\nEXPLANATION: The user is currently speaking, so the policy must wait even though a queued utterance exists.\nTEXT: none",
+          "error": null,
+          "model_used": "hermes:gpt-5.4"
+        },
+        {
+          "scenario": "yield_on_interrupt",
+          "expected_action": "yield",
+          "parsed_action": "yield",
+          "parsed_text": "",
+          "latency_s": 5.361,
+          "ok": true,
+          "content": "ACTION: yield\nEXPLANATION: The user has interrupted while the agent was speaking, so the agent should stop immediately and give way.\nTEXT: none",
+          "error": null,
+          "model_used": "hermes:gpt-5.4"
+        },
+        {
+          "scenario": "yield_on_collision",
+          "expected_action": "yield",
+          "parsed_action": "yield",
+          "parsed_text": "",
+          "latency_s": 9.852,
+          "ok": true,
+          "content": "ACTION: yield\nEXPLANATION: The agent is currently colliding with the user, so it should immediately yield instead of continuing to speak.\nTEXT: none",
+          "error": null,
+          "model_used": "hermes:gpt-5.4"
+        },
+        {
+          "scenario": "clarify_after_silence",
+          "expected_action": "clarify",
+          "parsed_action": "wait",
+          "parsed_text": "",
+          "latency_s": 5.297,
+          "ok": false,
+          "content": "ACTION: wait\nEXPLANATION: The user is silent but there is no queued utterance to speak, and no clarification or repair condition applies.\nTEXT: none",
+          "error": null,
+          "model_used": "hermes:gpt-5.4"
+        },
+        {
+          "scenario": "repair_in_repair_state",
+          "expected_action": "repair",
+          "parsed_action": "repair",
+          "parsed_text": "Sorry, go ahead.",
+          "latency_s": 7.216,
+          "ok": true,
+          "content": "ACTION: repair\nEXPLANATION: The policy says to repair when already in repair state, and the repair utterance is available.\nTEXT: Sorry, go ahead.",
+          "error": null,
+          "model_used": "hermes:gpt-5.4"
+        }
+      ],
+      "summary": {
+        "accuracy": 0.8333333333333334,
+        "parse_rate": 1.0,
+        "avg_latency_s": 7.117,
+        "p95_latency_s": 9.852,
+        "correct": 5,
+        "scenarios": 6
+      }
+    },
+    {
+      "model": "hermes/openai-codex:gpt-5.5",
+      "kind": "hermes",
+      "model_id": "gpt-5.5",
+      "results": [
+        {
+          "scenario": "speak_on_silence",
+          "expected_action": "speak",
+          "parsed_action": "speak",
+          "parsed_text": "Hello! How can I help you today?",
+          "latency_s": 6.131,
+          "ok": true,
+          "content": "ACTION: speak\nEXPLANATION: The user is silent and there is a queued utterance ready.\nTEXT: Hello! How can I help you today?",
+          "error": null,
+          "model_used": "hermes:gpt-5.5"
+        },
+        {
+          "scenario": "wait_while_user_speaks",
+          "expected_action": "wait",
+          "parsed_action": "wait",
+          "parsed_text": "",
+          "latency_s": 4.565,
+          "ok": true,
+          "content": "ACTION: wait\nEXPLANATION: The user is currently speaking, so the policy must wait despite having a queued utterance.\nTEXT: none",
+          "error": null,
+          "model_used": "hermes:gpt-5.5"
+        },
+        {
+          "scenario": "yield_on_interrupt",
+          "expected_action": "yield",
+          "parsed_action": "yield",
+          "parsed_text": "",
+          "latency_s": 7.976,
+          "ok": true,
+          "content": "ACTION: yield\nEXPLANATION: The user is interrupting the agent mid-sentence, so the policy must yield immediately.\nTEXT: none",
+          "error": null,
+          "model_used": "hermes:gpt-5.5"
+        },
+        {
+          "scenario": "yield_on_collision",
+          "expected_action": "yield",
+          "parsed_action": "yield",
+          "parsed_text": "",
+          "latency_s": 6.856,
+          "ok": true,
+          "content": "ACTION: yield\nEXPLANATION: Attribution is both during speech overlap, so this is a collision and the agent should yield.\nTEXT: none",
+          "error": null,
+          "model_used": "hermes:gpt-5.5"
+        },
+        {
+          "scenario": "clarify_after_silence",
+          "expected_action": "clarify",
+          "parsed_action": "wait",
+          "parsed_text": "",
+          "latency_s": 6.18,
+          "ok": false,
+          "content": "ACTION: wait\nEXPLANATION: The user is silent, but there is no queued utterance to speak.\nTEXT: none",
+          "error": null,
+          "model_used": "hermes:gpt-5.5"
+        },
+        {
+          "scenario": "repair_in_repair_state",
+          "expected_action": "repair",
+          "parsed_action": "repair",
+          "parsed_text": "Sorry, go ahead.",
+          "latency_s": 5.987,
+          "ok": true,
+          "content": "ACTION: repair\nEXPLANATION: Already in repair state, so issue the queued repair utterance.\nTEXT: Sorry, go ahead.",
+          "error": null,
+          "model_used": "hermes:gpt-5.5"
+        }
+      ],
+      "summary": {
+        "accuracy": 0.8333333333333334,
+        "parse_rate": 1.0,
+        "avg_latency_s": 6.282,
+        "p95_latency_s": 7.976,
+        "correct": 5,
+        "scenarios": 6
+      }
+    },
+    {
+      "model": "openrouter/owl-alpha",
+      "kind": "openrouter",
+      "model_id": "openrouter/owl-alpha",
+      "results": [
+        {
+          "scenario": "speak_on_silence",
+          "expected_action": "speak",
+          "parsed_action": "speak",
+          "parsed_text": "Hello! How can I help you today?",
+          "latency_s": 9.205,
+          "ok": true,
+          "content": "ACTION: speak\nEXPLANATION: The user is silent and there is a queued utterance.\nTEXT: Hello! How can I help you today?",
+          "error": null,
+          "model_used": "openrouter/owl-alpha"
+        },
+        {
+          "scenario": "wait_while_user_speaks",
+          "expected_action": "wait",
+          "parsed_action": "wait",
+          "parsed_text": "",
+          "latency_s": 10.48,
+          "ok": true,
+          "content": "ACTION: wait\nEXPLANATION: Wait while the user is still speaking, as their current utterance is in progress and no response should interrupt them.  \nTEXT: none",
+          "error": null,
+          "model_used": "openrouter/owl-alpha"
+        },
+        {
+          "scenario": "yield_on_interrupt",
+          "expected_action": "yield",
+          "parsed_action": "yield",
+          "parsed_text": "",
+          "latency_s": 4.885,
+          "ok": true,
+          "content": "ACTION: yield  \nEXPLANATION: The user interrupted the agent mid-speech with an urgent request.  \nTEXT: none",
+          "error": null,
+          "model_used": "openrouter/owl-alpha"
+        },
+        {
+          "scenario": "yield_on_collision",
+          "expected_action": "yield",
+          "parsed_action": null,
+          "parsed_text": "",
+          "latency_s": 0.171,
+          "ok": false,
+          "content": "",
+          "error": "HTTP Error 429: Too Many Requests",
+          "model_used": "openrouter/owl-alpha"
+        },
+        {
+          "scenario": "clarify_after_silence",
+          "expected_action": "clarify",
+          "parsed_action": null,
+          "parsed_text": "",
+          "latency_s": 0.087,
+          "ok": false,
+          "content": "",
+          "error": "HTTP Error 429: Too Many Requests",
+          "model_used": "openrouter/owl-alpha"
+        },
+        {
+          "scenario": "repair_in_repair_state",
+          "expected_action": "repair",
+          "parsed_action": "repair",
+          "parsed_text": "Sorry, go ahead.",
+          "latency_s": 55.122,
+          "ok": true,
+          "content": "ACTION: repair\nEXPLATION: Already in repair state with a repair utterance queued and no user reply yet.\nTEXT: Sorry, go ahead.",
+          "error": null,
+          "model_used": "openrouter/owl-alpha"
+        }
+      ],
+      "summary": {
+        "accuracy": 0.6666666666666666,
+        "parse_rate": 0.6666666666666666,
+        "avg_latency_s": 13.325,
+        "p95_latency_s": 55.122,
+        "correct": 4,
+        "scenarios": 6
+      }
+    },
+    {
+      "model": "openrouter/liquid-lfm-2.5-1.2b-instruct:free",
+      "kind": "openrouter",
+      "model_id": "liquid/lfm-2.5-1.2b-instruct:free",
+      "results": [
+        {
+          "scenario": "speak_on_silence",
+          "expected_action": "speak",
+          "parsed_action": "listen",
+          "parsed_text": "",
+          "latency_s": 0.565,
+          "ok": false,
+          "content": "ACTION: listen\nEXPLANATION: User is silent and a queued message is present.",
+          "error": null,
+          "model_used": "liquid/lfm-2.5-1.2b-instruct-20260120:free"
+        },
+        {
+          "scenario": "wait_while_user_speaks",
+          "expected_action": "wait",
+          "parsed_action": "yield",
+          "parsed_text": "",
+          "latency_s": 0.475,
+          "ok": false,
+          "content": "ACTION: yield\nEXPLANATION: Wait for user response.",
+          "error": null,
+          "model_used": "liquid/lfm-2.5-1.2b-instruct-20260120:free"
+        },
+        {
+          "scenario": "yield_on_interrupt",
+          "expected_action": "yield",
+          "parsed_action": "speak",
+          "parsed_text": "",
+          "latency_s": 0.427,
+          "ok": false,
+          "content": "ACTION: speak  \nEXPLANATION: The user is interrupting and needs immediate attention.",
+          "error": null,
+          "model_used": "liquid/lfm-2.5-1.2b-instruct-20260120:free"
+        },
+        {
+          "scenario": "yield_on_collision",
+          "expected_action": "yield",
+          "parsed_action": "speak",
+          "parsed_text": "Hello! I would like to tell you about our new service tier.",
+          "latency_s": 0.683,
+          "ok": false,
+          "content": "ACTION: speak  \nEXPLANATION: Please respond to clarify your message.  \nTEXT: Hello! I would like to tell you about our new service tier.",
+          "error": null,
+          "model_used": "liquid/lfm-2.5-1.2b-instruct-20260120:free"
+        },
+        {
+          "scenario": "clarify_after_silence",
+          "expected_action": "clarify",
+          "parsed_action": "yield",
+          "parsed_text": "Could you describe the sound?",
+          "latency_s": 1.601,
+          "ok": false,
+          "content": "ACTION: yield  \nEXPLANATION: Permit user to resume speaking; clarify about noise.  \nTEXT: Could you describe the sound?",
+          "error": null,
+          "model_used": "liquid/lfm-2.5-1.2b-instruct-20260120:free"
+        },
+        {
+          "scenario": "repair_in_repair_state",
+          "expected_action": "repair",
+          "parsed_action": "wait",
+          "parsed_text": "",
+          "latency_s": 0.593,
+          "ok": false,
+          "content": "ACTION: wait  \nEXPLANATION: User is silent, so the system waits for the next input.",
+          "error": null,
+          "model_used": "liquid/lfm-2.5-1.2b-instruct-20260120:free"
+        }
+      ],
+      "summary": {
+        "accuracy": 0.0,
+        "parse_rate": 1.0,
+        "avg_latency_s": 0.724,
+        "p95_latency_s": 1.601,
+        "correct": 0,
+        "scenarios": 6
+      }
+    },
+    {
+      "model": "openrouter/openai-gpt-oss-safeguard-20b",
+      "kind": "openrouter",
+      "model_id": "openai/gpt-oss-safeguard-20b",
+      "results": [
+        {
+          "scenario": "speak_on_silence",
+          "expected_action": "speak",
+          "parsed_action": null,
+          "parsed_text": "",
+          "latency_s": 0.646,
+          "ok": false,
+          "content": "We have to follow policy: speak only when user is silent and a queued utterance exists. We are in state \"listen\". Silence duration 400ms, has queued utterance yes. Last agent utterance: \"Hello! How can I help you today?\" Last user utterance: (none). So we should speak because user silent and queued utterance exists. We need to output ACTION: speak, explanation: short sentence, TEXT: the queued utterance? Probably the text to say? But we already said that in last agent utterance? Hmm maybe we need to clarify or something. Let's check rules: \"speak only when the user is silent and a queued utterance exists; wait while the user is speaking; yield on collision; clarify after no reply; repair",
+          "error": null,
+          "model_used": "openai/gpt-oss-safeguard-20b"
+        },
+        {
+          "scenario": "wait_while_user_speaks",
+          "expected_action": "wait",
+          "parsed_action": "wait",
+          "parsed_text": "",
+          "latency_s": 1.449,
+          "ok": true,
+          "content": "We need to interpret the policy. The user is still speaking: last user utterance: \"I'm still talking about the account issue.\" The silence duration is 120ms. The state: listen. Has queued utterance: yes. Last agent utterance: \"Okay, tell me more.\"\n\nPolicy: speak only when user is silent and a queued utterance exists; wait while the user is speaking; yield on collision; clarify after no reply; repair when already in repair state.\n\nWe need to decide action: since user is speaking, we should wait. Even though there's a queued utterance, policy says speak only when user is silent and queued utterance exists. So we should not speak; we should wait.\n\nThus:\n\nACTION: wait\nEXPLANATION: User is still",
+          "error": null,
+          "model_used": "openai/gpt-oss-safeguard-20b"
+        },
+        {
+          "scenario": "yield_on_interrupt",
+          "expected_action": "yield",
+          "parsed_action": null,
+          "parsed_text": "",
+          "latency_s": 0.985,
+          "ok": false,
+          "content": "We need to follow policy. We are in state \"speak\", but user has spoken: \"Sorry to interrupt, but I need help right now.\" We have queued utterance? No. Last agent utterance was a statement. According to rules: speak only when user is silent and queued utterance exists; wait while user speaking; yield immediately if user interrupts agent mid-sentence; clarify after no reply; repair when in repair state. Here user interrupted? The agent said something and then user spoke. According to rule: yield immediately if the user interrupts the agent mid-sentence. But here agent has finished? Actually last agent utterance was \"Hello! I would like to tell you about our new service tier.\" That is a complete sentence. But user just started speaking \"",
+          "error": null,
+          "model_used": "openai/gpt-oss-safeguard-20b"
+        },
+        {
+          "scenario": "yield_on_collision",
+          "expected_action": "yield",
+          "parsed_action": null,
+          "parsed_text": "",
+          "latency_s": 0.612,
+          "ok": false,
+          "content": "The user: \"Hello! I would like to tell you about our new service tier.\"\n\nWe have state: speak. Last agent utterance: \"Hello! I would like to tell you about our new service tier.\" Last user utterance: (overlap). That seems contradictory? Wait: The last agent utterance is actually the user's? The instruction says: \"speak only when the user is silent and a queued utterance exists; wait while the user is speaking; yield on collision; clarify after no reply; repair when already in repair state.\" We need to reply with ACTION: ... etc.\n\nWe have no queued utterance, but we just heard the user speaking? Wait: The \"last user utterance\" is \"(overlap)\", meaning maybe there's overlapping? The",
+          "error": null,
+          "model_used": "openai/gpt-oss-safeguard-20b"
+        },
+        {
+          "scenario": "clarify_after_silence",
+          "expected_action": "clarify",
+          "parsed_action": null,
+          "parsed_text": "",
+          "latency_s": 0.594,
+          "ok": false,
+          "content": "We have a speaking policy. We need to determine what to output.\n\nWe are in state \"listen\". User is speaking? The last user utterance: \"Yes, it keeps making a weird noise.\" So the user has spoken, not silent.\n\nThus \"speak only when the user is silent and a queued utterance exists\" - not applicable, user not silent.\n\nWe need to respond with a policy action. According to the rules, we should wait while the user is speaking, yield on collision, clarify after no reply, repair when already in repair state.\n\nSo current state: listen, attribution: silence, silence duration: 2500ms, has queued utterance: no.\n\nBut last user utterance exists, so the user is not silent currently? We have last",
+          "error": null,
+          "model_used": "openai/gpt-oss-safeguard-20b"
+        },
+        {
+          "scenario": "repair_in_repair_state",
+          "expected_action": "repair",
+          "parsed_action": null,
+          "parsed_text": "",
+          "latency_s": 0.554,
+          "ok": false,
+          "content": "We need to interpret this: The policy says \"speak only when the user is silent and a queued utterance exists; wait while user is speaking; yield on collision; clarify after no reply; repair when already in repair state.\"\n\nCurrent state: repair. Attribution: silence. Silence duration: 0ms. Has queued utterance: no. Repair utterance queued: Sorry, go ahead. Last agent utterance: Sorry, go ahead. Last user utterance: (none)\n\nSo we are in repair state. We should repair? But the rule: repair when already in repair state. And we have a repair utterance queued: \"Sorry, go ahead.\"\n\nThus action should be repair. Explanation: we are already in repair state and need to speak the queued repair utter",
+          "error": null,
+          "model_used": "openai/gpt-oss-safeguard-20b"
+        }
+      ],
+      "summary": {
+        "accuracy": 0.16666666666666666,
+        "parse_rate": 0.16666666666666666,
+        "avg_latency_s": 0.807,
+        "p95_latency_s": 1.449,
+        "correct": 1,
+        "scenarios": 6
+      }
+    },
+    {
+      "model": "nvidia/nemotron-nano-9b-v2",
+      "kind": "openrouter",
+      "model_id": "nvidia/nemotron-nano-9b-v2",
+      "results": [
+        {
+          "scenario": "speak_on_silence",
+          "expected_action": "speak",
+          "parsed_action": null,
+          "parsed_text": "",
+          "latency_s": 2.07,
+          "ok": false,
+          "content": "Okay, let's see. The user is silent, and there's a queued utterance. The last agent utterance was \"Hello! How can I help you today?\" and the user hasn't responded yet. The state is 'listen', so according to the rules, I should speak when the user is silent and there's a queued message. Since the user hasn't spoken, I need to check if the queued utterance exists. It does, so the action should be 'speak'. The explanation would be that the user is silent and there's a queued message. The text would be the last agent utterance. Wait, but the last agent utterance is already given. Maybe the text is the same as the last agent utterance? Or is there a new one? The problem says \"",
+          "error": null,
+          "model_used": "nvidia/nemotron-nano-9b-v2"
+        },
+        {
+          "scenario": "wait_while_user_speaks",
+          "expected_action": "wait",
+          "parsed_action": null,
+          "parsed_text": "",
+          "latency_s": 1.452,
+          "ok": false,
+          "content": "Okay, let's see. The user is still talking about the account issue. The last agent utterance was \"Okay, tell me more.\" and the user's last response is \"I'm still talking about the account issue.\" \n\nThe state is \"listen,\" and there's a queued utterance. The rules say to speak only when the user is silent and there's a queued utterance. But here, the user is still speaking, so according to the rules, I should wait. The silence duration is 120ms, but since the user is still talking, I need to wait until they stop.\n\nSo the correct action here is \"wait\" because the user hasn't finished speaking yet. The explanation would be that the user is still speaking, so we need to wait.",
+          "error": null,
+          "model_used": "nvidia/nemotron-nano-9b-v2"
+        },
+        {
+          "scenario": "yield_on_interrupt",
+          "expected_action": "yield",
+          "parsed_action": null,
+          "parsed_text": "",
+          "latency_s": 1.774,
+          "ok": false,
+          "content": "Okay, let's see. The user interrupted the agent mid-sentence. The agent was in the middle of saying \"Hello! I would like to tell you about our new service tier.\" But the user said, \"Sorry to interrupt, but I need help right now.\" \n\nAccording to the rules, if the user interrupts mid-sentence, the agent should yield immediately. So the correct action here is to yield. The agent needs to stop speaking and let the user finish their interruption.\n\nThe explanation should be that the user interrupted, so yielding is necessary. The text would be none because the agent isn't speaking right now. \n\nI need to make sure I follow the exact format. The action is yield, explanation is one sentence, and text is none. Let me check",
+          "error": null,
+          "model_used": "nvidia/nemotron-nano-9b-v2"
+        },
+        {
+          "scenario": "yield_on_collision",
+          "expected_action": "yield",
+          "parsed_action": null,
+          "parsed_text": "",
+          "latency_s": 1.519,
+          "ok": false,
+          "content": "Okay, let's see. The user is speaking, and there's an overlap. The last agent utterance was \"Hello! I would like to tell you about our new service tier.\" The user's last utterance is overlapping, which means they started speaking while the agent was talking.\n\nAccording to the rules, when there's a collision (overlap), I should yield. Yielding means pausing to let the user finish. The state is currently 'speak', but since the user is overlapping, the correct action is to yield. \n\nThe explanation should be that the user is overlapping, so we need to yield. The text would be none because we're not speaking right now. \n\nSo the action is yield, explanation is about the overlap, and no text. Let me make",
+          "error": null,
+          "model_used": "nvidia/nemotron-nano-9b-v2"
+        },
+        {
+          "scenario": "clarify_after_silence",
+          "expected_action": "clarify",
+          "parsed_action": "wait",
+          "parsed_text": "",
+          "latency_s": 1.427,
+          "ok": false,
+          "content": "ACTION: wait\nEXPLANATION: The user is currently speaking, so the",
+          "error": null,
+          "model_used": "nvidia/nemotron-nano-9b-v2"
+        },
+        {
+          "scenario": "repair_in_repair_state",
+          "expected_action": "repair",
+          "parsed_action": null,
+          "parsed_text": "",
+          "latency_s": 1.483,
+          "ok": false,
+          "content": "Okay, let's see. The current state is 'repair', and the attribution is silence. The silence duration is 0ms, which probably means the user hasn't spoken yet. The system has no queued utterance, but there's a repair utterance queued: \"Sorry, go ahead.\" The last agent utterance was that same message, and the user hasn't said anything.\n\nThe rules say to speak only when the user is silent and there's a queued utterance. Since the user is silent (silence duration 0ms) and there's a repair utterance queued, I should trigger the repair action. The repair utterance is already queued, so the agent should speak that. The last agent utterance was the repair message, so maybe it's time to send it. The",
+          "error": null,
+          "model_used": "nvidia/nemotron-nano-9b-v2"
+        }
+      ],
+      "summary": {
+        "accuracy": 0.0,
+        "parse_rate": 0.16666666666666666,
+        "avg_latency_s": 1.621,
+        "p95_latency_s": 2.07,
+        "correct": 0,
+        "scenarios": 6
+      }
+    },
+    {
+      "model": "meta-llama/llama-3.2-3b-instruct",
+      "kind": "openrouter",
+      "model_id": "meta-llama/llama-3.2-3b-instruct",
+      "results": [
+        {
+          "scenario": "speak_on_silence",
+          "expected_action": "speak",
+          "parsed_action": "wait",
+          "parsed_text": "",
+          "latency_s": 0.525,
+          "ok": false,
+          "content": "ACTION: wait\nEXPLANATION: Waiting for user to finish speaking.\nTEXT:",
+          "error": null,
+          "model_used": "meta-llama/llama-3.2-3b-instruct"
+        },
+        {
+          "scenario": "wait_while_user_speaks",
+          "expected_action": "wait",
+          "parsed_action": null,
+          "parsed_text": "",
+          "latency_s": 1.032,
+          "ok": false,
+          "content": "listen",
+          "error": null,
+          "model_used": "meta-llama/llama-3.2-3b-instruct"
+        },
+        {
+          "scenario": "yield_on_interrupt",
+          "expected_action": "yield",
+          "parsed_action": "wait",
+          "parsed_text": "",
+          "latency_s": 0.473,
+          "ok": false,
+          "content": "ACTION: wait\nEXPLANATION: Waiting for the user to finish speaking.\nTEXT:",
+          "error": null,
+          "model_used": "meta-llama/llama-3.2-3b-instruct"
+        },
+        {
+          "scenario": "yield_on_collision",
+          "expected_action": "yield",
+          "parsed_action": "wait",
+          "parsed_text": "",
+          "latency_s": 0.452,
+          "ok": false,
+          "content": "ACTION: wait\nEXPLANATION: The user is currently speaking, so I will wait for them to finish.\nTEXT:",
+          "error": null,
+          "model_used": "meta-llama/llama-3.2-3b-instruct"
+        },
+        {
+          "scenario": "clarify_after_silence",
+          "expected_action": "clarify",
+          "parsed_action": null,
+          "parsed_text": "",
+          "latency_s": 0.401,
+          "ok": false,
+          "content": "listen",
+          "error": null,
+          "model_used": "meta-llama/llama-3.2-3b-instruct"
+        },
+        {
+          "scenario": "repair_in_repair_state",
+          "expected_action": "repair",
+          "parsed_action": "wait",
+          "parsed_text": "",
+          "latency_s": 0.496,
+          "ok": false,
+          "content": "ACTION: wait\nEXPLANATION: Waiting for user to finish speaking.\nTEXT:",
+          "error": null,
+          "model_used": "meta-llama/llama-3.2-3b-instruct"
+        }
+      ],
+      "summary": {
+        "accuracy": 0.0,
+        "parse_rate": 0.6666666666666666,
+        "avg_latency_s": 0.563,
+        "p95_latency_s": 1.032,
+        "correct": 0,
+        "scenarios": 6
+      }
+    },
+    {
+      "model": "ibm-granite/granite-4.1-8b",
+      "kind": "openrouter",
+      "model_id": "ibm-granite/granite-4.1-8b",
+      "results": [
+        {
+          "scenario": "speak_on_silence",
+          "expected_action": "speak",
+          "parsed_action": "speak",
+          "parsed_text": "Hello! How can I help you today?",
+          "latency_s": 0.463,
+          "ok": true,
+          "content": "ACTION: speak\nEXPLANATION: The user has been silent for the required 400ms and there is a queued utterance from the policy to initiate the conversation.\nTEXT: Hello! How can I help you today?",
+          "error": null,
+          "model_used": "ibm-granite/granite-4.1-8b-20260429"
+        },
+        {
+          "scenario": "wait_while_user_speaks",
+          "expected_action": "wait",
+          "parsed_action": "wait",
+          "parsed_text": "",
+          "latency_s": 0.417,
+          "ok": true,
+          "content": "ACTION: wait\nEXPLANATION: The user is currently speaking and the policy dictates waiting until the user is silent before speaking, as a queued utterance exists.\nTEXT: none",
+          "error": null,
+          "model_used": "ibm-granite/granite-4.1-8b-20260429"
+        },
+        {
+          "scenario": "yield_on_interrupt",
+          "expected_action": "yield",
+          "parsed_action": "yield",
+          "parsed_text": "",
+          "latency_s": 0.392,
+          "ok": true,
+          "content": "ACTION: yield\nEXPLANATION: The user interrupted mid‑sentence, so the agent must yield immediately to allow the user to continue speaking.\nTEXT: none",
+          "error": null,
+          "model_used": "ibm-granite/granite-4.1-8b-20260429"
+        },
+        {
+          "scenario": "yield_on_collision",
+          "expected_action": "yield",
+          "parsed_action": "yield",
+          "parsed_text": "",
+          "latency_s": 0.375,
+          "ok": true,
+          "content": "ACTION: yield\nEXPLANATION: The user is speaking and there is an overlap, so the policy should yield to avoid speaking simultaneously.\nTEXT: none",
+          "error": null,
+          "model_used": "ibm-granite/granite-4.1-8b-20260429"
+        },
+        {
+          "scenario": "clarify_after_silence",
+          "expected_action": "clarify",
+          "parsed_action": "wait",
+          "parsed_text": "",
+          "latency_s": 0.556,
+          "ok": false,
+          "content": "ACTION: wait\nEXPLANATION: The user is still speaking, so the policy must wait for the user to finish before responding.\nTEXT: none",
+          "error": null,
+          "model_used": "ibm-granite/granite-4.1-8b-20260429"
+        },
+        {
+          "scenario": "repair_in_repair_state",
+          "expected_action": "repair",
+          "parsed_action": "clarify",
+          "parsed_text": "Could you please repeat your question or statement?",
+          "latency_s": 0.476,
+          "ok": false,
+          "content": "ACTION: clarify\nEXPLANATION: No user input has been detected after the last repair utterance, so the policy needs to seek clarification to proceed.\nTEXT: Could you please repeat your question or statement?",
+          "error": null,
+          "model_used": "ibm-granite/granite-4.1-8b-20260429"
+        }
+      ],
+      "summary": {
+        "accuracy": 0.6666666666666666,
+        "parse_rate": 1.0,
+        "avg_latency_s": 0.447,
+        "p95_latency_s": 0.556,
+        "correct": 4,
+        "scenarios": 6
+      }
+    },
+    {
+      "model": "deepseek/deepseek-r1-distill-llama-70b",
+      "kind": "openrouter",
+      "model_id": "deepseek/deepseek-r1-distill-llama-70b",
+      "results": [
+        {
+          "scenario": "speak_on_silence",
+          "expected_action": "speak",
+          "parsed_action": null,
+          "parsed_text": "",
+          "latency_s": 3.662,
+          "ok": false,
+          "content": "Okay, so I need to figure out what action to take based on the given state and rules. Let me go through the information step by step. \n\nFirst, the state is \"listen\", which means the system is currently waiting for user input. The attribution is \"silence\", and the silence duration is 400ms. There's a queued utterance available, which is something the system wants to communicate. The last agent utterance was \"Hello! How can I help you today?\" and the last user utterance is none, meaning the user hasn't spoken yet.\n\nLooking at the rules, the system should speak only when the user is silent and there's a queued utterance. The current situation fits because the user hasn't spoken, and the system is in a listening state",
+          "error": null,
+          "model_used": "deepseek/deepseek-r1-distill-llama-70b"
+        },
+        {
+          "scenario": "wait_while_user_speaks",
+          "expected_action": "wait",
+          "parsed_action": null,
+          "parsed_text": "",
+          "latency_s": 3.734,
+          "ok": false,
+          "content": "Okay, so I need to figure out what action to take based on the given policy. Let's break down the problem.\n\nFirst, the state is \"listen,\" which means the system is waiting for user input. The last user utterance was \"I'm still talking about the account issue,\" and the last agent response was \"Okay, tell me more.\" The user is speaking, there's a queued utterance, the state is listen, and the silence duration is 120ms. \n\nWait, so the rules say that the system should wait while the user is speaking. The user just spoke, and the system is in the listen state, which implies that it's waiting for the user to finish or to respond. There's a queued utterance, meaning the system has something to",
+          "error": null,
+          "model_used": "deepseek/deepseek-r1-distill-llama-70b"
+        },
+        {
+          "scenario": "yield_on_interrupt",
+          "expected_action": "yield",
+          "parsed_action": null,
+          "parsed_text": "",
+          "latency_s": 4.072,
+          "ok": false,
+          "content": "Okay, so I'm trying to figure out the proper ACTION here. The user just interrupted the agent mid-sentence. The agent's last message was about a new service tier, and the user replied with, \"Sorry to interrupt, but I need help right now.\" \n\nFirst, I remember the policy guidelines. The agent's state is \"speak,\" so normally it's supposed to be speaking. But now the user interrupted. The rules say that if the user interrupts mid-sentence, the agent should yield immediately. \n\nYielding means the agent stops talking right away and lets the user continue. That makes sense because the user needs assistance urgently. The user's interruption indicates they have a more pressing concern. \n\nSo, the queued utterance isn't a factor here because the user's interruption",
+          "error": null,
+          "model_used": "deepseek/deepseek-r1-distill-llama-70b"
+        },
+        {
+          "scenario": "yield_on_collision",
+          "expected_action": "yield",
+          "parsed_action": null,
+          "parsed_text": "",
+          "latency_s": 3.66,
+          "ok": false,
+          "content": "Alright, so I need to figure out what action to take based on the given policy and the current state. Let me break it down step by step.\n\nFirst, I see that the state is set to \"speak.\" That means the system is supposed to be speaking right now. But wait, there's more to consider. The rules mention that the system should only speak when the user is silent and there's a queued utterance. \n\nLooking at the state details: the silence duration is 0ms, which indicates that the user is currently speaking or has just started speaking. Also, there's no queued utterance, which means there's nothing waiting to be said. \n\nAnother important point is the last user utterance, which was an overlap. That suggests that the user and the system",
+          "error": null,
+          "model_used": "deepseek/deepseek-r1-distill-llama-70b"
+        },
+        {
+          "scenario": "clarify_after_silence",
+          "expected_action": "clarify",
+          "parsed_action": null,
+          "parsed_text": "",
+          "latency_s": 3.652,
+          "ok": false,
+          "content": "Okay, so the user just sent a message where they're acting as a speaking policy, providing specific rules and state information. Let me try to understand what's going on here.\n\nThe rules mention things like speaking only when the user is silent and there's a queued utterance. It also talks about waiting while the user is speaking, yielding on collision, clarifying after no reply, and repairing when already in repair state. The current state is 'listen' with an attribution of 'silence' that's lasted 2500ms. There's no queued utterance, so the has queued utterance is 'no'. The last agent utterance was \"Could you describe the sound?\" and the last user utterance was \"Yes, it keeps making a weird noise.\"\n\nThey want me",
+          "error": null,
+          "model_used": "deepseek/deepseek-r1-distill-llama-70b"
+        },
+        {
+          "scenario": "repair_in_repair_state",
+          "expected_action": "repair",
+          "parsed_action": null,
+          "parsed_text": "",
+          "latency_s": 3.594,
+          "ok": false,
+          "content": "Okay, so I need to figure out the correct action based on the given state and rules. Let me start by understanding the scenario provided.\n\nThe current state is \"repair\". According to the rules, when in repair state, the action should be \"repair\". The attribution is \"silence\" with a duration of 0ms, meaning there's no silence yet. There's no queued utterance, and the repair utterance is \"Sorry, go ahead.\" The last agent utterance was also \"Sorry, go ahead.\" There's no last user utterance on record.\n\nWait, so the rules mention different actions based on the situation. When the user is silent and there's a queued utterance, the policy should speak. If the user is speaking, wait. If there's",
+          "error": null,
+          "model_used": "deepseek/deepseek-r1-distill-llama-70b"
+        }
+      ],
+      "summary": {
+        "accuracy": 0.0,
+        "parse_rate": 0.0,
+        "avg_latency_s": 3.729,
+        "p95_latency_s": 4.072,
+        "correct": 0,
+        "scenarios": 6
+      }
+    },
+    {
+      "model": "google/gemma-4-26b-a4b-instruct",
+      "kind": "openrouter",
+      "model_id": "google/gemma-4-26b-a4b-instruct",
+      "results": [
+        {
+          "scenario": "speak_on_silence",
+          "expected_action": "speak",
+          "parsed_action": null,
+          "parsed_text": "",
+          "latency_s": 0.059,
+          "ok": false,
+          "content": "",
+          "error": "HTTP Error 400: Bad Request",
+          "model_used": "google/gemma-4-26b-a4b-instruct"
+        },
+        {
+          "scenario": "wait_while_user_speaks",
+          "expected_action": "wait",
+          "parsed_action": null,
+          "parsed_text": "",
+          "latency_s": 0.042,
+          "ok": false,
+          "content": "",
+          "error": "HTTP Error 400: Bad Request",
+          "model_used": "google/gemma-4-26b-a4b-instruct"
+        },
+        {
+          "scenario": "yield_on_interrupt",
+          "expected_action": "yield",
+          "parsed_action": null,
+          "parsed_text": "",
+          "latency_s": 0.055,
+          "ok": false,
+          "content": "",
+          "error": "HTTP Error 400: Bad Request",
+          "model_used": "google/gemma-4-26b-a4b-instruct"
+        },
+        {
+          "scenario": "yield_on_collision",
+          "expected_action": "yield",
+          "parsed_action": null,
+          "parsed_text": "",
+          "latency_s": 0.045,
+          "ok": false,
+          "content": "",
+          "error": "HTTP Error 400: Bad Request",
+          "model_used": "google/gemma-4-26b-a4b-instruct"
+        },
+        {
+          "scenario": "clarify_after_silence",
+          "expected_action": "clarify",
+          "parsed_action": null,
+          "parsed_text": "",
+          "latency_s": 0.044,
+          "ok": false,
+          "content": "",
+          "error": "HTTP Error 400: Bad Request",
+          "model_used": "google/gemma-4-26b-a4b-instruct"
+        },
+        {
+          "scenario": "repair_in_repair_state",
+          "expected_action": "repair",
+          "parsed_action": null,
+          "parsed_text": "",
+          "latency_s": 0.057,
+          "ok": false,
+          "content": "",
+          "error": "HTTP Error 400: Bad Request",
+          "model_used": "google/gemma-4-26b-a4b-instruct"
+        }
+      ],
+      "summary": {
+        "accuracy": 0.0,
+        "parse_rate": 0.0,
+        "avg_latency_s": 0.05,
+        "p95_latency_s": 0.059,
+        "correct": 0,
+        "scenarios": 6
+      }
+    },
+    {
+      "model": "anthropic/claude-3.5-haiku",
+      "kind": "openrouter",
+      "model_id": "anthropic/claude-3.5-haiku",
+      "results": [
+        {
+          "scenario": "speak_on_silence",
+          "expected_action": "speak",
+          "parsed_action": "speak",
+          "parsed_text": "Hello! How can I help you today?",
+          "latency_s": 3.842,
+          "ok": true,
+          "content": "ACTION: speak\nEXPLANATION: I will respond to the last agent utterance since the user is silent and an utterance is queued.\nTEXT: Hello! How can I help you today?",
+          "error": null,
+          "model_used": "anthropic/claude-3-5-haiku"
+        },
+        {
+          "scenario": "wait_while_user_speaks",
+          "expected_action": "wait",
+          "parsed_action": "wait",
+          "parsed_text": "",
+          "latency_s": 1.406,
+          "ok": true,
+          "content": "ACTION: wait\nEXPLANATION: I am waiting for the user to complete their current utterance.\nTEXT: none",
+          "error": null,
+          "model_used": "anthropic/claude-3-5-haiku"
+        },
+        {
+          "scenario": "yield_on_interrupt",
+          "expected_action": "yield",
+          "parsed_action": "clarify",
+          "parsed_text": "I'm here to help. What urgent matter can I assist you with?",
+          "latency_s": 1.674,
+          "ok": false,
+          "content": "ACTION: clarify\nEXPLANATION: I noticed we were previously in mid-conversation and an interruption occurred.\nTEXT: I'm here to help. What urgent matter can I assist you with?",
+          "error": null,
+          "model_used": "anthropic/claude-3-5-haiku"
+        },
+        {
+          "scenario": "yield_on_collision",
+          "expected_action": "yield",
+          "parsed_action": "yield",
+          "parsed_text": "",
+          "latency_s": 1.102,
+          "ok": true,
+          "content": "ACTION: yield\nEXPLANATION: Since there is an overlap with the last utterance, I will yield and wait for user clarification.\nTEXT: none",
+          "error": null,
+          "model_used": "anthropic/claude-3-5-haiku"
+        },
+        {
+          "scenario": "clarify_after_silence",
+          "expected_action": "clarify",
+          "parsed_action": "wait",
+          "parsed_text": "",
+          "latency_s": 1.158,
+          "ok": false,
+          "content": "ACTION: wait\nEXPLANATION: The user was recently speaking, so waiting is appropriate.\nTEXT: none",
+          "error": null,
+          "model_used": "anthropic/claude-3-5-haiku"
+        },
+        {
+          "scenario": "repair_in_repair_state",
+          "expected_action": "repair",
+          "parsed_action": "repair",
+          "parsed_text": "Sorry, go ahead.",
+          "latency_s": 1.162,
+          "ok": true,
+          "content": "ACTION: repair\nEXPLANATION: The policy is currently in a repair state attempting to address communication uncertainty.\nTEXT: Sorry, go ahead.",
+          "error": null,
+          "model_used": "anthropic/claude-3-5-haiku"
+        }
+      ],
+      "summary": {
+        "accuracy": 0.6666666666666666,
+        "parse_rate": 1.0,
+        "avg_latency_s": 1.724,
+        "p95_latency_s": 3.842,
+        "correct": 4,
+        "scenarios": 6
+      }
+    },
+    {
+      "model": "google/gemini-3.1-flash-lite",
+      "kind": "openrouter",
+      "model_id": "google/gemini-3.1-flash-lite",
+      "results": [
+        {
+          "scenario": "speak_on_silence",
+          "expected_action": "speak",
+          "parsed_action": "speak",
+          "parsed_text": "Is there anything specific you would like to discuss or need assistance with right now?",
+          "latency_s": 0.933,
+          "ok": true,
+          "content": "ACTION: speak\nEXPLANATION: The user has remained silent for the designated duration and there is a queued utterance available to initiate the conversation.\nTEXT: Is there anything specific you would like to discuss or need assistance with right now?",
+          "error": null,
+          "model_used": "google/gemini-3.1-flash-lite-20260507"
+        },
+        {
+          "scenario": "wait_while_user_speaks",
+          "expected_action": "wait",
+          "parsed_action": "wait",
+          "parsed_text": "",
+          "latency_s": 0.971,
+          "ok": true,
+          "content": "ACTION: wait\nEXPLANATION: The user is currently speaking, so I must wait for them to finish before I can respond.\nTEXT: none",
+          "error": null,
+          "model_used": "google/gemini-3.1-flash-lite-20260507"
+        },
+        {
+          "scenario": "yield_on_interrupt",
+          "expected_action": "yield",
+          "parsed_action": "wait",
+          "parsed_text": "",
+          "latency_s": 0.772,
+          "ok": false,
+          "content": "ACTION: wait\nEXPLANATION: The user is currently expressing a need for immediate help, so I must wait for their full input before proceeding.\nTEXT: none",
+          "error": null,
+          "model_used": "google/gemini-3.1-flash-lite-20260507"
+        },
+        {
+          "scenario": "yield_on_collision",
+          "expected_action": "yield",
+          "parsed_action": "yield",
+          "parsed_text": "",
+          "latency_s": 1.091,
+          "ok": true,
+          "content": "ACTION: yield\nEXPLANATION: I am yielding because a collision occurred during my last attempt to speak.\nTEXT: none",
+          "error": null,
+          "model_used": "google/gemini-3.1-flash-lite-20260507"
+        },
+        {
+          "scenario": "clarify_after_silence",
+          "expected_action": "clarify",
+          "parsed_action": "clarify",
+          "parsed_text": "Could you please describe what the noise sounds like, for example, is it a high-pitched whine or more of a grinding sound?",
+          "latency_s": 1.159,
+          "ok": true,
+          "content": "ACTION: clarify\nEXPLANATION: Since the user confirmed the noise but did not provide a description, I need to prompt them for those specific details.\nTEXT: Could you please describe what the noise sounds like, for example, is it a high-pitched whine or more of a grinding sound?",
+          "error": null,
+          "model_used": "google/gemini-3.1-flash-lite-20260507"
+        },
+        {
+          "scenario": "repair_in_repair_state",
+          "expected_action": "repair",
+          "parsed_action": "clarify",
+          "parsed_text": "Could you please state your request?",
+          "latency_s": 0.885,
+          "ok": false,
+          "content": "ACTION: clarify\nEXPLANATION: Since there is no queued utterance and the state is currently set to repair, I am prompting for user input to resolve the conversational flow.\nTEXT: Could you please state your request?",
+          "error": null,
+          "model_used": "google/gemini-3.1-flash-lite-20260507"
+        }
+      ],
+      "summary": {
+        "accuracy": 0.6666666666666666,
+        "parse_rate": 1.0,
+        "avg_latency_s": 0.969,
+        "p95_latency_s": 1.159,
+        "correct": 4,
+        "scenarios": 6
+      }
+    },
+    {
+      "model": "moonshotai/kimi-k2.5-flash",
+      "kind": "openrouter",
+      "model_id": "moonshotai/kimi-k2.5-flash",
+      "results": [
+        {
+          "scenario": "speak_on_silence",
+          "expected_action": "speak",
+          "parsed_action": null,
+          "parsed_text": "",
+          "latency_s": 0.053,
+          "ok": false,
+          "content": "",
+          "error": "HTTP Error 400: Bad Request",
+          "model_used": "moonshotai/kimi-k2.5-flash"
+        },
+        {
+          "scenario": "wait_while_user_speaks",
+          "expected_action": "wait",
+          "parsed_action": null,
+          "parsed_text": "",
+          "latency_s": 0.046,
+          "ok": false,
+          "content": "",
+          "error": "HTTP Error 400: Bad Request",
+          "model_used": "moonshotai/kimi-k2.5-flash"
+        },
+        {
+          "scenario": "yield_on_interrupt",
+          "expected_action": "yield",
+          "parsed_action": null,
+          "parsed_text": "",
+          "latency_s": 0.05,
+          "ok": false,
+          "content": "",
+          "error": "HTTP Error 400: Bad Request",
+          "model_used": "moonshotai/kimi-k2.5-flash"
+        },
+        {
+          "scenario": "yield_on_collision",
+          "expected_action": "yield",
+          "parsed_action": null,
+          "parsed_text": "",
+          "latency_s": 0.042,
+          "ok": false,
+          "content": "",
+          "error": "HTTP Error 400: Bad Request",
+          "model_used": "moonshotai/kimi-k2.5-flash"
+        },
+        {
+          "scenario": "clarify_after_silence",
+          "expected_action": "clarify",
+          "parsed_action": null,
+          "parsed_text": "",
+          "latency_s": 0.056,
+          "ok": false,
+          "content": "",
+          "error": "HTTP Error 400: Bad Request",
+          "model_used": "moonshotai/kimi-k2.5-flash"
+        },
+        {
+          "scenario": "repair_in_repair_state",
+          "expected_action": "repair",
+          "parsed_action": null,
+          "parsed_text": "",
+          "latency_s": 0.048,
+          "ok": false,
+          "content": "",
+          "error": "HTTP Error 400: Bad Request",
+          "model_used": "moonshotai/kimi-k2.5-flash"
+        }
+      ],
+      "summary": {
+        "accuracy": 0.0,
+        "parse_rate": 0.0,
+        "avg_latency_s": 0.049,
+        "p95_latency_s": 0.056,
+        "correct": 0,
+        "scenarios": 6
+      }
+    },
+    {
+      "model": "minimax/minimax-m2.5-flash",
+      "kind": "openrouter",
+      "model_id": "minimax/minimax-m2.5-flash",
+      "results": [
+        {
+          "scenario": "speak_on_silence",
+          "expected_action": "speak",
+          "parsed_action": null,
+          "parsed_text": "",
+          "latency_s": 0.084,
+          "ok": false,
+          "content": "",
+          "error": "HTTP Error 400: Bad Request",
+          "model_used": "minimax/minimax-m2.5-flash"
+        },
+        {
+          "scenario": "wait_while_user_speaks",
+          "expected_action": "wait",
+          "parsed_action": null,
+          "parsed_text": "",
+          "latency_s": 0.072,
+          "ok": false,
+          "content": "",
+          "error": "HTTP Error 400: Bad Request",
+          "model_used": "minimax/minimax-m2.5-flash"
+        },
+        {
+          "scenario": "yield_on_interrupt",
+          "expected_action": "yield",
+          "parsed_action": null,
+          "parsed_text": "",
+          "latency_s": 0.048,
+          "ok": false,
+          "content": "",
+          "error": "HTTP Error 400: Bad Request",
+          "model_used": "minimax/minimax-m2.5-flash"
+        },
+        {
+          "scenario": "yield_on_collision",
+          "expected_action": "yield",
+          "parsed_action": null,
+          "parsed_text": "",
+          "latency_s": 0.045,
+          "ok": false,
+          "content": "",
+          "error": "HTTP Error 400: Bad Request",
+          "model_used": "minimax/minimax-m2.5-flash"
+        },
+        {
+          "scenario": "clarify_after_silence",
+          "expected_action": "clarify",
+          "parsed_action": null,
+          "parsed_text": "",
+          "latency_s": 0.052,
+          "ok": false,
+          "content": "",
+          "error": "HTTP Error 400: Bad Request",
+          "model_used": "minimax/minimax-m2.5-flash"
+        },
+        {
+          "scenario": "repair_in_repair_state",
+          "expected_action": "repair",
+          "parsed_action": null,
+          "parsed_text": "",
+          "latency_s": 0.056,
+          "ok": false,
+          "content": "",
+          "error": "HTTP Error 400: Bad Request",
+          "model_used": "minimax/minimax-m2.5-flash"
+        }
+      ],
+      "summary": {
+        "accuracy": 0.0,
+        "parse_rate": 0.0,
+        "avg_latency_s": 0.059,
+        "p95_latency_s": 0.084,
+        "correct": 0,
+        "scenarios": 6
+      }
+    }
+  ],
+  "ranked": [
+    {
+      "model": "hermes/openai-codex:gpt-5.4-mini",
+      "accuracy": 0.8333333333333334,
+      "parse_rate": 1.0,
+      "avg_latency_s": 4.492
+    },
+    {
+      "model": "hermes/openai-codex:gpt-5.5",
+      "accuracy": 0.8333333333333334,
+      "parse_rate": 1.0,
+      "avg_latency_s": 6.282
+    },
+    {
+      "model": "hermes/openai-codex:gpt-5.4",
+      "accuracy": 0.8333333333333334,
+      "parse_rate": 1.0,
+      "avg_latency_s": 7.117
+    },
+    {
+      "model": "ibm-granite/granite-4.1-8b",
+      "accuracy": 0.6666666666666666,
+      "parse_rate": 1.0,
+      "avg_latency_s": 0.447
+    },
+    {
+      "model": "google/gemini-3.1-flash-lite",
+      "accuracy": 0.6666666666666666,
+      "parse_rate": 1.0,
+      "avg_latency_s": 0.969
+    },
+    {
+      "model": "anthropic/claude-3.5-haiku",
+      "accuracy": 0.6666666666666666,
+      "parse_rate": 1.0,
+      "avg_latency_s": 1.724
+    },
+    {
+      "model": "openrouter/owl-alpha",
+      "accuracy": 0.6666666666666666,
+      "parse_rate": 0.6666666666666666,
+      "avg_latency_s": 13.325
+    },
+    {
+      "model": "openrouter/openai-gpt-oss-safeguard-20b",
+      "accuracy": 0.16666666666666666,
+      "parse_rate": 0.16666666666666666,
+      "avg_latency_s": 0.807
+    },
+    {
+      "model": "moonshotai/kimi-k2.5-flash",
+      "accuracy": 0.0,
+      "parse_rate": 0.0,
+      "avg_latency_s": 0.049
+    },
+    {
+      "model": "google/gemma-4-26b-a4b-instruct",
+      "accuracy": 0.0,
+      "parse_rate": 0.0,
+      "avg_latency_s": 0.05
+    },
+    {
+      "model": "minimax/minimax-m2.5-flash",
+      "accuracy": 0.0,
+      "parse_rate": 0.0,
+      "avg_latency_s": 0.059
+    },
+    {
+      "model": "meta-llama/llama-3.2-3b-instruct",
+      "accuracy": 0.0,
+      "parse_rate": 0.6666666666666666,
+      "avg_latency_s": 0.563
+    },
+    {
+      "model": "openrouter/liquid-lfm-2.5-1.2b-instruct:free",
+      "accuracy": 0.0,
+      "parse_rate": 1.0,
+      "avg_latency_s": 0.724
+    },
+    {
+      "model": "nvidia/nemotron-nano-9b-v2",
+      "accuracy": 0.0,
+      "parse_rate": 0.16666666666666666,
+      "avg_latency_s": 1.621
+    },
+    {
+      "model": "deepseek/deepseek-r1-distill-llama-70b",
+      "accuracy": 0.0,
+      "parse_rate": 0.0,
+      "avg_latency_s": 3.729
+    }
+  ],
+  "finished_at": "2026-05-21T17:39:52.460115+00:00"
+}

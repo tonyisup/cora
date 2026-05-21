@@ -180,10 +180,21 @@ SCENARIOS: List[Scenario] = [
 ]
 
 MODELS: List[ModelSpec] = [
-    ModelSpec(name="hermes/current-config", kind="hermes", model=""),
+    ModelSpec(name="hermes/openai-codex:gpt-5.4-mini", kind="hermes", model="gpt-5.4-mini"),
+    ModelSpec(name="hermes/openai-codex:gpt-5.4", kind="hermes", model="gpt-5.4"),
+    ModelSpec(name="hermes/openai-codex:gpt-5.5", kind="hermes", model="gpt-5.5"),
     ModelSpec(name="openrouter/owl-alpha", kind="openrouter", model="openrouter/owl-alpha"),
     ModelSpec(name="openrouter/liquid-lfm-2.5-1.2b-instruct:free", kind="openrouter", model="liquid/lfm-2.5-1.2b-instruct:free"),
     ModelSpec(name="openrouter/openai-gpt-oss-safeguard-20b", kind="openrouter", model="openai/gpt-oss-safeguard-20b"),
+    ModelSpec(name="nvidia/nemotron-nano-9b-v2", kind="openrouter", model="nvidia/nemotron-nano-9b-v2"),
+    ModelSpec(name="meta-llama/llama-3.2-3b-instruct", kind="openrouter", model="meta-llama/llama-3.2-3b-instruct"),
+    ModelSpec(name="ibm-granite/granite-4.1-8b", kind="openrouter", model="ibm-granite/granite-4.1-8b"),
+    ModelSpec(name="deepseek/deepseek-r1-distill-llama-70b", kind="openrouter", model="deepseek/deepseek-r1-distill-llama-70b"),
+    ModelSpec(name="google/gemma-4-26b-a4b-instruct", kind="openrouter", model="google/gemma-4-26b-a4b-instruct"),
+    ModelSpec(name="anthropic/claude-3.5-haiku", kind="openrouter", model="anthropic/claude-3.5-haiku"),
+    ModelSpec(name="google/gemini-3.1-flash-lite", kind="openrouter", model="google/gemini-3.1-flash-lite"),
+    ModelSpec(name="moonshotai/kimi-k2.5-flash", kind="openrouter", model="moonshotai/kimi-k2.5-flash"),
+    ModelSpec(name="minimax/minimax-m2.5-flash", kind="openrouter", model="minimax/minimax-m2.5-flash")
 ]
 
 
