@@ -9,5 +9,6 @@ archive/
 tmp/
 data/
 ~/
+results/
 
 scripts/scratch.py
