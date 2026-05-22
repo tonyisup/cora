@@ -144,6 +144,14 @@ def main() -> None:
     parser.add_argument("--m4-scorer", type=str,
                         default="data/m4_finetuned_ecapa_live_domain_20260517/fine_tuned/scorer.pt",
                         help="Path to fine-tuned M4 scorer")
+    parser.add_argument("--m4-bank", type=str, default=None,
+                        help="Path to prototype-bank .npz")
+    parser.add_argument(
+        "--m4-mode",
+        choices=["auto", "bank", "scorer", "arbitration"],
+        default="auto",
+        help="Force M4 mode: auto, bank-only, scorer-only, or bank+scorer arbitration",
+    )
     parser.add_argument("--room-filter", type=str,
                         default="data/m3_broca_room_filter_production.npy",
                         help="Path to room filter .npy")
@@ -182,15 +190,23 @@ def main() -> None:
     print(f"  Human duration:       {args.human_duration_s} s")
     print(f"  Total duration:       {args.duration_s} s")
     print(f"  M4 scorer:            {args.m4_scorer}")
-    print(f"  Room filter:          {args.room_filter}")
-    print()
-
-    # Check files exist
+    effective_mode = {
+        "auto": "arbitration" if args.m4_bank is not None and args.m4_scorer is not None else "bank" if args.m4_bank is not None else "scorer",
+        "bank": "bank",
+        "scorer": "scorer",
+        "arbitration": "arbitration",
+    }[args.m4_mode]
+    print(f"  Effective M4 mode:    {effective_mode}")
     if not Path(args.m4_scorer).exists():
         print(f"WARNING: M4 scorer not found at {args.m4_scorer}")
         print("  M4 will not be enabled. The test will still run but attribution")
         print("  may be less accurate without the fine-tuned scorer.")
         args.m4_scorer = None
+    if args.m4_bank is not None and not Path(args.m4_bank).exists():
+        print(f"WARNING: M4 prototype bank not found at {args.m4_bank}")
+        print("  M4 will not be enabled. The test will still run but attribution")
+        print("  may be less accurate without the prototype bank.")
+        args.m4_bank = None
     if not Path(args.room_filter).exists():
         print(f"WARNING: Room filter not found at {args.room_filter}")
         print("  Room filter will not be applied.")
@@ -233,8 +249,10 @@ def main() -> None:
         sr=sr,
         callback_blocksize_ms=args.callback_blocksize_ms,
         gated_playback=True,
-        m4_enable=args.m4_scorer is not None,
+        m4_enable=(args.m4_scorer is not None or args.m4_bank is not None),
+        m4_mode=args.m4_mode,
         m4_scorer_path=args.m4_scorer,
+        m4_bank_path=args.m4_bank,
         m4_self_threshold=0.50,
         room_filter_path=args.room_filter,
         room_local_threshold=0.0747,

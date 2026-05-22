@@ -74,8 +74,23 @@ def main() -> None:
                         help="Number of phases (default: 2 = baseline + post-change)")
     parser.add_argument("--transition-s", type=float, default=10.0,
                         help="Seconds between phases for room change (default: 10)")
+    parser.add_argument("--m4-scorer", type=str, default="data/m4_finetuned_ecapa_live_domain_20260517/fine_tuned/scorer.pt")
+    parser.add_argument("--m4-bank", type=str, default=None)
+    parser.add_argument(
+        "--m4-mode",
+        choices=["auto", "bank", "scorer", "arbitration"],
+        default="auto",
+        help="Force M4 mode: auto, bank-only, scorer-only, or bank+scorer arbitration",
+    )
     parser.add_argument("--output", type=str, default="/tmp/m7_live_drift.json")
     args = parser.parse_args()
+
+    if args.m4_mode == "bank" and not args.m4_bank:
+        raise SystemExit("--m4-mode bank requires --m4-bank")
+    if args.m4_mode == "scorer" and not args.m4_scorer:
+        raise SystemExit("--m4-mode scorer requires --m4-scorer")
+    if args.m4_mode == "arbitration" and (not args.m4_bank or not args.m4_scorer):
+        raise SystemExit("--m4-mode arbitration requires both --m4-bank and --m4-scorer")
 
     n_phases = max(2, args.phases)
     phase_duration = args.duration
@@ -89,7 +104,9 @@ def main() -> None:
     print(f"  Phases:          {n_phases}")
     print(f"  Phase duration:  {phase_duration}s each")
     print(f"  Transition:      {transition_s}s between phases")
-    print(f"  M4 scorer:       fine-tuned (live domain)")
+    print(f"  M4 scorer:       {args.m4_scorer}")
+    print(f"  M4 bank:         {args.m4_bank}")
+    print(f"  M4 mode:         {args.m4_mode}")
     print(f"  Room filter:     production (white noise calibrated)")
     print()
 
@@ -114,16 +131,17 @@ def main() -> None:
     sag = SemanticAbstractionGraph()
     self_model = SelfModel()
     self_model.initialize_sag(sag)
-
-    # Configure streaming runtime
     config = StreamingConfig(
         tts_pcm=tts_pcm,
         tts_text="M7 drift validation",
         input_device=args.input_device,
         output_device=args.output_device,
         m4_enable=True,
-        m4_scorer_path="data/m4_finetuned_ecapa_live_domain_20260517/fine_tuned/scorer.pt",
-        m4_self_threshold=0.50,
+        m4_scorer_path=None if args.m4_bank is not None else args.m4_scorer,
+        m4_bank_path=args.m4_bank,
+        m4_mode=args.m4_mode,
+        # Hardened live-domain threshold for the current scorer.
+        m4_self_threshold=0.99,
         gated_playback=False,
         room_filter_path="data/m3_broca_room_filter_production.npy",
         room_local_threshold=0.0747,

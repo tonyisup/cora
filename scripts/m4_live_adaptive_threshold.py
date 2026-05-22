@@ -49,8 +49,16 @@ def main():
     )
     parser.add_argument("--duration", type=float, default=8.0, help="Capture duration in seconds")
     parser.add_argument("--text", type=str, default="Hello, I am Corollary. This is a live self-voice detection test.")
-    parser.add_argument("--m4-threshold", type=float, default=0.10, help="Base M4 self-voice threshold")
+    parser.add_argument("--m4-threshold", type=float, default=0.99, help="Base M4 self-voice threshold")
     parser.add_argument("--m4-buffer-ms", type=float, default=300.0, help="M4 min buffer ms")
+    parser.add_argument("--m4-scorer", type=str, default="data/m4_finetuned_ecapa_live_domain_20260517/fine_tuned/scorer.pt", help="Path to fine-tuned M4 scorer")
+    parser.add_argument("--m4-bank", type=str, default=None, help="Optional prototype-bank .npz to use instead of the fine-tuned scorer")
+    parser.add_argument(
+        "--m4-mode",
+        choices=["auto", "bank", "scorer", "arbitration"],
+        default="auto",
+        help="Force M4 mode: auto, bank-only, scorer-only, or bank+scorer arbitration",
+    )
     parser.add_argument("--output", type=str, default="/tmp/m4_live_adaptive.json", help="Output JSON path")
     parser.add_argument(
         "--register-speaker",
@@ -91,16 +99,36 @@ def main():
     args = parser.parse_args()
     if args.world_output_device is None:
         args.world_output_device = args.output_device
-
+    if args.m4_mode == "bank" and not args.m4_bank:
+        raise SystemExit("--m4-mode bank requires --m4-bank")
+    if args.m4_mode == "scorer" and not args.m4_scorer:
+        raise SystemExit("--m4-mode scorer requires --m4-scorer")
+    if args.m4_mode == "arbitration" and (not args.m4_bank or not args.m4_scorer):
+        raise SystemExit("--m4-mode arbitration requires both --m4-bank and --m4-scorer")
+    
     print("=" * 60)
     print("M4 Live Adaptive Threshold Validation")
     print("=" * 60)
+    effective_mode = {
+        "auto": "arbitration" if args.m4_bank and args.m4_scorer else "bank" if args.m4_bank else "scorer",
+        "bank": "bank",
+        "scorer": "scorer",
+        "arbitration": "arbitration",
+    }[args.m4_mode]
     print(f"  Input device:   {args.input_device} (BL-2021USB)")
     print(f"  TTS output:     {args.output_device} (Mac mini Speakers)")
     print(f"  World output:   {args.world_output_device}")
     print(f"  Duration:       {args.duration}s")
     print(f"  M4 threshold:  {args.m4_threshold}")
     print(f"  M4 buffer:     {args.m4_buffer_ms}ms")
+    print(f"  Effective M4 mode: {effective_mode}")
+    detector_label = {
+        "auto": "bank + scorer arbitration" if args.m4_bank and args.m4_scorer else "prototype bank" if args.m4_bank else "fine-tuned scorer",
+        "bank": "prototype bank",
+        "scorer": "fine-tuned scorer",
+        "arbitration": "bank + scorer arbitration",
+    }[args.m4_mode]
+    print(f"  M4 detector:   {detector_label}")
 
     # Synthesize TTS
     print("\nSynthesizing TTS...")
@@ -127,6 +155,9 @@ def main():
         gated_playback=False,  # Always play TTS so we can hear it
         m4_self_threshold=args.m4_threshold,
         m4_min_buffer_ms=args.m4_buffer_ms,
+        m4_mode=args.m4_mode,
+        m4_scorer_path=args.m4_scorer,
+        m4_bank_path=args.m4_bank,
         speaker_threshold_adapter=adapter,
         save_path=Path(args.output).with_suffix(".jsonl"),
     )
@@ -318,6 +349,7 @@ def main():
         "input_device": args.input_device,
         "output_device": args.output_device,
         "duration_s": args.duration,
+        "effective_m4_mode": effective_mode,
         "total_frames": total_frames,
         "m4_attempted": m4_attempted,
         "m4_accepted": m4_accepted,

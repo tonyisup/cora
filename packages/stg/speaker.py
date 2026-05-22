@@ -7,8 +7,9 @@ self-voice from others. Falls back to mock if SpeechBrain not available.
 from __future__ import annotations
 
 import os
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 import numpy as np
 import torch
@@ -232,3 +233,252 @@ class FineTunedSelfVoiceDetector:
         """Check if the given audio is likely NOT Corollary's own voice."""
         is_self, conf = self.is_self(pcm)
         return (not is_self), (1.0 - conf)
+
+
+@dataclass
+class M4ArbitrationResult:
+    """Outcome of dual M4 arbitration between the bank and scorer."""
+
+    final_is_self: bool
+    final_confidence: float
+    primary_source: str
+    bank_is_self: Optional[bool]
+    bank_confidence: Optional[float]
+    scorer_is_self: Optional[bool]
+    scorer_confidence: Optional[float]
+    disagreed: bool
+    degraded_mode: bool
+
+    def to_metadata_dict(self) -> dict:
+        return {
+            "m4_primary_source": self.primary_source,
+            "m4_bank_is_self": self.bank_is_self,
+            "m4_bank_confidence": self.bank_confidence,
+            "m4_scorer_is_self": self.scorer_is_self,
+            "m4_scorer_confidence": self.scorer_confidence,
+            "m4_disagreed": self.disagreed,
+            "m4_degraded_mode": self.degraded_mode,
+            "m4_final_is_self": self.final_is_self,
+            "m4_final_confidence": self.final_confidence,
+        }
+
+
+class PrototypeBankSelfVoiceDetector:
+    """Self-voice detector using a bank of self and hard-negative prototypes.
+
+    This strategy replaces the single-template + learned head setup with a
+    multi-prototype verifier. It scores a probe by the margin between its
+    strongest match to the self bank and its strongest match to the negative
+    bank. In practice, this makes the detector less brittle to session-to-session
+    self variation while still letting hard negatives pull the score down.
+    """
+
+    def __init__(self, identifier: SpeakerIdentifier, threshold: float = 0.0) -> None:
+        self.identifier = identifier
+        self.threshold = threshold
+        self.self_bank: list[np.ndarray] = []
+        self.neg_bank: list[np.ndarray] = []
+
+    @staticmethod
+    def _ensure_2d(arr: np.ndarray) -> np.ndarray:
+        arr = np.asarray(arr, dtype=np.float32)
+        if arr.ndim == 1:
+            return arr[None, :]
+        return arr.astype(np.float32)
+
+    def register_self_bank(self, embeddings: list[np.ndarray] | np.ndarray) -> None:
+        self.self_bank = self._prepare_bank(embeddings)
+
+    def register_negative_bank(self, embeddings: list[np.ndarray] | np.ndarray) -> None:
+        self.neg_bank = self._prepare_bank(embeddings)
+
+    def add_self_prototype(self, prototype: np.ndarray) -> None:
+        self.self_bank.extend(self._prepare_bank(prototype))
+
+    def add_negative_prototype(self, prototype: np.ndarray) -> None:
+        self.neg_bank.extend(self._prepare_bank(prototype))
+
+    def save_bank(self, bank_path: str) -> None:
+        self._save_bank(bank_path)
+
+    def load_bank(self, bank_path: str) -> None:
+        bank = np.load(bank_path, allow_pickle=True)
+        self.self_bank = [row.astype(np.float32) for row in np.asarray(bank["self_embeddings"], dtype=np.float32)]
+        self.neg_bank = [row.astype(np.float32) for row in np.asarray(bank["neg_embeddings"], dtype=np.float32)]
+        if "threshold" in bank:
+            self.threshold = float(np.asarray(bank["threshold"]).reshape(-1)[0])
+
+    def _save_bank(self, bank_path: str) -> None:
+        np.savez(
+            bank_path,
+            self_embeddings=np.stack(self.self_bank) if self.self_bank else np.zeros((0, 192), dtype=np.float32),
+            neg_embeddings=np.stack(self.neg_bank) if self.neg_bank else np.zeros((0, 192), dtype=np.float32),
+            threshold=np.array([self.threshold], dtype=np.float32),
+        )
+
+    def _prepare_bank(self, items: list[np.ndarray] | np.ndarray) -> list[np.ndarray]:
+        if isinstance(items, np.ndarray):
+            items = [items]
+        bank: list[np.ndarray] = []
+        for item in items:
+            arr = np.asarray(item, dtype=np.float32)
+            if arr.ndim == 1 and arr.shape[0] == 192:
+                bank.append(arr.astype(np.float32))
+                continue
+            if arr.ndim == 2 and arr.shape[1] == 192:
+                bank.extend([row.astype(np.float32) for row in arr])
+                continue
+            emb = self.identifier.get_embedding(arr)
+            bank.append(emb.astype(np.float32))
+        return bank
+
+    @staticmethod
+    def _cosine(a: np.ndarray, b: np.ndarray) -> float:
+        dot = float(np.dot(a, b))
+        denom = float(np.linalg.norm(a) * np.linalg.norm(b))
+        if denom < 1e-9:
+            return 0.0
+        return dot / denom
+
+    def score(self, pcm: np.ndarray) -> float:
+        emb = self.identifier.get_embedding(pcm)
+        self_score = max((self._cosine(emb, proto) for proto in self.self_bank), default=-1.0)
+        neg_score = max((self._cosine(emb, proto) for proto in self.neg_bank), default=-1.0)
+        return self_score - neg_score
+
+    def is_self(self, pcm: np.ndarray) -> tuple[bool, float]:
+        margin = self.score(pcm)
+        return (margin >= self.threshold), margin
+
+    def is_world(self, pcm: np.ndarray) -> tuple[bool, float]:
+        is_self, margin = self.is_self(pcm)
+        return (not is_self), (-margin)
+
+
+class GatedM4Arbitrator:
+    """Conservative dual-path M4 detector.
+
+    The prototype bank is the primary live gate and the fine-tuned scorer acts
+    as a cross-check. Agreement is required to return SELF; disagreement is
+    logged and treated conservatively.
+    """
+
+    def __init__(
+        self,
+        bank_detector: Optional[Any] = None,
+        scorer_detector: Optional[Any] = None,
+        threshold: float = 0.5,
+    ) -> None:
+        self.bank_detector = bank_detector
+        self.scorer_detector = scorer_detector
+        self.threshold = threshold
+        self.last_result: Optional[M4ArbitrationResult] = None
+
+    def register_self(self, pcm: np.ndarray) -> None:
+        if self.bank_detector is not None:
+            if hasattr(self.bank_detector, "add_self_prototype"):
+                self.bank_detector.add_self_prototype(pcm)
+            elif hasattr(self.bank_detector, "register_self"):
+                self.bank_detector.register_self(pcm)
+
+        if self.scorer_detector is not None and hasattr(self.scorer_detector, "register_self"):
+            self.scorer_detector.register_self(pcm)
+
+    def add_self_prototype(self, prototype: np.ndarray) -> None:
+        if self.bank_detector is not None and hasattr(self.bank_detector, "add_self_prototype"):
+            self.bank_detector.add_self_prototype(prototype)
+        elif self.bank_detector is not None and hasattr(self.bank_detector, "register_self"):
+            self.bank_detector.register_self(prototype)
+
+    def load_bank(self, bank_path: str) -> None:
+        if self.bank_detector is not None and hasattr(self.bank_detector, "load_bank"):
+            self.bank_detector.load_bank(bank_path)
+
+    def load_scorer(self, scorer_path: str) -> None:
+        if self.scorer_detector is not None and hasattr(self.scorer_detector, "load_scorer"):
+            self.scorer_detector.load_scorer(scorer_path)
+
+    @staticmethod
+    def _normalize_detector_result(result) -> tuple[Optional[bool], Optional[float]]:
+        if result is None:
+            return None, None
+        is_self, confidence = result
+        return (
+            bool(is_self) if is_self is not None else None,
+            float(confidence) if confidence is not None else None,
+        )
+
+    def is_self(self, pcm: np.ndarray) -> tuple[bool, float]:
+        bank_is_self, bank_confidence = (None, None)
+        scorer_is_self, scorer_confidence = (None, None)
+
+        if self.bank_detector is not None and hasattr(self.bank_detector, "is_self"):
+            bank_is_self, bank_confidence = self._normalize_detector_result(
+                self.bank_detector.is_self(pcm)
+            )
+
+        if self.scorer_detector is not None and hasattr(self.scorer_detector, "is_self"):
+            scorer_is_self, scorer_confidence = self._normalize_detector_result(
+                self.scorer_detector.is_self(pcm)
+            )
+
+        available_bank = bank_is_self is not None
+        available_scorer = scorer_is_self is not None
+        if not available_bank and not available_scorer:
+            self.last_result = M4ArbitrationResult(
+                final_is_self=False,
+                final_confidence=0.0,
+                primary_source="fallback",
+                bank_is_self=None,
+                bank_confidence=None,
+                scorer_is_self=None,
+                scorer_confidence=None,
+                disagreed=False,
+                degraded_mode=True,
+            )
+            return False, 0.0
+
+        if available_bank and available_scorer:
+            disagreed = bank_is_self != scorer_is_self
+            if bank_is_self and scorer_is_self:
+                final_is_self = True
+                final_confidence = float(bank_confidence or 0.0)
+                primary_source = "bank"
+                degraded_mode = False
+            elif (not bank_is_self) and (not scorer_is_self):
+                final_is_self = False
+                final_confidence = max(bank_confidence or 0.0, scorer_confidence or 0.0)
+                primary_source = "bank"
+                degraded_mode = False
+            else:
+                final_is_self = False
+                final_confidence = min(
+                    [c for c in (bank_confidence, scorer_confidence) if c is not None],
+                    default=0.0,
+                )
+                primary_source = "bank" if bank_is_self else "scorer"
+                degraded_mode = True
+        else:
+            source_confidence = bank_confidence if available_bank else scorer_confidence
+            final_is_self = bool(bank_is_self if available_bank else scorer_is_self)
+            final_confidence = float(source_confidence or 0.0)
+            primary_source = "bank" if available_bank else "scorer"
+            disagreed = False
+            degraded_mode = False
+
+        self.last_result = M4ArbitrationResult(
+            final_is_self=final_is_self,
+            final_confidence=float(final_confidence),
+            primary_source=primary_source,
+            bank_is_self=bank_is_self,
+            bank_confidence=bank_confidence,
+            scorer_is_self=scorer_is_self,
+            scorer_confidence=scorer_confidence,
+            disagreed=disagreed,
+            degraded_mode=degraded_mode,
+        )
+        return final_is_self, float(final_confidence)
+
+    def is_world(self, pcm: np.ndarray) -> tuple[bool, float]:
+        is_self, confidence = self.is_self(pcm)
+        return (not is_self), (1.0 - confidence)

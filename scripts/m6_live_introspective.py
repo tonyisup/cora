@@ -51,8 +51,23 @@ def main() -> None:
     parser.add_argument("--input-device", type=int, default=1)
     parser.add_argument("--output-device", type=int, default=5)
     parser.add_argument("--duration", type=float, default=30.0)
+    parser.add_argument("--m4-scorer", type=str, default="data/m4_finetuned_ecapa_live_domain_20260517/fine_tuned/scorer.pt")
+    parser.add_argument("--m4-bank", type=str, default=None)
+    parser.add_argument(
+        "--m4-mode",
+        choices=["auto", "bank", "scorer", "arbitration"],
+        default="auto",
+        help="Force M4 mode: auto, bank-only, scorer-only, or bank+scorer arbitration",
+    )
     parser.add_argument("--output", type=str, default="/tmp/m6_live_introspective.json")
     args = parser.parse_args()
+
+    if args.m4_mode == "bank" and not args.m4_bank:
+        raise SystemExit("--m4-mode bank requires --m4-bank")
+    if args.m4_mode == "scorer" and not args.m4_scorer:
+        raise SystemExit("--m4-mode scorer requires --m4-scorer")
+    if args.m4_mode == "arbitration" and (not args.m4_bank or not args.m4_scorer):
+        raise SystemExit("--m4-mode arbitration requires both --m4-bank and --m4-scorer")
 
     print("=" * 60)
     print("M6 Live Introspective Query")
@@ -60,6 +75,9 @@ def main() -> None:
     print(f"  Input device:  {args.input_device}")
     print(f"  Output device: {args.output_device}")
     print(f"  Duration:      {args.duration}s")
+    print(f"  M4 scorer:     {args.m4_scorer}")
+    print(f"  M4 bank:       {args.m4_bank}")
+    print(f"  M4 mode:       {args.m4_mode}")
     print()
 
     # Set up SelfModel
@@ -88,7 +106,9 @@ def main() -> None:
         input_device=args.input_device,
         output_device=args.output_device,
         m4_enable=True,
-        m4_scorer_path="data/m4_finetuned_ecapa_live_domain_20260517/fine_tuned/scorer.pt",
+        m4_scorer_path=None if args.m4_bank is not None else args.m4_scorer,
+        m4_bank_path=args.m4_bank,
+        m4_mode=args.m4_mode,
         m4_self_threshold=0.50,
         gated_playback=False,
         enable_conversational_registration=True,

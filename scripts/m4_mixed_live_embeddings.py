@@ -41,13 +41,15 @@ def main() -> None:
     parser.add_argument("--world-output-device", type=int, default=4)
     parser.add_argument("--duration", type=float, default=10.0)
     parser.add_argument("--text", type=str, default="Hello, I am Corollary. Mixed validation with live-path speaker embeddings.")
-    parser.add_argument("--m4-threshold", type=float, default=0.10)
+    parser.add_argument("--m4-threshold", type=float, default=0.99)
     parser.add_argument("--m4-buffer-ms", type=float, default=300.0)
     parser.add_argument("--register-speaker-dir", type=str, default="data/m4_human_negative_bl2021")
     parser.add_argument("--play-world-audio", type=str, default="data/m4_human_negative_bl2021/human_negative_speaker2.npy")
     parser.add_argument("--world-delay-s", type=float, default=1.5)
     parser.add_argument("--world-gain", type=float, default=0.8)
     parser.add_argument("--speaker-registry-threshold", type=float, default=0.1)
+    parser.add_argument("--m4-scorer", type=str, default="data/m4_finetuned_ecapa_live_domain_20260517/fine_tuned/scorer.pt")
+    parser.add_argument("--m4-bank", type=str, default=None, help="Optional prototype-bank .npz to use instead of the fine-tuned scorer")
     parser.add_argument("--output", type=str, default="/tmp/m4_mixed_live_embeddings.json")
     args = parser.parse_args()
 
@@ -94,6 +96,8 @@ def main() -> None:
         output_device=args.output_device,
         m4_enable=True,
         gated_playback=False,
+        m4_scorer_path=None if args.m4_bank is not None else args.m4_scorer,
+        m4_bank_path=args.m4_bank,
         m4_self_threshold=args.m4_threshold,
         m4_min_buffer_ms=args.m4_buffer_ms,
         speaker_threshold_adapter=adapter,
