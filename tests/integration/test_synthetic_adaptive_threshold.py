@@ -171,3 +171,36 @@ class TestSyntheticAdaptiveThreshold:
         assert "speaker_alice" in summary
         assert "self" in summary
         assert summary["self"]["mean_conf"] > summary["speaker_alice"]["mean_conf"]
+
+    def test_clean_world_evidence_falls_back_to_attribution_confidence(self):
+        """WORLD frames with no explicit M4 confidence should still update the adapter."""
+        adapter = SpeakerThresholdAdapter(base_threshold=0.10, margin=0.05)
+        tts_pcm = np.zeros(16000, dtype=np.float32)
+        config = StreamingConfig(
+            tts_pcm=tts_pcm,
+            m4_enable=False,
+            speaker_threshold_adapter=adapter,
+        )
+        runtime = StreamingRuntime(config)
+
+        attr = runtime._attributor.attribute(
+            match_score=0.0,
+            observed_onset_samples=0,
+            expected_onset_samples=0,
+            rms_db=-30.0,
+            is_playing=False,
+            is_speech=True,
+            frame_audio=np.zeros(480, dtype=np.float32),
+            self_pcm=tts_pcm,
+            agent_start_sample=0,
+            speaker_id="speaker_alice",
+        )
+
+        # Simulate the live WORLD-resolution path: no explicit M4 confidence
+        # attached, but the frame was confidently attributed to a real speaker.
+        attr.metadata = {"m4_outcome": "accepted", "m4_confidence": None}
+        runtime._update_adapter_from_clean_world_evidence(attr, "speaker_alice")
+
+        assert adapter.get_profile("speaker_alice") is not None
+        assert adapter.get_profile("speaker_alice").count == 1
+        assert adapter.get_threshold("speaker_alice") > 0.10

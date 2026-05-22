@@ -544,7 +544,12 @@ class StreamingRuntime:
         m4_metadata = attr_result.metadata or {}
         m4_conf = m4_metadata.get("m4_confidence")
         if m4_conf is None:
-            return
+            # Live WORLD frames can arrive after speaker-ID resolution even when
+            # the M4 detector did not emit a per-frame confidence for that frame.
+            # In that case, use the resolved attribution confidence as a fallback
+            # so the adapter still learns a non-self profile from clean WORLD
+            # evidence instead of silently skipping the update.
+            m4_conf = attr_result.confidence
         self._speaker_threshold_adapter.update(speaker_id, float(m4_conf))
 
     def _get_tts_chunk(self) -> np.ndarray:
