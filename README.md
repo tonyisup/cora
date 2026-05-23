@@ -34,7 +34,7 @@ pip install -r requirements.txt
 
 ## Project Status
 
-**Tests:** 454 passed, 1 skipped
+**Tests:** 479 passed, 1 skipped, 5 data-missing (M2/M3 artifacts not in local data/)
 
 ### Milestone Summary
 
@@ -58,6 +58,24 @@ Fine-tuned ECAPA scorer trained on current-room captures (4 self + 8 negative sp
 - **Self-recall: 100%** on held-out self-captures
 - **FP rate: 16.4%** across 7 negative speakers (concentrated in same-family voices JennyNeural 33%, EmmaNeural 27%; 0-10% on others)
 - **Scorer:** `data/m4_balanced_current_room_v2/fine_tuned/fine_tuned/scorer.pt`
+
+### Recommended M4 Live Smoke Test
+
+The most representative end-to-end live validation currently is `scripts/m4_mixed_live_embeddings.py`, because it exercises live embedding registration, speaker-ID resolution, and world playback together.
+
+```bash
+uv run --with sounddevice --with edge-tts --with scipy --with webrtcvad --with pydantic --with speechbrain --with pytest --with numpy --with torch python scripts/m4_mixed_live_embeddings.py \
+  --input-device 1 \
+  --output-device 3 \
+  --world-output-device 3 \
+  --duration 6.0 \
+  --text 'Smoke test: M4 mixed live embeddings.' \
+  --m4-scorer /Users/juicebox/Projects/corollary/data/m4_finetuned_ecapa_live_domain_20260517/fine_tuned/scorer.pt \
+  --register-speaker-dir /Users/juicebox/Projects/corollary/data/m4_human_negative_bl2021 \
+  --play-world-audio /Users/juicebox/Projects/corollary/data/m4_human_negative_bl2021/human_negative_speaker2.npy
+```
+
+Adjust the device IDs if your local audio map differs. The supporting notes and observed output are recorded in `docs/m4_live_smoke_test_20260522.md`.
 
 ### M7 Interruption Latency
 
@@ -108,6 +126,8 @@ corollary/
 | `scripts/m4_train_balanced_scorer.py` | Train balanced M4 scorer from captures |
 | `scripts/m4_validate_live_scorer.py` | Validate scorer on held-out captures |
 | `scripts/m6_live_introspective.py` | M6 self-model enrichment + SAG query |
+| `scripts/m4_mixed_live_embeddings.py` | Recommended M4 live smoke test (speaker registration + world playback) |
+| `scripts/m4_live_adaptive_threshold.py` | M4 live adaptive-threshold validation |
 | `scripts/m3_live_e2e_harness.py` | M3 live E2E validation |
 
 ## Evaluation Metrics
