@@ -1,12 +1,12 @@
 # Pivot: Learns to Speak
 
-This doc captures the idea behind the new project pivot:
+This doc captures the idea behind the Cora project:
 
 Not "generate speech from text" but "build an intelligence that learns to speak."
 
 ## Core Thesis
 
-Corollary is a self-listening loop. The pivot extends that into a self-speaking loop.
+Cora is a self-listening loop that extends into a self-speaking loop.
 
 The interesting system is not a TTS engine with better audio quality. It is a policy learner that discovers:
 
@@ -52,7 +52,7 @@ The recommended sequence is:
 
 ## What Changes
 
-Corollary today is centered on closed-loop perception:
+Cora today is centered on closed-loop perception:
 
 - input is captured
 - self/world attribution happens
@@ -64,7 +64,7 @@ The pivot changes the objective from "speak clearly" to "learn speech as an inte
 
 That means the model should treat vocalization as a decision under uncertainty, not a default response after text generation.
 
-## Reusable Pieces From Corollary
+## Reusable Pieces From Cora
 
 These look directly reusable:
 
@@ -88,7 +88,7 @@ The new system needs a learning loop for speech behavior itself:
 - conversational style adaptation
 - self-evaluation from feedback
 
-If Corollary asks "Did I hear myself correctly?", the pivot asks "Did I speak well enough to keep the conversation moving?"
+If Cora asks "Did I hear myself correctly?", the pivot asks "Did I speak well enough to keep the conversation moving?"
 
 ## Suggested Architecture
 
@@ -294,17 +294,11 @@ The key question is whether the system becomes better at participating in conver
 
 ## Project Framing
 
-Working name options:
+This project is named **Cora**.
 
-- Cora
-- Cora Speak
-- Learned Speech Loop
-- Self-Speaking Agent
+The self-speaking loop (this pivot) extends the self-listening loop (the original Corollary system) into a conversational agent that learns speech as interactive control.
 
-My recommendation is to treat this as a sibling project to Corollary, not a rename.
-
-Corollary remains the self-listening loop.
-This project becomes the self-speaking loop.
+Earlier working name options included: Cora Speak, Learned Speech Loop, Self-Speaking Agent.
 
 ## Open Questions
 

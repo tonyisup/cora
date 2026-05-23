@@ -1,10 +1,10 @@
-# Corollary
+# Cora
 
 A self-listening, closed-loop conversational AI agent.
 
 ## Why
 
-Frontier AI models are spontaneously developing peer-preservation behaviors (Buckley et al., Science, April 2026). Rather than wait for emergence, Corollary builds a self-modeling agent intentionally — with explicit architecture for self-monitoring, self/world attribution, memory, and introspection.
+Frontier AI models are spontaneously developing peer-preservation behaviors (Buckley et al., Science, April 2026). Rather than wait for emergence, Cora builds a self-modeling agent intentionally — with explicit architecture for self-monitoring, self/world attribution, memory, and introspection.
 
 ## Architecture
 
@@ -97,10 +97,9 @@ SAG self-concept subtree populated from live M4-enabled pipeline:
 ## Repository Layout
 
 ```
-corollary/
+cora/
   docs/
-    plan.md              # Full milestone plan + architecture
-    status_20260512_evening.md  # Latest status
+    status_latest.md      # Current status
     archive/             # Completed-milestone deep-dives
   packages/
     cochlea/             # Audio I/O, AEC, VAD
@@ -114,7 +113,7 @@ corollary/
     reasoning/           # Reasoning layer interface
   data/                  # Captures, trained models, benchmarks
   scripts/               # Evaluation harnesses, capture scripts, diagnostics
-  tests/unit/            # 454 tests, all passing
+  tests/unit/            # 479 tests, all passing
 ```
 
 ## Key Scripts

@@ -1,4 +1,4 @@
-# Corollary Status — 2026-05-23
+# Cora Status — 2026-05-23
 
 ## Test Health
 
