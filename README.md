@@ -50,6 +50,7 @@ pip install -r requirements.txt
 | M5 | ✅ Acceptance passed | Hippocampus + consolidation + multi-speaker world model |
 | M6 | ✅ Live validated | SAG introspective queries functional, M4 accept rate 95.7% |
 | M7 | ✅ Complete | Trust-gated NLMS + DriftAlarm + IR bank + device profile; live room-change validated |
+| M8 | 🔬 Scoped | Speaking policy — deterministic harness → distilled → RL. Not yet started. |
 
 ### M4 Self-Voice Detector
 

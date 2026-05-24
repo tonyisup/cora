@@ -30,6 +30,7 @@
 | M5 | Acceptance passed | Hippocampus + consolidation + multi-speaker world model |
 | M6 | Live validated | SAG introspective queries functional |
 | M7 | Complete | Trust-gated NLMS + DriftAlarm + IR bank + device profile |
+| M8 | Scoped | Speaking policy — deterministic harness → distilled → RL |
 
 ## Recent Changes (last 3 commits)
 
