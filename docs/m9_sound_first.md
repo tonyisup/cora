@@ -209,12 +209,49 @@ Existing files modified:
 - `packages/sag/graph.py` — Handle acoustic node indexing
 - `packages/broca/tts.py` — May need acoustic output path (not just TTS)
 
-## Open Risks
+## Storage & Memory Assessment
+
+### Current State
+
+| Component | Storage | Persistence | M9 Readiness |
+|-----------|---------|-------------|--------------|
+| `Hippocampus` | In-memory list + JSONL append-only | Partial (traces persist, graph doesn't) | Usable for trial logs |
+| `SAG` | Purely in-memory dicts | None | Needs acoustic node type + persistence |
+| `OfflineConsolidator` | Background process, writes SAG nodes | `persist_path` exists but unclear if wired | Not needed for M9a/b |
+| `faiss-cpu` | Installed, unused | N/A | Candidate for vector search in M9c+ |
+| `chromadb` | Installed, unused | N/A | Candidate for prototype storage in M9c+ |
+| `data/` | Empty (gitignored) | N/A | Checkpoint space for M9 |
+
+### M9a/b Data Volume (small — no persistence needed yet)
+
+- Per trial: 1 target sound (~1s) + 1 produced sound (~1s) + features (~1KB)
+- Per prototype: MFCC centroid (13 floats), pitch (1 float), duration (1 float), count (int), avg_similarity (float) — ~100 bytes
+- 100 trials × 5 prototypes = ~500KB total
+
+This fits comfortably in memory with JSONL checkpoint. No need for a database yet.
+
+### M9c+ Data Volume (persistent storage needed)
+
+- Label associations (word → prototype) must survive restarts
+- Production history (per-prototype similarity time series) grows without bound
+- Text association requires durable bidirectional SAG edges
+
+**Decision:** Defer persistence to M9c. Use in-memory + JSONL checkpoint for M9a/b. When text association requires durable storage, add:
+- `SemanticAbstractionGraph.persist()` / `.load()` — serialize nodes + edges to JSON
+- `faiss-cpu` index for MFCC centroid similarity search (nearest prototype lookup)
+- `chromadb` alternative if metadata-rich queries are needed
+
+### Storage-Related Open Risks
+
+- **SAG storage:** Storing raw audio in SAG nodes doesn't scale. Need compressed representations (MFCC centroids, embeddings).
+- **Vector search:** M9b+ needs nearest-prototype lookup. Current SAG has token-based indexing only. Need vector index (faiss) for acoustic similarity queries.
+- **Production history growth:** Per-prototype similarity time series grows with each trial. Need bounded storage (circular buffer or summary stats only).
+
+## Open Risks (General)
 
 - **Oscillator design:** Simple sine waves may not produce rich enough sound space. May need FM synthesis or wavetable.
 - **Similarity metric:** MFCC distance may not capture perceptual similarity well. May need learned similarity (e.g., using the ECAPA embeddings from M4).
 - **Credit assignment:** The recurrent substrate makes it hard to attribute which timestep contributed to the reward. May need temporal credit assignment (e.g., REINFORCE with baseline).
-- **SAG storage:** Storing raw audio in SAG nodes doesn't scale. Need compressed representations (MFCC centroids, embeddings).
 - **Text association timing:** Pivoting to text too early could collapse the sound diversity. Need a clear gate criterion.
 
 ## Relationship to M8
