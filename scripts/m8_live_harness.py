@@ -227,32 +227,29 @@ class _PPOPolicyWrapper(SpeakingPolicy):
         self._model = model
 
     def decide(self, features: Dict[str, Any]) -> str:
-        from m8_train_ppo import encode_obs
         import torch
-        # Convert conversation features to obs format
-        obs = _conv_to_obs(features)
-        x = encode_obs(obs).unsqueeze(0)
+        # Map conversation features directly to 13-dim obs vector
+        state_raw = str(features.get("conversation_state", "listen")).lower()
+        state_map = {"idle": "idle", "listening": "listen", "speaking": "speak",
+                     "repair": "repair", "clarification": "clarify"}
+        state = state_map.get(state_raw, "listen")
+        state_idx = {"idle": 0, "listen": 1, "speak": 2, "repair": 3, "clarify": 4}.get(state, 1)
+        state_onehot = torch.zeros(5, dtype=torch.float32)
+        state_onehot[state_idx] = 1.0
+        attr_onehot = torch.zeros(3, dtype=torch.float32)
+        attr_onehot[0] = 1.0  # silence default
+        numeric = torch.tensor([
+            min(features.get("seconds_since_last_user_speech", 999.0), 5.0),
+            float(features.get("has_queued_output", False)),
+            float(features.get("is_user_speaking", False)),
+            float(features.get("is_agent_speaking", False)),
+            float(1 if features.get("is_agent_deferred", False) else 0) / 5.0,
+        ], dtype=torch.float32)
+        x = torch.cat([state_onehot, attr_onehot, numeric]).unsqueeze(0)
         with torch.no_grad():
             logits, _ = self._model(x)
             idx = logits.argmax(dim=-1).item()
         return ACTION_NAMES[idx]
-
-
-def _conv_to_obs(features: Dict[str, Any]) -> Dict[str, Any]:
-    """Convert ConversationFeatures to streaming runtime obs format."""
-    state_map = {"idle": "idle", "listening": "listen", "speaking": "speak",
-                 "repair": "repair", "clarification": "clarify"}
-    return {
-        "state": state_map.get(features.get("conversation_state", "listen"), "listen"),
-        "attribution": "silence",
-        "silence_duration_ms": features.get("seconds_since_last_user_speech", 0.0) * 1000.0,
-        "has_queued_utterance": features.get("has_queued_output", False),
-        "user_speaking": features.get("is_user_speaking", False),
-        "agent_speaking": features.get("is_agent_speaking", False),
-        "queue_depth": 1 if features.get("is_agent_deferred", False) else 0,
-    }
-
-
 # ── Episode Runner ───────────────────────────────────────────────────────────
 
 def build_episode_script(episode: Dict) -> List[Dict[str, Any]]:
@@ -355,6 +352,8 @@ def run_episode_live(
     episode: Dict,
     policy: SpeakingPolicy,
     args,
+    m4_scorer_path: Optional[str] = None,
+    room_filter_path: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Run an episode on live hardware.
 
@@ -409,22 +408,11 @@ def run_episode_live(
         if args.output:
             save_path = Path(args.output).parent / f"{episode['id']}_segment{utt_idx}.jsonl"
 
-        # Resolve room filter path (may be in corollary sibling repo)
-        room_filter_path = args.room_filter
-        if room_filter_path and not Path(room_filter_path).exists():
-            # Try local data directory
-            alt = Path("data") / Path(room_filter_path).name
-            if alt.exists():
-                room_filter_path = str(alt)
-            else:
-                print(f"    WARNING: Room filter not found at {args.room_filter}, skipping")
-                room_filter_path = None
-
-        # Resolve M4 scorer path
-        m4_scorer_path = args.m4_scorer
-        if m4_scorer_path and not Path(m4_scorer_path).exists():
-            print(f"    WARNING: M4 scorer not found at {args.m4_scorer}")
-            m4_scorer_path = None
+        # Use resolved paths from main (fail-fast already handled)
+        if not m4_scorer_path:
+            print("  WARNING: No M4 scorer configured — attribution will be limited")
+        if not room_filter_path:
+            print("  WARNING: No room filter configured — no room-colored self-matching")
 
         config = StreamingConfig(
             tts_pcm=utt_pcm,
@@ -577,6 +565,27 @@ def evaluate_results(results: List[Dict], episodes: List[Dict]) -> Dict[str, Any
     }
 
 
+def _resolve_live_path(cli_value: Optional[str], name: str, strict: bool) -> Optional[str]:
+    """Resolve a file path for live mode. Fail fast in strict mode."""
+    if not cli_value:
+        if strict:
+            print(f"ERROR: --{name} is required in strict live mode")
+            sys.exit(1)
+        return None
+    p = Path(cli_value)
+    if p.exists():
+        return str(p)
+    # Try local data/ fallback
+    alt = Path("data") / p.name
+    if alt.exists():
+        return str(alt)
+    if strict:
+        print(f"ERROR: --{name} not found at {cli_value} (also tried {alt})")
+        sys.exit(1)
+    print(f"  WARNING: {name} not found at {cli_value}, skipping")
+    return None
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="M8 Live Hardware Validation")
     parser.add_argument("--list-devices", action="store_true")
@@ -598,14 +607,14 @@ def main() -> None:
     parser.add_argument("--callback-blocksize-ms", type=float, default=120.0)
     parser.add_argument("--output", type=str, default=None,
                         help="Output JSON path for results")
-    parser.add_argument("--m4-scorer", type=str,
-                        default="/Users/juicebox/Projects/corollary/data/m4_finetuned_ecapa_live_domain_20260517/fine_tuned/scorer.pt",
-                        help="Path to fine-tuned M4 scorer .pt file")
+    parser.add_argument("--m4-scorer", type=str, default=None,
+                        help="Path to fine-tuned M4 scorer .pt file (required for live)")
     parser.add_argument("--m4-bank", type=str, default=None,
                         help="Path to M4 prototype bank .npz file")
-    parser.add_argument("--room-filter", type=str,
-                        default="/Users/juicebox/Projects/corollary/data/m3_broca_room_filter_production.npy",
-                        help="Path to room filter .npy file")
+    parser.add_argument("--room-filter", type=str, default=None,
+                        help="Path to room filter .npy file (required for live)")
+    parser.add_argument("--strict", action="store_true",
+                        help="Fail fast on missing artifacts; require all live dependencies")
     args = parser.parse_args()
 
     if args.list_devices:
@@ -627,17 +636,24 @@ def main() -> None:
     print(f"Loading {args.policy} policy...")
     policy = load_speaking_policy(args.policy, args.policy_checkpoint)
 
+    # Resolve live artifacts (fail fast in strict mode)
+    m4_scorer_path = _resolve_live_path(args.m4_scorer, "m4-scorer", args.strict)
+    room_filter_path = _resolve_live_path(args.room_filter, "room-filter", args.strict)
+
     print(f"\n{'=' * 60}")
     print(f"M8 Live Hardware Validation")
     print(f"{'=' * 60}")
     print(f"  Policy:       {policy.__class__.__name__}")
     print(f"  Mode:         {'dry-run' if args.dry_run else 'live hardware'}")
+    print(f"  Strict:       {args.strict}")
     print(f"  Episodes:     {len(episodes)}")
     if not args.dry_run:
         print(f"  Input device: {args.input_device}")
         print(f"  Output device: {args.output_device}")
         if args.human_output_device:
             print(f"  Human device:  {args.human_output_device}")
+        print(f"  M4 scorer:     {m4_scorer_path or 'NOT CONFIGURED'}")
+        print(f"  Room filter:   {room_filter_path or 'NOT CONFIGURED'}")
     print()
 
     # Run episodes
@@ -654,18 +670,45 @@ def main() -> None:
                 print("  Use --dry-run to test without hardware")
                 print("  Use --list-devices to see available devices")
                 sys.exit(1)
-            result = run_episode_live(ep, policy, args)
+            result = run_episode_live(ep, policy, args,
+                                      m4_scorer_path=m4_scorer_path,
+                                      room_filter_path=room_filter_path)
 
         results.append(result)
 
-        # Summary
+        # Per-episode verdict
         decisions = [e for e in result["timeline"] if e["type"] == "policy_decision"]
-        print(f"  Decisions: {[d['action'] for d in decisions]}")
-        print(f"  Expected:  {ep.get('expected_actions', [])}")
+        yield_events = [e for e in result["timeline"] if e["type"] == "yield_detected"]
         expected = ep.get("expected_actions", [])
         actual = [d["action"] for d in decisions]
         matches = sum(1 for i in range(min(len(expected), len(actual))) if actual[i] == expected[i])
-        print(f"  Match:     {matches}/{len(expected)} ({matches/max(len(expected),1):.0%})")
+        match_rate = matches / max(len(expected), 1)
+
+        # Gate correctness: did yield happen when user voice was present?
+        user_voice_count = len(ep.get("user_voice", []))
+        gate_ok = True
+        gate_reasons = []
+        if user_voice_count > 0 and len(yield_events) == 0:
+            gate_ok = False
+            gate_reasons.append("no_yield_on_interrupt")
+        if user_voice_count == 0 and len(yield_events) > 0:
+            gate_ok = False
+            gate_reasons.append("spurious_yield")
+
+        # Verdict
+        if match_rate >= 0.75 and gate_ok:
+            verdict = "PASS"
+        elif match_rate >= 0.5 or (gate_ok and match_rate >= 0.25):
+            verdict = "INFO"
+        else:
+            verdict = "FAIL"
+
+        print(f"  Decisions:    {[d['action'] for d in decisions]}")
+        print(f"  Expected:     {expected}")
+        print(f"  Action match: {match_rate:.0%} ({matches}/{len(expected)})")
+        print(f"  Gate correct: {gate_ok}" + (f" ({', '.join(gate_reasons)})" if gate_reasons else ""))
+        print(f"  Yield events: {len(yield_events)}")
+        print(f"  Verdict:      {verdict}")
 
     # Evaluate
     print(f"\n{'=' * 60}")
@@ -678,7 +721,7 @@ def main() -> None:
         print(f"  [{status}] {e['episode_id']:30s}  match={e['action_match_rate']:.0%}  "
               f"actions={e['actual_actions']}")
 
-    print(f"\n  Overall match rate: {evals['overall_action_match_rate']:.0%}")
+    print(f"\n  Overall action match: {evals['overall_action_match_rate']:.0%}")
 
     # Save
     if args.output:
