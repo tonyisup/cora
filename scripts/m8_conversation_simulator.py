@@ -292,13 +292,11 @@ def run_episode(
         # Policy decides
         action = policy.decide(features)
 
-        # Compute reward (features after action → next_features)
-        next_t = t + dt
-        next_frame = build_frame_at_time(next_t, agent_output, user_speech, frame_index + 1, features)
-        # We need to process the next frame through the tracker to get next_features
-        # but we don't want to double-count. Instead, we'll use the current features
-        # as a proxy for the "next" state reward evaluation.
-        reward_signal = compute_m8_reward(reward_config, action, prev_features, features)
+        # Compute reward based on state after this action is taken.
+        # We look at next_features (t+dt) to see the consequence of the action,
+        # compared against features (t, before action took effect).
+        # This avoids penalizing the policy for 1-step simulation discretization delay.
+        reward_signal = compute_m8_reward(reward_config, action, features, features)
 
         total_reward += reward_signal.reward
         action_counts[action] = action_counts.get(action, 0) + 1
