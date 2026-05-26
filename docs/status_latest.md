@@ -83,4 +83,5 @@
 - 5 data-missing test failures (M2/M3 artifacts) — need artifact regeneration or test skip markers
 - `packages/salience/` is a stub (empty `__init__.py`)
 - M8 known gap: clarify/repair actions not triggered by heuristic in current episode types — distilled never learned them
-- M9: scoped next milestone (Track 2 sound-first motor learning from `docs/pivot_learns_to_speak.md`)
+- M9: sound-first motor learning (Track 2) — scoped, not yet started
+- M8 live harness maintenance lane: inline evaluation, closed-loop mode (lower priority)
