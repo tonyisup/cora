@@ -409,6 +409,23 @@ def run_episode_live(
         if args.output:
             save_path = Path(args.output).parent / f"{episode['id']}_segment{utt_idx}.jsonl"
 
+        # Resolve room filter path (may be in corollary sibling repo)
+        room_filter_path = args.room_filter
+        if room_filter_path and not Path(room_filter_path).exists():
+            # Try local data directory
+            alt = Path("data") / Path(room_filter_path).name
+            if alt.exists():
+                room_filter_path = str(alt)
+            else:
+                print(f"    WARNING: Room filter not found at {args.room_filter}, skipping")
+                room_filter_path = None
+
+        # Resolve M4 scorer path
+        m4_scorer_path = args.m4_scorer
+        if m4_scorer_path and not Path(m4_scorer_path).exists():
+            print(f"    WARNING: M4 scorer not found at {args.m4_scorer}")
+            m4_scorer_path = None
+
         config = StreamingConfig(
             tts_pcm=utt_pcm,
             tts_text=utt["text"],
@@ -417,18 +434,19 @@ def run_episode_live(
             sr=sr,
             callback_blocksize_ms=args.callback_blocksize_ms,
             gated_playback=True,
-            m4_enable=bool(args.m4_scorer),
-            m4_scorer_path=args.m4_scorer,
+            m4_enable=bool(m4_scorer_path),
+            m4_scorer_path=m4_scorer_path,
             m4_bank_path=args.m4_bank,
             m4_mode="auto",
             m4_self_threshold=0.50,
-            room_filter_path=args.room_filter,
+            room_filter_path=room_filter_path,
             energy_threshold_db=-55.0,
             similarity_threshold=0.05,
             causal_tolerance_ms=175.0,
             both_external_min_frames=3,
             both_external_energy_ratio=1.5,
             cooldown_ms=200.0,
+            save_path=save_path,
         )
 
         runtime = StreamingRuntime(config)
@@ -580,11 +598,13 @@ def main() -> None:
     parser.add_argument("--callback-blocksize-ms", type=float, default=120.0)
     parser.add_argument("--output", type=str, default=None,
                         help="Output JSON path for results")
-    parser.add_argument("--m4-scorer", type=str, default=None,
+    parser.add_argument("--m4-scorer", type=str,
+                        default="/Users/juicebox/Projects/corollary/data/m4_finetuned_ecapa_live_domain_20260517/fine_tuned/scorer.pt",
                         help="Path to fine-tuned M4 scorer .pt file")
     parser.add_argument("--m4-bank", type=str, default=None,
                         help="Path to M4 prototype bank .npz file")
-    parser.add_argument("--room-filter", type=str, default=None,
+    parser.add_argument("--room-filter", type=str,
+                        default="/Users/juicebox/Projects/corollary/data/m3_broca_room_filter_production.npy",
                         help="Path to room filter .npy file")
     args = parser.parse_args()
 
