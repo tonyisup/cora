@@ -103,6 +103,7 @@ Three-phase validation of conversational decision-making (speak/wait/clarify/rep
 - **M8b (Distilled):** MLP trained on 9012 heuristic demonstrations. 98.7% val accuracy, 89% expanded match.
 - **M8c (RL):** PPO trained on scripted episodes with M8 reward. +3062% improvement over distilled on expanded episodes.
 - **Spec:** `docs/m8_speaking_policy.md`
+- **Live harness:** `scripts/m8_live_harness.py` (dry-run + hardware modes)
 - **Checkpoints:** `data/m8_distilled_policy.pt`, `results/m8_ppo_scripted_v2/best_policy.pt`
 
 ## Repository Layout
