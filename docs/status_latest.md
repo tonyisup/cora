@@ -52,17 +52,21 @@
 - Checkpoint: results/m8_ppo_scripted_v2/best_policy.pt
 - Total M8 tests: 59 (44 original + 15 model tests)
 
-## Recent Commits
+**M8 Live (Hardware Validation) — DONE:**
+- 3 scripted episodes on real audio hardware (2-speaker setup)
+- Heuristic policy: end-to-end decisions from live frame logs; yield on interruption detected
+- Known limitation: post-segment evaluation (not inline), crosstalk with muted speakers
+- Acceptance report: `docs/m8_acceptance_report.md`
+- Harness: `scripts/m8_live_harness.py` (supports heuristic, distilled, PPO; dry-run + live modes)
 
-- `b557863` docs: update M8 status — all phases complete (M8a/b/c PASS)
-- `e3deb64` docs: M8c acceptance PASS — update README status
-- `f57368b` feat(m8c): ScriptedEpisodeEnv bridges PPO to scripted episodes — M8c PASS
-- `76ad1fc` docs: update M8 status — M8a/b PASS, M8c partial
-- `bd2ffa5` feat(m8c): PPO training pipeline with M8 reward
-- `03bc541` feat(m8b): distilled speaking policy — 98.7% val accuracy
-- `61c231f` feat(m8): conversation tracker, speaking policy, reward, simulator
-- `4fa49ff` feat(m8): acceptance ladder passes on 6 scripted episodes
-- `e3e0651` docs: update test count to 523, M8a acceptance status
+## Recent Commits (newest first)
+
+- `29a0aec` docs: fix stale test count 523->538 in README
+- `cd5e5a2` fix(m8): strict mode, fail-fast artifacts, structured verdicts
+- `54812a9` fix(m8): live harness frame logging + path resolution
+- `15b4a27` docs: add M8 live harness reference to README
+- `f59e82d` feat(m8): live hardware validation harness
+- `15392fc` docs: fix markdown tables, update test counts, add M8 sections
 
 ## Key Metrics
 
