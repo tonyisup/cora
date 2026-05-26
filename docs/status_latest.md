@@ -3,17 +3,11 @@
 ## Test Health
 
 ```
-523 passed, 1 skipped, 5 failed (data-missing)
+538 passed, 1 skipped, 5 failed (data-missing)
 ```
 
-- All 74 integration tests pass
-- 449 of 52 unit tests pass (44 new M8 tests added)
-- 5 unit tests fail with `FileNotFoundError` — all are M2/M3 artifact replay tests that need data files not present in local `data/`:
-  - `test_pfc_m2_artifact_replay.py::test_artifact_backed_speak_interruption_replay` — needs `data/m2_baseline/m2_energy_forward_tol75_matrix_20260429_093302/`
-  - `test_pfc_m3_acceptance_ladder.py::test_m3_acceptance_ladder_passes_current_slice` — same M2 baseline
-  - `test_pfc_m3_artifact_ladder.py::test_ladder_clean_vowel_overlap_defers_and_resumes` — needs `data/m2_policy/family_policy_validation_20260429_130530/`
-  - `test_pfc_m3_artifact_ladder.py::test_ladder_self_only_control_does_not_defer` — same M2 baseline
-  - `test_thalamus_attributor.py::test_room_local_score_with_exported_filter` — needs `data/m3_broca_room_threshold_calibration_broca_controls_reexport.npy`
+- 59 M8 tests (tracker, speaking policy, reward, model)
+- 5 unit tests fail with FileNotFoundError — all are M2/M3 artifact replay tests that need data files not present in local data/
 - These are environment/data availability issues, not code regressions
 
 ## Milestone Status
@@ -30,7 +24,7 @@
 | M5 | Acceptance passed | Hippocampus + consolidation + multi-speaker world model |
 | M6 | Live validated | SAG introspective queries functional |
 | M7 | Complete | Trust-gated NLMS + DriftAlarm + IR bank + device profile |
-|| M8 | In Progress | M8a PASS, M8b PASS — distilled 89% expanded match, 100% canonical |
+| M8 | Complete | Speaking policy: all 3 phases PASS |
 
 ## M8 Progress
 
@@ -44,25 +38,31 @@
 
 **M8b (Distillation) — DONE:**
 - 9012 demonstration samples collected (6 episodes x 5 perturbed seeds)
-- M8DistilledPolicy MLP (21 → 64 → 64 → 5, 5893 params)
+- M8DistilledPolicy MLP (21 -> 64 -> 64 -> 5, 5893 params)
 - Training: 98.67% validation accuracy, early stopping at epoch 13
-- Acceptance: 100% canonical match, 89.14% expanded match (target ≥80%)
+- Acceptance: 100% canonical match, 89.14% expanded match (target >=80%)
 - Checkpoint: data/m8_distilled_policy.pt
 
 **M8c (RL) — DONE:**
 - ScriptedEpisodeEnv: gym-like wrapper around 6 scripted episodes for PPO training
-- M8ActorCritic (13→64→32→5, ~4K params) trained with PPO + M8-only reward
-- Training: 5.83 → 19.83 best eval return (50 iterations, 128 eps/iter)
-- Acceptance: +3062% improvement over distilled on expanded episodes (target ≥10%)
-- Distilled avg (expanded): +0.60 → PPO avg (expanded): +18.98
+- M8ActorCritic (13->64->32->5, ~4K params) trained with PPO + M8-only reward
+- Training: 5.83 -> 19.83 best eval return (50 iterations, 128 eps/iter)
+- Acceptance: +3062% improvement over distilled on expanded episodes (target >=10%)
+- Distilled avg (expanded): +0.60 | PPO avg (expanded): +18.98
 - Checkpoint: results/m8_ppo_scripted_v2/best_policy.pt
 - Total M8 tests: 59 (44 original + 15 model tests)
 
 ## Recent Commits
 
+- `b557863` docs: update M8 status — all phases complete (M8a/b/c PASS)
+- `e3deb64` docs: M8c acceptance PASS — update README status
+- `f57368b` feat(m8c): ScriptedEpisodeEnv bridges PPO to scripted episodes — M8c PASS
+- `76ad1fc` docs: update M8 status — M8a/b PASS, M8c partial
+- `bd2ffa5` feat(m8c): PPO training pipeline with M8 reward
+- `03bc541` feat(m8b): distilled speaking policy — 98.7% val accuracy
+- `61c231f` feat(m8): conversation tracker, speaking policy, reward, simulator
 - `4fa49ff` feat(m8): acceptance ladder passes on 6 scripted episodes
-- `61c231f` feat(m8): add conversation tracker, speaking policy, reward, and simulator
-- `291b804` docs: spec M8 speaking policy milestone
+- `e3e0651` docs: update test count to 523, M8a acceptance status
 
 ## Key Metrics
 
@@ -71,8 +71,12 @@
 - Pipeline overhead: ~330ms (2 callbacks + 3-frame classifier)
 - Loop index (self-trigger rate): 0
 - M8 test coverage: 59 tests (tracker, policy, reward, model)
+- M8 scripted episodes: 6 (speak_on_silence, yield_on_interrupt, resume_after_yield, wait_while_user_speaks, repair_after_collision, user_silence_then_speak)
+- M8 action set: 5 (speak, wait, clarify, repair, yield)
 
 ## Open Items
 
 - 5 data-missing test failures (M2/M3 artifacts) — need artifact regeneration or test skip markers
 - `packages/salience/` is a stub (empty `__init__.py`)
+- M8 known gap: clarify/repair actions not triggered by heuristic in current episode types — distilled never learned them
+- M9: scoped next milestone (Track 2 sound-first motor learning from `docs/pivot_learns_to_speak.md`)

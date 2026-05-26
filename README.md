@@ -50,7 +50,7 @@ pip install -r requirements.txt
 | M5 | ✅ Acceptance passed | Hippocampus + consolidation + multi-speaker world model |
 | M6 | ✅ Live validated | SAG introspective queries functional, M4 accept rate 95.7% |
 | M7 | ✅ Complete | Trust-gated NLMS + DriftAlarm + IR bank + device profile; live room-change validated |
-|| M8 | 🔬 In Progress | M8a PASS, M8b PASS, M8c PASS — PPO 3062% improvement on expanded |
+| M8 | ✅ Complete | Speaking policy: heuristic (M8a), distilled 98.7% (M8b), PPO +3062% on expanded (M8c) |
 
 ### M4 Self-Voice Detector
 
@@ -95,6 +95,16 @@ SAG self-concept subtree populated from live M4-enabled pipeline:
 - M4 accept rate: 95.7% (402/420 frames)
 - Known subjects: empty in single-speaker runs (no WORLD speech to trigger conversational registration)
 
+### M8 Speaking Policy
+
+Three-phase validation of conversational decision-making (speak/wait/clarify/repair/yield):
+
+- **M8a (Deterministic):** Heuristic policy + 6 scripted episodes + M8 reward function. All episodes pass.
+- **M8b (Distilled):** MLP trained on 9012 heuristic demonstrations. 98.7% val accuracy, 89% expanded match.
+- **M8c (RL):** PPO trained on scripted episodes with M8 reward. +3062% improvement over distilled on expanded episodes.
+- **Spec:** `docs/m8_speaking_policy.md`
+- **Checkpoints:** `data/m8_distilled_policy.pt`, `results/m8_ppo_scripted_v2/best_policy.pt`
+
 ## Repository Layout
 
 ```
@@ -109,12 +119,13 @@ cora/
     stg/                 # ASR + diarization
     broca/               # TTS
     hippocampus/         # Episodic memory, consolidation
-    pfc/                 # Controller, streaming runtime, self-model, world model
+    pfc/                 # Controller, streaming runtime, self-model, world model, conversation tracker, speaking policy
     sag/                 # Semantic Abstraction Graph
     reasoning/           # Reasoning layer interface
+    m8_policy/           # M8 distilled + PPO speaking policies, scripted episode env
   data/                  # Captures, trained models, benchmarks
   scripts/               # Evaluation harnesses, capture scripts, diagnostics
-  tests/unit/            # 479 tests, all passing
+  tests/unit/            # 538 tests, 5 data-missing
 ```
 
 ## Key Scripts
@@ -129,6 +140,10 @@ cora/
 | `scripts/m4_mixed_live_embeddings.py` | Recommended M4 live smoke test (speaker registration + world playback) |
 | `scripts/m4_live_adaptive_threshold.py` | M4 live adaptive-threshold validation |
 | `scripts/m3_live_e2e_harness.py` | M3 live E2E validation |
+| `scripts/m8_conversation_simulator.py` | M8 scripted episode simulator |
+| `scripts/m8_train_distilled.py` | Train M8 distilled policy from heuristic demonstrations |
+| `scripts/m8_train_ppo.py` | Train M8 speaking policy with PPO + M8 reward |
+| `scripts/m8_eval.py` | Evaluate heuristic vs distilled vs PPO speaking policies |
 
 ## Evaluation Metrics
 
