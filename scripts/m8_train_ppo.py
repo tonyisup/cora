@@ -61,6 +61,13 @@ from m8_reward import M8RewardConfig, compute_m8_reward
 ACTION_NAMES = ACTIONS
 STATE_INDEX = {"idle": 0, "listen": 1, "speak": 2, "repair": 3, "clarify": 4}
 
+# Import scripted env (optional — only needed when --use-scripted-env is set)
+try:
+    from m8_policy.scripted_env import ScriptedEpisodeEnv
+    _SCRIPTED_ENV_AVAILABLE = True
+except ImportError:
+    _SCRIPTED_ENV_AVAILABLE = False
+
 
 @dataclass(frozen=True)
 class M8TrajectoryStep:
@@ -161,21 +168,29 @@ def compute_combined_reward(
     action: str,
     next_obs: dict,
     reward_config: M8RewardConfig,
+    use_m4_base: bool = True,
 ) -> Tuple[float, float, float]:
     """Compute combined M4 + M8 reward.
 
     Returns (total_reward, m4_reward, m8_reward).
+    If use_m4_base is False, only M8 reward is returned (for scripted episodes
+    where M4 reward is not calibrated to the episode structure).
     """
-    # M4 base reward
-    m4_signal = reward_from_transition(prev_obs, action, next_obs)
-
     # M8 conversational reward
     prev_features = obs_to_conversation_features(prev_obs)
     next_features = obs_to_conversation_features(next_obs)
     m8_signal = compute_m8_reward(reward_config, action, prev_features, next_features)
 
-    total = m4_signal.reward + m8_signal.reward
-    return total, m4_signal.reward, m8_signal.reward
+    if use_m4_base:
+        # M4 base reward
+        m4_signal = reward_from_transition(prev_obs, action, next_obs)
+        total = m4_signal.reward + m8_signal.reward
+    else:
+        m4_signal = None
+        total = m8_signal.reward
+
+    m4_r = m4_signal.reward if m4_signal is not None else 0.0
+    return total, m4_r, m8_signal.reward
 
 
 def load_distilled_weights(model: M8ActorCritic, checkpoint_path: str, device: torch.device) -> Dict[str, Any]:
@@ -219,10 +234,11 @@ def load_ppo_weights(model: M8ActorCritic, checkpoint_path: str, device: torch.d
 
 def collect_rollouts(
     policy: M8ActorCritic,
-    env: MultiStepTurnEnv,
+    env: Any,
     reward_config: M8RewardConfig,
     device: torch.device,
     episodes: int,
+    use_m4_base: bool = True,
 ) -> List[List[M8TrajectoryStep]]:
     trajectories: List[List[M8TrajectoryStep]] = []
     policy.eval()
@@ -246,7 +262,8 @@ def collect_rollouts(
 
             # Compute combined reward
             total_reward, m4_r, m8_r = compute_combined_reward(
-                prev_obs, action_name, next_obs, reward_config
+                prev_obs, action_name, next_obs, reward_config,
+                use_m4_base=use_m4_base,
             )
 
             traj.append(M8TrajectoryStep(
@@ -265,7 +282,7 @@ def collect_rollouts(
             obs = next_obs
             prev_obs = obs
             step_idx += 1
-            if step_idx > env.horizon + 2:
+            if step_idx > 30:  # safety cap ~1s at 30ms/step
                 break
         trajectories.append(traj)
     return trajectories
@@ -373,9 +390,10 @@ def ppo_update(
 
 def evaluate_policy(
     policy: M8ActorCritic,
-    env: MultiStepTurnEnv,
+    env: Any,
     reward_config: M8RewardConfig,
     device: torch.device,
+    use_m4_base: bool = True,
 ) -> Dict[str, Any]:
     policy.eval()
     episode_returns = []
@@ -384,7 +402,11 @@ def evaluate_policy(
     total_m4 = 0.0
     total_m8 = 0.0
 
-    for episode_id in range(len(env.templates)):
+    # Support both MultiStepTurnEnv (.templates) and ScriptedEpisodeEnv (.num_episodes)
+    num_episodes = getattr(env, "templates", None)
+    num_episodes = len(num_episodes) if num_episodes is not None else env.num_episodes
+
+    for episode_id in range(num_episodes):
         obs = env.reset(episode_id)
         prev_obs = dict(obs)
         done = False
@@ -399,7 +421,8 @@ def evaluate_policy(
                 pred_idx = int(torch.argmax(logits, dim=-1).item())
             action = ACTION_NAMES[pred_idx]
             next_obs, _, done, info = env.step(action)
-            _, m4_r, m8_r = compute_combined_reward(prev_obs, action, next_obs, reward_config)
+            _, m4_r, m8_r = compute_combined_reward(prev_obs, action, next_obs, reward_config,
+                                                       use_m4_base=use_m4_base)
             ep_return += m4_r + m8_r
             ep_m8 += m8_r
             m4_sum += m4_r
@@ -412,9 +435,9 @@ def evaluate_policy(
         episode_m8_returns.append(ep_m8)
         total_m4 += m4_sum
 
-    n_ep = max(len(env.templates), 1)
+    n_ep = max(num_episodes, 1)
     return {
-        "episodes": len(env.templates),
+        "episodes": num_episodes,
         "total_steps": total_steps,
         "mean_episode_return": sum(episode_returns) / n_ep,
         "mean_m8_return": sum(episode_m8_returns) / n_ep,
@@ -443,6 +466,8 @@ def main() -> int:
     parser.add_argument("--output-dir", type=str, default="results/m8_ppo")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--eval-only", action="store_true")
+    parser.add_argument("--use-scripted-env", action="store_true",
+                        help="Train on scripted conversation episodes instead of MultiStepTurnEnv")
     args = parser.parse_args()
 
     random.seed(args.seed)
@@ -470,10 +495,20 @@ def main() -> int:
     else:
         optimizer = torch.optim.Adam(policy.parameters(), lr=args.lr)
 
-    env = MultiStepTurnEnv()
+    if args.use_scripted_env:
+        if not _SCRIPTED_ENV_AVAILABLE:
+            print("ERROR: ScriptedEpisodeEnv not available. Check imports.")
+            sys.exit(1)
+        env = ScriptedEpisodeEnv(seed=args.seed)
+        print(f"Using ScriptedEpisodeEnv with {env.num_episodes} episode types")
+    else:
+        env = MultiStepTurnEnv()
+        print(f"Using MultiStepTurnEnv with {len(env.templates)} templates")
+
+    use_m4_base = not args.use_scripted_env
 
     # Baseline evaluation
-    baseline = evaluate_policy(policy, env, reward_config, device)
+    baseline = evaluate_policy(policy, env, reward_config, device, use_m4_base=use_m4_base)
     print(f"\nBaseline (before training):")
     print(f"  Mean episode return: {baseline['mean_episode_return']:.4f}")
     print(f"  Mean M8 return:      {baseline['mean_m8_return']:.4f}")
@@ -486,7 +521,8 @@ def main() -> int:
     history: List[Dict[str, Any]] = []
 
     for it in range(1, args.iterations + 1):
-        trajectories = collect_rollouts(policy, env, reward_config, device, args.episodes)
+        trajectories = collect_rollouts(policy, env, reward_config, device, args.episodes,
+                                        use_m4_base=use_m4_base)
         transitions = compute_returns_and_advantages(trajectories, gamma=args.gamma)
         stats = ppo_update(
             policy, optimizer, transitions, device,
@@ -494,7 +530,7 @@ def main() -> int:
             ent_coef=args.ent_coef, epochs=args.ppo_epochs,
             batch_size=args.batch_size,
         )
-        eval_report = evaluate_policy(policy, env, reward_config, device)
+        eval_report = evaluate_policy(policy, env, reward_config, device, use_m4_base=use_m4_base)
 
         record = {
             "iteration": it,
