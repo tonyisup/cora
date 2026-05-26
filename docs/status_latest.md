@@ -30,7 +30,7 @@
 | M5 | Acceptance passed | Hippocampus + consolidation + multi-speaker world model |
 | M6 | Live validated | SAG introspective queries functional |
 | M7 | Complete | Trust-gated NLMS + DriftAlarm + IR bank + device profile |
-| M8 | In Progress | M8a acceptance PASS — heuristic policy + 6 scripted episodes |
+|| M8 | In Progress | M8a PASS, M8b PASS — distilled 89% expanded match, 100% canonical |
 
 ## M8 Progress
 
@@ -42,12 +42,14 @@
 - M8a acceptance ladder: PASS on all 6 episodes
 - 44 new unit tests, all passing
 
-**M8b (Distillation) — Next:**
-- Collect heuristic demonstrations on expanded episode suite
-- Train distilled MLP policy
-- Gate: >= 90% match on canonical, >= 80% on expanded
+**M8b (Distillation) — DONE:**
+- 9012 demonstration samples collected (6 episodes x 5 perturbed seeds)
+- M8DistilledPolicy MLP (21 → 64 → 64 → 5, 5893 params)
+- Training: 98.67% validation accuracy, early stopping at epoch 13
+- Acceptance: 100% canonical match, 89.14% expanded match (target ≥80%)
+- Checkpoint: data/m8_distilled_policy.pt
 
-**M8c (RL) — After M8b:**
+**M8c (RL) — Next:**
 - Reuse M4 PPO infrastructure with M8 reward
 - Gate: PPO beats distilled by >= 10% on expanded suite
 
@@ -56,7 +58,6 @@
 - `4fa49ff` feat(m8): acceptance ladder passes on 6 scripted episodes
 - `61c231f` feat(m8): add conversation tracker, speaking policy, reward, and simulator
 - `291b804` docs: spec M8 speaking policy milestone
-- `fb2b914` docs: rename project from Corollary to Cora in all user-facing docs
 
 ## Key Metrics
 

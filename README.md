@@ -50,7 +50,7 @@ pip install -r requirements.txt
 | M5 | ✅ Acceptance passed | Hippocampus + consolidation + multi-speaker world model |
 | M6 | ✅ Live validated | SAG introspective queries functional, M4 accept rate 95.7% |
 | M7 | ✅ Complete | Trust-gated NLMS + DriftAlarm + IR bank + device profile; live room-change validated |
-|| M8 | 🔬 In Progress | M8a PASS — heuristic policy + 6 scripted episodes. M8b (distillation) next. |
+|| M8 | 🔬 In Progress | M8a PASS, M8b PASS — distilled policy 89% match on expanded episodes. M8c (RL) next. |
 
 ### M4 Self-Voice Detector
 
