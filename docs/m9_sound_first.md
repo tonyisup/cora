@@ -1,6 +1,6 @@
 # M9 — Sound-First Motor Learning (Track 2)
 
-> **Status:** Scoped. M8 complete. M9 is the second track of the self-speaking pivot.
+> **Status:** In progress. M8 complete. M9a implemented and tested.
 
 ## Goal
 
@@ -188,26 +188,43 @@ New edge types:
 
 Each phase gates the next. Don't rush to text association before sound production is stable.
 
+**M9a Implementation Status:**
+- 32-dim hidden state (16-dim for testing)
+- Baseline: random controller weights, REINFORCE update with running baseline
+- 30-trial test: similarity ~0.54 (stable but not converging to target frequency)
+- Frequency wandering observed (440 Hz target -> 660-1500 Hz range) -- expected with random init and simple REINFORCE
+- M9b will add proper convergence testing and SAG prototype refinement
+
+**Acceptance criteria (M9a):**
+1. System produces non-silence when given a target — PASS (all trials produce audio)
+2. Similarity score is stable across trials — PASS (std = 0.007 over 30 trials)
+3. Different targets produce different outputs — NEEDS TESTING (same controller for all targets currently)
+4. SAG stores acoustic prototypes — NOT YET (needs `packages/sag/acoustic_models.py`)
+
 ## Files Summary
 
-New files:
-- `packages/m9_sound/` — M9 sound-first motor learning package
-  - `oscillator.py` — Oscillator bank for rhythmic input
-  - `substrate.py` — Recurrent acoustic substrate
-  - `controller.py` — Neural controller / readout
-  - `producer.py` — Acoustic output generation
-  - `similarity.py` — Acoustic similarity metrics (MFCC, chroma, mel)
-- `packages/sag/acoustic_models.py` — AcousticNode, new edge types
-- `scripts/m9_imitation_loop.py` — M9a trial runner
-- `scripts/m9_convergence_test.py` — M9b repeatability evaluation
-- `scripts/m9_terminal_judge.py` — M9c terminal confirmation
-- `scripts/m9_text_association.py` — M9d word-sound pairing
-- `docs/m9_acceptance_report.md`
+### Implemented
 
-Existing files modified:
-- `packages/sag/models.py` — Add AcousticNode, new edge types
-- `packages/sag/graph.py` — Handle acoustic node indexing
-- `packages/broca/tts.py` — May need acoustic output path (not just TTS)
+| File | Status |
+|------|--------|
+| `packages/m9_sound/oscillator.py` | DONE — sine, triangle, sawtooth, square, mix, generate |
+| `packages/m9_sound/substrate.py` | DONE — Elman RNN hidden state (configurable dim) |
+| `packages/m9_sound/controller.py` | DONE — linear readout to oscillator params |
+| `packages/m9_sound/producer.py` | DONE — full production loop |
+| `packages/m9_sound/similarity.py` | DONE — FFT-mel, ZCR pitch, RMS loudness, duration |
+| `scripts/m9_imitation_loop.py` | DONE — trial runner with REINFORCE |
+| `tests/unit/test_m9_sound.py` | DONE — 21 tests, all passing |
+
+### Remaining
+
+| File | Phase |
+|------|-------|
+| `packages/sag/acoustic_models.py` | M9b — AcousticNode, new edge types |
+| `packages/sag/graph.py` changes | M9b — acoustic node indexing |
+| `scripts/m9_convergence_test.py` | M9b — repeatability evaluation |
+| `scripts/m9_terminal_judge.py` | M9c |
+| `scripts/m9_text_association.py` | M9d |
+| `docs/m9_acceptance_report.md` | M9b |
 
 ## Storage & Memory Assessment
 
