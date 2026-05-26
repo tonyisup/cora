@@ -49,9 +49,14 @@
 - Acceptance: 100% canonical match, 89.14% expanded match (target ≥80%)
 - Checkpoint: data/m8_distilled_policy.pt
 
-**M8c (RL) — Next:**
-- Reuse M4 PPO infrastructure with M8 reward
-- Gate: PPO beats distilled by >= 10% on expanded suite
+**M8c (RL) — DONE:**
+- ScriptedEpisodeEnv: gym-like wrapper around 6 scripted episodes for PPO training
+- M8ActorCritic (13→64→32→5, ~4K params) trained with PPO + M8-only reward
+- Training: 5.83 → 19.83 best eval return (50 iterations, 128 eps/iter)
+- Acceptance: +3062% improvement over distilled on expanded episodes (target ≥10%)
+- Distilled avg (expanded): +0.60 → PPO avg (expanded): +18.98
+- Checkpoint: results/m8_ppo_scripted_v2/best_policy.pt
+- Total M8 tests: 59 (44 original + 15 model tests)
 
 ## Recent Commits
 
@@ -65,11 +70,9 @@
 - Interruption latency: 1390ms (comparable to human ~1500ms)
 - Pipeline overhead: ~330ms (2 callbacks + 3-frame classifier)
 - Loop index (self-trigger rate): 0
-- M8 test coverage: 44 new tests (tracker, policy, reward)
+- M8 test coverage: 59 tests (tracker, policy, reward, model)
 
 ## Open Items
 
 - 5 data-missing test failures (M2/M3 artifacts) — need artifact regeneration or test skip markers
 - `packages/salience/` is a stub (empty `__init__.py`)
-- M8b: distilled policy training + expanded episode suite
-- M8c: PPO with M8 reward after M8b gates pass
