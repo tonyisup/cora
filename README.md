@@ -34,7 +34,7 @@ pip install -r requirements.txt
 
 ## Project Status
 
-**Tests:** 479 passed, 1 skipped, 5 data-missing (M2/M3 artifacts not in local data/)
+**Tests:** 523 passed, 1 skipped, 5 data-missing (M2/M3 artifacts not in local data/)
 
 ### Milestone Summary
 
@@ -50,7 +50,7 @@ pip install -r requirements.txt
 | M5 | ✅ Acceptance passed | Hippocampus + consolidation + multi-speaker world model |
 | M6 | ✅ Live validated | SAG introspective queries functional, M4 accept rate 95.7% |
 | M7 | ✅ Complete | Trust-gated NLMS + DriftAlarm + IR bank + device profile; live room-change validated |
-| M8 | 🔬 Scoped | Speaking policy — deterministic harness → distilled → RL. Not yet started. |
+|| M8 | 🔬 In Progress | M8a PASS — heuristic policy + 6 scripted episodes. M8b (distillation) next. |
 
 ### M4 Self-Voice Detector
 
