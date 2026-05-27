@@ -61,12 +61,12 @@
 
 ## Recent Commits (newest first)
 
+- `e284ed2` feat(m9c): weak terminal confirmation and label attachment
 - `0c51931` feat(m9b): repeatability and convergence with acoustic prototype refinement
 - `6a27849` feat(m9): add acoustic SAG nodes and edge helpers
 - `ab4dbd2` feat(m9a): sound imitation primitive — complete M9a implementation
 - `c790af8` feat(m9a): sound imitation primitive — oscillator, substrate, controller, producer
 - `0508411` docs: add storage/memory assessment to M9 spec
-- `ca0e89a` docs: spec M9 sound-first motor learning (Track 2)
 
 ## Key Metrics
 
@@ -79,11 +79,12 @@
 - M8 action set: 5 (speak, wait, clarify, repair, yield)
 - M9a smoke: 10 trials, mean similarity 0.5460, std 0.0056
 - M9b smoke: avg CV 0.0000, mean similarity 0.7181, PASS
+- M9c smoke: baseline pass rate 0.67, terminal-confirmed pass rate 1.00, final similarity 0.5433
 
 ## Open Items
 
 - 5 data-missing test failures (M2/M3 artifacts) — need artifact regeneration or test skip markers
 - `packages/salience/` is a stub (empty `__init__.py`)
 - M8 known gap: clarify/repair actions not triggered by heuristic in current episode types — distilled never learned them
-- M9: sound-first motor learning (Track 2) — in progress (M9a/b complete; M9c next)
+- M9: sound-first motor learning (Track 2) — in progress (M9a/b/c complete; M9d next)
 - M8 live harness maintenance lane: inline evaluation, closed-loop mode (lower priority)
