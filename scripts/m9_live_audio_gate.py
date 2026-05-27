@@ -37,6 +37,28 @@ DEFAULT_TARGETS = [
 ]
 
 
+def parse_targets(spec: str | None) -> list[tuple[str, float, str]]:
+    """Parse a comma-separated target spec like 'alpha:220:sine,beta:247:triangle'."""
+    if not spec:
+        return list(DEFAULT_TARGETS)
+
+    out: list[tuple[str, float, str]] = []
+    for item in spec.split(","):
+        item = item.strip()
+        if not item:
+            continue
+        parts = item.split(":")
+        if len(parts) == 3:
+            word, freq_s, waveform = parts
+        elif len(parts) == 2:
+            word, freq_s = parts
+            waveform = "sine"
+        else:
+            raise ValueError(f"Invalid target spec: {item!r}")
+        out.append((word.strip(), float(freq_s), waveform.strip()))
+    return out
+
+
 def list_devices() -> None:
     try:
         import sounddevice as sd
@@ -233,10 +255,11 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="M9 live audio promotion gate")
     parser.add_argument("--list-devices", action="store_true")
     parser.add_argument("--dry-run", action="store_true")
-    parser.add_argument("--word", type=str, default="alpha")
+    parser.add_argument("--word", type=str, default=None, help="Single-target override word")
     parser.add_argument("--target-freq", type=float, default=220.0)
     parser.add_argument("--target-waveform", type=str, default="sine", choices=["sine", "triangle", "sawtooth", "square"])
     parser.add_argument("--duration", type=float, default=1.0)
+    parser.add_argument("--targets", type=str, default=None, help="Comma-separated target set like 'alpha:220:sine,beta:247:triangle'")
     parser.add_argument("--input-device", type=int, default=None)
     parser.add_argument("--output-device", type=int, default=None)
     parser.add_argument("--threshold", type=float, default=0.55)
@@ -247,45 +270,69 @@ def main() -> None:
         list_devices()
         return
 
-    result = run_gate(
-        word=args.word,
-        freq_hz=args.target_freq,
-        waveform=args.target_waveform,
-        duration_s=args.duration,
-        input_device=args.input_device,
-        output_device=args.output_device,
-        threshold=args.threshold,
-        dry_run=args.dry_run,
-    )
+    if args.targets:
+        target_specs = parse_targets(args.targets)
+    elif args.word is not None:
+        target_specs = [(args.word, args.target_freq, args.target_waveform)]
+    else:
+        target_specs = list(DEFAULT_TARGETS)
 
-    Path(args.output).parent.mkdir(parents=True, exist_ok=True)
-    Path(args.output).write_text(json.dumps({
+    rows: list[dict[str, Any]] = []
+    for word, freq_hz, waveform in target_specs:
+        row = run_gate(
+            word=word,
+            freq_hz=freq_hz,
+            waveform=waveform,
+            duration_s=args.duration,
+            input_device=args.input_device,
+            output_device=args.output_device,
+            threshold=args.threshold,
+            dry_run=args.dry_run,
+        )
+        rows.append(row)
+
+    pass_count = sum(1 for row in rows if row["verdict"]["passed"])
+    pass_rate = pass_count / max(len(rows), 1)
+    avg_score = float(np.mean([row["score"]["overall"] for row in rows]))
+    worst_score = float(np.min([row["score"]["overall"] for row in rows]))
+    verdict = pass_rate >= 0.80
+
+    output_payload = {
         "config": {
             "dry_run": args.dry_run,
-            "word": args.word,
-            "target_freq": args.target_freq,
-            "target_waveform": args.target_waveform,
+            "targets": [{"word": w, "freq_hz": f, "waveform": wf} for w, f, wf in target_specs],
             "duration": args.duration,
             "input_device": args.input_device,
             "output_device": args.output_device,
             "threshold": args.threshold,
         },
-        **result,
-    }, indent=2))
+        "results": rows,
+        "summary": {
+            "pass_count": pass_count,
+            "total": len(rows),
+            "pass_rate": pass_rate,
+            "avg_score": avg_score,
+            "worst_score": worst_score,
+            "verdict": verdict,
+        },
+    }
+
+    Path(args.output).parent.mkdir(parents=True, exist_ok=True)
+    Path(args.output).write_text(json.dumps(output_payload, indent=2))
 
     print("=" * 72)
     print("M9 Live Audio Promotion Gate")
     print("=" * 72)
     print(f"  mode:      {'dry-run' if args.dry_run else 'live'}")
-    print(f"  word:      {args.word}")
-    print(f"  target:    {args.target_freq:.1f} Hz {args.target_waveform}")
-    print(f"  duration:  {args.duration:.2f}s")
-    print(f"  score:     {result['score']['overall']:.4f}")
+    print(f"  targets:   {len(target_specs)}")
+    print(f"  pass rate: {pass_rate:.2f} ({pass_count}/{len(target_specs)})")
+    print(f"  avg score: {avg_score:.4f}")
+    print(f"  worst:     {worst_score:.4f}")
     print(f"  threshold: {args.threshold:.4f}")
-    print(f"  verdict:   {'PASS' if result['verdict']['passed'] else 'FAIL'}")
+    print(f"  verdict:   {'PASS' if verdict else 'FAIL'}")
     print(f"  saved:     {args.output}")
 
-    if not result["verdict"]["passed"]:
+    if not verdict:
         raise SystemExit(1)
 
 

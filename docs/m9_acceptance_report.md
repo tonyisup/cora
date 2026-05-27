@@ -177,6 +177,32 @@ Interpretation:
 - This is a smoke pass only; it is not yet a promotion-grade multi-trial or multi-word validation.
 - The live gate now exists as the path to the next promotion step if we want to harden M9 against real audio I/O.
 
+## Live Audio Promotion Gate — Small Word-Set Smoke
+
+Command:
+```bash
+source .venv/bin/activate && python scripts/m9_live_audio_gate.py --targets alpha:220:sine,beta:247:triangle,gamma:262:sawtooth --input-device 1 --output-device 0 --threshold 0.30 --output /tmp/m9_live_audio_gate_live_multi.json
+```
+
+Observed results:
+- Pass rate: 1.00 (3/3)
+- Average score: 0.6918
+- Worst score: 0.6226
+- Threshold: 0.30
+- Verdict: PASS
+- Capture elapsed: 1.83s–1.99s per target
+- Playback started: True for all targets
+
+Per-target scores:
+- alpha / 220 Hz sine: 0.7213
+- beta / 247 Hz triangle: 0.7314
+- gamma / 262 Hz sawtooth: 0.6226
+
+Interpretation:
+- The live gate now passes on a small set of distinct sounds, not just a single tone.
+- This is still a smoke, not a promotion-grade validation; we have not yet explored failure cases or a tighter acceptance threshold.
+- The next live step is to expand to a slightly broader set and record repeatability / worst-case behavior.
+
 ## Notes
 
 - The current M9b gate measures repeatability and prototype refinement, not full acoustic learning.
