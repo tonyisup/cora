@@ -209,6 +209,14 @@ Each phase gates the next. Don't rush to text association before sound productio
 - Single-target smoke: mean similarity 0.5456, CV 0.0000, converged=True
 - Multi-target smoke: avg CV 0.0000, mean similarity 0.7181, Verdict PASS
 
+**M9c Implementation Status:**
+- `WeakTerminalJudge` provides a binary correct/incorrect signal from acoustic similarity
+- `combine_reward()` blends acoustic similarity and terminal reward
+- `attach_label_if_passed()` attaches labels to AcousticNode prototypes on judge pass
+- `m9_terminal_judge.py` compares similarity-only vs terminal-confirmed learning
+- Smoke run: baseline pass rate 0.67 vs terminal-confirmed pass rate 1.00
+- Smoke run: terminal-confirmed final similarity 0.5433 vs baseline 0.5384
+
 ## Files Summary
 
 ### Implemented
@@ -221,10 +229,13 @@ Each phase gates the next. Don't rush to text association before sound productio
 | `packages/m9_sound/producer.py` | DONE — full production loop |
 | `packages/m9_sound/similarity.py` | DONE — FFT-mel, ZCR pitch, RMS loudness, duration |
 | `packages/m9_sound/convergence.py` | DONE — audio summaries, repeatability stats, prototype refinement |
+| `packages/m9_sound/terminal_confirmation.py` | DONE — weak judge, combined reward, label attachment |
 | `scripts/m9_imitation_loop.py` | DONE — trial runner with REINFORCE |
 | `scripts/m9_convergence_test.py` | DONE — repeatability runner |
+| `scripts/m9_terminal_judge.py` | DONE — terminal-confirmation comparison runner |
 | `tests/unit/test_m9_sound.py` | DONE — 21 tests, all passing |
 | `tests/unit/test_m9_convergence.py` | DONE — convergence helper tests |
+| `tests/unit/test_m9_terminal_confirmation.py` | DONE — terminal confirmation helper tests |
 | `packages/sag/acoustic_models.py` | DONE — AcousticNode + acoustic edge helpers |
 | `packages/sag/graph.py` | DONE — acoustic label indexing for resolve() |
 
@@ -232,7 +243,6 @@ Each phase gates the next. Don't rush to text association before sound productio
 
 | File | Phase |
 |------|-------|
-| `scripts/m9_terminal_judge.py` | M9c |
 | `scripts/m9_text_association.py` | M9d |
 
 ## Storage & Memory Assessment
@@ -256,13 +266,13 @@ Each phase gates the next. Don't rush to text association before sound productio
 
 This fits comfortably in memory with JSONL checkpoint. No need for a database yet.
 
-### M9c+ Data Volume (persistent storage needed)
+### M9d+ Data Volume (persistent storage needed)
 
 - Label associations (word → prototype) must survive restarts
 - Production history (per-prototype similarity time series) grows without bound
 - Text association requires durable bidirectional SAG edges
 
-**Decision:** Defer persistence to M9c. Use in-memory + JSONL checkpoint for M9a/b. When text association requires durable storage, add:
+**Decision:** Defer persistence to M9d. Use in-memory + JSONL checkpoint for M9a/c. When text association requires durable storage, add:
 - `SemanticAbstractionGraph.persist()` / `.load()` — serialize nodes + edges to JSON
 - `faiss-cpu` index for MFCC centroid similarity search (nearest prototype lookup)
 - `chromadb` alternative if metadata-rich queries are needed

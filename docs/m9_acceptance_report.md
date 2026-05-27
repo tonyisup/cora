@@ -89,8 +89,36 @@ Interpretation:
 
 - M9a: complete enough to serve as a baseline sound-imitation primitive
 - M9b: repeatability and acoustic prototype refinement are implemented and passing smoke tests
-- M9c: terminal confirmation / weak supervision — pending
+- M9c: weak terminal confirmation is now implemented and passing smoke tests
 - M9d: text association / word-sound pairing — pending
+
+## M9c — Weak Terminal Confirmation
+
+Implemented components:
+- `packages/m9_sound/terminal_confirmation.py` — weak judge, combined reward, label attachment
+- `scripts/m9_terminal_judge.py` — baseline vs terminal-confirmed comparison loop
+- `tests/unit/test_m9_terminal_confirmation.py` — judge/reward/label tests
+
+### Validation run
+
+Command:
+```bash
+source .venv/bin/activate && python scripts/m9_terminal_judge.py --trials 12 --target-freq 440 --target-waveform sine --duration 1.0 --judge-threshold 0.54
+```
+
+Observed results:
+- Baseline final similarity: 0.5384
+- Terminal-confirmed final similarity: 0.5433
+- Improvement delta: +0.0048
+- Baseline pass rate: 0.67
+- Terminal-confirmed pass rate: 1.00
+- First terminal pass trial: 1
+- Verdict: PASS
+
+Interpretation:
+- Weak terminal confirmation is working as intended: the binary judge is attached, the combined reward is computed, and labels are attached when the judge passes.
+- On this target, terminal-confirmed learning improved the pass rate and slightly improved the final similarity relative to the similarity-only baseline.
+- This is sufficient for M9c because the goal is a weak supervision signal, not a human-grade semantic judge.
 
 ## Notes
 
