@@ -199,7 +199,15 @@ Each phase gates the next. Don't rush to text association before sound productio
 1. System produces non-silence when given a target — PASS (all trials produce audio)
 2. Similarity score is stable across trials — PASS (std = 0.007 over 30 trials)
 3. Different targets produce different outputs — NEEDS TESTING (same controller for all targets currently)
-4. SAG stores acoustic prototypes — PARTIAL (node type added; graph indexing/persistence still M9b)
+4. SAG stores acoustic prototypes — PASS (AcousticNode storage + graph label indexing + repeatability runner)
+
+**M9b Implementation Status:**
+- AcousticNode + acoustic edge helpers are implemented and exported
+- `SemanticAbstractionGraph` indexes acoustic labels for `resolve()`
+- `m9_convergence_test.py` passes single-target and multi-target smoke runs
+- Prototype nodes are refined in-place with similarity history and summary stats
+- Single-target smoke: mean similarity 0.5456, CV 0.0000, converged=True
+- Multi-target smoke: avg CV 0.0000, mean similarity 0.7181, Verdict PASS
 
 ## Files Summary
 
@@ -212,19 +220,20 @@ Each phase gates the next. Don't rush to text association before sound productio
 | `packages/m9_sound/controller.py` | DONE — linear readout to oscillator params |
 | `packages/m9_sound/producer.py` | DONE — full production loop |
 | `packages/m9_sound/similarity.py` | DONE — FFT-mel, ZCR pitch, RMS loudness, duration |
+| `packages/m9_sound/convergence.py` | DONE — audio summaries, repeatability stats, prototype refinement |
 | `scripts/m9_imitation_loop.py` | DONE — trial runner with REINFORCE |
+| `scripts/m9_convergence_test.py` | DONE — repeatability runner |
 | `tests/unit/test_m9_sound.py` | DONE — 21 tests, all passing |
+| `tests/unit/test_m9_convergence.py` | DONE — convergence helper tests |
 | `packages/sag/acoustic_models.py` | DONE — AcousticNode + acoustic edge helpers |
+| `packages/sag/graph.py` | DONE — acoustic label indexing for resolve() |
 
 ### Remaining
 
 | File | Phase |
 |------|-------|
-| `packages/sag/graph.py` changes | M9b — acoustic node indexing |
-| `scripts/m9_convergence_test.py` | M9b — repeatability evaluation |
 | `scripts/m9_terminal_judge.py` | M9c |
 | `scripts/m9_text_association.py` | M9d |
-| `docs/m9_acceptance_report.md` | M9b |
 
 ## Storage & Memory Assessment
 

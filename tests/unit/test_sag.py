@@ -123,6 +123,18 @@ class TestAcousticNode:
         assert e2.type == "similar-to"
         assert e3.type == "precedes"
 
+    def test_label_indexes_for_resolve(self):
+        g = SemanticAbstractionGraph()
+        node = AcousticNode.from_audio_summary(
+            id="tone_440",
+            core="440 Hz target tone",
+            label="A4",
+            grounding=["tone_440"],
+        )
+        g.add_node(node)
+        assert g.resolve("A4") is not None
+        assert g.resolve("A4").id == "tone_440"
+
 
 # --- Graph: Mutations ---
 

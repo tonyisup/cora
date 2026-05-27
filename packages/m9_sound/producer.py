@@ -78,7 +78,8 @@ class AcousticProducer:
             Produced audio.
         """
         self.reset()
-        n_frames = int(self._sr * duration_s / self._frame_size)
+        n_frames = int(np.ceil(self._sr * duration_s / self._frame_size))
+        total_samples = int(round(self._sr * duration_s))
         output = np.zeros(n_frames * self._frame_size, dtype=np.float32)
 
         # Initial params from controller
@@ -88,8 +89,9 @@ class AcousticProducer:
         waveform_map = ["sine", "triangle", "sawtooth", "square"]
 
         for i in range(n_frames):
-            # Controller reads hidden state -> params
-            params = self.controller.decode(self.substrate.hidden_state)
+            # Use the provided initial params on the first frame, then read
+            # the controller on subsequent frames.
+            params = init_params if i == 0 and init_params is not None else self.controller.decode(self.substrate.hidden_state)
 
             # Generate one frame of audio
             t_frame = np.arange(self._frame_size, dtype=np.float32) / self._sr
@@ -114,7 +116,8 @@ class AcousticProducer:
             # Update substrate with produced frame
             self.substrate.step(frame)
 
-        return output
+        return output[:total_samples]
+
 
     def produce_and_score(self, target: np.ndarray) -> ProductionResult:
         """Produce sound and score it against a target.

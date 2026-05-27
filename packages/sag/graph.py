@@ -36,11 +36,22 @@ class SemanticAbstractionGraph:
     # ------------------------------------------------------------------
 
     def add_node(self, node: Node) -> None:
-        """Add or replace a node."""
+        """Add or replace a node.
+
+        For acoustic nodes, also index the optional label so sound prototypes
+        can be resolved by their human-readable label later (M9b+).
+        """
         self._nodes[node.id] = node
         # Index grounding anchors for resolve()
         for anchor in node.grounding:
             key = anchor.lower()
+            if node.id not in self._token_index[key]:
+                self._token_index[key].append(node.id)
+
+        # Acoustic nodes may carry a label that should also resolve.
+        label = getattr(node, "label", None)
+        if isinstance(label, str) and label.strip():
+            key = label.lower()
             if node.id not in self._token_index[key]:
                 self._token_index[key].append(node.id)
 
