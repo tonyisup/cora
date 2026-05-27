@@ -203,6 +203,32 @@ Interpretation:
 - This is still a smoke, not a promotion-grade validation; we have not yet explored failure cases or a tighter acceptance threshold.
 - The next live step is to expand to a slightly broader set and record repeatability / worst-case behavior.
 
+## Repeat-run Live Smoke
+
+Command:
+```bash
+source .venv/bin/activate && python scripts/m9_live_audio_gate.py --targets alpha:220:sine,beta:247:triangle,gamma:262:sawtooth --repeats 2 --input-device 1 --output-device 0 --threshold 0.30 --output /tmp/m9_live_audio_gate_repeat.json
+```
+
+Observed results:
+- Pass rate: 1.00 (6/6)
+- Average score: 0.6928
+- Worst score: 0.6180
+- Threshold: 0.30
+- Verdict: PASS
+- Capture elapsed: 1.83s–2.01s per target
+- Playback started: True for all targets
+
+Per-target repeat summaries:
+- alpha / 220 Hz sine: 2/2 pass, avg 0.7256, worst 0.7206
+- beta / 247 Hz triangle: 2/2 pass, avg 0.7322, worst 0.7310
+- gamma / 262 Hz sawtooth: 2/2 pass, avg 0.6206, worst 0.6180
+
+Interpretation:
+- The live gate held up across immediate repeats on the same hardware.
+- The sawtooth target is still the weakest of the three, but it remains above the current smoke threshold on both runs.
+- This is better evidence than a one-shot smoke, but still short of a promotion-grade live gate; we still need broader target coverage and a more deliberate failure threshold.
+
 ## Notes
 
 - The current M9b gate measures repeatability and prototype refinement, not full acoustic learning.

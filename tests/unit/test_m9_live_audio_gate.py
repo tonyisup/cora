@@ -66,3 +66,22 @@ def test_run_gate_multi_target_dry_run_passes():
     ]
     assert all(row["verdict"]["passed"] for row in rows)
     assert all(row["score"]["overall"] == 1.0 for row in rows)
+
+
+def test_run_gate_repeat_shape_is_stable():
+    rows = [
+        module.run_gate(
+            word="alpha",
+            freq_hz=220.0,
+            waveform="sine",
+            duration_s=1.0,
+            input_device=None,
+            output_device=None,
+            threshold=0.99,
+            dry_run=True,
+        )
+        for _ in range(2)
+    ]
+    assert len(rows) == 2
+    assert all(row["verdict"]["passed"] for row in rows)
+    assert rows[0]["score"]["overall"] == rows[1]["score"]["overall"] == 1.0

@@ -260,6 +260,7 @@ def main() -> None:
     parser.add_argument("--target-waveform", type=str, default="sine", choices=["sine", "triangle", "sawtooth", "square"])
     parser.add_argument("--duration", type=float, default=1.0)
     parser.add_argument("--targets", type=str, default=None, help="Comma-separated target set like 'alpha:220:sine,beta:247:triangle'")
+    parser.add_argument("--repeats", type=int, default=1, help="Repeat each target this many times")
     parser.add_argument("--input-device", type=int, default=None)
     parser.add_argument("--output-device", type=int, default=None)
     parser.add_argument("--threshold", type=float, default=0.55)
@@ -277,22 +278,47 @@ def main() -> None:
     else:
         target_specs = list(DEFAULT_TARGETS)
 
+    repeats = max(1, int(args.repeats))
     rows: list[dict[str, Any]] = []
     for word, freq_hz, waveform in target_specs:
-        row = run_gate(
-            word=word,
-            freq_hz=freq_hz,
-            waveform=waveform,
-            duration_s=args.duration,
-            input_device=args.input_device,
-            output_device=args.output_device,
-            threshold=args.threshold,
-            dry_run=args.dry_run,
-        )
-        rows.append(row)
+        for repeat_idx in range(repeats):
+            row = run_gate(
+                word=word,
+                freq_hz=freq_hz,
+                waveform=waveform,
+                duration_s=args.duration,
+                input_device=args.input_device,
+                output_device=args.output_device,
+                threshold=args.threshold,
+                dry_run=args.dry_run,
+            )
+            row["repeat"] = repeat_idx + 1
+            rows.append(row)
 
-    pass_count = sum(1 for row in rows if row["verdict"]["passed"])
-    pass_rate = pass_count / max(len(rows), 1)
+    by_target: dict[str, list[dict[str, Any]]] = {}
+    for row in rows:
+        key = row["target"]["word"]
+        by_target.setdefault(key, []).append(row)
+
+    target_summaries = []
+    for word, group in by_target.items():
+        pass_count = sum(1 for row in group if row["verdict"]["passed"])
+        pass_rate = pass_count / len(group)
+        scores = [row["score"]["overall"] for row in group]
+        target_summaries.append({
+            "word": word,
+            "freq_hz": group[0]["target"]["freq_hz"],
+            "waveform": group[0]["target"]["waveform"],
+            "pass_count": pass_count,
+            "total": len(group),
+            "pass_rate": pass_rate,
+            "avg_score": float(np.mean(scores)),
+            "worst_score": float(np.min(scores)),
+        })
+
+    total_pass_count = sum(summary["pass_count"] for summary in target_summaries)
+    total_trials = len(rows)
+    pass_rate = total_pass_count / max(total_trials, 1)
     avg_score = float(np.mean([row["score"]["overall"] for row in rows]))
     worst_score = float(np.min([row["score"]["overall"] for row in rows]))
     verdict = pass_rate >= 0.80
@@ -301,6 +327,7 @@ def main() -> None:
         "config": {
             "dry_run": args.dry_run,
             "targets": [{"word": w, "freq_hz": f, "waveform": wf} for w, f, wf in target_specs],
+            "repeats": repeats,
             "duration": args.duration,
             "input_device": args.input_device,
             "output_device": args.output_device,
@@ -308,12 +335,13 @@ def main() -> None:
         },
         "results": rows,
         "summary": {
-            "pass_count": pass_count,
-            "total": len(rows),
+            "pass_count": total_pass_count,
+            "total": total_trials,
             "pass_rate": pass_rate,
             "avg_score": avg_score,
             "worst_score": worst_score,
             "verdict": verdict,
+            "target_summaries": target_summaries,
         },
     }
 
@@ -325,7 +353,8 @@ def main() -> None:
     print("=" * 72)
     print(f"  mode:      {'dry-run' if args.dry_run else 'live'}")
     print(f"  targets:   {len(target_specs)}")
-    print(f"  pass rate: {pass_rate:.2f} ({pass_count}/{len(target_specs)})")
+    print(f"  repeats:   {repeats}")
+    print(f"  pass rate: {pass_rate:.2f} ({total_pass_count}/{total_trials})")
     print(f"  avg score: {avg_score:.4f}")
     print(f"  worst:     {worst_score:.4f}")
     print(f"  threshold: {args.threshold:.4f}")
