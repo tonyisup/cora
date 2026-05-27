@@ -59,3 +59,24 @@ These are intentionally conservative and can be tightened later.
 Do not block M9 on this gate.
 
 Treat the live-audio gate as the next promotion step after M9 synthetic validation, and use it to answer the remaining systems question: does the M9 pipeline still work when sound leaves the model and enters the real world?
+
+## First live hardware smoke
+
+Command:
+```bash
+source .venv/bin/activate && python scripts/m9_live_audio_gate.py --word alpha --target-freq 220 --target-waveform sine --duration 1.0 --input-device 1 --output-device 0 --threshold 0.30 --output /tmp/m9_live_audio_gate_live.json
+```
+
+Observed results:
+- Input device: `BL-2021USB`
+- Output device: `ASUS PB287Q`
+- Overall score: 0.7251
+- Threshold: 0.30
+- Verdict: PASS
+- Capture elapsed: 1.8498s
+- Playback started: True
+
+Interpretation:
+- The live gate successfully exercised real audio I/O on the hardware.
+- This is a smoke pass, not a full promotion-grade validation yet.
+- The remaining work is to broaden this from one word/sound pair to a small live set and establish a stable promotion threshold.

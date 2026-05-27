@@ -149,6 +149,34 @@ Interpretation:
 - Bidirectional edges are explicit (`HAS_SOUND` and `SOUND_OF`), and 10/10 word-sound pairs are retrievable in both directions.
 - This remains a synthetic gate; live audio end-to-end is still a future promotion step.
 
+## Live Audio Promotion Gate — First Hardware Smoke
+
+Implemented components:
+- `docs/m9_live_audio_gate.md` — promotion-gate spec
+- `scripts/m9_live_audio_gate.py` — dry-run and live capture/score scaffold
+- `tests/unit/test_m9_live_audio_gate.py` — dry-run coverage
+
+### Validation run
+
+Command:
+```bash
+source .venv/bin/activate && python scripts/m9_live_audio_gate.py --word alpha --target-freq 220 --target-waveform sine --duration 1.0 --input-device 1 --output-device 0 --threshold 0.30 --output /tmp/m9_live_audio_gate_live.json
+```
+
+Observed results:
+- Input device: BL-2021USB
+- Output device: ASUS PB287Q
+- Overall score: 0.7251
+- Threshold: 0.30
+- Verdict: PASS
+- Capture elapsed: 1.8498s
+- Playback started: True
+
+Interpretation:
+- The hardware smoke confirms that the live gate can play a target sound, capture it back, and score the capture on real devices.
+- This is a smoke pass only; it is not yet a promotion-grade multi-trial or multi-word validation.
+- The live gate now exists as the path to the next promotion step if we want to harden M9 against real audio I/O.
+
 ## Notes
 
 - The current M9b gate measures repeatability and prototype refinement, not full acoustic learning.

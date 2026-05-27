@@ -262,6 +262,7 @@ Each phase gates the next. Don't rush to text association before sound productio
 
 - Live audio end-to-end validation is a future promotion step, not part of the synthetic M9 gate.
 - See `docs/m9_live_audio_gate.md` and `scripts/m9_live_audio_gate.py` for the scaffolded gate path.
+- First live hardware smoke passed on `BL-2021USB` -> `ASUS PB287Q` with an overall score of 0.7251.
 
 ## Storage & Memory Assessment
 
