@@ -150,6 +150,11 @@ def sound_of_edge(source: str, target: str, confidence: float = 1.0) -> Edge:
     return Edge(source=source, target=target, type=EdgeType.SOUND_OF.value, confidence=confidence)
 
 
+def has_sound_edge(source: str, target: str, confidence: float = 1.0) -> Edge:
+    """Create a HAS_SOUND edge (word/concept -> sound)."""
+    return Edge(source=source, target=target, type=EdgeType.HAS_SOUND.value, confidence=confidence)
+
+
 def similar_to_edge(source: str, target: str, confidence: float = 1.0) -> Edge:
     """Create a SIMILAR_TO edge between acoustic nodes."""
     return Edge(source=source, target=target, type=EdgeType.SIMILAR_TO.value, confidence=confidence)

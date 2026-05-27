@@ -8,6 +8,7 @@ across all internal modules.
 
 from sag.acoustic_models import (
     AcousticNode,
+    has_sound_edge,
     precedes_edge,
     similar_to_edge,
     sound_of_edge,
@@ -23,6 +24,7 @@ __all__ = [
     "GraphChange",
     "AcousticNode",
     "sound_of_edge",
+    "has_sound_edge",
     "similar_to_edge",
     "precedes_edge",
 ]

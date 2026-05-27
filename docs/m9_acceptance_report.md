@@ -10,6 +10,8 @@
 |-------|------|--------|
 | M9a — Sound imitation primitive | Produce non-silence, stable similarity across trials | PASS |
 | M9b — Repeatability and convergence | Repeatability on one or more target sounds; acoustic prototype refinement | PASS |
+| M9c — Weak terminal confirmation | Binary judge, combined reward, label attachment | PASS |
+| M9d — Text association | Bidirectional word/sound edges, 10+ retrievable pairs | PASS |
 
 ## M9a — Sound Imitation Primitive
 
@@ -87,10 +89,11 @@ Interpretation:
 
 ## Current M9 Status
 
-- M9a: complete enough to serve as a baseline sound-imitation primitive
-- M9b: repeatability and acoustic prototype refinement are implemented and passing smoke tests
-- M9c: weak terminal confirmation is now implemented and passing smoke tests
-- M9d: text association / word-sound pairing — pending
+- M9a: complete baseline sound-imitation primitive
+- M9b: repeatability and acoustic prototype refinement complete
+- M9c: weak terminal confirmation complete
+- M9d: text association complete (synthetic gate)
+- Live audio end-to-end remains a future promotion gate
 
 ## M9c — Weak Terminal Confirmation
 
@@ -120,8 +123,34 @@ Interpretation:
 - On this target, terminal-confirmed learning improved the pass rate and slightly improved the final similarity relative to the similarity-only baseline.
 - This is sufficient for M9c because the goal is a weak supervision signal, not a human-grade semantic judge.
 
+## M9d — Text Association
+
+Implemented components:
+- `packages/m9_sound/text_association.py` — bidirectional word/sound association store
+- `scripts/m9_text_association.py` — synthetic 10-pair text-association gate
+- `tests/unit/test_m9_text_association.py` — bidirectional retrieval tests
+
+### Validation run
+
+Command:
+```bash
+source .venv/bin/activate && python scripts/m9_text_association.py --pairs 10 --output /tmp/m9_text_association.json
+```
+
+Observed results:
+- Word→sound accuracy: 1.00
+- Sound→word accuracy: 1.00
+- Graph nodes: 20
+- Graph edges: 20
+- Verdict: PASS
+
+Interpretation:
+- Text association is now wired end-to-end inside the synthetic SAG path.
+- Bidirectional edges are explicit (`HAS_SOUND` and `SOUND_OF`), and 10/10 word-sound pairs are retrievable in both directions.
+- This remains a synthetic gate; live audio end-to-end is still a future promotion step.
+
 ## Notes
 
 - The current M9b gate measures repeatability and prototype refinement, not full acoustic learning.
 - The SAG acoustic layer stores compact summaries, not raw audio.
-- Persistence remains intentionally deferred to M9c.
+- Persistence remains intentionally deferred to M9d.

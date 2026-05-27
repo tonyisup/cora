@@ -13,6 +13,7 @@ from m9_sound.terminal_confirmation import (
     attach_label_if_passed,
     combine_reward,
 )
+from m9_sound.text_association import TextAssociationStats, TextAssociationStore, WordSoundPair
 
 __all__ = [
     "OscillatorBank",
@@ -32,4 +33,7 @@ __all__ = [
     "WeakTerminalJudge",
     "combine_reward",
     "attach_label_if_passed",
+    "TextAssociationStats",
+    "TextAssociationStore",
+    "WordSoundPair",
 ]

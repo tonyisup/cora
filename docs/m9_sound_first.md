@@ -148,6 +148,14 @@ Per the pivot doc, the progression is:
 2. SAG has bidirectional edges: word -> sound prototype -> word
 3. At least 10 word-sound pairs stored and retrievable
 
+**M9d Implementation Status:**
+- `TextAssociationStore` creates word nodes and acoustic prototype nodes in the SAG
+- Bidirectional edges are explicit: `HAS_SOUND` (word -> sound) and `SOUND_OF` (sound -> word)
+- `m9_text_association.py` builds and validates a 10-pair synthetic association set
+- Smoke run: 10/10 pairs retrieved correctly in both directions
+- Smoke run: 20 nodes, 20 edges, Verdict PASS
+- Live audio end-to-end is a future promotion gate; M9d is synthetic-only for now
+
 ## SAG Acoustic Expansion
 
 The current SAG stores word abstractions (Node with `core`, `context`, `grounding`). M9 requires:
@@ -217,6 +225,14 @@ Each phase gates the next. Don't rush to text association before sound productio
 - Smoke run: baseline pass rate 0.67 vs terminal-confirmed pass rate 1.00
 - Smoke run: terminal-confirmed final similarity 0.5433 vs baseline 0.5384
 
+**M9d Implementation Status:**
+- `TextAssociationStore` creates word nodes and acoustic prototype nodes in the SAG
+- Bidirectional edges are explicit: `HAS_SOUND` (word -> sound) and `SOUND_OF` (sound -> word)
+- `m9_text_association.py` builds and validates a 10-pair synthetic association set
+- Smoke run: 10/10 pairs retrieved correctly in both directions
+- Smoke run: 20 nodes, 20 edges, Verdict PASS
+- Live audio end-to-end is a future promotion gate; M9d is synthetic-only for now
+
 ## Files Summary
 
 ### Implemented
@@ -230,20 +246,21 @@ Each phase gates the next. Don't rush to text association before sound productio
 | `packages/m9_sound/similarity.py` | DONE — FFT-mel, ZCR pitch, RMS loudness, duration |
 | `packages/m9_sound/convergence.py` | DONE — audio summaries, repeatability stats, prototype refinement |
 | `packages/m9_sound/terminal_confirmation.py` | DONE — weak judge, combined reward, label attachment |
+| `packages/m9_sound/text_association.py` | DONE — word/sound pair store and retrieval |
 | `scripts/m9_imitation_loop.py` | DONE — trial runner with REINFORCE |
 | `scripts/m9_convergence_test.py` | DONE — repeatability runner |
 | `scripts/m9_terminal_judge.py` | DONE — terminal-confirmation comparison runner |
+| `scripts/m9_text_association.py` | DONE — text-association synthetic gate |
 | `tests/unit/test_m9_sound.py` | DONE — 21 tests, all passing |
 | `tests/unit/test_m9_convergence.py` | DONE — convergence helper tests |
 | `tests/unit/test_m9_terminal_confirmation.py` | DONE — terminal confirmation helper tests |
+| `tests/unit/test_m9_text_association.py` | DONE — text association helper tests |
 | `packages/sag/acoustic_models.py` | DONE — AcousticNode + acoustic edge helpers |
 | `packages/sag/graph.py` | DONE — acoustic label indexing for resolve() |
 
-### Remaining
+### Next Promotion Gate
 
-| File | Phase |
-|------|-------|
-| `scripts/m9_text_association.py` | M9d |
+- Live audio end-to-end validation is a future promotion step, not part of the synthetic M9 gate.
 
 ## Storage & Memory Assessment
 
@@ -266,13 +283,13 @@ Each phase gates the next. Don't rush to text association before sound productio
 
 This fits comfortably in memory with JSONL checkpoint. No need for a database yet.
 
-### M9d+ Data Volume (persistent storage needed)
+### Future Promotion Data Volume (persistent storage needed)
 
-- Label associations (word → prototype) must survive restarts
+- Label associations (word → prototype) must survive restarts if we move beyond the synthetic gate
 - Production history (per-prototype similarity time series) grows without bound
-- Text association requires durable bidirectional SAG edges
+- A live audio promotion gate would likely want durable bidirectional SAG edges
 
-**Decision:** Defer persistence to M9d. Use in-memory + JSONL checkpoint for M9a/c. When text association requires durable storage, add:
+**Decision:** Keep the synthetic M9 track in memory + JSONL checkpoint. If/when we add live promotion or broader long-lived text association, add:
 - `SemanticAbstractionGraph.persist()` / `.load()` — serialize nodes + edges to JSON
 - `faiss-cpu` index for MFCC centroid similarity search (nearest prototype lookup)
 - `chromadb` alternative if metadata-rich queries are needed

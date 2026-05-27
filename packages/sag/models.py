@@ -41,6 +41,7 @@ class EdgeType(str, Enum):
 
     # M9 acoustic relations
     SOUND_OF = "sound-of"
+    HAS_SOUND = "has-sound"
     PRECEDES = "precedes"
 
 
