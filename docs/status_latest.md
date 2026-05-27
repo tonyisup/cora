@@ -61,6 +61,7 @@
 
 ## Recent Commits (newest first)
 
+- `2ce8b9d` feat(m9d): text association with bidirectional word-sound edges
 - `e284ed2` feat(m9c): weak terminal confirmation and label attachment
 - `0c51931` feat(m9b): repeatability and convergence with acoustic prototype refinement
 - `6a27849` feat(m9): add acoustic SAG nodes and edge helpers
@@ -80,11 +81,12 @@
 - M9a smoke: 10 trials, mean similarity 0.5460, std 0.0056
 - M9b smoke: avg CV 0.0000, mean similarity 0.7181, PASS
 - M9c smoke: baseline pass rate 0.67, terminal-confirmed pass rate 1.00, final similarity 0.5433
+- M9d smoke: word->sound 1.00, sound->word 1.00, 20 nodes, 20 edges, PASS
 
 ## Open Items
 
 - 5 data-missing test failures (M2/M3 artifacts) — need artifact regeneration or test skip markers
 - `packages/salience/` is a stub (empty `__init__.py`)
 - M8 known gap: clarify/repair actions not triggered by heuristic in current episode types — distilled never learned them
-- M9: sound-first motor learning (Track 2) — in progress (M9a/b/c complete; M9d next)
+- M9: sound-first motor learning (Track 2) — complete synthetically (M9a/b/c/d); live audio end-to-end is a future promotion gate
 - M8 live harness maintenance lane: inline evaluation, closed-loop mode (lower priority)
