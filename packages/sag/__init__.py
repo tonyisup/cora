@@ -6,8 +6,14 @@ It serves as the PFC's working memory backbone and a shared vocabulary
 across all internal modules.
 """
 
-from sag.models import Node, Edge, EdgeAssertion, GraphChange
+from sag.acoustic_models import (
+    AcousticNode,
+    precedes_edge,
+    similar_to_edge,
+    sound_of_edge,
+)
 from sag.graph import SemanticAbstractionGraph
+from sag.models import Edge, EdgeAssertion, GraphChange, Node
 
 __all__ = [
     "SemanticAbstractionGraph",
@@ -15,4 +21,8 @@ __all__ = [
     "Edge",
     "EdgeAssertion",
     "GraphChange",
+    "AcousticNode",
+    "sound_of_edge",
+    "similar_to_edge",
+    "precedes_edge",
 ]

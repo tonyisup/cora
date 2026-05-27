@@ -61,12 +61,12 @@
 
 ## Recent Commits (newest first)
 
-- `29a0aec` docs: fix stale test count 523->538 in README
+- `ab4dbd2` feat(m9a): sound imitation primitive — complete M9a implementation
+- `c790af8` feat(m9a): sound imitation primitive — oscillator, substrate, controller, producer
+- `0508411` docs: add storage/memory assessment to M9 spec
+- `ca0e89a` docs: spec M9 sound-first motor learning (Track 2)
+- `4c8bdec` docs: M8 acceptance report + status update
 - `cd5e5a2` fix(m8): strict mode, fail-fast artifacts, structured verdicts
-- `54812a9` fix(m8): live harness frame logging + path resolution
-- `15b4a27` docs: add M8 live harness reference to README
-- `f59e82d` feat(m8): live hardware validation harness
-- `15392fc` docs: fix markdown tables, update test counts, add M8 sections
 
 ## Key Metrics
 
@@ -83,5 +83,5 @@
 - 5 data-missing test failures (M2/M3 artifacts) — need artifact regeneration or test skip markers
 - `packages/salience/` is a stub (empty `__init__.py`)
 - M8 known gap: clarify/repair actions not triggered by heuristic in current episode types — distilled never learned them
-- M9: sound-first motor learning (Track 2) — scoped, not yet started
+- M9: sound-first motor learning (Track 2) — in progress (M9a complete; M9b next)
 - M8 live harness maintenance lane: inline evaluation, closed-loop mode (lower priority)

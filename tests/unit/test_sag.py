@@ -3,6 +3,7 @@
 import pytest
 
 from sag.models import Node, Edge, EdgeAssertion, EdgeType, ChangeKind
+from sag.acoustic_models import AcousticNode, sound_of_edge, similar_to_edge, precedes_edge
 from sag.graph import SemanticAbstractionGraph
 
 
@@ -70,6 +71,57 @@ class TestEdge:
         assert EdgeType.IS_A.value == "is-a"
         assert EdgeType.CAUSES.value == "causes"
         assert EdgeType.IMPLIES.value == "implies"
+        assert EdgeType.SOUND_OF.value == "sound-of"
+        assert EdgeType.PRECEDES.value == "precedes"
+
+
+class TestAcousticNode:
+    def test_from_audio_summary(self):
+        n = AcousticNode.from_audio_summary(
+            id="tone_440",
+            core="440 Hz target tone",
+            grounding=["tone", "440hz"],
+            context={"domain": "sound"},
+            label="A4",
+            pitch_mean_hz=440.0,
+            duration_mean_s=1.0,
+            loudness_mean_db=-12.5,
+            mfcc_centroid=[0.1, 0.2, 0.3],
+            embedding=[0.4, 0.5],
+            source_trials=["trial_001"],
+        )
+        assert n.id == "tone_440"
+        assert n.label == "A4"
+        assert n.pitch_mean_hz == 440.0
+        assert n.production_count == 1
+        assert n.feature_version == "m9a-v1"
+
+    def test_with_update(self):
+        n = AcousticNode.from_audio_summary(
+            id="tone_440",
+            core="440 Hz target tone",
+        )
+        updated = n.with_update(
+            similarity=0.75,
+            trial_id="trial_002",
+            label="A4",
+            pitch_mean_hz=441.0,
+            duration_mean_s=1.0,
+        )
+        assert updated is not n
+        assert updated.production_count == 1
+        assert updated.avg_similarity == pytest.approx(0.75)
+        assert updated.label == "A4"
+        assert updated.pitch_mean_hz == 441.0
+        assert updated.source_trials == ["trial_002"]
+
+    def test_edge_helpers(self):
+        e1 = sound_of_edge("sound_1", "word_1", confidence=0.9)
+        e2 = similar_to_edge("sound_1", "sound_2", confidence=0.8)
+        e3 = precedes_edge("frame_1", "frame_2", confidence=0.7)
+        assert e1.type == "sound-of"
+        assert e2.type == "similar-to"
+        assert e3.type == "precedes"
 
 
 # --- Graph: Mutations ---

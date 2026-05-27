@@ -199,7 +199,7 @@ Each phase gates the next. Don't rush to text association before sound productio
 1. System produces non-silence when given a target — PASS (all trials produce audio)
 2. Similarity score is stable across trials — PASS (std = 0.007 over 30 trials)
 3. Different targets produce different outputs — NEEDS TESTING (same controller for all targets currently)
-4. SAG stores acoustic prototypes — NOT YET (needs `packages/sag/acoustic_models.py`)
+4. SAG stores acoustic prototypes — PARTIAL (node type added; graph indexing/persistence still M9b)
 
 ## Files Summary
 
@@ -214,12 +214,12 @@ Each phase gates the next. Don't rush to text association before sound productio
 | `packages/m9_sound/similarity.py` | DONE — FFT-mel, ZCR pitch, RMS loudness, duration |
 | `scripts/m9_imitation_loop.py` | DONE — trial runner with REINFORCE |
 | `tests/unit/test_m9_sound.py` | DONE — 21 tests, all passing |
+| `packages/sag/acoustic_models.py` | DONE — AcousticNode + acoustic edge helpers |
 
 ### Remaining
 
 | File | Phase |
 |------|-------|
-| `packages/sag/acoustic_models.py` | M9b — AcousticNode, new edge types |
 | `packages/sag/graph.py` changes | M9b — acoustic node indexing |
 | `scripts/m9_convergence_test.py` | M9b — repeatability evaluation |
 | `scripts/m9_terminal_judge.py` | M9c |

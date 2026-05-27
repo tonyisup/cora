@@ -39,6 +39,10 @@ class EdgeType(str, Enum):
     USED_FOR = "used-for"
     HAS_PROPERTY = "has-property"
 
+    # M9 acoustic relations
+    SOUND_OF = "sound-of"
+    PRECEDES = "precedes"
+
 
 class EdgeAssertion(BaseModel):
     """A single module's assertion of a relationship.
