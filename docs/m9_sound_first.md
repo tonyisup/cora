@@ -261,6 +261,7 @@ Each phase gates the next. Don't rush to text association before sound productio
 ### Next Promotion Gate
 
 - Live audio end-to-end validation is a future promotion step, not part of the synthetic M9 gate.
+- See `docs/m9_live_audio_gate.md` and `scripts/m9_live_audio_gate.py` for the scaffolded gate path.
 
 ## Storage & Memory Assessment
 

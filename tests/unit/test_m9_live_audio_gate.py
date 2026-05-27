@@ -1,0 +1,39 @@
+"""Tests for the M9 live audio promotion gate scaffold."""
+
+from __future__ import annotations
+
+import importlib.util
+from pathlib import Path
+
+
+SCRIPT_PATH = Path("/Users/juicebox/Projects/cora/scripts/m9_live_audio_gate.py")
+
+spec = importlib.util.spec_from_file_location("m9_live_audio_gate", SCRIPT_PATH)
+assert spec is not None and spec.loader is not None
+module = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(module)
+
+
+def test_make_target_pcm_returns_metadata_and_audio():
+    pcm, meta = module.make_target_pcm("alpha", 220.0, "sine", 1.0)
+    assert len(pcm) == 16000
+    assert meta["word"] == "alpha"
+    assert meta["sound_id"].startswith("sound::")
+    assert meta["source"] in {"text_association_store", "oscillator"}
+
+
+def test_run_gate_dry_run_passes():
+    result = module.run_gate(
+        word="alpha",
+        freq_hz=220.0,
+        waveform="sine",
+        duration_s=1.0,
+        input_device=None,
+        output_device=None,
+        threshold=0.99,
+        dry_run=True,
+    )
+    assert result["verdict"]["passed"] is True
+    assert result["score"]["overall"] == 1.0
+    assert result["target"]["word"] == "alpha"
+    assert result["capture"]["input_device_name"] == "dry-run"
