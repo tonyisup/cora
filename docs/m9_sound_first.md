@@ -262,12 +262,7 @@ Each phase gates the next. Don't rush to text association before sound productio
 
 - Live audio end-to-end validation is a future promotion step, not part of the synthetic M9 gate.
 - See `docs/m9_live_audio_gate.md` and `scripts/m9_live_audio_gate.py` for the scaffolded gate path.
-- First live hardware smoke passed on `BL-2021USB` -> `ASUS PB287Q` with an overall score of 0.7251.
-- With output device 2 and a softened square waveform, threshold bracket on 6 targets:
-  - 0.60: 12/12 pass
-  - 0.70: 10/12 pass (PASS at 83%)
-  - 0.75: 9/12 fail (75%, below 80% gate)
-- Weakest target: gamma / 262 Hz sawtooth.
+- With output device 2, softened square waveform, and improved similarity (mel bins + autocorrelation pitch): 6-target gate at 0.75 with 3 repeats passes 18/18 (worst 0.790). 8-target extended sweep at 0.75 fails (pitch detection degrades above ~350 Hz).
 
 ## Storage & Memory Assessment
 

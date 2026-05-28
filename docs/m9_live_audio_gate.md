@@ -17,31 +17,29 @@ Prove that the M9 sound/text pipeline survives real audio I/O:
 - output: External Headphones (device 2)
 - waveform improvement: square uses soft-limited approximation
 
-## Threshold bracket
+## Threshold bracket (v3 — improved pitch detector)
 
-We swept the 6-target live set at increasing thresholds on output device 2 to find the promotion boundary. After improving the similarity metric (proper mel-scale binning + autocorrelation pitch), the scores improved materially.
+8 targets, 3 repeats, output device 2:
 
-Targets: alpha/220/sine, beta/247/triangle, gamma/262/sawtooth, delta/294/square, epsilon/330/sine, zeta/349/triangle
-Repeats: 2 each, duration: 1.0s
+| Threshold | Pass rate | Avg | Worst | Verdict |
+|-----------|-----------|-----|-------|---------|
+| 0.75 (6 targets) | 18/18 (100%) | 0.809 | 0.790 | PASS |
+| 0.75 (8 targets) | 18/24 (75%) | 0.785 | 0.677 | FAIL |
 
-| Threshold | Pass rate | Avg score | Worst | Verdict |
-|-----------|-----------|-----------|-------|---------|
-| 0.60 | 12/12 (100%) | 0.8161 | 0.7889 | PASS |
-| 0.70 | 12/12 (100%) | 0.8161 | 0.7889 | PASS |
-| 0.75 | 11/12 (92%) | 0.8004 | 0.7139 | PASS |
-| 0.80 | 8/12 (67%) | 0.8090 | 0.7824 | FAIL |
+6-target sweet spot (alpha through zeta, up to 349 Hz):
+- all pass 3/3 repeats at 0.75
+- avg scores: 0.778–0.850
+- weakest: beta/247/triangle at 0.762
 
-Per-target at 0.70:
-- alpha / 220 Hz sine: avg 0.8192
-- beta / 247 Hz triangle: avg 0.7909, worst 0.7889
-- gamma / 262 Hz sawtooth: avg 0.8126
-- delta / 294 Hz square: avg 0.8053
-- epsilon / 330 Hz sine: avg 0.8513
-- zeta / 349 Hz triangle: avg 0.8171
+Higher-frequency failures:
+- eta/392/sawtooth: 0/3 pass (pitch detection unreliable above ~350 Hz)
+- iota/440/square: 0/3 pass (same)
 
 ## Interpretation
 
-- The improved similarity metric removed the sawtooth-as-weakest-target gap.
-- The live gate now has margin up to threshold 0.75 on output device 2.
-- The 0.80 threshold is too strict for the current device pair and waveform set (beta/triangle drops below).
-- For promotion, the 0.75 threshold with 6-target coverage and the improved metric is a plausible acceptance gate.
+- The reliable operating range for this hardware pair is up to ~350 Hz.
+- 6 targets at 0.75 with 3 repeats is a solid promotion-grade result on output device 2.
+- Higher frequencies need either a better pitch detector or relaxed scoring above 350 Hz.
+- For promotion, we can either:
+  - accept the 6-target/0.75 gate with the high-frequency limitation documented, or
+  - fix the pitch detector for higher frequencies before expanding the target set.

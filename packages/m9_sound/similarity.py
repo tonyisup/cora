@@ -122,11 +122,11 @@ class AcousticSimilarity:
     # ------------------------------------------------------------------
     # Pitch distance
     # ------------------------------------------------------------------
-
     def _pitch_distance(self, a: np.ndarray, b: np.ndarray) -> float:
         """Pitch distance using autocorrelation-based frequency estimation.
 
         More robust than ZCR for harmonic-rich waveforms (sawtooth, square).
+        Searches overtone space to avoid octave errors on high-frequency signals.
         """
         def _autocorr_pitch(x: np.ndarray) -> float:
             x = x - np.mean(x)
@@ -137,18 +137,37 @@ class AcousticSimilarity:
             if r[0] < 1e-9:
                 return 0.0
             r = r / r[0]
-            min_lag = max(1, int(self._sr / 2000))
-            max_lag = min(n, int(self._sr / 50))
+            # Search for the fundamental: check harmonics 1x through 4x
+            # and pick the lowest strong peak to avoid octave errors
+            min_lag = max(1, int(self._sr / 800))  # max 800 Hz fundamental
+            max_lag = min(n, int(self._sr / 30))   # min 30 Hz
             if max_lag <= min_lag:
                 return 0.0
             search = r[min_lag:max_lag]
             if len(search) == 0:
                 return 0.0
+            # Find the strongest peak in the fundamental range
             peak_idx = np.argmax(search)
-            if search[peak_idx] < 0.1:
+            peak_val = search[peak_idx] if peak_idx < len(search) else 0.0
+            if peak_val < 0.05:
                 return 0.0
             lag = min_lag + peak_idx
-            return float(self._sr / lag)
+            fundamental = float(self._sr / lag)
+            # Verify by checking if harmonics align
+            best_lag = lag
+            for harmonic in [2, 3, 4]:
+                h_lag = max(1, round(lag / harmonic))
+                if h_lag < len(r) and h_lag > 0:
+                    h_peak = r[h_lag] if h_lag < len(r) else 0
+                    # If a much stronger peak exists at a sub-harmonic, use it
+                    if h_peak > peak_val * 1.2:
+                        candidate_lag = h_lag
+                        if candidate_lag >= min_lag:
+                            test_peak = search[candidate_lag - min_lag] if candidate_lag - min_lag < len(search) else 0
+                            if test_peak > 0.1:
+                                best_lag = candidate_lag
+                                break
+            return float(self._sr / best_lag)
 
         pitch_a = _autocorr_pitch(a.astype(np.float64))
         pitch_b = _autocorr_pitch(b.astype(np.float64))

@@ -89,5 +89,5 @@
 - `packages/salience/` is a stub (empty `__init__.py`)
 - M8 known gap: clarify/repair actions not triggered by heuristic in current episode types — distilled never learned them
 - M9: sound-first motor learning (Track 2) — complete synthetically (M9a/b/c/d); live audio end-to-end is a future promotion gate
-- M9 live-audio promotion gate: v2 similarity metric (mel bins + autocorrelation pitch); 6-target sweep passes at 0.75 (11/12), fails at 0.80 (8/12)
+- M9 live-audio promotion gate: v3 similarity + pitch detector; 6-target/0.75/3repeats passes 18/18; 8-target at 0.75 fails (pitch degrades above ~350 Hz)
 - M8 live harness maintenance lane: inline evaluation, closed-loop mode (lower priority)

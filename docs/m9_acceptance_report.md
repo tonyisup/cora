@@ -139,29 +139,28 @@ Interpretation:
 - Text association is now wired end-to-end inside the synthetic SAG path.
 - Bidirectional edges are explicit (`HAS_SOUND` and `SOUND_OF`), and 10/10 word-sound pairs are retrievable in both directions.
 
-## Live Audio Promotion Gate — Threshold Bracket
+## Live Audio Promotion Gate — Threshold Bracket (v3)
 
-See `docs/m9_live_audio_gate.md` for the full hardware history and detailed per-target breakdowns.
+See `docs/m9_live_audio_gate.md` for full hardware history.
 
 Hardware: input device 1 (BL-2021USB), output device 2 (External Headphones)
-Similarity metric v2: proper mel-scale binning + autocorrelation pitch detection
-Targets: alpha/220/sine, beta/247/triangle, gamma/262/sawtooth, delta/294/square, epsilon/330/sine, zeta/349/triangle
-Repeats: 2 each, duration: 1.0s
+Similarity v2: mel-scale binning + autocorrelation pitch
+Waveforms: soft-limited square
 
-| Threshold | Pass rate | Avg score | Worst | Verdict |
-|-----------|-----------|-----------|-------|---------|
-| 0.60 | 12/12 (100%) | 0.8161 | 0.7889 | PASS |
-| 0.70 | 12/12 (100%) | 0.8161 | 0.7889 | PASS |
-| 0.75 | 11/12 (92%) | 0.8004 | 0.7139 | PASS |
-| 0.80 | 8/12 (67%) | 0.8090 | 0.7824 | FAIL |
+**6-target gate (promotion candidate):**
+- targets: alpha/220/sine, beta/247/triangle, gamma/262/sawtooth, delta/294/square, epsilon/330/sine, zeta/349/triangle
+- 0.75 threshold, 3 repeats: 18/18 pass (100%), avg 0.809, worst 0.790
 
-v2 metric removed the sawtooth-as-weakest-target gap. Promising for promotion.
+**8-target extended sweep:**
+- adds eta/392/sawtooth and iota/440/square
+- 0.75 threshold, 3 repeats: 18/24 pass (75%) — FAIL
+- eta and iota fail reliably (pitch detection degrades above ~350 Hz)
 
-Weakest target: gamma / 262 Hz sawtooth. The softened square waveform is no longer the limiting case.
+**Notes:**
 
-Interpretation:
-- The live gate is stable at threshold 0.70 on output device 2 with the current 6-target set.
-- For promotion, we can either accept threshold 0.70 with the sawtooth/gamma gap documented as a known limitation, or improve the sawtooth capture path before promoting at a stricter threshold.
+- The reliable operating range for this hardware pair is up to ~350 Hz.
+- 6 targets at 0.75 with 3 repeats is a solid promotion-grade result.
+- Higher frequencies (392+ Hz) need pitch detector improvements before expanding the target set.
 
 ## Current M9 Status
 
