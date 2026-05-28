@@ -265,6 +265,7 @@ Each phase gates the next. Don't rush to text association before sound productio
 - First live hardware smoke passed on `BL-2021USB` -> `ASUS PB287Q` with an overall score of 0.7251.
 - A small 3-word live set also passed with 3/3 success and an average score of 0.6918.
 - With output device 2 and a softened square waveform, a stricter 4-target sweep at threshold 0.60 passed (8/8, worst 0.6845).
+- A broader 6-target sweep on output device 2 also passed (12/12, worst 0.6754).
 
 ## Storage & Memory Assessment
 

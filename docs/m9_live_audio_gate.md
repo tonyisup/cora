@@ -140,3 +140,32 @@ Interpretation:
 - Immediate repeats stayed stable at the easy threshold.
 - With output device 2 and a softened square waveform, the stricter 4-target 0.60 sweep passed, so the previous failure boundary moved upward.
 - We still need broader target coverage if we want a promotion-grade claim, but the device-2 path is materially stronger than the earlier monitor-speaker path.
+
+## Broader 6-target sweep
+
+Command:
+```bash
+source .venv/bin/activate && python scripts/m9_live_audio_gate.py --targets alpha:220:sine,beta:247:triangle,gamma:262:sawtooth,delta:294:square,epsilon:330:sine,zeta:349:triangle --repeats 2 --input-device 1 --output-device 2 --threshold 0.60 --output /tmp/m9_live_audio_gate_broader.json
+```
+
+Observed results:
+- Pass rate: 1.00 (12/12)
+- Average score: 0.7518
+- Worst score: 0.6754
+- Threshold: 0.60
+- Verdict: PASS
+- Capture elapsed: 1.81s–1.85s per target
+- Playback started: True for all targets
+
+Per-target repeat summaries:
+- alpha / 220 Hz sine: 2/2 pass, avg 0.7908, worst 0.7685
+- beta / 247 Hz triangle: 2/2 pass, avg 0.7521, worst 0.7253
+- gamma / 262 Hz sawtooth: 2/2 pass, avg 0.6804, worst 0.6754
+- delta / 294 Hz square: 2/2 pass, avg 0.7292, worst 0.7210
+- epsilon / 330 Hz sine: 2/2 pass, avg 0.7881, worst 0.7858
+- zeta / 349 Hz triangle: 2/2 pass, avg 0.7701, worst 0.7595
+
+Interpretation:
+- The broader 6-target sweep stayed above threshold on both repeats for every target.
+- The sawtooth target remains the weakest of the set, but it is still comfortably above threshold on output device 2.
+- This is the strongest live evidence so far, and it suggests the device-2 path is a plausible promotion candidate, subject to a larger repeat set and any future failure cases.
