@@ -33,56 +33,55 @@ class ControllerParams:
 class NeuralController:
     """Neural readout from substrate hidden state to oscillator params.
 
-    Simple linear readout: params = W @ h + b
-    W and b are the trainable parameters.
+    Two-layer MLP: params = W2 @ tanh(W1 @ h + b1) + b2
+    The hidden layer lets the controller learn multiple frequency mappings
+    without catastrophic forgetting.
     """
 
     def __init__(self, hidden_dim: int = 32, sr: int = 16000,
-                 n_waveforms: int = 4) -> None:
+                 n_waveforms: int = 4, controller_hidden_dim: int = 16) -> None:
         self._hidden_dim = hidden_dim
         self._sr = sr
         self._n_waveforms = n_waveforms
+        self._controller_hidden = controller_hidden_dim
 
-        # Output: [freq, amplitude, phase, waveform_logits]
-        # Frequency range: 80-2000 Hz -> normalized to [0, 1]
         self._freq_min = 80.0
         self._freq_max = 2000.0
 
-        # Initialize weights (these are the trainable params)
-        self._W = np.random.randn(4, hidden_dim).astype(np.float32) * 0.1
-        self._b = np.array([0.5, 0.3, 0.0, 0.0], dtype=np.float32)
+        # Layer 1: hidden_state → controller hidden
+        self._W1 = np.random.randn(controller_hidden_dim, hidden_dim).astype(np.float32) * 0.2
+        self._b1 = np.zeros(controller_hidden_dim, dtype=np.float32)
+
+        # Layer 2: controller hidden → output params
+        self._W2 = np.random.randn(4 + n_waveforms, controller_hidden_dim).astype(np.float32) * 0.1
+        self._b2 = np.array([0.5, 0.3, 0.0, 0.0] + [0.0] * n_waveforms, dtype=np.float32)
+
+    def _forward_all(self, h: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+        """Forward pass returning (raw_output, hidden_activation)."""
+        z1 = self._W1 @ h + self._b1
+        a1 = np.tanh(z1)
+        raw = self._W2 @ a1 + self._b2
+        return raw, a1
 
     def decode(self, hidden_state: np.ndarray) -> ControllerParams:
         """Map hidden state to oscillator parameters."""
         h = hidden_state.flatten()[:self._hidden_dim]
         if len(h) < self._hidden_dim:
             h = np.pad(h, (0, self._hidden_dim - len(h)))
+        raw, _ = self._forward_all(h)
 
-        raw = self._W @ h + self._b
-
-        # Frequency: sigmoid to [0, 1], then map to [freq_min, freq_max]
-        freq_norm = float(1.0 / (1.0 + np.exp(-raw[0])))  # sigmoid
+        freq_norm = float(1.0 / (1.0 + np.exp(-raw[0])))
         freq_hz = self._freq_min + freq_norm * (self._freq_max - self._freq_min)
-
-        # Amplitude: sigmoid to [0, 1]
         amplitude = float(1.0 / (1.0 + np.exp(-raw[1])))
-
-        # Phase: tanh to [-1, 1] -> map to [-pi, pi]
         phase = float(np.tanh(raw[2]) * np.pi)
-
-        # Waveform: argmax of logits
-        waveform_logits = raw[3] + np.zeros(self._n_waveforms, dtype=np.float32)
-        waveform_logits[0] = raw[3]  # sine
-        waveform_logits[1] = raw[3] * 0.5  # triangle (slightly less likely)
-        waveform_logits[2] = raw[3] * 0.3  # sawtooth
-        waveform_logits[3] = raw[3] * 0.2  # square
+        waveform_logits = raw[3:3 + self._n_waveforms]
         waveform = int(np.argmax(waveform_logits))
 
         return ControllerParams(
             freq_hz=float(np.clip(freq_hz, self._freq_min, self._freq_max)),
             amplitude=float(np.clip(amplitude, 0.05, 1.0)),
             phase=phase,
-            waveform=int(waveform),
+            waveform=waveform,
         )
 
     def forward(self, hidden_state: np.ndarray) -> np.ndarray:
@@ -90,28 +89,46 @@ class NeuralController:
         h = hidden_state.flatten()[:self._hidden_dim]
         if len(h) < self._hidden_dim:
             h = np.pad(h, (0, self._hidden_dim - len(h)))
-        return self._W @ h + self._b
+        raw, _ = self._forward_all(h)
+        return raw
+
+    def get_hidden_activation(self, hidden_state: np.ndarray) -> np.ndarray:
+        """Return hidden layer activation (for REINFORCE)."""
+        h = hidden_state.flatten()[:self._hidden_dim]
+        if len(h) < self._hidden_dim:
+            h = np.pad(h, (0, self._hidden_dim - len(h)))
+        _, a1 = self._forward_all(h)
+        return a1
 
     def perturb(self, scale: float = 0.1) -> None:
         """Add random noise to weights (for exploration)."""
-        self._W += np.random.randn(*self._W.shape).astype(np.float32) * scale
-        self._b += np.random.randn(*self._b.shape).astype(np.float32) * scale * 0.5
+        self._W1 += np.random.randn(*self._W1.shape).astype(np.float32) * scale
+        self._b1 += np.random.randn(*self._b1.shape).astype(np.float32) * scale * 0.5
+        self._W2 += np.random.randn(*self._W2.shape).astype(np.float32) * scale
+        self._b2 += np.random.randn(*self._b2.shape).astype(np.float32) * scale * 0.5
 
     def clip_weights(self, max_norm: float = 5.0) -> None:
         """Clip weights to prevent explosion."""
-        w_norm = np.linalg.norm(self._W)
-        if w_norm > max_norm:
-            self._W = self._W * (max_norm / w_norm)
-        self._b = np.clip(self._b, -max_norm, max_norm)
+        for W in [self._W1, self._W2]:
+            w_norm = np.linalg.norm(W)
+            if w_norm > max_norm:
+                W[:] = W * (max_norm / w_norm)
+        self._b1 = np.clip(self._b1, -max_norm, max_norm)
+        self._b2 = np.clip(self._b2, -max_norm, max_norm)
 
     @property
     def n_params(self) -> int:
         """Number of trainable parameters."""
-        return self._W.size + self._b.size
+        return self._W1.size + self._b1.size + self._W2.size + self._b2.size
 
     def get_weights(self) -> Dict[str, np.ndarray]:
-        return {"W": self._W.copy(), "b": self._b.copy()}
+        return {
+            "W1": self._W1.copy(), "b1": self._b1.copy(),
+            "W2": self._W2.copy(), "b2": self._b2.copy(),
+        }
 
     def set_weights(self, weights: Dict[str, np.ndarray]) -> None:
-        self._W = weights["W"].astype(np.float32).reshape(self._W.shape)
-        self._b = weights["b"].astype(np.float32).reshape(self._b.shape)
+        self._W1 = weights["W1"].astype(np.float32).reshape(self._W1.shape)
+        self._b1 = weights["b1"].astype(np.float32).reshape(self._b1.shape)
+        self._W2 = weights["W2"].astype(np.float32).reshape(self._W2.shape)
+        self._b2 = weights["b2"].astype(np.float32).reshape(self._b2.shape)

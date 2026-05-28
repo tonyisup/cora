@@ -1,18 +1,16 @@
 #!/usr/bin/env python3
-"""M9 Acoustic Imitation Loop — with REINFORCE learning.
+"""M9 Acoustic Imitation Loop — self-listening with REINFORCE learning.
 
-Simulates the real-world loop:
-1. Play a "human" stimulus sound from device A (speaker)
-2. Capture it through mic → stimulus_capture (the "target")
-3. Producer generates an imitation
-4. Play imitation from device B (headphones)
-5. Capture it through mic → imitation_capture
-6. Score imitation_capture vs stimulus_capture → reward
-7. REINFORCE update: adjust producer weights to increase reward
-8. Repeat for multiple trials
+Two modes:
+1. Single frequency: --stimulus-freq 220
+2. Curriculum: --curriculum 220,262,330,392,440
 
-The producer learns to imitate the stimulus by maximizing the similarity
-between its own captured output and the stimulus capture.
+The loop:
+1. Play stimulus on device A (speaker), capture through mic
+2. Producer generates imitation, play on device B (headphones), capture through mic
+3. Score imitation_capture vs stimulus_capture → reward
+4. REINFORCE update
+5. Save checkpoint for next run / next frequency
 """
 
 from __future__ import annotations
@@ -122,26 +120,51 @@ def generate_stimulus(
 
 def reinforce_step(
     controller,
-    hidden: np.ndarray,
+    substrate_hidden: np.ndarray,
     reward: float,
     baseline: float,
     lr: float = 0.1,
 ) -> None:
-    """REINFORCE update: increase weights for actions above baseline."""
+    """REINFORCE update through two-layer controller.
+
+    Computes hidden activation from substrate hidden state, then updates
+    W2, b2 (output layer) and W1, b1 (hidden layer) to increase reward.
+    """
     advantage = reward - baseline
     if advantage <= 0:
         return
 
-    h = hidden.flatten()[:controller._hidden_dim]
+    h = substrate_hidden.flatten()[:controller._hidden_dim]
     if len(h) < controller._hidden_dim:
         h = np.pad(h, (0, controller._hidden_dim - len(h)))
 
-    controller._W += lr * advantage * np.outer(np.ones(4), h)
-    controller._b += lr * advantage * np.ones(4) * 0.5
+    # Forward pass to get hidden activation
+    raw, a1 = controller._forward_all(h)
+    n_out = 4 + controller._n_waveforms
+
+    # Gradient for output layer (W2, b2): d(output)/d(W2) = a1
+    # Update: increase output for above-baseline rewards
+    delta = lr * advantage
+    controller._W2 += delta * np.outer(np.ones(n_out), a1) * 0.1
+    controller._b2[:4] += delta * np.ones(4) * 0.05  # only update param logits
+
+    # Backprop to hidden layer: d(output)/d(a1) = W2, d(a1)/d(z1) = 1 - tanh^2(z1)
+    z1 = controller._W1 @ h + controller._b1
+    da1 = controller._W2.T @ (np.ones(n_out) * delta * 0.1)
+    dz1 = da1 * (1.0 - np.tanh(z1) ** 2)  # tanh derivative
+
+    controller._W1 += np.outer(dz1, h) * 0.1
+    controller._b1 += dz1 * 0.05
+
     controller.clip_weights(max_norm=5.0)
 
 
-def run_imitation_loop(
+def parse_freqs(spec: str) -> list[float]:
+    """Parse comma-separated frequency list like '220,262,330,392,440'."""
+    return [float(f.strip()) for f in spec.split(",") if f.strip()]
+
+
+def run_single_freq(
     *,
     stimulus_freq_hz: float,
     stimulus_waveform: str,
@@ -151,68 +174,44 @@ def run_imitation_loop(
     duration_s: float,
     n_trials: int,
     lr: float,
+    checkpoint_path: str | None,
     sr: int = SR,
-    checkpoint_path: str | None = None,
 ) -> dict[str, Any]:
-    """Run the full acoustic imitation loop with REINFORCE learning."""
+    """Run imitation loop on a single frequency."""
     similarity = AcousticSimilarity(sr=sr)
-
-    # 1. Generate stimulus (the "human" sound)
-    stimulus_pcm = generate_stimulus(stimulus_freq_hz, duration_s, stimulus_waveform, sr)
-
-    # 2. Play stimulus on device A, capture through mic
-    print(f"  Playing stimulus ({stimulus_freq_hz:.1f} Hz {stimulus_waveform}) on device {stimulus_device}...")
-    stimulus_result = play_and_capture(
-        stimulus_pcm,
-        input_device=input_device,
-        output_device=stimulus_device,
-        sr=sr,
-    )
-    stimulus_capture = stimulus_result["captured_pcm"]
-
-    # Self-score baseline
-    self_score = similarity.detailed_score(stimulus_pcm, stimulus_capture)
-    print(f"  Stimulus self-score: {self_score.overall:.4f}")
-
-    # Initialize producer and baseline
     producer = AcousticProducer(sr=sr, hidden_dim=32)
+    baseline = 0.0
 
     # Load checkpoint if provided and exists
     if checkpoint_path and Path(checkpoint_path).exists():
         print(f"  Loading checkpoint: {checkpoint_path}")
         producer.load_checkpoint(checkpoint_path)
 
-    baseline = 0.0
-    trial_rows = []
+    # Generate and play stimulus
+    stimulus_pcm = generate_stimulus(stimulus_freq_hz, duration_s, stimulus_waveform, sr)
+    print(f"  Playing stimulus ({stimulus_freq_hz:.1f} Hz {stimulus_waveform})...")
+    stimulus_result = play_and_capture(
+        stimulus_pcm, input_device=input_device, output_device=stimulus_device, sr=sr,
+    )
+    stimulus_capture = stimulus_result["captured_pcm"]
 
+    self_score = similarity.detailed_score(stimulus_pcm, stimulus_capture)
+    print(f"  Stimulus self-score: {self_score.overall:.4f}")
+
+    trial_rows = []
     for trial_idx in range(n_trials):
-        # 3. Producer generates imitation
         imitation_pcm = producer.produce(duration_s)
 
-        # 4. Play imitation on device B, capture through mic
         imitation_result = play_and_capture(
-            imitation_pcm,
-            input_device=input_device,
-            output_device=imitation_device,
-            sr=sr,
+            imitation_pcm, input_device=input_device, output_device=imitation_device, sr=sr,
         )
         imitation_capture = imitation_result["captured_pcm"]
 
-        # 5. Score: how well does the imitation match the stimulus?
         score = similarity.detailed_score(stimulus_capture, imitation_capture)
         reward = float(score.overall)
-
-        # 6. Update baseline
         baseline = 0.9 * baseline + 0.1 * reward
 
-        # 7. REINFORCE update
-        reinforce_step(
-            producer.controller,
-            producer.substrate.hidden_state,
-            reward,
-            baseline,
-            lr=lr,
-        )
+        reinforce_step(producer.controller, producer.substrate.hidden_state, reward, baseline, lr=lr)
 
         trial_rows.append({
             "trial": trial_idx + 1,
@@ -224,33 +223,17 @@ def run_imitation_loop(
             "loudness": float(score.loudness_distance),
         })
 
-        print(f"  Trial {trial_idx + 1:3d}/{n_trials}  reward={reward:.4f}  "
-              f"baseline={baseline:.4f}  mel={score.mfcc_distance:.4f}  "
-              f"pitch={score.pitch_distance:.4f}")
+        if (trial_idx + 1) % 10 == 0:
+            print(f"  Trial {trial_idx + 1:3d}/{n_trials}  "
+                  f"reward={reward:.4f}  baseline={baseline:.4f}")
 
-    # Build result
-    result = {
-        "stimulus": {
-            "freq_hz": stimulus_freq_hz,
-            "waveform": stimulus_waveform,
-            "duration_s": duration_s,
-            "device_name": stimulus_result["output_device_name"],
-        },
-        "imitation": {
-            "device_name": imitation_result["output_device_name"],
-        },
-        "config": {
-            "n_trials": n_trials,
-            "lr": lr,
-            "hidden_dim": 32,
-        },
-        "self_score": {
-            "overall": float(self_score.overall),
-            "mel": float(self_score.mfcc_distance),
-            "pitch": float(self_score.pitch_distance),
-            "duration": float(self_score.duration_distance),
-            "loudness": float(self_score.loudness_distance),
-        },
+    if checkpoint_path:
+        producer.save_checkpoint(checkpoint_path)
+
+    return {
+        "mode": "single",
+        "stimulus": {"freq_hz": stimulus_freq_hz, "waveform": stimulus_waveform},
+        "self_score": {"overall": float(self_score.overall)},
         "trials": trial_rows,
         "summary": {
             "first_reward": trial_rows[0]["reward"] if trial_rows else 0,
@@ -260,71 +243,168 @@ def run_imitation_loop(
         },
     }
 
-    # Save checkpoint if requested
-    if checkpoint_path:
-        producer.save_checkpoint(checkpoint_path)
 
-    return result
+def run_curriculum(
+    *,
+    freqs: list[float],
+    stimulus_waveform: str,
+    stimulus_device: int,
+    imitation_device: int,
+    input_device: int,
+    duration_s: float,
+    trials_per_freq: int,
+    lr: float,
+    checkpoint_path: str | None,
+    sr: int = SR,
+) -> dict[str, Any]:
+    """Train on each frequency sequentially, accumulating weights via checkpoint."""
+    similarity = AcousticSimilarity(sr=sr)
+    producer = AcousticProducer(sr=sr, hidden_dim=32)
+    baseline = 0.0
+
+    if checkpoint_path and Path(checkpoint_path).exists():
+        print(f"  Loading checkpoint: {checkpoint_path}")
+        producer.load_checkpoint(checkpoint_path)
+
+    freq_results = {}
+
+    for freq_idx, freq_hz in enumerate(freqs):
+        print(f"\n--- Frequency {freq_idx + 1}/{len(freqs)}: {freq_hz:.1f} Hz ---")
+
+        stimulus_pcm = generate_stimulus(freq_hz, duration_s, stimulus_waveform, sr)
+        print(f"  Playing stimulus ({freq_hz:.1f} Hz)...")
+        stimulus_result = play_and_capture(
+            stimulus_pcm, input_device=input_device, output_device=stimulus_device, sr=sr,
+        )
+        stimulus_capture = stimulus_result["captured_pcm"]
+        self_score = similarity.detailed_score(stimulus_pcm, stimulus_capture)
+        print(f"  Self-score: {self_score.overall:.4f}")
+
+        trial_rows = []
+        for trial_idx in range(trials_per_freq):
+            imitation_pcm = producer.produce(duration_s)
+            imitation_result = play_and_capture(
+                imitation_pcm, input_device=input_device, output_device=imitation_device, sr=sr,
+            )
+            imitation_capture = imitation_result["captured_pcm"]
+
+            score = similarity.detailed_score(stimulus_capture, imitation_capture)
+            reward = float(score.overall)
+            baseline = 0.9 * baseline + 0.1 * reward
+            reinforce_step(producer.controller, producer.substrate.hidden_state, reward, baseline, lr=lr)
+
+            trial_rows.append({"trial": trial_idx + 1, "reward": reward, "baseline": float(baseline)})
+
+            if (trial_idx + 1) % 10 == 0:
+                print(f"  Trial {trial_idx + 1:3d}/{trials_per_freq}  reward={reward:.4f}")
+
+        best = max(t["reward"] for t in trial_rows)
+        imp = trial_rows[-1]["reward"] - trial_rows[0]["reward"]
+        print(f"  Result: first={trial_rows[0]['reward']:.4f}  last={trial_rows[-1]['reward']:.4f}  "
+              f"best={best:.4f}  improvement={imp:+.4f}")
+
+        freq_results[f"{freq_hz:.0f}hz"] = {
+            "first_reward": trial_rows[0]["reward"],
+            "last_reward": trial_rows[-1]["reward"],
+            "best_reward": best,
+            "improvement": imp,
+            "self_score": float(self_score.overall),
+        }
+
+        if checkpoint_path:
+            producer.save_checkpoint(checkpoint_path)
+
+    # Final evaluation on all frequencies
+    print(f"\n--- Final Evaluation ---")
+    eval_results = {}
+    for freq_hz in freqs:
+        stimulus_pcm = generate_stimulus(freq_hz, duration_s, stimulus_waveform, sr)
+        stimulus_result = play_and_capture(
+            stimulus_pcm, input_device=input_device, output_device=stimulus_device, sr=sr,
+        )
+        stimulus_capture = stimulus_result["captured_pcm"]
+
+        imitation_pcm = producer.produce(duration_s)
+        imitation_result = play_and_capture(
+            imitation_pcm, input_device=input_device, output_device=imitation_device, sr=sr,
+        )
+        imitation_capture = imitation_result["captured_pcm"]
+        score = similarity.detailed_score(stimulus_capture, imitation_capture)
+
+        eval_results[f"{freq_hz:.0f}hz"] = {"overall": float(score.overall)}
+        print(f"  {freq_hz:.0f} Hz: {score.overall:.4f}")
+
+    return {
+        "mode": "curriculum",
+        "config": {"freqs": freqs, "trials_per_freq": trials_per_freq, "lr": lr},
+        "freq_results": freq_results,
+        "eval_results": eval_results,
+    }
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="M9 acoustic imitation loop with learning")
-    parser.add_argument("--stimulus-freq", type=float, default=220.0)
+    parser = argparse.ArgumentParser(description="M9 acoustic imitation loop")
+    parser.add_argument("--stimulus-freq", type=float, default=None)
     parser.add_argument("--stimulus-waveform", type=str, default="sine",
                         choices=["sine", "triangle", "sawtooth", "square"])
+    parser.add_argument("--curriculum", type=str, default=None,
+                        help="Comma-separated frequencies: 220,262,330,392,440")
     parser.add_argument("--duration", type=float, default=1.0)
     parser.add_argument("--stimulus-device", type=int, default=3)
     parser.add_argument("--imitation-device", type=int, default=2)
     parser.add_argument("--input-device", type=int, default=1)
-    parser.add_argument("--trials", type=int, default=20)
-    parser.add_argument("--lr", type=float, default=0.1)
-    parser.add_argument("--checkpoint", type=str, default=None,
-                        help="Path to save/load producer checkpoint (JSON)")
-    parser.add_argument("--output", type=str, default="/tmp/m9_acoustic_imitation_learning.json")
+    parser.add_argument("--trials", type=int, default=30)
+    parser.add_argument("--lr", type=float, default=0.05)
+    parser.add_argument("--checkpoint", type=str, default=None)
+    parser.add_argument("--output", type=str, default="/tmp/m9_acoustic_imitation.json")
     args = parser.parse_args()
 
     print("=" * 72)
-    print("M9 Acoustic Imitation Loop — REINFORCE Learning")
+    print("M9 Acoustic Imitation Loop")
     print("=" * 72)
-    print(f"  Stimulus: {args.stimulus_freq:.1f} Hz {args.stimulus_waveform}")
-    print(f"  Duration: {args.duration:.2f}s")
-    print(f"  Trials: {args.trials}")
-    print(f"  Learning rate: {args.lr}")
     print(f"  Stimulus device: {args.stimulus_device} (speaker)")
     print(f"  Imitation device: {args.imitation_device} (headphones)")
     print(f"  Input device: {args.input_device} (mic)")
+    print(f"  Trials: {args.trials}")
+    print(f"  Learning rate: {args.lr}")
+    if args.checkpoint:
+        print(f"  Checkpoint: {args.checkpoint}")
     print()
 
-    result = run_imitation_loop(
-        stimulus_freq_hz=args.stimulus_freq,
-        stimulus_waveform=args.stimulus_waveform,
-        stimulus_device=args.stimulus_device,
-        imitation_device=args.imitation_device,
-        input_device=args.input_device,
-        duration_s=args.duration,
-        n_trials=args.trials,
-        lr=args.lr,
-        checkpoint_path=args.checkpoint,
-    )
-
-    summary = result["summary"]
-    print()
-    print("Summary")
-    print("-" * 72)
-    print(f"  First reward:  {summary['first_reward']:.4f}")
-    print(f"  Last reward:   {summary['last_reward']:.4f}")
-    print(f"  Best reward:   {summary['best_reward']:.4f}")
-    print(f"  Improvement:   {summary['improvement']:+.4f}")
-    print()
+    if args.curriculum:
+        freqs = parse_freqs(args.curriculum)
+        print(f"  Curriculum: {freqs}")
+        result = run_curriculum(
+            freqs=freqs,
+            stimulus_waveform=args.stimulus_waveform,
+            stimulus_device=args.stimulus_device,
+            imitation_device=args.imitation_device,
+            input_device=args.input_device,
+            duration_s=args.duration,
+            trials_per_freq=args.trials,
+            lr=args.lr,
+            checkpoint_path=args.checkpoint,
+        )
+    elif args.stimulus_freq:
+        print(f"  Single frequency: {args.stimulus_freq:.1f} Hz {args.stimulus_waveform}")
+        result = run_single_freq(
+            stimulus_freq_hz=args.stimulus_freq,
+            stimulus_waveform=args.stimulus_waveform,
+            stimulus_device=args.stimulus_device,
+            imitation_device=args.imitation_device,
+            input_device=args.input_device,
+            duration_s=args.duration,
+            n_trials=args.trials,
+            lr=args.lr,
+            checkpoint_path=args.checkpoint,
+        )
+    else:
+        parser.error("Specify --stimulus-freq or --curriculum")
+        return
 
     Path(args.output).parent.mkdir(parents=True, exist_ok=True)
     Path(args.output).write_text(json.dumps(result, indent=2, default=str))
-    print(f"  Saved to: {args.output}")
-
-    if summary["improvement"] > 0:
-        print("  STATUS: producer improved ✓")
-    else:
-        print("  STATUS: no improvement (may need more trials or higher lr)")
+    print(f"\n  Saved to: {args.output}")
 
 
 if __name__ == "__main__":

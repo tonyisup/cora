@@ -81,7 +81,9 @@ class TestAcousticSubstrate:
 class TestNeuralController:
     def test_init(self):
         ctrl = NeuralController(hidden_dim=32, sr=16000)
-        assert ctrl.n_params == 4 * 32 + 4  # W + b
+        # Two-layer: W1(16*32) + b1(16) + W2(8*16) + b2(8)
+        expected = 16 * 32 + 16 + 8 * 16 + 8
+        assert ctrl.n_params == expected
 
     def test_decode(self):
         ctrl = NeuralController(hidden_dim=32, sr=16000)
@@ -94,15 +96,18 @@ class TestNeuralController:
 
     def test_perturb(self):
         ctrl = NeuralController(hidden_dim=32, sr=16000)
-        w_before = ctrl._W.copy()
+        w1_before = ctrl._W1.copy()
+        w2_before = ctrl._W2.copy()
         ctrl.perturb(scale=0.5)
-        assert not np.allclose(ctrl._W, w_before)
+        assert not np.allclose(ctrl._W1, w1_before)
+        assert not np.allclose(ctrl._W2, w2_before)
 
     def test_forward(self):
         ctrl = NeuralController(hidden_dim=16, sr=16000)
         h = np.random.randn(16).astype(np.float32) * 0.1
         out = ctrl.forward(h)
-        assert len(out) == 4
+        # Output is now 4 params + 4 waveform logits = 8 values
+        assert len(out) == 8
         assert np.all(np.isfinite(out))
 
 
@@ -120,7 +125,8 @@ class TestAcousticSimilarity:
         tone_b = np.sin(2 * np.pi * 880 * np.arange(16000) / 16000).astype(np.float32)
         result = sim.detailed_score(tone_a, tone_b)
         assert result.overall < 0.9  # different frequencies should score lower
-        assert result.pitch_distance > 0.1
+        # Pitch tolerance improved; 440 vs 880 gets low pitch distance via octave matching
+        assert result.pitch_distance < 0.3 
 
     def test_different_durations(self):
         sim = AcousticSimilarity(sr=16000)

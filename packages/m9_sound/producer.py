@@ -66,8 +66,10 @@ class AcousticProducer:
         import json as _json
         data = {
             "controller": {
-                "W": self.controller._W.tolist(),
-                "b": self.controller._b.tolist(),
+                "W1": self.controller._W1.tolist(),
+                "b1": self.controller._b1.tolist(),
+                "W2": self.controller._W2.tolist(),
+                "b2": self.controller._b2.tolist(),
             },
             "substrate": {
                 "W_h": self.substrate._W_h.tolist(),
@@ -87,11 +89,26 @@ class AcousticProducer:
         """Load controller and substrate weights from a JSON checkpoint."""
         import json as _json
         data = _json.loads(Path(path).read_text())
-        self.controller._W = np.array(data["controller"]["W"], dtype=np.float32)
-        self.controller._b = np.array(data["controller"]["b"], dtype=np.float32)
+        # Substrate weights (same format)
         self.substrate._W_h = np.array(data["substrate"]["W_h"], dtype=np.float32)
         self.substrate._W_x = np.array(data["substrate"]["W_x"], dtype=np.float32)
         self.substrate._b = np.array(data["substrate"]["b"], dtype=np.float32)
+        # Controller weights: support both old (W, b) and new (W1, b1, W2, b2) format
+        c = data["controller"]
+        if "W1" in c:
+            # New two-layer format
+            self.controller._W1 = np.array(c["W1"], dtype=np.float32)
+            self.controller._b1 = np.array(c["b1"], dtype=np.float32)
+            self.controller._W2 = np.array(c["W2"], dtype=np.float32)
+            self.controller._b2 = np.array(c["b2"], dtype=np.float32)
+        else:
+            # Old single-layer format — convert to two-layer
+            old_W = np.array(c["W"], dtype=np.float32)
+            old_b = np.array(c["b"], dtype=np.float32)
+            # Initialize new layers with old weights mapped to output layer
+            self.controller._W2 = np.zeros((4 + self.controller._n_waveforms, self.controller._controller_hidden), dtype=np.float32)
+            self.controller._W2[:, :old_W.shape[1]] = old_W[:self.controller._W2.shape[0], :]
+            self.controller._b2[:old_b.shape[0]] = old_b
 
     def produce(self, duration_s: float,
                  init_params: Optional[ControllerParams] = None) -> np.ndarray:
