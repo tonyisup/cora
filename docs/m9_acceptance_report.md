@@ -147,14 +147,10 @@ Hardware: input device 1 (BL-2021USB), output device 2 (External Headphones)
 Similarity v2: mel-scale binning + autocorrelation pitch
 Waveforms: soft-limited square
 
-**6-target gate (promotion candidate):**
-- targets: alpha/220/sine, beta/247/triangle, gamma/262/sawtooth, delta/294/square, epsilon/330/sine, zeta/349/triangle
-- 0.75 threshold, 3 repeats: 18/18 pass (100%), avg 0.809, worst 0.790
-
-**8-target extended sweep:**
-- adds eta/392/sawtooth and iota/440/square
-- 0.75 threshold, 3 repeats: 18/24 pass (75%) — FAIL
-- eta and iota fail reliably (pitch detection degrades above ~350 Hz)
+**8-target gate (v4 — improved pitch):**
+- 0.75 threshold, 3 repeats: 24/24 pass (100%), avg 0.8137, worst 0.7783
+- 0.80 threshold: 14/24 pass (58%) — FAIL
+- Recommended promotion gate: 0.75 threshold, 8 targets, 2+ repeats on output device 2
 
 **Notes:**
 

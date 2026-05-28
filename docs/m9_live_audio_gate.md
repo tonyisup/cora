@@ -17,29 +17,30 @@ Prove that the M9 sound/text pipeline survives real audio I/O:
 - output: External Headphones (device 2)
 - waveform improvement: square uses soft-limited approximation
 
-## Threshold bracket (v3 — improved pitch detector)
+## Threshold bracket (v4 — pitch distance capping)
 
-8 targets, 3 repeats, output device 2:
+8 targets, 3 repeats, output device 2, improved similarity (mel bins + autocorrelation pitch + octave-tolerant capping):
 
 | Threshold | Pass rate | Avg | Worst | Verdict |
 |-----------|-----------|-----|-------|---------|
-| 0.75 (6 targets) | 18/18 (100%) | 0.809 | 0.790 | PASS |
-| 0.75 (8 targets) | 18/24 (75%) | 0.785 | 0.677 | FAIL |
+| 0.75 | 24/24 (100%) | 0.8137 | 0.7783 | PASS |
+| 0.80 | 14/24 (58%) | 0.8140 | 0.7909 | FAIL |
 
-6-target sweet spot (alpha through zeta, up to 349 Hz):
-- all pass 3/3 repeats at 0.75
-- avg scores: 0.778–0.850
-- weakest: beta/247/triangle at 0.762
+Per-target at 0.75:
+- alpha/220/sine: avg 0.8189, worst 0.8142
+- beta/247/triangle: avg 0.7852, worst 0.7783
+- gamma/262/sawtooth: avg 0.8149, worst 0.8141
+- delta/294/square: avg 0.8080, worst 0.8053
+- epsilon/330/sine: avg 0.8523, worst 0.8495
+- zeta/349/triangle: avg 0.8185, worst 0.8163
+- eta/392/sawtooth: avg 0.8355, worst 0.8351
+- iota/440/square: avg 0.8226, worst 0.8211
 
-Higher-frequency failures:
-- eta/392/sawtooth: 0/3 pass (pitch detection unreliable above ~350 Hz)
-- iota/440/square: 0/3 pass (same)
+At 0.80, beta/247/triangle and iota/440/square drop below threshold.
 
 ## Interpretation
 
-- The reliable operating range for this hardware pair is up to ~350 Hz.
-- 6 targets at 0.75 with 3 repeats is a solid promotion-grade result on output device 2.
-- Higher frequencies need either a better pitch detector or relaxed scoring above 350 Hz.
-- For promotion, we can either:
-  - accept the 6-target/0.75 gate with the high-frequency limitation documented, or
-  - fix the pitch detector for higher frequencies before expanding the target set.
+- The octave-tolerant pitch capping fixed the high-frequency pitch detection gap.
+- All 8 targets pass at 0.75 with 3 repeats — a strong promotion-grade result.
+- The 0.80 threshold is beyond the reliable range for this hardware pair.
+- Recommended promotion gate: 0.75 threshold, 8 targets, 2+ repeats on output device 2.
