@@ -107,35 +107,36 @@ Interpretation:
 - The sawtooth target is still the weakest of the three, but it remains above the current smoke threshold on both runs.
 - This is better evidence than a one-shot smoke, but still short of a promotion-grade live gate; we still need broader target coverage and a more deliberate failure threshold.
 
-## Strict threshold sweep
+## Output-device-2 strict sweep
 
 Command:
 ```bash
-source .venv/bin/activate && python scripts/m9_live_audio_gate.py --targets alpha:220:sine,beta:247:triangle,gamma:262:sawtooth,delta:294:square --repeats 2 --input-device 1 --output-device 0 --threshold 0.60 --output /tmp/m9_live_audio_gate_mid.json
+source .venv/bin/activate && python scripts/m9_live_audio_gate.py --targets alpha:220:sine,beta:247:triangle,gamma:262:sawtooth,delta:294:square --repeats 2 --input-device 1 --output-device 2 --threshold 0.60 --output /tmp/m9_live_audio_gate_headphones.json
 ```
 
 Observed results:
-- Pass rate: 0.75 (6/8)
-- Average score: 0.6855
-- Worst score: 0.5591
+- Pass rate: 1.00 (8/8)
+- Average score: 0.7533
+- Worst score: 0.6845
 - Threshold: 0.60
-- Verdict: FAIL
-- Capture elapsed: 1.83s–2.01s per target
+- Verdict: PASS
+- Capture elapsed: 1.83s–1.96s per target
 - Playback started: True for all targets
 
 Per-target repeat summaries:
-- alpha / 220 Hz sine: 2/2 pass, avg 0.8036, worst 0.7725
-- beta / 247 Hz triangle: 2/2 pass, avg 0.7344, worst 0.7293
-- gamma / 262 Hz sawtooth: 2/2 pass, avg 0.6438, worst 0.6309
-- delta / 294 Hz square: 0/2 pass, avg 0.5603, worst 0.5591
+- alpha / 220 Hz sine: 2/2 pass, avg 0.7768, worst 0.7746
+- beta / 247 Hz triangle: 2/2 pass, avg 0.7717, worst 0.7653
+- gamma / 262 Hz sawtooth: 2/2 pass, avg 0.7204, worst 0.6845
+- delta / 294 Hz square: 2/2 pass, avg 0.7442, worst 0.7285
 
 Interpretation:
-- The 0.60 threshold is too strict for the current device pair if we require 80% pass-rate overall.
-- The square target is the limiting case; it fails both repeats and dominates the worst-case score.
-- This is useful boundary data: we now know the current live gate is not promotion-ready at 0.60 with the 4-target set.
+- Switching from device 0 to output device 2 materially improved the capture scores.
+- The softened square waveform also removed the prior failure boundary at 0.60.
+- We now have a clearer promotion signal: the current live gate is stable at 0.60 on output device 2, with the square waveform no longer the limiting case.
 
 ## Notes
 
 - The current M9 live gate can handle a small set of target sounds on the actual devices available in this environment.
-- Immediate repeats stayed stable at the easy threshold, but a tighter 0.60 threshold failed because the square target fell below the boundary.
-- That gives us a concrete next calibration target: either raise the representation quality for the weak waveform/device pair or accept a lower promotion threshold with a broader pass-rate policy.
+- Immediate repeats stayed stable at the easy threshold.
+- With output device 2 and a softened square waveform, the stricter 4-target 0.60 sweep passed, so the previous failure boundary moved upward.
+- We still need broader target coverage if we want a promotion-grade claim, but the device-2 path is materially stronger than the earlier monitor-speaker path.

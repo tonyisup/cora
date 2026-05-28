@@ -264,7 +264,7 @@ Each phase gates the next. Don't rush to text association before sound productio
 - See `docs/m9_live_audio_gate.md` and `scripts/m9_live_audio_gate.py` for the scaffolded gate path.
 - First live hardware smoke passed on `BL-2021USB` -> `ASUS PB287Q` with an overall score of 0.7251.
 - A small 3-word live set also passed with 3/3 success and an average score of 0.6918.
-- A stricter 4-target sweep at threshold 0.60 failed (6/8 pass, square target was the limiting case).
+- With output device 2 and a softened square waveform, a stricter 4-target sweep at threshold 0.60 passed (8/8, worst 0.6845).
 
 ## Storage & Memory Assessment
 

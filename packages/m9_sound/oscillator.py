@@ -51,10 +51,14 @@ class OscillatorBank:
 
     def square(self, freq_hz: float, duration_s: float,
                amplitude: float = 0.5, phase: float = 0.0) -> np.ndarray:
-        """Generate a square wave."""
+        """Generate a square wave.
+
+        For M9 live capture, we use a soft-limited square approximation so the
+        waveform remains square-like but is less brittle on real hardware.
+        """
         t = np.arange(int(self._sr * duration_s), dtype=np.float32) / self._sr
-        phase_norm = phase / (2 * np.pi)
-        sq = np.sign(np.sin(2 * np.pi * freq_hz * t + phase))
+        raw = np.sin(2 * np.pi * freq_hz * t + phase)
+        sq = np.tanh(3.0 * raw) / np.tanh(3.0)
         return (amplitude * sq).astype(np.float32)
 
     def mix(self, parts: list[tuple[str, float, float, float]]) -> np.ndarray:
