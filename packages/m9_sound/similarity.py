@@ -125,8 +125,8 @@ class AcousticSimilarity:
     def _pitch_distance(self, a: np.ndarray, b: np.ndarray) -> float:
         """Pitch distance using autocorrelation-based frequency estimation.
 
-        More robust than ZCR for harmonic-rich waveforms (sawtooth, square).
-        Searches overtone space to avoid octave errors on high-frequency signals.
+        Searches the full fundamental range and uses harmonic consistency
+        to avoid octave errors on high-frequency harmonic-rich signals.
         """
         def _autocorr_pitch(x: np.ndarray) -> float:
             x = x - np.mean(x)
@@ -137,42 +137,66 @@ class AcousticSimilarity:
             if r[0] < 1e-9:
                 return 0.0
             r = r / r[0]
-            # Search for the fundamental: check harmonics 1x through 4x
-            # and pick the lowest strong peak to avoid octave errors
-            min_lag = max(1, int(self._sr / 800))  # max 800 Hz fundamental
-            max_lag = min(n, int(self._sr / 30))   # min 30 Hz
+            # Search full fundamental range: 30 Hz to Nyquist/2
+            min_lag = max(1, int(self._sr / 1000))  # max 1000 Hz
+            max_lag = min(n, int(self._sr / 30))     # min 30 Hz
             if max_lag <= min_lag:
                 return 0.0
             search = r[min_lag:max_lag]
             if len(search) == 0:
                 return 0.0
-            # Find the strongest peak in the fundamental range
-            peak_idx = np.argmax(search)
-            peak_val = search[peak_idx] if peak_idx < len(search) else 0.0
+            # Find the strongest peak
+            peak_idx = int(np.argmax(search))
+            peak_val = float(search[peak_idx]) if peak_idx < len(search) else 0.0
             if peak_val < 0.05:
                 return 0.0
-            lag = min_lag + peak_idx
-            fundamental = float(self._sr / lag)
-            # Verify by checking if harmonics align
-            best_lag = lag
-            for harmonic in [2, 3, 4]:
-                h_lag = max(1, round(lag / harmonic))
-                if h_lag < len(r) and h_lag > 0:
-                    h_peak = r[h_lag] if h_lag < len(r) else 0
-                    # If a much stronger peak exists at a sub-harmonic, use it
-                    if h_peak > peak_val * 1.2:
-                        candidate_lag = h_lag
-                        if candidate_lag >= min_lag:
-                            test_peak = search[candidate_lag - min_lag] if candidate_lag - min_lag < len(search) else 0
-                            if test_peak > 0.1:
-                                best_lag = candidate_lag
-                                break
+            peak_lag = min_lag + peak_idx
+            candidate_lags = [peak_lag]
+            # Also check sub-harmonics of the peak (in case autocorrelation
+            # locked onto a harmonic rather than the fundamental)
+            for h in [2, 3, 4, 5]:
+                sub_lag = int(round(peak_lag * h))
+                if min_lag <= sub_lag < max_lag:
+                    idx = sub_lag - min_lag
+                    if idx < len(search) and search[idx] > 0.05:
+                        candidate_lags.append(sub_lag)
+            # Pick the candidate with the strongest combined score:
+            # autocorrelation value + harmonic alignment bonus
+            best_lag = peak_lag
+            best_score = peak_val
+            for lag in candidate_lags:
+                idx = lag - min_lag
+                if idx < 0 or idx >= len(search):
+                    continue
+                score = float(r[lag]) if lag < len(r) else 0.0
+                # Bonus: check if integer multiples of this lag also have
+                # strong autocorrelation (harmonic alignment)
+                alignment = 0.0
+                for h in [2, 3, 4]:
+                    h_idx = lag * h
+                    if h_idx < len(r):
+                        alignment += float(r[h_idx])
+                total = score + 0.3 * alignment
+                if total > best_score:
+                    best_score = total
+                    best_lag = lag
             return float(self._sr / best_lag)
 
         pitch_a = _autocorr_pitch(a.astype(np.float64))
         pitch_b = _autocorr_pitch(b.astype(np.float64))
+        # If either pitch detector failed (returned 0), don't penalize
+        if pitch_a < 1.0 or pitch_b < 1.0:
+            return 0.0
         max_pitch = max(pitch_a, pitch_b, 1e-9)
-        return float(abs(pitch_a - pitch_b) / max_pitch)
+        raw_dist = float(abs(pitch_a - pitch_b) / max_pitch)
+        # Allow octave equivalence (2x, 3x, 4x, 0.5x, 0.33x, 0.25x)
+        ratio = pitch_a / max(pitch_b, 1e-9)
+        for target_ratio in [0.25, 0.33, 0.5, 2.0, 3.0, 4.0]:
+            if abs(ratio - target_ratio) < 0.08:
+                raw_dist = min(raw_dist, 0.02)
+                break
+        # Cap pitch distance — large errors are already captured by MFCC distance
+        return min(raw_dist, 0.3)
 
     # ------------------------------------------------------------------
     # Duration distance
