@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
-"""M9 Acoustic Imitation Loop — self-listening diagnostic.
+"""M9 Acoustic Imitation Loop — with REINFORCE learning.
 
 Simulates the real-world loop:
 1. Play a "human" stimulus sound from device A (speaker)
-2. Capture it through mic → stimulus_capture
+2. Capture it through mic → stimulus_capture (the "target")
 3. Producer generates an imitation
 4. Play imitation from device B (headphones)
 5. Capture it through mic → imitation_capture
-6. Score imitation_capture against stimulus_capture
+6. Score imitation_capture vs stimulus_capture → reward
+7. REINFORCE update: adjust producer weights to increase reward
+8. Repeat for multiple trials
 
-This validates that M9 can "hear" an external sound and compare its
-own production against it — the foundation for acoustic imitation learning.
-
-No weight updates in this version. Pure diagnostic.
+The producer learns to imitate the stimulus by maximizing the similarity
+between its own captured output and the stimulus capture.
 """
 
 from __future__ import annotations
@@ -109,7 +109,7 @@ def generate_stimulus(
     waveform: str = "sine",
     sr: int = SR,
 ) -> np.ndarray:
-    """Generate a pure-tone stimulus sound."""
+    """Generate a pure-tone stimulus sound (the "human" sound)."""
     osc = OscillatorBank(sr=sr)
     fn = {
         "sine": osc.sine,
@@ -120,6 +120,27 @@ def generate_stimulus(
     return fn(freq_hz, duration_s, amplitude=0.5).astype(np.float32)
 
 
+def reinforce_step(
+    controller,
+    hidden: np.ndarray,
+    reward: float,
+    baseline: float,
+    lr: float = 0.1,
+) -> None:
+    """REINFORCE update: increase weights for actions above baseline."""
+    advantage = reward - baseline
+    if advantage <= 0:
+        return
+
+    h = hidden.flatten()[:controller._hidden_dim]
+    if len(h) < controller._hidden_dim:
+        h = np.pad(h, (0, controller._hidden_dim - len(h)))
+
+    controller._W += lr * advantage * np.outer(np.ones(4), h)
+    controller._b += lr * advantage * np.ones(4) * 0.5
+    controller.clip_weights(max_norm=5.0)
+
+
 def run_imitation_loop(
     *,
     stimulus_freq_hz: float,
@@ -128,15 +149,18 @@ def run_imitation_loop(
     imitation_device: int,
     input_device: int,
     duration_s: float,
+    n_trials: int,
+    lr: float,
     sr: int = SR,
 ) -> dict[str, Any]:
-    """Run one iteration of the acoustic imitation loop."""
+    """Run the full acoustic imitation loop with REINFORCE learning."""
     similarity = AcousticSimilarity(sr=sr)
 
     # 1. Generate stimulus (the "human" sound)
     stimulus_pcm = generate_stimulus(stimulus_freq_hz, duration_s, stimulus_waveform, sr)
 
     # 2. Play stimulus on device A, capture through mic
+    print(f"  Playing stimulus ({stimulus_freq_hz:.1f} Hz {stimulus_waveform}) on device {stimulus_device}...")
     stimulus_result = play_and_capture(
         stimulus_pcm,
         input_device=input_device,
@@ -145,25 +169,57 @@ def run_imitation_loop(
     )
     stimulus_capture = stimulus_result["captured_pcm"]
 
-    # 3. Producer generates imitation (random weights for now)
-    producer = AcousticProducer(sr=sr, hidden_dim=32)
-    imitation_pcm = producer.produce(duration_s)
-
-    # 4. Play imitation on device B, capture through mic
-    imitation_result = play_and_capture(
-        imitation_pcm,
-        input_device=input_device,
-        output_device=imitation_device,
-        sr=sr,
-    )
-    imitation_capture = imitation_result["captured_pcm"]
-
-    # 5. Score: how well does the imitation match the stimulus?
-    score = similarity.detailed_score(stimulus_capture, imitation_capture)
-
-    # 6. Also score stimulus against itself (reference: perfect match)
-    #    by comparing the stimulus capture to the original generated PCM
+    # Self-score baseline
     self_score = similarity.detailed_score(stimulus_pcm, stimulus_capture)
+    print(f"  Stimulus self-score: {self_score.overall:.4f}")
+
+    # Initialize producer and baseline
+    producer = AcousticProducer(sr=sr, hidden_dim=32)
+    baseline = 0.0
+    trial_rows = []
+
+    for trial_idx in range(n_trials):
+        # 3. Producer generates imitation
+        imitation_pcm = producer.produce(duration_s)
+
+        # 4. Play imitation on device B, capture through mic
+        imitation_result = play_and_capture(
+            imitation_pcm,
+            input_device=input_device,
+            output_device=imitation_device,
+            sr=sr,
+        )
+        imitation_capture = imitation_result["captured_pcm"]
+
+        # 5. Score: how well does the imitation match the stimulus?
+        score = similarity.detailed_score(stimulus_capture, imitation_capture)
+        reward = float(score.overall)
+
+        # 6. Update baseline
+        baseline = 0.9 * baseline + 0.1 * reward
+
+        # 7. REINFORCE update
+        reinforce_step(
+            producer.controller,
+            producer.substrate.hidden_state,
+            reward,
+            baseline,
+            lr=lr,
+        )
+
+        trial_rows.append({
+            "trial": trial_idx + 1,
+            "reward": reward,
+            "baseline": float(baseline),
+            "mel": float(score.mfcc_distance),
+            "pitch": float(score.pitch_distance),
+            "duration": float(score.duration_distance),
+            "loudness": float(score.loudness_distance),
+        })
+
+        print(f"  Trial {trial_idx + 1:3d}/{n_trials}  reward={reward:.4f}  "
+              f"baseline={baseline:.4f}  mel={score.mfcc_distance:.4f}  "
+              f"pitch={score.pitch_distance:.4f}")
 
     return {
         "stimulus": {
@@ -171,61 +227,56 @@ def run_imitation_loop(
             "waveform": stimulus_waveform,
             "duration_s": duration_s,
             "device_name": stimulus_result["output_device_name"],
-            "capture": {
-                "duration_s": stimulus_result["capture_duration_s"],
-                "elapsed_s": stimulus_result["capture_elapsed_s"],
-            },
         },
         "imitation": {
             "device_name": imitation_result["output_device_name"],
-            "capture": {
-                "duration_s": imitation_result["capture_duration_s"],
-                "elapsed_s": imitation_result["capture_elapsed_s"],
-            },
-            "freq_hz": float(imitation_result.get("freq_hz", 0)),
         },
-        "scores": {
-            "imitation_vs_stimulus": {
-                "overall": float(score.overall),
-                "mel": float(score.mfcc_distance),
-                "pitch": float(score.pitch_distance),
-                "duration": float(score.duration_distance),
-                "loudness": float(score.loudness_distance),
-            },
-            "stimulus_self": {
-                "overall": float(self_score.overall),
-                "mel": float(self_score.mfcc_distance),
-                "pitch": float(self_score.pitch_distance),
-                "duration": float(self_score.duration_distance),
-                "loudness": float(self_score.loudness_distance),
-            },
+        "config": {
+            "n_trials": n_trials,
+            "lr": lr,
+            "hidden_dim": 32,
+        },
+        "self_score": {
+            "overall": float(self_score.overall),
+            "mel": float(self_score.mfcc_distance),
+            "pitch": float(self_score.pitch_distance),
+            "duration": float(self_score.duration_distance),
+            "loudness": float(self_score.loudness_distance),
+        },
+        "trials": trial_rows,
+        "summary": {
+            "first_reward": trial_rows[0]["reward"] if trial_rows else 0,
+            "last_reward": trial_rows[-1]["reward"] if trial_rows else 0,
+            "best_reward": max(t["reward"] for t in trial_rows) if trial_rows else 0,
+            "improvement": (trial_rows[-1]["reward"] - trial_rows[0]["reward"]) if trial_rows else 0,
         },
     }
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="M9 acoustic imitation loop")
+    parser = argparse.ArgumentParser(description="M9 acoustic imitation loop with learning")
     parser.add_argument("--stimulus-freq", type=float, default=220.0)
     parser.add_argument("--stimulus-waveform", type=str, default="sine",
                         choices=["sine", "triangle", "sawtooth", "square"])
     parser.add_argument("--duration", type=float, default=1.0)
-    parser.add_argument("--stimulus-device", type=int, default=3,
-                        help="Output device for stimulus (human sound)")
-    parser.add_argument("--imitation-device", type=int, default=2,
-                        help="Output device for imitation (agent sound)")
-    parser.add_argument("--input-device", type=int, default=1,
-                        help="Input device (mic)")
-    parser.add_argument("--output", type=str, default="/tmp/m9_acoustic_imitation.json")
+    parser.add_argument("--stimulus-device", type=int, default=3)
+    parser.add_argument("--imitation-device", type=int, default=2)
+    parser.add_argument("--input-device", type=int, default=1)
+    parser.add_argument("--trials", type=int, default=20)
+    parser.add_argument("--lr", type=float, default=0.1)
+    parser.add_argument("--output", type=str, default="/tmp/m9_acoustic_imitation_learning.json")
     args = parser.parse_args()
 
     print("=" * 72)
-    print("M9 Acoustic Imitation Loop — Self-Listening Diagnostic")
+    print("M9 Acoustic Imitation Loop — REINFORCE Learning")
     print("=" * 72)
     print(f"  Stimulus: {args.stimulus_freq:.1f} Hz {args.stimulus_waveform}")
     print(f"  Duration: {args.duration:.2f}s")
-    print(f"  Stimulus device: {args.stimulus_device}")
-    print(f"  Imitation device: {args.imitation_device}")
-    print(f"  Input device: {args.input_device}")
+    print(f"  Trials: {args.trials}")
+    print(f"  Learning rate: {args.lr}")
+    print(f"  Stimulus device: {args.stimulus_device} (speaker)")
+    print(f"  Imitation device: {args.imitation_device} (headphones)")
+    print(f"  Input device: {args.input_device} (mic)")
     print()
 
     result = run_imitation_loop(
@@ -235,31 +286,28 @@ def main() -> None:
         imitation_device=args.imitation_device,
         input_device=args.input_device,
         duration_s=args.duration,
+        n_trials=args.trials,
+        lr=args.lr,
     )
 
-    scores = result["scores"]
-    ivs = scores["imitation_vs_stimulus"]
-    self_s = scores["stimulus_self"]
-
-    print("Stimulus self-score (capture vs original):")
-    print(f"  overall={self_s['overall']:.4f} mel={self_s['mel']:.4f} "
-          f"pitch={self_s['pitch']:.4f} dur={self_s['duration']:.4f} "
-          f"loud={self_s['loudness']:.4f}")
+    summary = result["summary"]
     print()
-    print("Imitation vs stimulus score:")
-    print(f"  overall={ivs['overall']:.4f} mel={ivs['mel']:.4f} "
-          f"pitch={ivs['pitch']:.4f} dur={ivs['duration']:.4f} "
-          f"loud={ivs['loudness']:.4f}")
+    print("Summary")
+    print("-" * 72)
+    print(f"  First reward:  {summary['first_reward']:.4f}")
+    print(f"  Last reward:   {summary['last_reward']:.4f}")
+    print(f"  Best reward:   {summary['best_reward']:.4f}")
+    print(f"  Improvement:   {summary['improvement']:+.4f}")
     print()
 
     Path(args.output).parent.mkdir(parents=True, exist_ok=True)
     Path(args.output).write_text(json.dumps(result, indent=2, default=str))
     print(f"  Saved to: {args.output}")
 
-    if ivs["overall"] >= self_s["overall"] * 0.8:
-        print("  STATUS: imitation is within 80% of self-score (good)")
+    if summary["improvement"] > 0:
+        print("  STATUS: producer improved ✓")
     else:
-        print("  STATUS: imitation score is low vs self-score (expected with random weights)")
+        print("  STATUS: no improvement (may need more trials or higher lr)")
 
 
 if __name__ == "__main__":
