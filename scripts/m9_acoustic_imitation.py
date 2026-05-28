@@ -152,6 +152,7 @@ def run_imitation_loop(
     n_trials: int,
     lr: float,
     sr: int = SR,
+    checkpoint_path: str | None = None,
 ) -> dict[str, Any]:
     """Run the full acoustic imitation loop with REINFORCE learning."""
     similarity = AcousticSimilarity(sr=sr)
@@ -175,6 +176,12 @@ def run_imitation_loop(
 
     # Initialize producer and baseline
     producer = AcousticProducer(sr=sr, hidden_dim=32)
+
+    # Load checkpoint if provided and exists
+    if checkpoint_path and Path(checkpoint_path).exists():
+        print(f"  Loading checkpoint: {checkpoint_path}")
+        producer.load_checkpoint(checkpoint_path)
+
     baseline = 0.0
     trial_rows = []
 
@@ -221,7 +228,8 @@ def run_imitation_loop(
               f"baseline={baseline:.4f}  mel={score.mfcc_distance:.4f}  "
               f"pitch={score.pitch_distance:.4f}")
 
-    return {
+    # Build result
+    result = {
         "stimulus": {
             "freq_hz": stimulus_freq_hz,
             "waveform": stimulus_waveform,
@@ -252,6 +260,12 @@ def run_imitation_loop(
         },
     }
 
+    # Save checkpoint if requested
+    if checkpoint_path:
+        producer.save_checkpoint(checkpoint_path)
+
+    return result
+
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="M9 acoustic imitation loop with learning")
@@ -264,6 +278,8 @@ def main() -> None:
     parser.add_argument("--input-device", type=int, default=1)
     parser.add_argument("--trials", type=int, default=20)
     parser.add_argument("--lr", type=float, default=0.1)
+    parser.add_argument("--checkpoint", type=str, default=None,
+                        help="Path to save/load producer checkpoint (JSON)")
     parser.add_argument("--output", type=str, default="/tmp/m9_acoustic_imitation_learning.json")
     args = parser.parse_args()
 
@@ -288,6 +304,7 @@ def main() -> None:
         duration_s=args.duration,
         n_trials=args.trials,
         lr=args.lr,
+        checkpoint_path=args.checkpoint,
     )
 
     summary = result["summary"]

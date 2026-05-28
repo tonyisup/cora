@@ -16,6 +16,7 @@ Usage:
 from __future__ import annotations
 
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Optional
 
 import numpy as np
@@ -59,6 +60,38 @@ class AcousticProducer:
     def reset(self) -> None:
         """Reset substrate hidden state."""
         self.substrate.reset()
+
+    def save_checkpoint(self, path: str) -> None:
+        """Save controller and substrate weights to a JSON checkpoint."""
+        import json as _json
+        data = {
+            "controller": {
+                "W": self.controller._W.tolist(),
+                "b": self.controller._b.tolist(),
+            },
+            "substrate": {
+                "W_h": self.substrate._W_h.tolist(),
+                "W_x": self.substrate._W_x.tolist(),
+                "b": self.substrate._b.tolist(),
+            },
+            "config": {
+                "sr": self._sr,
+                "hidden_dim": self.controller._hidden_dim,
+                "frame_size": self._frame_size,
+            },
+        }
+        Path(path).parent.mkdir(parents=True, exist_ok=True)
+        Path(path).write_text(_json.dumps(data))
+
+    def load_checkpoint(self, path: str) -> None:
+        """Load controller and substrate weights from a JSON checkpoint."""
+        import json as _json
+        data = _json.loads(Path(path).read_text())
+        self.controller._W = np.array(data["controller"]["W"], dtype=np.float32)
+        self.controller._b = np.array(data["controller"]["b"], dtype=np.float32)
+        self.substrate._W_h = np.array(data["substrate"]["W_h"], dtype=np.float32)
+        self.substrate._W_x = np.array(data["substrate"]["W_x"], dtype=np.float32)
+        self.substrate._b = np.array(data["substrate"]["b"], dtype=np.float32)
 
     def produce(self, duration_s: float,
                  init_params: Optional[ControllerParams] = None) -> np.ndarray:
