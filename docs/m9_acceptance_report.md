@@ -2,7 +2,6 @@
 
 **Date:** 2026-05-27
 **Spec:** `docs/m9_sound_first.md`
-**Scripts:** `scripts/m9_imitation_loop.py`, `scripts/m9_convergence_test.py`
 
 ## Summary
 
@@ -21,7 +20,7 @@ Implemented components:
 - `NeuralController` linear readout to oscillator params
 - `AcousticProducer` full production loop
 - `AcousticSimilarity` comparison metric
-- `m9_imitation_loop.py` trial runner
+- `scripts/m9_imitation_loop.py` trial runner
 
 ### Validation run
 
@@ -84,16 +83,8 @@ Observed results:
 
 Interpretation:
 - The repeatability gate is satisfied on the current baseline controller because the producer is deterministic for a fixed target.
-- Prototype nodes are being refined in the SAG with summary stats and similarity history.
-- This is a valid M9b stepping stone, but it does not yet prove learned convergence; M9c/M9d remain separate future milestones.
-
-## Current M9 Status
-
-- M9a: complete baseline sound-imitation primitive
-- M9b: repeatability and acoustic prototype refinement complete
-- M9c: weak terminal confirmation complete
-- M9d: text association complete (synthetic gate)
-- Live audio end-to-end remains a future promotion gate
+- Prototype nodes are refined in the SAG with summary stats and similarity history.
+- This is a valid M9b stepping stone, but does not yet prove learned convergence; M9c/M9d remain separate milestones.
 
 ## M9c — Weak Terminal Confirmation
 
@@ -147,143 +138,34 @@ Observed results:
 Interpretation:
 - Text association is now wired end-to-end inside the synthetic SAG path.
 - Bidirectional edges are explicit (`HAS_SOUND` and `SOUND_OF`), and 10/10 word-sound pairs are retrievable in both directions.
-- This remains a synthetic gate; live audio end-to-end is still a future promotion step.
 
-## Live Audio Promotion Gate — First Hardware Smoke
+## Live Audio Promotion Gate — Threshold Bracket
 
-Implemented components:
-- `docs/m9_live_audio_gate.md` — promotion-gate spec
-- `scripts/m9_live_audio_gate.py` — dry-run and live capture/score scaffold
-- `tests/unit/test_m9_live_audio_gate.py` — dry-run coverage
+See `docs/m9_live_audio_gate.md` for the full hardware history and detailed per-target breakdowns.
 
-### Validation run
+Hardware: input device 1 (BL-2021USB), output device 2 (External Headphones)
+Targets: alpha/220/sine, beta/247/triangle, gamma/262/sawtooth, delta/294/square, epsilon/330/sine, zeta/349/triangle
+Repeats: 2 each, duration: 1.0s
 
-Command:
-```bash
-source .venv/bin/activate && python scripts/m9_live_audio_gate.py --word alpha --target-freq 220 --target-waveform sine --duration 1.0 --input-device 1 --output-device 0 --threshold 0.30 --output /tmp/m9_live_audio_gate_live.json
-```
+| Threshold | Pass rate | Avg score | Worst | Verdict |
+|-----------|-----------|-----------|-------|---------|
+| 0.60 | 12/12 (100%) | 0.7518 | 0.6754 | PASS |
+| 0.70 | 10/12 (83%) | 0.7434 | 0.6730 | PASS |
+| 0.75 | 9/12 (75%) | 0.7741 | 0.6990 | FAIL |
 
-Observed results:
-- Input device: BL-2021USB
-- Output device: ASUS PB287Q
-- Overall score: 0.7251
-- Threshold: 0.30
-- Verdict: PASS
-- Capture elapsed: 1.8498s
-- Playback started: True
+Weakest target: gamma / 262 Hz sawtooth. The softened square waveform is no longer the limiting case.
 
 Interpretation:
-- The hardware smoke confirms that the live gate can play a target sound, capture it back, and score the capture on real devices.
-- This is a smoke pass only; it is not yet a promotion-grade multi-trial or multi-word validation.
-- The live gate now exists as the path to the next promotion step if we want to harden M9 against real audio I/O.
+- The live gate is stable at threshold 0.70 on output device 2 with the current 6-target set.
+- For promotion, we can either accept threshold 0.70 with the sawtooth/gamma gap documented as a known limitation, or improve the sawtooth capture path before promoting at a stricter threshold.
 
-## Live Audio Promotion Gate — Small Word-Set Smoke
+## Current M9 Status
 
-Command:
-```bash
-source .venv/bin/activate && python scripts/m9_live_audio_gate.py --targets alpha:220:sine,beta:247:triangle,gamma:262:sawtooth --input-device 1 --output-device 0 --threshold 0.30 --output /tmp/m9_live_audio_gate_live_multi.json
-```
-
-Observed results:
-- Pass rate: 1.00 (3/3)
-- Average score: 0.6918
-- Worst score: 0.6226
-- Threshold: 0.30
-- Verdict: PASS
-- Capture elapsed: 1.83s–1.99s per target
-- Playback started: True for all targets
-
-Per-target scores:
-- alpha / 220 Hz sine: 0.7213
-- beta / 247 Hz triangle: 0.7314
-- gamma / 262 Hz sawtooth: 0.6226
-
-Interpretation:
-- The live gate now passes on a small set of distinct sounds, not just a single tone.
-- This is still a smoke, not a promotion-grade validation; we have not yet explored failure cases or a tighter acceptance threshold.
-- The next live step is to expand to a slightly broader set and record repeatability / worst-case behavior.
-
-## Repeat-run Live Smoke
-
-Command:
-```bash
-source .venv/bin/activate && python scripts/m9_live_audio_gate.py --targets alpha:220:sine,beta:247:triangle,gamma:262:sawtooth --repeats 2 --input-device 1 --output-device 0 --threshold 0.30 --output /tmp/m9_live_audio_gate_repeat.json
-```
-
-Observed results:
-- Pass rate: 1.00 (6/6)
-- Average score: 0.6928
-- Worst score: 0.6180
-- Threshold: 0.30
-- Verdict: PASS
-- Capture elapsed: 1.83s–2.01s per target
-- Playback started: True for all targets
-
-Per-target repeat summaries:
-- alpha / 220 Hz sine: 2/2 pass, avg 0.7256, worst 0.7206
-- beta / 247 Hz triangle: 2/2 pass, avg 0.7322, worst 0.7310
-- gamma / 262 Hz sawtooth: 2/2 pass, avg 0.6206, worst 0.6180
-
-Interpretation:
-- The live gate held up across immediate repeats on the same hardware.
-- The sawtooth target is still the weakest of the three, but it remains above the current smoke threshold on both runs.
-- This is better evidence than a one-shot smoke, but still short of a promotion-grade live gate; we still need broader target coverage and a more deliberate failure threshold.
-
-## Output-device-2 strict sweep
-
-Command:
-```bash
-source .venv/bin/activate && python scripts/m9_live_audio_gate.py --targets alpha:220:sine,beta:247:triangle,gamma:262:sawtooth,delta:294:square --repeats 2 --input-device 1 --output-device 2 --threshold 0.60 --output /tmp/m9_live_audio_gate_headphones.json
-```
-
-Observed results:
-- Pass rate: 1.00 (8/8)
-- Average score: 0.7533
-- Worst score: 0.6845
-- Threshold: 0.60
-- Verdict: PASS
-- Capture elapsed: 1.83s–1.96s per target
-- Playback started: True for all targets
-
-Per-target repeat summaries:
-- alpha / 220 Hz sine: 2/2 pass, avg 0.7768, worst 0.7746
-- beta / 247 Hz triangle: 2/2 pass, avg 0.7717, worst 0.7653
-- gamma / 262 Hz sawtooth: 2/2 pass, avg 0.7204, worst 0.6845
-- delta / 294 Hz square: 2/2 pass, avg 0.7442, worst 0.7285
-
-Interpretation:
-- Switching from device 0 to output device 2 materially improved the capture scores.
-- The softened square waveform also removed the prior failure boundary at 0.60.
-- We now have a clearer promotion signal: the current live gate is stable at 0.60 on output device 2, with the square waveform no longer the limiting case.
-
-## Broader 6-target sweep
-
-Command:
-```bash
-source .venv/bin/activate && python scripts/m9_live_audio_gate.py --targets alpha:220:sine,beta:247:triangle,gamma:262:sawtooth,delta:294:square,epsilon:330:sine,zeta:349:triangle --repeats 2 --input-device 1 --output-device 2 --threshold 0.60 --output /tmp/m9_live_audio_gate_broader.json
-```
-
-Observed results:
-- Pass rate: 1.00 (12/12)
-- Average score: 0.7518
-- Worst score: 0.6754
-- Threshold: 0.60
-- Verdict: PASS
-- Capture elapsed: 1.81s–1.85s per target
-- Playback started: True for all targets
-
-Per-target repeat summaries:
-- alpha / 220 Hz sine: 2/2 pass, avg 0.7908, worst 0.7685
-- beta / 247 Hz triangle: 2/2 pass, avg 0.7521, worst 0.7253
-- gamma / 262 Hz sawtooth: 2/2 pass, avg 0.6804, worst 0.6754
-- delta / 294 Hz square: 2/2 pass, avg 0.7292, worst 0.7210
-- epsilon / 330 Hz sine: 2/2 pass, avg 0.7881, worst 0.7858
-- zeta / 349 Hz triangle: 2/2 pass, avg 0.7701, worst 0.7595
-
-Interpretation:
-- The broader 6-target sweep stayed above threshold on both repeats for every target.
-- The sawtooth target remains the weakest of the set, but it is still comfortably above threshold on output device 2.
-- This is the strongest live evidence so far, and it suggests the device-2 path is a plausible promotion candidate, subject to a larger repeat set and any future failure cases.
+- M9a: complete baseline sound-imitation primitive
+- M9b: repeatability and acoustic prototype refinement complete
+- M9c: weak terminal confirmation complete
+- M9d: text association complete (synthetic gate)
+- Live audio promotion gate: scaffolded and partially validated; stable at 0.70 on output device 2
 
 ## Notes
 
