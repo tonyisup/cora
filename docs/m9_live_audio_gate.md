@@ -19,39 +19,29 @@ Prove that the M9 sound/text pipeline survives real audio I/O:
 
 ## Threshold bracket
 
-We swept the 6-target live set at increasing thresholds on output device 2 to find the promotion boundary.
+We swept the 6-target live set at increasing thresholds on output device 2 to find the promotion boundary. After improving the similarity metric (proper mel-scale binning + autocorrelation pitch), the scores improved materially.
 
 Targets: alpha/220/sine, beta/247/triangle, gamma/262/sawtooth, delta/294/square, epsilon/330/sine, zeta/349/triangle
 Repeats: 2 each, duration: 1.0s
 
-### 0.60 threshold — PASS
-- 12/12 (100%)
-- avg 0.7518, worst 0.6754
-- all targets pass both repeats
+| Threshold | Pass rate | Avg score | Worst | Verdict |
+|-----------|-----------|-----------|-------|---------|
+| 0.60 | 12/12 (100%) | 0.8161 | 0.7889 | PASS |
+| 0.70 | 12/12 (100%) | 0.8161 | 0.7889 | PASS |
+| 0.75 | 11/12 (92%) | 0.8004 | 0.7139 | PASS |
+| 0.80 | 8/12 (67%) | 0.8090 | 0.7824 | FAIL |
 
-### 0.70 threshold — PASS
-- 10/12 (83%)
-- avg 0.7434, worst 0.6730
-- gamma/sawtooth fails both repeats; all others pass
-
-### 0.75 threshold — FAIL
-- 9/12 (75%, below 80% gate)
-- avg 0.7741, worst 0.6990
-- gamma/sawtooth fails both repeats; beta/triangle fails one repeat
-
-### Per-target stability (at 0.70 threshold)
-- alpha / 220 Hz sine: 2/2 pass, avg 0.7570, worst 0.7561
-- beta / 247 Hz triangle: 2/2 pass, avg 0.7265, worst 0.7134
-- gamma / 262 Hz sawtooth: 0/2 pass, avg 0.6756, worst 0.6730
-- delta / 294 Hz square: 2/2 pass, avg 0.7329, worst 0.7287
-- epsilon / 330 Hz sine: 2/2 pass, avg 0.7957, worst 0.7922
-- zeta / 349 Hz triangle: 2/2 pass, avg 0.7727, worst 0.7496
+Per-target at 0.70:
+- alpha / 220 Hz sine: avg 0.8192
+- beta / 247 Hz triangle: avg 0.7909, worst 0.7889
+- gamma / 262 Hz sawtooth: avg 0.8126
+- delta / 294 Hz square: avg 0.8053
+- epsilon / 330 Hz sine: avg 0.8513
+- zeta / 349 Hz triangle: avg 0.8171
 
 ## Interpretation
 
-- The live gate is stable at threshold 0.70 on output device 2 with the current 6-target set.
-- The sawtooth waveform at 262 Hz is the consistent weak point across thresholds.
-- The softened square waveform is no longer the limiting case.
-- For promotion, we can either:
-  - accept threshold 0.70 with the sawtooth/gamma gap documented as a known limitation, or
-  - improve the sawtooth capture path before promoting at a stricter threshold.
+- The improved similarity metric removed the sawtooth-as-weakest-target gap.
+- The live gate now has margin up to threshold 0.75 on output device 2.
+- The 0.80 threshold is too strict for the current device pair and waveform set (beta/triangle drops below).
+- For promotion, the 0.75 threshold with 6-target coverage and the improved metric is a plausible acceptance gate.

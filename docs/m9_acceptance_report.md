@@ -144,14 +144,18 @@ Interpretation:
 See `docs/m9_live_audio_gate.md` for the full hardware history and detailed per-target breakdowns.
 
 Hardware: input device 1 (BL-2021USB), output device 2 (External Headphones)
+Similarity metric v2: proper mel-scale binning + autocorrelation pitch detection
 Targets: alpha/220/sine, beta/247/triangle, gamma/262/sawtooth, delta/294/square, epsilon/330/sine, zeta/349/triangle
 Repeats: 2 each, duration: 1.0s
 
 | Threshold | Pass rate | Avg score | Worst | Verdict |
 |-----------|-----------|-----------|-------|---------|
-| 0.60 | 12/12 (100%) | 0.7518 | 0.6754 | PASS |
-| 0.70 | 10/12 (83%) | 0.7434 | 0.6730 | PASS |
-| 0.75 | 9/12 (75%) | 0.7741 | 0.6990 | FAIL |
+| 0.60 | 12/12 (100%) | 0.8161 | 0.7889 | PASS |
+| 0.70 | 12/12 (100%) | 0.8161 | 0.7889 | PASS |
+| 0.75 | 11/12 (92%) | 0.8004 | 0.7139 | PASS |
+| 0.80 | 8/12 (67%) | 0.8090 | 0.7824 | FAIL |
+
+v2 metric removed the sawtooth-as-weakest-target gap. Promising for promotion.
 
 Weakest target: gamma / 262 Hz sawtooth. The softened square waveform is no longer the limiting case.
 
