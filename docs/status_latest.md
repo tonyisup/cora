@@ -89,5 +89,5 @@
 - `packages/salience/` is a stub (empty `__init__.py`)
 - M8 known gap: clarify/repair actions not triggered by heuristic in current episode types — distilled never learned them
 - M9: sound-first motor learning (Track 2) — complete synthetically (M9a/b/c/d); live audio end-to-end is a future promotion gate
-- M9 acoustic imitation loop: REINFORCE learning wired; 50 trials, lr=0.2 → +0.065 improvement (0.66→0.73); pitch converges, mfcc still improving
+- M9 acoustic imitation loop: REINFORCE learning with checkpoint persistence; lr=0.05 stable (W norm 1.42, no clip); 2x50-trial sessions both improve (best 0.760/0.749)
 - M8 live harness maintenance lane: inline evaluation, closed-loop mode (lower priority)

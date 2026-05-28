@@ -262,7 +262,7 @@ Each phase gates the next. Don't rush to text association before sound productio
 
 - Live audio end-to-end validation is a future promotion step, not part of the synthetic M9 gate.
 - See `docs/m9_live_audio_gate.md` and `scripts/m9_live_audio_gate.py` for the scaffolded gate path.
-- Acoustic imitation loop with REINFORCE: stimulus on device 3, imitation on device 2, both captured on device 1. 50 trials at lr=0.2 shows +0.065 reward improvement. Pitch converges; mfcc envelope still adapting.
+- Acoustic imitation loop: stimulus on device 3, imitation on device 2, both captured on device 1. REINFORCE learning with checkpoint persistence. lr=0.05 stable (W norm 1.42, no clip). Best rewards 0.760/0.749 across sessions.
 
 ## Storage & Memory Assessment
 
