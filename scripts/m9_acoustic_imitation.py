@@ -198,6 +198,14 @@ def run_single_freq(
     self_score = similarity.detailed_score(stimulus_pcm, stimulus_capture)
     print(f"  Stimulus self-score: {self_score.overall:.4f}")
 
+    # Pre-encode stimulus: feed captured audio through the substrate so
+    # the hidden state encodes what was heard. The controller then uses
+    # this representation to know what to imitate.
+    n_frames = len(stimulus_capture) // producer._frame_size
+    for i in range(n_frames):
+        frame = stimulus_capture[i * producer._frame_size:(i + 1) * producer._frame_size]
+        producer.substrate.step(frame)
+
     trial_rows = []
     for trial_idx in range(n_trials):
         imitation_pcm = producer.produce(duration_s)
