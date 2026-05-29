@@ -88,6 +88,6 @@
 - 5 data-missing test failures (M2/M3 artifacts) — need artifact regeneration or test skip markers
 - `packages/salience/` is a stub (empty `__init__.py`)
 - M8 known gap: clarify/repair actions not triggered by heuristic in current episode types — distilled never learned them
-- M9: sound-first motor learning (Track 2) — complete synthetically (M9a/b/c/d); live audio end-to-end is a future promotion gate
-- M9 acoustic imitation loop: multi-frequency test (220, 262, 330, 392, 440 Hz × 30 trials each, shared checkpoint). Only 330 Hz shows clear improvement (+0.045). Others show conflicting gradients — expected with single linear readout. W norm 1.81, no clip.
-- M8 live harness maintenance lane: inline evaluation, closed-loop mode (lower priority)
+- M9 sound-first motor learning: see docs/m9_speech_roadmap.md
+- Two-layer controller (664 params); multi-frequency curriculum works (3 freqs, final eval 0.72-0.75); no catastrophic forgetting
+- Next: temporal sequences (2-tone stimulus → producer must switch frequencies mid-utterance)
