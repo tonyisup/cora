@@ -48,18 +48,22 @@ def play_and_capture(pcm, output_device=2, input_device=1, sr=SR):
     captured = np.zeros(total_samples, dtype=np.float32)
     lead_in_samples = int(0.1 * input_sr)
     pos = 0
+    playback_started = False
     stream = sd.InputStream(device=input_device, channels=1, samplerate=input_sr, dtype='float32', blocksize=1024)
     stream.start()
-    while pos < total_samples:
-        data, _ = stream.read(min(1024, total_samples - pos))
-        n = min(len(data), total_samples - pos)
-        captured[pos:pos+n] = data[:n, 0]
-        if pos >= lead_in_samples and pos == lead_in_samples + n:
-            sd.play(pcm, samplerate=sr, device=output_device, blocking=False)
-        pos += n
-    stream.stop()
-    stream.close()
-    sd.wait()
+    try:
+        while pos < total_samples:
+            if not playback_started and pos >= lead_in_samples:
+                sd.play(pcm, samplerate=sr, device=output_device, blocking=False)
+                playback_started = True
+            data, _ = stream.read(min(1024, total_samples - pos))
+            n = min(len(data), total_samples - pos)
+            captured[pos:pos+n] = data[:n, 0]
+            pos += n
+    finally:
+        stream.stop()
+        stream.close()
+        sd.wait()
     return captured
 
 # Short beep for separation
