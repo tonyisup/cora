@@ -88,6 +88,10 @@
 - 5 data-missing test failures (M2/M3 artifacts) — need artifact regeneration or test skip markers
 - `packages/salience/` is a stub (empty `__init__.py`)
 - M8 known gap: clarify/repair actions not triggered by heuristic in current episode types — distilled never learned them
-- M9 sound-first motor learning: see docs/m9_speech_roadmap.md
-- Two-layer controller (664 params); multi-frequency curriculum works (3 freqs, final eval 0.72-0.75); no catastrophic forgetting
-- Next: temporal sequences (2-tone stimulus → producer must switch frequencies mid-utterance)
+- M9 acoustic imitation: supervised controller training + live hardware validation
+  - Substrate pre-trained for frequency classification (87.5% accuracy)
+  - Controller trained with supervised MSE loss (linear freq output)
+  - 7 frequencies x 25 samples: all score >0.94 (6/7 >0.98)
+  - Live hardware (5 freqs): all score >0.92 on real audio I/O
+  - Different frequencies produced for different stimuli — multi-frequency imitation works
+  - Next: temporal sequences (switching frequencies mid-utterance)
