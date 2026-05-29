@@ -88,10 +88,9 @@
 - 5 data-missing test failures (M2/M3 artifacts) — need artifact regeneration or test skip markers
 - `packages/salience/` is a stub (empty `__init__.py`)
 - M8 known gap: clarify/repair actions not triggered by heuristic in current episode types — distilled never learned them
-- M9 acoustic imitation: supervised controller training + live hardware validation
-  - Substrate pre-trained for frequency classification (87.5% accuracy)
-  - Controller trained with supervised MSE loss (linear freq output)
-  - 7 frequencies x 25 samples: all score >0.94 (6/7 >0.98)
-  - Live hardware (5 freqs): all score >0.92 on real audio I/O
-  - Different frequencies produced for different stimuli — multi-frequency imitation works
-  - Next: temporal sequences (switching frequencies mid-utterance)
+- M9 acoustic imitation: temporal sequences working on hardware
+  - Substrate pre-trained on live audio (frequency classification, 87.5% acc)
+  - Controller trained on 2-tone sequences (13 pairs x 5 repeats, 1690 samples)
+  - 2-tone stimulus -> matching 2-tone imitation, scores 0.88-0.94 on live hardware
+  - Pitch changes audibly — you can hear the imitation match the stimulus pattern
+  - Next: smoother temporal control, formant synthesis, text association
