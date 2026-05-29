@@ -138,30 +138,41 @@ class AcousticProducer:
 
         waveform_map = ["sine", "triangle", "sawtooth", "square"]
 
+        # Track cumulative phase for smooth frame transitions
+        cumulative_phase = 0.0
+
         for i in range(n_frames):
             # Use the provided initial params on the first frame, then read
             # the controller on subsequent frames.
             params = init_params if i == 0 and init_params is not None else self.controller.decode(self.substrate.hidden_state)
 
-            # Generate one frame of audio
+            # Generate one frame of audio with continuous phase
             t_frame = np.arange(self._frame_size, dtype=np.float32) / self._sr
             freq = params.freq_hz
             amp = params.amplitude
             phase = params.phase
             wf = waveform_map[params.waveform]
 
+            # Start from cumulative phase to avoid discontinuities
+            phase_offset = cumulative_phase + phase
+
             if wf == "sine":
-                frame = amp * np.sin(2 * np.pi * freq * t_frame + phase)
+                frame = amp * np.sin(2 * np.pi * freq * t_frame + phase_offset)
             elif wf == "triangle":
-                ramp = 2.0 * ((freq * t_frame + phase / (2 * np.pi)) % 1.0) - 1.0
+                ramp = 2.0 * ((freq * t_frame + phase_offset / (2 * np.pi)) % 1.0) - 1.0
                 frame = amp * (2.0 * np.abs(ramp) - 1.0)
             elif wf == "sawtooth":
-                frame = amp * (2.0 * ((freq * t_frame + phase / (2 * np.pi)) % 1.0) - 1.0)
+                frame = amp * (2.0 * ((freq * t_frame + phase_offset / (2 * np.pi)) % 1.0) - 1.0)
             else:  # square
-                frame = amp * np.sign(np.sin(2 * np.pi * freq * t_frame + phase))
+                frame = amp * np.sign(np.sin(2 * np.pi * freq * t_frame + phase_offset))
 
             frame = frame.astype(np.float32)
             output[i * self._frame_size:(i + 1) * self._frame_size] = frame
+
+            # Update cumulative phase: advance by freq * frame_duration
+            cumulative_phase += 2 * np.pi * freq * (self._frame_size / self._sr)
+            # Keep phase bounded to avoid floating point drift
+            cumulative_phase = cumulative_phase % (2 * np.pi)
 
             # Update substrate with produced frame
             self.substrate.step(frame)

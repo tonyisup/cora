@@ -73,10 +73,14 @@ def smooth_params(params_list, alpha=0.3):
 
 def params_to_audio(params_list, frame_size=480, sr=SR):
     frames = []
+    cumulative_phase = 0.0
     for p in params_list:
         t_f = np.arange(frame_size, dtype=np.float32) / sr
-        frame = (p.amplitude * np.sin(2*np.pi*p.freq_hz*t_f + p.phase)).astype(np.float32)
+        phase_offset = cumulative_phase + p.phase
+        frame = (p.amplitude * np.sin(2*np.pi*p.freq_hz*t_f + phase_offset)).astype(np.float32)
         frames.append(frame)
+        cumulative_phase += 2 * np.pi * p.freq_hz * (frame_size / sr)
+        cumulative_phase = cumulative_phase % (2 * np.pi)
     return np.concatenate(frames)
 
 import time
