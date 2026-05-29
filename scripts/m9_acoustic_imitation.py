@@ -175,6 +175,7 @@ def run_single_freq(
     n_trials: int,
     lr: float,
     checkpoint_path: str | None,
+    substrate_checkpoint_path: str | None = None,
     sr: int = SR,
 ) -> dict[str, Any]:
     """Run imitation loop on a single frequency."""
@@ -182,10 +183,19 @@ def run_single_freq(
     producer = AcousticProducer(sr=sr, hidden_dim=32)
     baseline = 0.0
 
-    # Load checkpoint if provided and exists
+    # Load producer checkpoint if provided and exists
     if checkpoint_path and Path(checkpoint_path).exists():
-        print(f"  Loading checkpoint: {checkpoint_path}")
+        print(f"  Loading producer checkpoint: {checkpoint_path}")
         producer.load_checkpoint(checkpoint_path)
+
+    # Load pre-trained substrate weights if provided
+    if substrate_checkpoint_path and Path(substrate_checkpoint_path).exists():
+        print(f"  Loading pre-trained substrate: {substrate_checkpoint_path}")
+        import json as _json
+        sub_data = _json.loads(Path(substrate_checkpoint_path).read_text())
+        producer.substrate._W_h = np.array(sub_data["W_h"], dtype=np.float32)
+        producer.substrate._W_x = np.array(sub_data["W_x"], dtype=np.float32)
+        producer.substrate._b = np.array(sub_data["b"], dtype=np.float32)
 
     # Generate and play stimulus
     stimulus_pcm = generate_stimulus(stimulus_freq_hz, duration_s, stimulus_waveform, sr)
@@ -263,6 +273,7 @@ def run_curriculum(
     trials_per_freq: int,
     lr: float,
     checkpoint_path: str | None,
+    substrate_checkpoint_path: str | None = None,
     sr: int = SR,
 ) -> dict[str, Any]:
     """Train on each frequency sequentially, accumulating weights via checkpoint."""
@@ -271,8 +282,17 @@ def run_curriculum(
     baseline = 0.0
 
     if checkpoint_path and Path(checkpoint_path).exists():
-        print(f"  Loading checkpoint: {checkpoint_path}")
+        print(f"  Loading producer checkpoint: {checkpoint_path}")
         producer.load_checkpoint(checkpoint_path)
+
+    # Load pre-trained substrate weights if provided
+    if substrate_checkpoint_path and Path(substrate_checkpoint_path).exists():
+        print(f"  Loading pre-trained substrate: {substrate_checkpoint_path}")
+        import json as _json
+        sub_data = _json.loads(Path(substrate_checkpoint_path).read_text())
+        producer.substrate._W_h = np.array(sub_data["W_h"], dtype=np.float32)
+        producer.substrate._W_x = np.array(sub_data["W_x"], dtype=np.float32)
+        producer.substrate._b = np.array(sub_data["b"], dtype=np.float32)
 
     freq_results = {}
 
@@ -363,7 +383,10 @@ def main() -> None:
     parser.add_argument("--input-device", type=int, default=1)
     parser.add_argument("--trials", type=int, default=30)
     parser.add_argument("--lr", type=float, default=0.05)
-    parser.add_argument("--checkpoint", type=str, default=None)
+    parser.add_argument("--checkpoint", type=str, default=None,
+                        help="Producer checkpoint (controller + substrate)")
+    parser.add_argument("--substrate-checkpoint", type=str, default=None,
+                        help="Pre-trained substrate checkpoint (from m9_substrate_pretrain.py)")
     parser.add_argument("--output", type=str, default="/tmp/m9_acoustic_imitation.json")
     args = parser.parse_args()
 
@@ -392,6 +415,7 @@ def main() -> None:
             trials_per_freq=args.trials,
             lr=args.lr,
             checkpoint_path=args.checkpoint,
+            substrate_checkpoint_path=args.substrate_checkpoint,
         )
     elif args.stimulus_freq:
         print(f"  Single frequency: {args.stimulus_freq:.1f} Hz {args.stimulus_waveform}")
@@ -405,6 +429,7 @@ def main() -> None:
             n_trials=args.trials,
             lr=args.lr,
             checkpoint_path=args.checkpoint,
+            substrate_checkpoint_path=args.substrate_checkpoint,
         )
     else:
         parser.error("Specify --stimulus-freq or --curriculum")
