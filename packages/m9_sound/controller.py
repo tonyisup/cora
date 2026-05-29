@@ -63,6 +63,117 @@ class NeuralController:
         raw = self._W2 @ a1 + self._b2
         return raw, a1
 
+    def train_supervised(
+        self,
+        hidden_states: np.ndarray,
+        target_params: np.ndarray,
+        lr: float = 0.01,
+        n_epochs: int = 100,
+    ) -> list[float]:
+        """Train controller via supervised learning.
+
+        Parameters
+        ----------
+        hidden_states : np.ndarray, shape (n_samples, hidden_dim)
+            Substrate hidden state for each sample.
+        target_params : np.ndarray, shape (n_samples, 4)
+            Target [freq_norm, amplitude, phase_norm, waveform_onehot].
+        lr : float
+            Learning rate.
+        n_epochs : int
+            Number of training epochs.
+
+        Returns
+        -------
+        list[float]
+            Loss history.
+        """
+        history = []
+        n_samples = hidden_states.shape[0]
+
+        for epoch in range(n_epochs):
+            total_loss = 0.0
+
+            # Shuffle samples
+            indices = np.random.permutation(n_samples)
+
+            for idx in indices:
+                h = hidden_states[idx]
+                target = target_params[idx]  # [freq_norm, amp, phase_norm, wf0, wf1, wf2, wf3]
+
+                # Forward pass
+                raw, a1 = self._forward_all(h)
+
+                # Compute loss and gradients for each output
+                # Frequency (sigmoid output vs target)
+                freq_sig = 1.0 / (1.0 + np.exp(-raw[0]))
+                err_freq = freq_sig - target[0]
+                derr_freq = err_freq * freq_sig * (1.0 - freq_sig)
+
+                # Amplitude (sigmoid output vs target)
+                amp_sig = 1.0 / (1.0 + np.exp(-raw[1]))
+                err_amp = amp_sig - target[1]
+                derr_amp = err_amp * amp_sig * (1.0 - amp_sig)
+
+                # Phase (tanh output vs target)
+                phase_tanh = np.tanh(raw[2])
+                err_phase = phase_tanh - target[2]
+                derr_phase = err_phase * (1.0 - phase_tanh ** 2)
+
+                # Waveform (softmax cross-entropy)
+                wf_logits = raw[3:3 + self._n_waveforms]
+                wf_softmax = np.exp(wf_logits - np.max(wf_logits))
+                wf_softmax /= wf_softmax.sum()
+                target_wf = target[3:3 + self._n_waveforms]
+                err_wf = wf_softmax - target_wf  # gradient of cross-entropy
+
+                # Accumulate output gradients
+                delta = np.zeros(4 + self._n_waveforms, dtype=np.float32)
+                delta[0] = derr_freq
+                delta[1] = derr_amp
+                delta[2] = derr_phase
+                delta[3:3 + self._n_waveforms] = err_wf
+
+                # Loss for tracking
+                mse_loss = err_freq ** 2 + err_amp ** 2 + err_phase ** 2 + np.sum(err_wf ** 2)
+                total_loss += mse_loss
+
+                # Backprop through output layer (W2, b2)
+                # raw = W2 @ a1 + b2
+                # d(L)/d(W2) = delta @ a1.T
+                dW2 = np.outer(delta, a1)
+                db2 = delta
+
+                # Backprop through hidden layer
+                # a1 = tanh(z1), z1 = W1 @ h + b1
+                da1 = self._W2.T @ delta
+                z1 = self._W1 @ h + self._b1
+                dz1 = da1 * (1.0 - np.tanh(z1) ** 2)
+
+                dW1 = np.outer(dz1, h)
+                db1 = dz1
+
+                # Gradient clipping
+                max_grad = 5.0
+                for g in [dW2, db2, dW1, db1]:
+                    gn = np.linalg.norm(g)
+                    if gn > max_grad:
+                        g *= max_grad / gn
+
+                # Update weights
+                self._W2 -= lr * dW2
+                self._b2 -= lr * db2
+                self._W1 -= lr * dW1
+                self._b1 -= lr * db1
+
+            avg_loss = total_loss / n_samples
+            history.append(float(avg_loss))
+
+            if (epoch + 1) % 20 == 0 or epoch == 0:
+                print(f"    Epoch {epoch + 1:3d}/{n_epochs}  loss={avg_loss:.6f}")
+
+        return history
+
     def decode(self, hidden_state: np.ndarray) -> ControllerParams:
         """Map hidden state to oscillator parameters."""
         h = hidden_state.flatten()[:self._hidden_dim]
