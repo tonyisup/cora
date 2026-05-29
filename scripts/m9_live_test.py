@@ -18,16 +18,19 @@ from m9_sound import AcousticProducer, OscillatorBank, AcousticSimilarity
 
 SR = 16000
 
-# Load the supervised controller
+# Load controller trained on live data (h64 — best live result)
 producer = AcousticProducer(sr=SR, hidden_dim=32)
-ckpt = json.load(open('data/m9_controller_v8.ckpt.json'))
-producer.controller._W1 = np.array(ckpt['controller']['W1'], dtype=np.float32)
-producer.controller._b1 = np.array(ckpt['controller']['b1'], dtype=np.float32)
-producer.controller._W2 = np.array(ckpt['controller']['W2'], dtype=np.float32)
-producer.controller._b2 = np.array(ckpt['controller']['b2'], dtype=np.float32)
+ckpt = json.load(open('data/m9_controller_live_h64.ckpt.json'))
+producer.controller._W1 = np.array(ckpt['W1'], dtype=np.float32)
+producer.controller._b1 = np.array(ckpt['b1'], dtype=np.float32)
+producer.controller._W2 = np.array(ckpt['W2'], dtype=np.float32)
+producer.controller._b2 = np.array(ckpt['b2'], dtype=np.float32)
 
-# Load pre-trained substrate
-sub_ckpt = json.load(open('data/m9_substrate_classifier.ckpt.json'))
+# Load LIVE-trained substrate (frequency classifier)
+sub_ckpt = json.load(open('data/m9_substrate_live.ckpt.json'))
+producer.substrate._W_h = np.array(sub_ckpt['W_h'], dtype=np.float32)
+producer.substrate._W_x = np.array(sub_ckpt['W_x'], dtype=np.float32)
+producer.substrate._b = np.array(sub_ckpt['b'], dtype=np.float32)
 producer.substrate._W_h = np.array(sub_ckpt['W_h'], dtype=np.float32)
 producer.substrate._W_x = np.array(sub_ckpt['W_x'], dtype=np.float32)
 producer.substrate._b = np.array(sub_ckpt['b'], dtype=np.float32)
