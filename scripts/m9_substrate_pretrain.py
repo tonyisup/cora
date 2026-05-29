@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
-"""M9 Substrate Pre-Training — predictive audio encoder.
+"""M9 Substrate Pre-Training — frequency-discriminating audio encoder.
 
-Trains the substrate (RNN) to predict the next audio frame from the current one.
-This forces the hidden state to capture meaningful temporal/spectral features.
+Trains the substrate (RNN) with a frequency classification objective.
+This forces the hidden state to encode frequency distinctly, which is
+essential for the controller to distinguish between different stimuli.
 
-After pre-training, the substrate hidden state becomes a useful representation
-that the controller can use to know what to imitate.
+Key insight from previous attempts: next-frame prediction alone causes
+the substrate to saturate (tanh -> all ±1) and all frequencies produce
+nearly identical hidden states. Classification forces discrimination.
 """
 
 from __future__ import annotations
@@ -15,157 +17,198 @@ import json
 import os
 import sys
 from pathlib import Path
-from typing import Any
 
 import numpy as np
+from typing import Any
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "packages"))
 
-from m9_sound import AcousticProducer, AcousticSubstrate, NeuralController, OscillatorBank
+from m9_sound import AcousticSubstrate, OscillatorBank
 
 SR = 16000
 
 
-def generate_training_audio(
-    n_seconds: float = 10.0,
+def generate_training_data(
+    n_seconds: float = 5.0,
     sr: int = SR,
-) -> list[np.ndarray]:
-    """Generate diverse audio clips for training."""
+) -> tuple[list[np.ndarray], list[int], list[int]]:
+    """Generate labeled audio clips: (clip, frequency_class)."""
     osc = OscillatorBank(sr=sr)
     clips = []
+    labels = []
+
+    freq_bins = [110, 220, 262, 330, 392, 440, 550, 660, 880, 1100]
     duration = n_seconds
 
-    # Pure tones at various frequencies
-    for freq in [110, 220, 330, 440, 550, 660, 880]:
+    for freq_idx, freq in enumerate(freq_bins):
+        # Pure sine
         clips.append(osc.sine(freq, duration, amplitude=0.5))
+        labels.append(freq_idx)
+        # Phase-shifted variants for diversity
+        for phase in [0.5, 1.0, 1.5, 2.0]:
+            clips.append(osc.sine(freq, duration, amplitude=0.5, phase=phase))
+            labels.append(freq_idx)
+        # Triangle
         clips.append(osc.triangle(freq, duration, amplitude=0.4))
+        labels.append(freq_idx)
+        # Sawtooth
         clips.append(osc.sawtooth(freq, duration, amplitude=0.3))
+        labels.append(freq_idx)
+        # Mixed: two frequencies
+        mixed = 0.3 * osc.sine(freq, duration) + 0.2 * osc.sine(freq * 1.5, duration)
+        clips.append(mixed)
+        labels.append(freq_idx)
 
-    # Frequency sweeps
-    t = np.arange(int(sr * duration), dtype=np.float32) / sr
-    for start_freq in [100, 200, 400]:
-        for end_freq in [400, 800, 1600]:
-            if start_freq != end_freq:
-                freqs = np.linspace(start_freq, end_freq, len(t)).astype(np.float32)
-                sweep = (0.5 * np.sin(2 * np.pi * np.cumsum(freqs) / sr)).astype(np.float32)
-                clips.append(sweep)
-
-    return clips
+    return clips, labels, freq_bins
 
 
-def train_substrate_predictor(
+def train_substrate_classifier(
     *,
-    n_epochs: int = 50,
+    n_epochs: int = 100,
     lr: float = 0.001,
     hidden_dim: int = 32,
     frame_size: int = 480,
     sr: int = SR,
     checkpoint_path: str | None = None,
 ) -> dict[str, Any]:
-    """Train substrate to predict next audio frame."""
+    """Train substrate for frequency classification."""
 
     substrate = AcousticSubstrate(hidden_dim=hidden_dim, sr=sr, frame_size=frame_size)
 
-    # Prediction head: hidden state → predicted next frame
-    W_pred = np.random.randn(frame_size, hidden_dim).astype(np.float32) * 0.01
-    b_pred = np.zeros(frame_size, dtype=np.float32)
+    # Classification head: hidden_state → frequency class logits
+    n_classes = 10  # number of frequency bins
+    W_cls = np.random.randn(n_classes, hidden_dim).astype(np.float32) * 0.1
+    b_cls = np.zeros(n_classes, dtype=np.float32)
 
     # Load checkpoint if exists
-    start_epoch = 0
     if checkpoint_path and Path(checkpoint_path).exists():
         print(f"Loading checkpoint: {checkpoint_path}")
         data = json.loads(Path(checkpoint_path).read_text())
         substrate._W_h = np.array(data["W_h"], dtype=np.float32)
         substrate._W_x = np.array(data["W_x"], dtype=np.float32)
         substrate._b = np.array(data["b"], dtype=np.float32)
-        W_pred = np.array(data["W_pred"], dtype=np.float32)
-        b_pred = np.array(data["b_pred"], dtype=np.float32)
-        start_epoch = data.get("epoch", 0)
+        W_cls = np.array(data["W_cls"], dtype=np.float32)
+        b_cls = np.array(data["b_cls"], dtype=np.float32)
 
     # Generate training data
-    print(f"Generating training audio...")
-    clips = generate_training_audio(n_seconds=10.0, sr=sr)
-    print(f"  {len(clips)} clips, {sum(len(c) for c in clips) / sr:.0f}s total audio")
+    print(f"Generating training data...")
+    clips, labels, freq_bins = generate_training_data(n_seconds=5.0, sr=sr)
+    print(f"  {len(clips)} clips, {len(freq_bins)} frequency classes")
 
     history = []
 
-    for epoch in range(start_epoch, n_epochs):
-        epoch_loss = 0.0
-        n_steps = 0
+    for epoch in range(n_epochs):
+        total_loss = 0.0
+        correct = 0
+        total = 0
 
-        for clip in clips:
+        # Shuffle training data
+        indices = np.random.permutation(len(clips))
+
+        for idx in indices:
+            clip = clips[idx]
+            label = labels[idx]
+
+            # Process full clip through substrate
             substrate.reset()
-            # Process frames, predict next
-            for i in range(0, len(clip) - frame_size, frame_size):
-                current_frame = clip[i:i + frame_size]
-                next_frame = clip[i + frame_size:i + 2 * frame_size]
+            n_frames = len(clip) // frame_size
+            for i in range(n_frames):
+                frame = clip[i * frame_size:(i + 1) * frame_size]
+                substrate.step(frame)
 
-                if len(next_frame) < frame_size:
-                    break
+            h = substrate.hidden_state
 
-                # Forward: get hidden state from current frame
-                h = substrate.step(current_frame)
+            # Classify: softmax cross-entropy
+            logits = W_cls @ h + b_cls
+            # Numerically stable softmax
+            logits_shifted = logits - np.max(logits)
+            exp_logits = np.exp(logits_shifted)
+            probs = exp_logits / exp_logits.sum()
 
-                # Predict next frame
-                predicted = W_pred @ h + b_pred
+            # Cross-entropy loss
+            loss = -np.log(probs[label] + 1e-10)
+            total_loss += loss
 
-                # Loss: MSE between predicted and actual next frame
-                error = predicted - next_frame
-                loss = float(np.mean(error ** 2))
-                epoch_loss += loss
-                n_steps += 1
+            # Accuracy
+            pred = np.argmax(probs)
+            if pred == label:
+                correct += 1
+            total += 1
 
-                # Backprop through prediction head only (keep RNN weights fixed for now)
-                # d(L)/d(W_pred) = error @ h.T
-                # d(L)/d(b_pred) = error
-                dW_pred = np.outer(error, h)
-                db_pred = error
+            # Backprop through classification head
+            # d(cross_entropy)/d(logits) = probs - one_hot
+            dlogits = probs.copy()
+            dlogits[label] -= 1.0
 
-                # Gradient clipping
-                max_grad = 1.0
-                grad_norm = np.linalg.norm(dW_pred)
-                if grad_norm > max_grad:
-                    dW_pred *= max_grad / grad_norm
+            dW_cls = np.outer(dlogits, h)
+            db_cls = dlogits
 
-                W_pred -= lr * dW_pred
-                b_pred -= lr * db_pred
+            # Backprop through substrate (single step BPTT)
+            dh = W_cls.T @ dlogits
 
-                # Also update RNN weights (backprop through one step)
-                # d(L)/d(h) = W_pred.T @ error
-                dh = W_pred.T @ error
+            # Get the last input frame for gradient computation
+            last_frame = clip[(n_frames - 1) * frame_size:n_frames * frame_size]
+            x = np.zeros(frame_size, dtype=np.float32)
+            n = min(len(last_frame), frame_size)
+            x[:n] = last_frame[:n]
+            rms = np.sqrt(np.mean(x ** 2))
+            if rms > 1e-6:
+                x = x / rms
 
-                # Backprop through tanh: d(tanh)/dz = 1 - tanh^2
-                # h = tanh(z), z = W_h @ h_prev + W_x @ x + b
-                x = np.zeros(frame_size, dtype=np.float32)
-                n = min(len(current_frame), frame_size)
-                x[:n] = current_frame[:n]
-                rms = np.sqrt(np.mean(x ** 2))
-                if rms > 1e-6:
-                    x = x / rms
+            # Backprop through tanh
+            z = substrate._W_h @ substrate._h + substrate._W_x @ x + substrate._b
+            dz = dh * (1.0 - np.tanh(z) ** 2)
 
-                z = substrate._W_h @ substrate._h + substrate._W_x @ x + substrate._b
-                dtanh = 1.0 - np.tanh(z) ** 2
-                dz = dh * dtanh
+            dW_x = np.outer(dz, x)
+            db_rnn = dz
 
-                # Gradients for W_h, W_x, b
-                # Note: we use h before this step, need to track it
-                # For simplicity, skip W_h update (truncated BPTT)
-                dW_x = np.outer(dz, x)
-                db_rnn = dz
+            # Gradient clipping
+            max_grad = 5.0
+            for g in [dW_cls, db_cls, dW_x, db_rnn]:
+                gn = np.linalg.norm(g)
+                if gn > max_grad:
+                    g *= max_grad / gn
 
-                # Clip RNN gradients
-                rnn_grad_norm = np.linalg.norm(dW_x)
-                if rnn_grad_norm > max_grad:
-                    dW_x *= max_grad / rnn_grad_norm
+            # Update weights
+            W_cls -= lr * dW_cls
+            b_cls -= lr * db_cls
+            substrate._W_x -= lr * 0.1 * dW_x
+            substrate._b -= lr * 0.1 * db_rnn
 
-                substrate._W_x -= lr * 0.1 * dW_x  # Slower RNN learning rate
-                substrate._b -= lr * 0.1 * db_rnn
+        avg_loss = total_loss / max(total, 1)
+        accuracy = correct / max(total, 1)
+        history.append({"epoch": epoch + 1, "loss": float(avg_loss), "accuracy": float(accuracy)})
 
-        avg_loss = epoch_loss / max(n_steps, 1)
-        history.append({"epoch": epoch + 1, "loss": avg_loss})
+        if (epoch + 1) % 20 == 0 or epoch == 0:
+            print(f"  Epoch {epoch + 1:3d}/{n_epochs}  loss={avg_loss:.4f}  acc={accuracy:.3f}")
 
-        if (epoch + 1) % 10 == 0 or epoch == 0:
-            print(f"  Epoch {epoch + 1:3d}/{n_epochs}  loss={avg_loss:.6f}")
+    # Evaluate: check hidden state discriminability
+    print(f"\nEvaluating hidden state discriminability...")
+    hidden_by_class = {i: [] for i in range(len(freq_bins))}
+    for clip, label in zip(clips[:30], labels[:30]):  # subset for speed
+        substrate.reset()
+        for i in range(len(clip) // frame_size):
+            frame = clip[i * frame_size:(i + 1) * frame_size]
+            substrate.step(frame)
+        hidden_by_class[label].append(substrate.hidden_state.copy())
+
+    print(f"  Mean hidden state norms per class:")
+    for cls_idx in range(len(freq_bins)):
+        if hidden_by_class[cls_idx]:
+            states = np.array(hidden_by_class[cls_idx])
+            mean_norm = np.linalg.norm(states.mean(axis=0))
+            print(f"    {freq_bins[cls_idx]:4d} Hz: norm={mean_norm:.4f}")
+
+    # Between-class distances
+    print(f"\n  Between-class distances:")
+    for i in range(len(freq_bins)):
+        for j in range(i + 1, len(freq_bins)):
+            if hidden_by_class[i] and hidden_by_class[j]:
+                states_i = np.array(hidden_by_class[i]).mean(axis=0)
+                states_j = np.array(hidden_by_class[j]).mean(axis=0)
+                dist = np.linalg.norm(states_i - states_j)
+                if dist < 2.0:  # Only print close ones
+                    print(f"    {freq_bins[i]} vs {freq_bins[j]}: {dist:.4f}")
 
     # Save checkpoint
     if checkpoint_path:
@@ -173,110 +216,48 @@ def train_substrate_predictor(
             "W_h": substrate._W_h.tolist(),
             "W_x": substrate._W_x.tolist(),
             "b": substrate._b.tolist(),
-            "W_pred": W_pred.tolist(),
-            "b_pred": b_pred.tolist(),
+            "W_cls": W_cls.tolist(),
+            "b_cls": b_cls.tolist(),
             "config": {"hidden_dim": hidden_dim, "frame_size": frame_size, "sr": sr},
             "epoch": n_epochs,
-            "final_loss": history[-1]["loss"] if history else 0,
+            "final_loss": history[-1]["loss"],
+            "final_accuracy": history[-1]["accuracy"],
+            "freq_bins": freq_bins,
         }
         Path(checkpoint_path).parent.mkdir(parents=True, exist_ok=True)
         Path(checkpoint_path).write_text(json.dumps(data))
-        print(f"  Saved checkpoint: {checkpoint_path}")
+        print(f"\nSaved checkpoint: {checkpoint_path}")
 
-    return {
-        "history": history,
-        "final_loss": history[-1]["loss"] if history else 0,
-    }
-
-
-def evaluate_substrate(
-    substrate: AcousticSubstrate,
-    freq_hz: float = 220.0,
-    duration_s: float = 1.0,
-    sr: int = SR,
-) -> dict[str, Any]:
-    """Evaluate: how different are hidden states for different frequencies?"""
-    osc = OscillatorBank(sr=sr)
-    substrate.reset()
-
-    # Process a test tone
-    test_tone = osc.sine(freq_hz, duration_s)
-    n_frames = len(test_tone) // substrate._frame_size
-    for i in range(n_frames):
-        frame = test_tone[i * substrate._frame_size:(i + 1) * substrate._frame_size]
-        substrate.step(frame)
-    h_sine = substrate.hidden_state.copy()
-
-    # Process a different frequency
-    substrate.reset()
-    test_tone2 = osc.sine(freq_hz * 1.5, duration_s)
-    for i in range(n_frames):
-        frame = test_tone2[i * substrate._frame_size:(i + 1) * substrate._frame_size]
-        substrate.step(frame)
-    h_diff = substrate.hidden_state.copy()
-
-    # Process same frequency again (consistency check)
-    substrate.reset()
-    test_tone3 = osc.sine(freq_hz, duration_s)
-    for i in range(n_frames):
-        frame = test_tone3[i * substrate._frame_size:(i + 1) * substrate._frame_size]
-        substrate.step(frame)
-    h_repeat = substrate.hidden_state.copy()
-
-    return {
-        "same_freq_consistency": float(np.linalg.norm(h_sine - h_repeat)),
-        "diff_freq_distance": float(np.linalg.norm(h_sine - h_diff)),
-        "encoding_useful": float(np.linalg.norm(h_sine - h_diff)) > float(np.linalg.norm(h_sine - h_repeat)) * 2,
-    }
+    return {"history": history, "freq_bins": freq_bins, "final_accuracy": history[-1]["accuracy"]}
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="M9 substrate pre-training")
-    parser.add_argument("--epochs", type=int, default=50)
+    parser.add_argument("--epochs", type=int, default=100)
     parser.add_argument("--lr", type=float, default=0.001)
     parser.add_argument("--hidden-dim", type=int, default=32)
-    parser.add_argument("--checkpoint", type=str, default="data/m9_substrate_pretrained.ckpt.json")
+    parser.add_argument("--checkpoint", type=str, default="data/m9_substrate_classifier.ckpt.json")
     parser.add_argument("--output", type=str, default="/tmp/m9_substrate_pretrain.json")
     args = parser.parse_args()
 
     print("=" * 72)
-    print("M9 Substrate Pre-Training — Predictive Audio Encoder")
+    print("M9 Substrate Pre-Training — Frequency Classification")
     print("=" * 72)
     print(f"  Epochs: {args.epochs}")
     print(f"  Learning rate: {args.lr}")
     print(f"  Hidden dim: {args.hidden_dim}")
-    print(f"  Checkpoint: {args.checkpoint}")
     print()
 
-    result = train_substrate_predictor(
+    result = train_substrate_classifier(
         n_epochs=args.epochs,
         lr=args.lr,
         hidden_dim=args.hidden_dim,
         checkpoint_path=args.checkpoint,
     )
 
-    # Evaluate encoding quality
-    print("\nEvaluating substrate encoding...")
-    substrate = AcousticSubstrate(hidden_dim=args.hidden_dim, sr=SR)
-    data = json.loads(Path(args.checkpoint).read_text())
-    substrate._W_h = np.array(data["W_h"], dtype=np.float32)
-    substrate._W_x = np.array(data["W_x"], dtype=np.float32)
-    substrate._b = np.array(data["b"], dtype=np.float32)
-
-    eval_220 = evaluate_substrate(substrate, freq_hz=220.0)
-    eval_440 = evaluate_substrate(substrate, freq_hz=440.0)
-
-    print(f"  220 Hz encoding consistency: {eval_220['same_freq_consistency']:.4f}")
-    print(f"  220 Hz vs 330 Hz distance: {eval_220['diff_freq_distance']:.4f}")
-    print(f"  Encoding is useful: {eval_220['encoding_useful']}")
-    print(f"  440 Hz encoding consistency: {eval_440['same_freq_consistency']:.4f}")
-    print(f"  440 Hz vs 660 Hz distance: {eval_440['diff_freq_distance']:.4f}")
-
-    result["eval"] = {"220hz": eval_220, "440hz": eval_440}
-
     Path(args.output).parent.mkdir(parents=True, exist_ok=True)
     Path(args.output).write_text(json.dumps(result, indent=2, default=str))
-    print(f"\nSaved to: {args.output}")
+    print(f"Saved results to: {args.output}")
 
 
 if __name__ == "__main__":

@@ -43,8 +43,11 @@ class NeuralController:
         self._hidden_dim = hidden_dim
         self._sr = sr
         self._n_waveforms = n_waveforms
-        self._controller_hidden = controller_hidden_dim
-
+        # Output: [freq, amplitude, phase, waveform_logits]
+        # Frequency output: linear (unconstrained), target is freq_hz / freq_max
+        # Amplitude output: sigmoid to [0, 1]
+        # Phase output: tanh to [-1, 1] -> map to [-pi, pi]
+        # Waveform: softmax over logits
         self._freq_min = 80.0
         self._freq_max = 2000.0
 
@@ -105,10 +108,9 @@ class NeuralController:
                 raw, a1 = self._forward_all(h)
 
                 # Compute loss and gradients for each output
-                # Frequency (sigmoid output vs target)
-                freq_sig = 1.0 / (1.0 + np.exp(-raw[0]))
-                err_freq = freq_sig - target[0]
-                derr_freq = err_freq * freq_sig * (1.0 - freq_sig)
+                # Frequency: linear output vs target (freq / freq_max)
+                err_freq = raw[0] - target[0]
+                derr_freq = err_freq  # linear gradient
 
                 # Amplitude (sigmoid output vs target)
                 amp_sig = 1.0 / (1.0 + np.exp(-raw[1]))
@@ -181,7 +183,8 @@ class NeuralController:
             h = np.pad(h, (0, self._hidden_dim - len(h)))
         raw, _ = self._forward_all(h)
 
-        freq_norm = float(1.0 / (1.0 + np.exp(-raw[0])))
+        # Frequency: linear output, scale to [freq_min, freq_max]
+        freq_norm = float(np.clip(raw[0], 0.0, 1.0))
         freq_hz = self._freq_min + freq_norm * (self._freq_max - self._freq_min)
         amplitude = float(1.0 / (1.0 + np.exp(-raw[1])))
         phase = float(np.tanh(raw[2]) * np.pi)
