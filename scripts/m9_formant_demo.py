@@ -23,9 +23,9 @@ substrate._W_x = np.array(sub_ckpt['W_x'], dtype=np.float32)
 substrate._b = np.array(sub_ckpt['b'], dtype=np.float32)
 print(f"Loaded formant substrate (acc was {sub_ckpt.get('final_accuracy', 'N/A')})")
 
-# Load formant controller
-ctl_ckpt = json.load(open('data/m9_controller_formant_v1.ckpt.json'))
-controller = NeuralController(hidden_dim=32, sr=SR, controller_hidden_dim=16)
+# Load formant controller v2
+ctl_ckpt = json.load(open('data/m9_controller_formant_v2.ckpt.json'))
+controller = NeuralController(hidden_dim=32, sr=SR, controller_hidden_dim=24)
 controller._W1 = np.array(ctl_ckpt['W1'], dtype=np.float32)
 controller._b1 = np.array(ctl_ckpt['b1'], dtype=np.float32)
 controller._W2 = np.array(ctl_ckpt['W2'], dtype=np.float32)
