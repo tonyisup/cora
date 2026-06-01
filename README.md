@@ -51,7 +51,7 @@ pip install -r requirements.txt
 | M6 | ✅ Live validated | SAG introspective queries functional, M4 accept rate 95.7% |
 | M7 | ✅ Complete | Trust-gated NLMS + DriftAlarm + IR bank + device profile; live room-change validated |
 | M8 | ✅ Complete | Speaking policy: heuristic (M8a), distilled 98.7% (M8b), PPO +3062% on expanded (M8c), live hardware validated |
-| M9 | ✅ Complete | M9a/b/c/d implemented; live audio end-to-end is a future promotion gate |
+| M9 | ✅ Vowel imitation working | Formant synthesis, vowel classification, live mic → headphone imitation; see docs/m9_status.md |
 
 ### M4 Self-Voice Detector
 
