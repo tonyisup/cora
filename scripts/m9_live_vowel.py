@@ -83,6 +83,7 @@ def main():
         # This prevents: output -> mic picks it up -> re-classify -> more output (infinite loop)
         if rms > args.threshold and state['silence_count'] >= args.feedback_frames:
             # Real speech detected — encode through substrate
+            # (substrate.step does per-frame RMS norm internally)
             substrate.reset()
             for i in range(len(mic) // 480):
                 substrate.step(mic[i*480:(i+1)*480].flatten())

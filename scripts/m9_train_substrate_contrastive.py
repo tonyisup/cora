@@ -74,8 +74,8 @@ def gen_vowel(vowel, duration=0.5, f0=120.0, jitter=0.05, noise_db=-40.0,
 def forward_substrate(W_h, W_x, b, audio, hp_sos=None):
     """Run RNN forward, return average hidden state over middle third.
 
-    Uses the same logic as AcousticSubstrate.step: RMS normalize each frame,
-    then h = tanh(W_h @ h + W_x @ x + b).
+    HP filters, then feeds frames through RNN with per-frame RMS norm
+    (matches AcousticSubstrate.step exactly).
 
     Returns: avg_h (HIDDEN_DIM,), and cache for backprop.
     """
@@ -93,8 +93,12 @@ def forward_substrate(W_h, W_x, b, audio, hp_sos=None):
 
     for i in range(n_frames):
         frame = audio[i * FRAME:(i + 1) * FRAME].flatten().astype(np.float32)
-        # No RMS normalization (preserves spectral balance cues)
-        x_norm = frame
+        # Per-frame RMS normalization (matches substrate.step)
+        rms = np.sqrt(np.mean(frame ** 2))
+        if rms > 1e-6:
+            x_norm = frame / rms
+        else:
+            x_norm = frame
         pre = W_h @ h + W_x @ x_norm + b
         h = np.tanh(pre)
         h_list.append(h.copy())
@@ -358,6 +362,16 @@ def train(n_epochs=300, lr=0.001, n_per_vowel=300, margin=2.0,
         d_W_h += 2 * l2_weight * W_h
         d_W_x += 2 * l2_weight * W_x
         d_b += 2 * l2_weight * b
+
+        # Gradient clipping
+        max_grad_norm = 1.0
+        flat_grad = np.concatenate([d_W_h.ravel(), d_W_x.ravel(), d_b.ravel()])
+        grad_norm = np.linalg.norm(flat_grad)
+        if grad_norm > max_grad_norm:
+            clip_factor = max_grad_norm / grad_norm
+            d_W_h *= clip_factor
+            d_W_x *= clip_factor
+            d_b *= clip_factor
 
         # ── Adam update ──
         t_step = epoch + 1
