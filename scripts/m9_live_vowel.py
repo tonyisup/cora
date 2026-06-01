@@ -2,6 +2,7 @@
 """M9 Live Vowel Imitation — real-time mic input with feedback prevention."""
 
 import sys, json, time
+from collections import Counter
 import numpy as np
 from scipy.spatial import cKDTree
 from scipy.signal import butter, sosfilt
@@ -11,15 +12,15 @@ import sounddevice as sd
 
 SR = 16000
 
-# Load substrate
-sub_ckpt = json.load(open('data/m9_substrate_formant.ckpt.json'))
+# Load substrate (v2 — contrastive-trained, no RMS norm)
+sub_ckt = json.load(open('data/m9_substrate_formant_v2.ckpt.json'))
 substrate = AcousticSubstrate(hidden_dim=32, sr=SR)
-substrate._W_h = np.array(sub_ckpt['W_h'], dtype=np.float32)
-substrate._W_x = np.array(sub_ckpt['W_x'], dtype=np.float32)
-substrate._b = np.array(sub_ckpt['b'], dtype=np.float32)
+substrate._W_h = np.array(sub_ckt['W_h'], dtype=np.float32)
+substrate._W_x = np.array(sub_ckt['W_x'], dtype=np.float32)
+substrate._b = np.array(sub_ckt['b'], dtype=np.float32)
 
-# Load lookup
-lookup_data = json.load(open('data/m9_formant_lookup_v3.json'))
+# Load lookup (v4 — built from contrastive substrate)
+lookup_data = json.load(open('data/m9_formant_lookup_v4.json'))
 vowel_names = lookup_data['vowel_names']
 lookup = lookup_data['lookup']
 centroids = np.array([lookup[v]['centroid'] for v in vowel_names], dtype=np.float32)
@@ -51,6 +52,8 @@ def main():
     parser.add_argument('--feedback-frames', type=int, default=5, 
                         help='Frames to ignore input after producing output (prevents feedback loop)')
     parser.add_argument('--hold-frames', type=int, default=3, help='Frames to hold vowel after input stops')
+    parser.add_argument('--smooth-frames', type=int, default=3,
+                        help='Majority-vote window for temporal smoothing')
     args = parser.parse_args()
     
     print(f"Cora Vowel Imitation")
@@ -58,14 +61,16 @@ def main():
     print(f"  Output: device {args.output_device} (headphones)")
     print(f"  Vowels: {vowel_names}")
     print(f"  Feedback gate: {args.feedback_frames} frames ({args.feedback_frames * 30}ms)")
+    print(f"  Temporal smoothing: {args.smooth_frames}-frame majority vote")
     print(f"\nSpeak clearly. Hold each vowel 0.5s+. Ctrl+C to stop.\n")
     
-    # State: prev vowel, synthesis phase, hold counter, feedback gate
+    # State: prev vowel, synthesis phase, hold counter, feedback gate, history
     state = {
         'prev': None,
         'phase': 0.0,
         'hold': 0,
         'silence_count': args.feedback_frames,  # Start ready to listen
+        'history': [],  # Recent classifications for temporal smoothing
     }
     
     def callback(indata, outdata, frames, time_info, status):
@@ -84,7 +89,16 @@ def main():
             
             # Classify via nearest centroid
             _, idx = tree.query(k=1, x=substrate.hidden_state)
-            v = vowel_names[idx]
+            v_raw = vowel_names[idx]
+            
+            # Temporal smoothing: majority vote over recent frames
+            state['history'].append(v_raw)
+            if len(state['history']) > args.smooth_frames:
+                state['history'] = state['history'][-args.smooth_frames:]
+            # Pick most common vowel in recent history
+            counts = Counter(state['history'])
+            v = counts.most_common(1)[0][0]
+            
             out_v = v
             state['hold'] = args.hold_frames
             state['silence_count'] = 0  # Reset silence counter — we're now producing output
@@ -101,6 +115,8 @@ def main():
         else:
             # No output — increment silence counter (feedback gate)
             state['silence_count'] = min(state['silence_count'] + 1, args.feedback_frames * 2)
+            if state['silence_count'] >= args.feedback_frames:
+                state['history'] = []  # Clear history when idle
         
         # Produce audio output
         if out_v:

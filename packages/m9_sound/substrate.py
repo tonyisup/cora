@@ -59,11 +59,7 @@ class AcousticSubstrate:
         x = np.zeros(self._frame_size, dtype=np.float32)
         n = min(len(frame), self._frame_size)
         x[:n] = frame[:n]
-        # Normalize input
-        rms = np.sqrt(np.mean(x ** 2))
-        if rms > 1e-6:
-            x = x / rms
-        # RNN step
+        # RNN step (no per-frame RMS normalization — preserves spectral balance)
         self._h = np.tanh(self._W_h @ self._h + self._W_x @ x + self._b)
         return self._h.copy()
 
