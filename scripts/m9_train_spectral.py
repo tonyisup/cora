@@ -24,10 +24,14 @@ FRAME = 480
 HIDDEN_DIM = 32
 N_MEL = 26  # Mel filterbank bins
 
+# 5 well-separated vowels spanning F1-F2 space
+# Dropped: /I/ (too close to /i/), /O/ /U/ (too close to /a/ and /u/)
 VOWEL_FORMANTS = {
-    'i': {'f1': 280, 'f2': 2250, 'f3': 2900, 'a1': 1.0, 'a2': 0.4, 'a3': 0.2},
-    'a': {'f1': 730, 'f2': 1090, 'f3': 2440, 'a1': 1.0, 'a2': 0.7, 'a3': 0.35},
-    'u': {'f1': 300, 'f2': 870,  'f3': 2240, 'a1': 1.0, 'a2': 0.4, 'a3': 0.15},
+    'i':  {'f1': 280, 'f2': 2250, 'f3': 2900, 'a1': 1.0, 'a2': 0.4, 'a3': 0.2},   # beat
+    'E':  {'f1': 530, 'f2': 1840, 'f3': 2480, 'a1': 1.0, 'a2': 0.5, 'a3': 0.25},   # bet
+    'a':  {'f1': 730, 'f2': 1090, 'f3': 2440, 'a1': 1.0, 'a2': 0.7, 'a3': 0.35},   # hot
+    'O':  {'f1': 570, 'f2': 840,  'f3': 2410, 'a1': 1.0, 'a2': 0.6, 'a3': 0.3},    # caught
+    'u':  {'f1': 300, 'f2': 870,  'f3': 2240, 'a1': 1.0, 'a2': 0.4, 'a3': 0.15},   # boot
 }
 VOWEL_NAMES = list(VOWEL_FORMANTS.keys())
 
