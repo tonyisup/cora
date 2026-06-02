@@ -126,16 +126,47 @@ def synth_vowel(vowel, duration=0.4, phase=0.0):
         cp %= 2*np.pi
     return np.concatenate(frames), cp
 
-def synth_vowel_sequence(vowels, duration_each=0.4):
-    """Synthesize a sequence of vowels with smooth phase continuity."""
+def synth_vowel_sequence(vowels, duration_each=0.4, transition_frames=3):
+    """Synthesize a sequence of vowels with smooth phase continuity and formant transitions."""
     parts = []
     phase = 0.0
+    prev_template = None
     for v in vowels:
         if v not in lookup:
             print(f"  Unknown vowel: {v}")
             continue
-        audio, phase = synth_vowel(v, duration=duration_each, phase=phase)
-        parts.append(audio)
+        template = lookup[v]['template']
+        # Transition from previous vowel (interpolate formants over transition_frames)
+        if prev_template is not None and transition_frames > 0:
+            transition_dur = transition_frames * FRAME / SR
+            n_transition = max(1, int(transition_dur * SR / FRAME))
+            for i in range(n_transition):
+                alpha = (i + 1) / n_transition  # 0→1 over transition
+                tf = np.arange(480, dtype=np.float32) / SR
+                fr = np.zeros(480, dtype=np.float32)
+                for fk, ak in [('f1','a1'),('f2','a2'),('f3','a3')]:
+                    f_interp = prev_template[fk] * (1 - alpha) + template[fk] * alpha
+                    a_interp = prev_template[ak] * (1 - alpha) + template[ak] * alpha
+                    fr += a_interp * np.sin(2*np.pi*f_interp*tf + phase)
+                    phase += 2*np.pi*f_interp*(FRAME/SR)
+                pk = np.max(np.abs(fr))
+                if pk > 1.0: fr /= pk
+                parts.append(fr.astype(np.float32))
+                phase %= 2*np.pi
+        # Main vowel body
+        n_main = int(duration_each * SR / FRAME) - (transition_frames if prev_template else 0)
+        if n_main > 0:
+            tf_frame = np.arange(480, dtype=np.float32) / SR
+            for _ in range(n_main):
+                fr = np.zeros(480, dtype=np.float32)
+                for fk, ak in [('f1','a1'),('f2','a2'),('f3','a3')]:
+                    fr += template[ak] * np.sin(2*np.pi*template[fk]*tf_frame + phase)
+                    phase += 2*np.pi*template[fk]*(FRAME/SR)
+                pk = np.max(np.abs(fr))
+                if pk > 1.0: fr /= pk
+                parts.append(fr.astype(np.float32))
+                phase %= 2*np.pi
+        prev_template = template
     if not parts:
         return np.zeros(0, dtype=np.float32)
     return np.concatenate(parts)

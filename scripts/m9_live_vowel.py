@@ -88,6 +88,27 @@ def synth(vowel, n_frames, phase=0.0):
         cp %= 2*np.pi
     return np.concatenate(frames), cp
 
+def synth_interp(template_from, template_to, alpha, n_frames, phase=0.0):
+    """Synthesize frames with interpolated formant parameters.
+
+    alpha=0.0 → template_from, alpha=1.0 → template_to.
+    Good for smooth vowel transitions (~60-90ms).
+    """
+    frames, cp = [], phase
+    for _ in range(n_frames):
+        tf = np.arange(480, dtype=np.float32) / SR
+        fr = np.zeros(480, dtype=np.float32)
+        for fk, ak in [('f1','a1'),('f2','a2'),('f3','a3')]:
+            f_interp = template_from[fk] * (1 - alpha) + template_to[fk] * alpha
+            a_interp = template_from[ak] * (1 - alpha) + template_to[ak] * alpha
+            fr += a_interp * np.sin(2*np.pi*f_interp*tf + cp)
+            cp += 2*np.pi*f_interp*(480/SR)
+        pk = np.max(np.abs(fr))
+        if pk > 1.0: fr /= pk
+        frames.append(fr.astype(np.float32))
+        cp %= 2*np.pi
+    return np.concatenate(frames), cp
+
 def main():
     import argparse
     parser = argparse.ArgumentParser(description='M9 Live Vowel Imitation (Spectral)')
@@ -99,6 +120,8 @@ def main():
     parser.add_argument('--hold-frames', type=int, default=3, help='Frames to hold vowel')
     parser.add_argument('--smooth-frames', type=int, default=3,
                         help='Majority-vote window for temporal smoothing')
+    parser.add_argument('--transition-frames', type=int, default=3,
+                        help='Frames to interpolate formants during vowel change (~90ms)')
     parser.add_argument('--confidence-threshold', type=float, default=0.0,
                         help='Min centroid distance ratio for acceptance (0=accept all)')
     args = parser.parse_args()
@@ -110,6 +133,7 @@ def main():
     print(f"  Mel bins: {N_MEL}")
     print(f"  Feedback gate: {args.feedback_frames} frames ({args.feedback_frames * 30}ms)")
     print(f"  Temporal smoothing: {args.smooth_frames}-frame majority vote")
+    print(f"  Vowel transitions: {args.transition_frames}-frame formant interpolation ({args.transition_frames * 30}ms)")
     print(f"\nSpeak clearly. Hold each vowel 0.5s+. Ctrl+C to stop.\n")
 
     # Pre-compute distances between centroids for confidence scoring
@@ -122,6 +146,9 @@ def main():
         'silence_count': args.feedback_frames,
         'history': [],
         'h': np.zeros(HIDDEN_DIM, dtype=np.float32),  # RNN hidden state
+        'transition': 0,      # Frames remaining in vowel transition
+        'transition_from': None,  # Template we're transitioning FROM
+        'transition_to': None,    # Template we're transitioning TO
     }
 
     def rnn_step(mel_features):
@@ -206,10 +233,26 @@ def main():
             if state['silence_count'] >= args.feedback_frames:
                 state['history'] = []
 
-        # Produce audio output
+        # Produce audio output (with formant interpolation during transitions)
         if out_v:
             n_out = max(1, len(mic) // FRAME)
-            audio, state['phase'] = synth(out_v, n_out, state['phase'])
+            # Check if we should start a new transition
+            if out_v != state['prev'] and state['prev'] is not None and args.transition_frames > 0:
+                state['transition'] = args.transition_frames
+                state['transition_from'] = lookup[state['prev']]['template']
+                state['transition_to'] = lookup[out_v]['template']
+
+            if state['transition'] > 0 and state['transition_from'] is not None:
+                # In transition — interpolate formants
+                alpha = 1.0 - (state['transition'] / args.transition_frames)
+                audio, state['phase'] = synth_interp(
+                    state['transition_from'], state['transition_to'],
+                    alpha, n_out, state['phase'])
+                state['transition'] -= 1
+            else:
+                # Steady vowel — use normal synth
+                audio, state['phase'] = synth(out_v, n_out, state['phase'])
+
             n = len(outdata)
             if len(audio) >= n:
                 outdata[:] = audio[:n].reshape(-1, 1)
