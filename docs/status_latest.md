@@ -3,12 +3,13 @@
 ## Test Health
 
 ```
-588 passed, 1 skipped, 0 failed
+591 passed, 1 skipped, 0 failed
 ```
 
 - 59 M8 tests (tracker, speaking policy, reward, model)
 - The M2/M3 artifact replay tests now pass after restoring imported fixtures from the corollary copy; those assets are optional for fresh clones, but present in this checkout for local replay coverage
 - Added an M9 live-capture retrain smoke harness so the current vowel path can be regression-tested without hardware
+- Added an M9 temporal-sequence smoke harness over the saved temporal controller/substrate pair
 
 ## Milestone Status
 

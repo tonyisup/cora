@@ -13,6 +13,16 @@ from m9_sound.terminal_confirmation import (
     attach_label_if_passed,
     combine_reward,
 )
+from m9_sound.temporal import (
+    DEFAULT_TEMPORAL_TONES,
+    count_decoded_transitions,
+    decode_temporal_sequence,
+    frame_audio,
+    generate_tone_sequence,
+    load_temporal_demo_producer,
+    render_param_sequence,
+    run_temporal_smoke_report,
+)
 from m9_sound.text_association import TextAssociationStats, TextAssociationStore, WordSoundPair
 
 __all__ = [
@@ -33,6 +43,14 @@ __all__ = [
     "WeakTerminalJudge",
     "combine_reward",
     "attach_label_if_passed",
+    "DEFAULT_TEMPORAL_TONES",
+    "count_decoded_transitions",
+    "decode_temporal_sequence",
+    "frame_audio",
+    "generate_tone_sequence",
+    "load_temporal_demo_producer",
+    "render_param_sequence",
+    "run_temporal_smoke_report",
     "TextAssociationStats",
     "TextAssociationStore",
     "WordSoundPair",

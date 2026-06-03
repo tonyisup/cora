@@ -20,6 +20,11 @@
 - **Word → vowel → formant synth**: Type a word, hear its vowel
 - **Multi-vowel words**: `hello` → /ɛ/-/u/, `cora` → /ɔ/-/ɑ/
 
+### Temporal Smoke Harness
+- **Saved temporal controller/substrate pair**: hardware-free smoke run over a 3-tone sequence
+- **Frame continuity check**: cumulative phase rendering now has a regression harness
+- **CLI**: `scripts/m9_temporal_sequence_smoke.py`
+
 ### Architecture
 - **Substrate**: RNN (32-dim), Mel spectral input, contrastive triplet-trained
 - **Classifier**: Nearest-centroid in 32-dim hidden state space
@@ -33,6 +38,7 @@
 | `scripts/m9_vowel_say.py` | Text → vowel association (type words, hear vowels) |
 | `scripts/m9_train_spectral.py` | Contrastive spectral substrate training |
 | `scripts/m9_train_substrate_contrastive.py` | Raw-audio contrastive training (superseded) |
+| `scripts/m9_temporal_sequence_smoke.py` | Hardware-free temporal-sequence smoke harness |
 | `data/m9_substrate_spectral.ckpt.json` | Spectral substrate (1,888 params) |
 | `data/m9_formant_lookup_v5.json` | 5-vowel lookup table (centroids + templates) |
 
@@ -72,6 +78,6 @@ scripts/archive/m9_train_*.py           # Superseded training scripts
 
 ### Next Steps
 - Live-capture substrate retraining (train on real mic audio, not synthetic)
-- Diphthong support (vowel transitions, e.g. /aɪ/ in "buy")
+- Temporal sequence expansion (diphthongs / vowel transitions, e.g. /aɪ/ in "buy")
 - Expand pronunciation dictionary
 - Consonant frame modeling (fricatives, stops, nasals)
