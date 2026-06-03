@@ -80,3 +80,20 @@ class TestTemporalFamilyExpansion:
         assert report["rendered_frame_count"] == 10
         assert report["max_boundary_delta"] < 0.15
         assert len(report["stimulus_tones"]) == 5
+
+    def test_smoke_report_supports_wide_sweep_family(self):
+        report = run_temporal_smoke_report(
+            family="wide_sweep",
+            input_noise_rms=0.01,
+            noise_seed=19,
+            device_profile="flat",
+            device_gain=1.0,
+        )
+
+        assert report["family"] == "wide_sweep"
+        assert report["input_transition_count"] == 6
+        assert report["decoded_transition_count"] >= 6
+        assert report["stimulus_frame_count"] == 21
+        assert report["rendered_frame_count"] == 21
+        assert report["max_boundary_delta"] < 0.16
+        assert len(report["stimulus_tones"]) == 7

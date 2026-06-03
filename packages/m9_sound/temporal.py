@@ -32,6 +32,15 @@ TEMPORAL_FAMILIES: dict[str, list[tuple[float, float]]] = {
         (330.0, 0.06),
         (220.0, 0.06),
     ],
+    "wide_sweep": [
+        (220.0, 0.09),
+        (330.0, 0.09),
+        (440.0, 0.09),
+        (550.0, 0.09),
+        (660.0, 0.09),
+        (550.0, 0.09),
+        (440.0, 0.09),
+    ],
 }
 
 DEVICE_PROFILES = ("flat", "highpass")

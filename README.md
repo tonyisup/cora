@@ -53,7 +53,7 @@ Imported M2/M3 replay fixtures live under `data/` and were copied from the corol
 | M6 | ✅ Live validated | SAG introspective queries functional, M4 accept rate 95.7% |
 | M7 | ✅ Complete | Trust-gated NLMS + DriftAlarm + IR bank + device profile; live room-change validated |
 | M8 | ✅ Complete | Speaking policy: heuristic (M8a), distilled 98.7% (M8b), PPO +3062% on expanded (M8c), live hardware validated |
-| M9 | ✅ Vowel imitation working | Formant synthesis, vowel classification, live mic → headphone imitation, plus temporal-sequence smoke harness, noisy-room regression, diphthong-family coverage, and device-profile regression; see docs/m9_status.md |
+| M9 | ✅ Vowel imitation working | Formant synthesis, vowel classification, live mic → headphone imitation, plus temporal-sequence smoke harness, noisy-room regression, diphthong-family coverage, wide-sweep family coverage, and device-profile regression; see docs/m9_status.md |
 
 ### M4 Self-Voice Detector
 
