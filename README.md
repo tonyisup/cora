@@ -34,7 +34,7 @@ pip install -r requirements.txt
 
 ## Project Status
 
-**Tests:** 595 passed, 1 skipped, 0 data-missing
+**Tests:** 596 passed, 1 skipped, 0 data-missing
 
 Imported M2/M3 replay fixtures live under `data/` and were copied from the corollary project for optional local replay coverage.
 
@@ -53,7 +53,7 @@ Imported M2/M3 replay fixtures live under `data/` and were copied from the corol
 | M6 | ✅ Live validated | SAG introspective queries functional, M4 accept rate 95.7% |
 | M7 | ✅ Complete | Trust-gated NLMS + DriftAlarm + IR bank + device profile; live room-change validated |
 | M8 | ✅ Complete | Speaking policy: heuristic (M8a), distilled 98.7% (M8b), PPO +3062% on expanded (M8c), live hardware validated |
-| M9 | ✅ Vowel imitation working | Formant synthesis, vowel classification, live mic → headphone imitation, plus temporal-sequence smoke harness, noisy-room regression, diphthong-family coverage, wide-sweep family coverage, and device-profile regression; see docs/m9_status.md |
+| M9 | ✅ Vowel imitation working | Formant synthesis, vowel classification, live mic → headphone imitation, plus temporal-sequence smoke harness, noisy-room regression, diphthong-family coverage, wide-sweep family coverage, device-profile regression, and live-capture wrapper; see docs/m9_status.md |
 
 ### M4 Self-Voice Detector
 
@@ -149,6 +149,7 @@ cora/
 | `scripts/m8_train_ppo.py` | Train M8 speaking policy with PPO + M8 reward |
 | `scripts/m8_eval.py` | Evaluate heuristic vs distilled vs PPO speaking policies |
 | `scripts/m9_temporal_sequence_smoke.py` | Hardware-free temporal-sequence smoke harness for the saved controller/substrate pair |
+| `scripts/m9_live_temporal_capture.py` | Live mic/speaker capture wrapper that records rendered and captured WAV artifacts |
 
 ## Evaluation Metrics
 

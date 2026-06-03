@@ -25,6 +25,7 @@ from m9_sound.temporal import (
     write_pcm16_wav,
     write_temporal_smoke_wav,
 )
+from m9_sound.live_capture import run_live_temporal_capture_report
 from m9_sound.text_association import TextAssociationStats, TextAssociationStore, WordSoundPair
 
 __all__ = [
@@ -55,6 +56,7 @@ __all__ = [
     "run_temporal_smoke_report",
     "write_pcm16_wav",
     "write_temporal_smoke_wav",
+    "run_live_temporal_capture_report",
     "TextAssociationStats",
     "TextAssociationStore",
     "WordSoundPair",

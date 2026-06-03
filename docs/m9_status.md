@@ -27,6 +27,7 @@
 - **Diphthong-family coverage**: a 5-tone transition family exercises longer temporal sequences
 - **Wide-sweep family coverage**: a 7-tone transition family expands the transition span further
 - **Device-profile regression**: high-pass/gain variation stays stable under the smoke harness
+- **Live capture wrapper**: `scripts/m9_live_temporal_capture.py` plays the temporal sequence through real audio hardware and writes rendered/captured WAV artifacts
 - **CLI**: `scripts/m9_temporal_sequence_smoke.py` (supports `--output-wav` for a listenable rendered artifact)
 
 ### Architecture

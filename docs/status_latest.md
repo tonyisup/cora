@@ -3,7 +3,7 @@
 ## Test Health
 
 ```
-595 passed, 1 skipped, 0 failed
+596 passed, 1 skipped, 0 failed
 ```
 
 - 59 M8 tests (tracker, speaking policy, reward, model)
@@ -14,6 +14,7 @@
 - Added a diphthong-family temporal regression with a longer 5-tone transition family
 - Added a wide-sweep temporal regression with a 7-tone transition family
 - Added a device-profile regression for the temporal smoke path so capture high-pass/gain variation stays stable
+- Added a live-capture wrapper so the temporal sequence can be played through hardware and written back out as rendered/captured WAV artifacts
 
 ## Milestone Status
 
