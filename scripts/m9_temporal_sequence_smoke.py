@@ -15,7 +15,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "packages"))
 
-from m9_sound.temporal import run_temporal_smoke_report
+from m9_sound.temporal import run_temporal_smoke_report, write_temporal_smoke_wav
 
 
 def main() -> None:
@@ -25,15 +25,26 @@ def main() -> None:
     parser.add_argument("--noise-seed", type=int, default=None, help="Seed used when adding input noise")
     parser.add_argument("--device-profile", type=str, default="flat", choices=["flat", "highpass"], help="Deterministic device profile to apply before decoding")
     parser.add_argument("--device-gain", type=float, default=1.0, help="Gain applied as part of the device profile")
+    parser.add_argument("--output-wav", type=Path, default=None, help="Optional path to write the rendered temporal audio as a WAV file")
     args = parser.parse_args()
 
-    report = run_temporal_smoke_report(
-        family=args.family,
-        input_noise_rms=args.input_noise_rms,
-        noise_seed=args.noise_seed,
-        device_profile=args.device_profile,
-        device_gain=args.device_gain,
-    )
+    if args.output_wav is None:
+        report = run_temporal_smoke_report(
+            family=args.family,
+            input_noise_rms=args.input_noise_rms,
+            noise_seed=args.noise_seed,
+            device_profile=args.device_profile,
+            device_gain=args.device_gain,
+        )
+    else:
+        report = write_temporal_smoke_wav(
+            args.output_wav,
+            family=args.family,
+            input_noise_rms=args.input_noise_rms,
+            noise_seed=args.noise_seed,
+            device_profile=args.device_profile,
+            device_gain=args.device_gain,
+        )
     print(json.dumps(report, indent=2))
 
 

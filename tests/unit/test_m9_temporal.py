@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import wave
+
 import numpy as np
 
 from m9_sound.controller import ControllerParams
@@ -9,6 +11,7 @@ from m9_sound.temporal import (
     generate_tone_sequence,
     render_param_sequence,
     run_temporal_smoke_report,
+    write_temporal_smoke_wav,
 )
 
 
@@ -97,3 +100,26 @@ class TestTemporalFamilyExpansion:
         assert report["rendered_frame_count"] == 21
         assert report["max_boundary_delta"] < 0.16
         assert len(report["stimulus_tones"]) == 7
+
+
+class TestTemporalWavExport:
+    def test_write_temporal_smoke_wav_creates_listenable_wav(self, tmp_path):
+        output_path = tmp_path / "m9-temporal-wide-sweep.wav"
+
+        report = write_temporal_smoke_wav(
+            output_path,
+            family="wide_sweep",
+            input_noise_rms=0.01,
+            noise_seed=19,
+            device_profile="flat",
+            device_gain=1.0,
+        )
+
+        assert report["output_wav"] == str(output_path)
+        assert output_path.exists()
+
+        with wave.open(str(output_path), "rb") as wav_file:
+            assert wav_file.getnchannels() == 1
+            assert wav_file.getsampwidth() == 2
+            assert wav_file.getframerate() == 16000
+            assert wav_file.getnframes() == report["rendered_samples"]

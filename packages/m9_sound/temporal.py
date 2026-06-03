@@ -7,6 +7,7 @@ we can regression-test the temporal path without any audio hardware.
 from __future__ import annotations
 
 import json
+import wave
 from pathlib import Path
 from typing import Iterable, Sequence
 
@@ -113,6 +114,103 @@ def apply_device_profile(
     raise ValueError(f"Unknown device profile: {device_profile}")
 
 
+def write_pcm16_wav(path: str | Path, audio: np.ndarray, *, sr: int = SR) -> dict[str, object]:
+    """Write mono float32 audio as a 16-bit PCM WAV file."""
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+    audio = np.asarray(audio, dtype=np.float32).reshape(-1)
+    if len(audio) == 0:
+        pcm16 = np.zeros(0, dtype=np.int16)
+    else:
+        peak = float(np.max(np.abs(audio)))
+        scale = 0.0 if peak == 0.0 else min(1.0, 0.98 / peak)
+        pcm16 = np.clip(audio * scale, -1.0, 1.0)
+        pcm16 = np.round(pcm16 * 32767.0).astype(np.int16)
+
+    with wave.open(str(path), "wb") as wav_file:
+        wav_file.setnchannels(1)
+        wav_file.setsampwidth(2)
+        wav_file.setframerate(int(sr))
+        wav_file.writeframes(pcm16.tobytes())
+
+    return {
+        "path": str(path),
+        "sample_rate": int(sr),
+        "sample_count": int(len(audio)),
+        "peak": float(np.max(np.abs(audio)) if len(audio) else 0.0),
+    }
+
+
+def build_temporal_smoke_artifact(
+    *,
+    family: str = "default",
+    tones: Sequence[tuple[float, float]] | None = None,
+    controller_ckpt_path: str | Path = DEFAULT_CONTROLLER_CKPT,
+    substrate_ckpt_path: str | Path = DEFAULT_SUBSTRATE_CKPT,
+    sr: int = SR,
+    frame_size: int = FRAME_SIZE,
+    input_noise_rms: float = 0.0,
+    noise_seed: int | None = None,
+    device_profile: str = "flat",
+    device_gain: float = 1.0,
+) -> tuple[np.ndarray, dict[str, object]]:
+    """Build the rendered temporal smoke artifact and its report."""
+    producer = load_temporal_demo_producer(
+        controller_ckpt_path=controller_ckpt_path,
+        substrate_ckpt_path=substrate_ckpt_path,
+        sr=sr,
+        frame_size=frame_size,
+    )
+
+    if tones is None:
+        if family not in TEMPORAL_FAMILIES:
+            raise ValueError(f"Unknown temporal family: {family}")
+        tones = TEMPORAL_FAMILIES[family]
+
+    stimulus = generate_tone_sequence(
+        tones,
+        sr=sr,
+        noise_rms=input_noise_rms,
+        noise_seed=noise_seed,
+    )
+    stimulus = apply_device_profile(stimulus, device_profile=device_profile, device_gain=device_gain)
+    params = decode_temporal_sequence(producer, stimulus, frame_size=frame_size)
+    rendered, render_report = render_param_sequence(params, sr=sr, frame_size=frame_size)
+    stimulus_frames = frame_audio(stimulus, frame_size=frame_size)
+
+    decoded_transition_count = count_decoded_transitions(
+        params,
+        smooth_window=5 if device_profile != "flat" else 3,
+    )
+
+    report: dict[str, object] = {
+        "stimulus_tones": [[float(freq), float(duration)] for freq, duration in tones],
+        "family": family,
+        "checkpoint_paths": {
+            "controller": str(Path(controller_ckpt_path)),
+            "substrate": str(Path(substrate_ckpt_path)),
+        },
+        "stimulus_samples": int(len(stimulus)),
+        "stimulus_frame_count": int(len(stimulus_frames)),
+        "rendered_samples": int(len(rendered)),
+        "rendered_frame_count": int(render_report["frame_count"]),
+        "input_transition_count": int(max(0, len(tones) - 1)),
+        "decoded_transition_count": int(decoded_transition_count),
+        "decoded_freq_min": float(render_report["freq_min"]),
+        "decoded_freq_max": float(render_report["freq_max"]),
+        "decoded_freq_span": float(render_report["freq_span"]),
+        "max_boundary_delta": float(render_report["max_boundary_delta"]),
+        "min_boundary_delta": float(render_report["min_boundary_delta"]),
+        "mean_boundary_delta": float(render_report["mean_boundary_delta"]),
+        "input_noise_rms": float(input_noise_rms),
+        "noise_seed": noise_seed,
+        "device_profile": device_profile,
+        "device_gain": float(device_gain),
+    }
+    return rendered, report
+
+
 def _render_frame(params: ControllerParams, *, sr: int, frame_size: int, cumulative_phase: float) -> np.ndarray:
     t = np.arange(frame_size, dtype=np.float32) / sr
     phase_offset = cumulative_phase + float(params.phase)
@@ -139,7 +237,7 @@ def render_param_sequence(
     *,
     sr: int = SR,
     frame_size: int = FRAME_SIZE,
-) -> tuple[np.ndarray, dict[str, float | int | list[float]]]:
+) -> tuple[np.ndarray, dict[str, float | int]]:
     """Render controller parameters into audio and return a continuity report."""
     if not params:
         report = {
@@ -276,55 +374,56 @@ def run_temporal_smoke_report(
     device_gain: float = 1.0,
 ) -> dict[str, object]:
     """Run a lightweight temporal-sequence smoke check and return a JSONable report."""
-    producer = load_temporal_demo_producer(
+    _, report = build_temporal_smoke_artifact(
+        family=family,
+        tones=tones,
         controller_ckpt_path=controller_ckpt_path,
         substrate_ckpt_path=substrate_ckpt_path,
         sr=sr,
         frame_size=frame_size,
-    )
-
-    if tones is None:
-        if family not in TEMPORAL_FAMILIES:
-            raise ValueError(f"Unknown temporal family: {family}")
-        tones = TEMPORAL_FAMILIES[family]
-
-    stimulus = generate_tone_sequence(
-        tones,
-        sr=sr,
-        noise_rms=input_noise_rms,
+        input_noise_rms=input_noise_rms,
         noise_seed=noise_seed,
+        device_profile=device_profile,
+        device_gain=device_gain,
     )
-    stimulus = apply_device_profile(stimulus, device_profile=device_profile, device_gain=device_gain)
-    params = decode_temporal_sequence(producer, stimulus, frame_size=frame_size)
-    rendered, render_report = render_param_sequence(params, sr=sr, frame_size=frame_size)
-    stimulus_frames = frame_audio(stimulus, frame_size=frame_size)
+    return report
 
-    decoded_transition_count = count_decoded_transitions(
-        params,
-        smooth_window=5 if device_profile != "flat" else 3,
+
+def write_temporal_smoke_wav(
+    output_path: str | Path,
+    *,
+    family: str = "default",
+    tones: Sequence[tuple[float, float]] | None = None,
+    controller_ckpt_path: str | Path = DEFAULT_CONTROLLER_CKPT,
+    substrate_ckpt_path: str | Path = DEFAULT_SUBSTRATE_CKPT,
+    sr: int = SR,
+    frame_size: int = FRAME_SIZE,
+    input_noise_rms: float = 0.0,
+    noise_seed: int | None = None,
+    device_profile: str = "flat",
+    device_gain: float = 1.0,
+) -> dict[str, object]:
+    """Render the temporal smoke output to a listenable WAV file."""
+    rendered, report = build_temporal_smoke_artifact(
+        family=family,
+        tones=tones,
+        controller_ckpt_path=controller_ckpt_path,
+        substrate_ckpt_path=substrate_ckpt_path,
+        sr=sr,
+        frame_size=frame_size,
+        input_noise_rms=input_noise_rms,
+        noise_seed=noise_seed,
+        device_profile=device_profile,
+        device_gain=device_gain,
     )
-
-    return {
-        "stimulus_tones": [[float(freq), float(duration)] for freq, duration in tones],
-        "family": family,
-        "checkpoint_paths": {
-            "controller": str(Path(controller_ckpt_path)),
-            "substrate": str(Path(substrate_ckpt_path)),
-        },
-        "stimulus_samples": int(len(stimulus)),
-        "stimulus_frame_count": int(len(stimulus_frames)),
-        "rendered_samples": int(len(rendered)),
-        "rendered_frame_count": int(render_report["frame_count"]),
-        "input_transition_count": int(max(0, len(tones) - 1)),
-        "decoded_transition_count": int(decoded_transition_count),
-        "decoded_freq_min": float(render_report["freq_min"]),
-        "decoded_freq_max": float(render_report["freq_max"]),
-        "decoded_freq_span": float(render_report["freq_span"]),
-        "max_boundary_delta": float(render_report["max_boundary_delta"]),
-        "min_boundary_delta": float(render_report["min_boundary_delta"]),
-        "mean_boundary_delta": float(render_report["mean_boundary_delta"]),
-        "input_noise_rms": float(input_noise_rms),
-        "noise_seed": noise_seed,
-        "device_profile": device_profile,
-        "device_gain": float(device_gain),
-    }
+    wav_meta = write_pcm16_wav(output_path, rendered, sr=sr)
+    report = dict(report)
+    report.update(
+        {
+            "output_wav": wav_meta["path"],
+            "output_wav_sample_rate": wav_meta["sample_rate"],
+            "output_wav_sample_count": wav_meta["sample_count"],
+            "output_wav_peak": wav_meta["peak"],
+        }
+    )
+    return report

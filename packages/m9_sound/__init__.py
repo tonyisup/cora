@@ -22,6 +22,8 @@ from m9_sound.temporal import (
     load_temporal_demo_producer,
     render_param_sequence,
     run_temporal_smoke_report,
+    write_pcm16_wav,
+    write_temporal_smoke_wav,
 )
 from m9_sound.text_association import TextAssociationStats, TextAssociationStore, WordSoundPair
 
@@ -51,6 +53,8 @@ __all__ = [
     "load_temporal_demo_producer",
     "render_param_sequence",
     "run_temporal_smoke_report",
+    "write_pcm16_wav",
+    "write_temporal_smoke_wav",
     "TextAssociationStats",
     "TextAssociationStore",
     "WordSoundPair",

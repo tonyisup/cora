@@ -3,7 +3,7 @@
 ## Test Health
 
 ```
-594 passed, 1 skipped, 0 failed
+595 passed, 1 skipped, 0 failed
 ```
 
 - 59 M8 tests (tracker, speaking policy, reward, model)
