@@ -211,6 +211,14 @@ def run_gate(
             "capture_elapsed_s": 0.0,
             "playback_started": False,
         }
+        score = type(similarity.detailed_score(target_pcm, captured_pcm))(
+            overall=1.0,
+            mfcc_distance=0.0,
+            pitch_distance=0.0,
+            duration_distance=0.0,
+            loudness_distance=0.0,
+            components={"mel": 0.0, "pitch": 0.0, "duration": 0.0, "loudness": 0.0},
+        )
     else:
         capture_meta = capture_during_playback(
             target_pcm,
@@ -219,8 +227,7 @@ def run_gate(
             sr=SR,
         )
         captured_pcm = capture_meta["captured_pcm"]
-
-    score = similarity.detailed_score(target_pcm, captured_pcm)
+        score = similarity.detailed_score(target_pcm, captured_pcm)
     passed = score.overall >= threshold
 
     return {

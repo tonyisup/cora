@@ -1,14 +1,13 @@
-# Cora Status — 2026-05-23
+# Cora Status — 2026-06-03
 
 ## Test Health
 
 ```
-538 passed, 1 skipped, 5 failed (data-missing)
+586 passed, 1 skipped, 0 failed
 ```
 
 - 59 M8 tests (tracker, speaking policy, reward, model)
-- 5 unit tests fail with FileNotFoundError — all are M2/M3 artifact replay tests that need data files not present in local data/
-- These are environment/data availability issues, not code regressions
+- The M2/M3 artifact replay tests now pass after restoring the missing data from the corollary copy
 
 ## Milestone Status
 

@@ -1,6 +1,6 @@
 # M9 Speech Imitation Roadmap
 
-> Status: ~5% complete. The learning loop works — stimulus → capture → imitation → capture → score → update. Next: temporal sequences.
+> Status: Historical roadmap for the earlier tone-imitation phase. The current M9 vowel-imitation path is working and live-capture retrain is validated; temporal sequences remain the next major gap.
 
 ## Where We Are
 

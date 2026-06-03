@@ -117,9 +117,14 @@ class M8DistilledPolicy(nn.Module):
         -------
         (action_name, action_idx) : tuple[str, int]
         """
-        import math  # ensure available
         x = encode_m8_features(features)
-        with torch.no_grad():
-            logits = self.net(x)
-            idx = logits.argmax().item()
+        was_training = self.training
+        self.eval()
+        try:
+            with torch.no_grad():
+                logits = self.net(x)
+                idx = logits.argmax().item()
+        finally:
+            if was_training:
+                self.train()
         return ACTION_NAMES[idx], idx

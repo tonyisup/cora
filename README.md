@@ -34,7 +34,7 @@ pip install -r requirements.txt
 
 ## Project Status
 
-**Tests:** 538 passed, 1 skipped, 5 data-missing (M2/M3 artifacts not in local data/)
+**Tests:** 586 passed, 1 skipped, 0 data-missing
 
 ### Milestone Summary
 
