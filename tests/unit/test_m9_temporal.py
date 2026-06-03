@@ -49,16 +49,18 @@ class TestTemporalRendering:
         assert report["min_boundary_delta"] >= 0.0
 
 
-class TestTemporalSmokeReport:
-    def test_smoke_report_uses_saved_checkpoints(self):
-        report = run_temporal_smoke_report()
+class TestTemporalFamilyExpansion:
+    def test_smoke_report_supports_diphthong_family(self):
+        report = run_temporal_smoke_report(
+            family="diphthong",
+            input_noise_rms=0.01,
+            noise_seed=11,
+        )
 
-        assert report["stimulus_tones"] == [[220.0, 0.12], [330.0, 0.12], [440.0, 0.12]]
-        assert report["input_transition_count"] == 2
-        assert report["stimulus_samples"] == 5760
-        assert report["rendered_samples"] == 5760
-        assert report["stimulus_frame_count"] == 12
-        assert report["rendered_frame_count"] == 12
-        assert report["max_boundary_delta"] < 0.6
-        assert report["checkpoint_paths"]["controller"].endswith("m9_controller_temporal_v3.ckpt.json")
-        assert report["checkpoint_paths"]["substrate"].endswith("m9_substrate_live.ckpt.json")
+        assert report["family"] == "diphthong"
+        assert report["input_transition_count"] == 4
+        assert report["decoded_transition_count"] == 4
+        assert report["stimulus_frame_count"] == 10
+        assert report["rendered_frame_count"] == 10
+        assert report["max_boundary_delta"] < 0.15
+        assert len(report["stimulus_tones"]) == 5

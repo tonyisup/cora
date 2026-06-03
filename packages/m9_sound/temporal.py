@@ -23,6 +23,17 @@ DEFAULT_TEMPORAL_TONES: list[tuple[float, float]] = [
     (440.0, 0.12),
 ]
 
+TEMPORAL_FAMILIES: dict[str, list[tuple[float, float]]] = {
+    "default": DEFAULT_TEMPORAL_TONES,
+    "diphthong": [
+        (220.0, 0.06),
+        (330.0, 0.06),
+        (440.0, 0.06),
+        (330.0, 0.06),
+        (220.0, 0.06),
+    ],
+}
+
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_CONTROLLER_CKPT = REPO_ROOT / "data" / "m9_controller_temporal_v3.ckpt.json"
 DEFAULT_SUBSTRATE_CKPT = REPO_ROOT / "data" / "m9_substrate_live.ckpt.json"
@@ -218,7 +229,8 @@ def count_decoded_transitions(
 
 def run_temporal_smoke_report(
     *,
-    tones: Sequence[tuple[float, float]] = DEFAULT_TEMPORAL_TONES,
+    family: str = "default",
+    tones: Sequence[tuple[float, float]] | None = None,
     controller_ckpt_path: str | Path = DEFAULT_CONTROLLER_CKPT,
     substrate_ckpt_path: str | Path = DEFAULT_SUBSTRATE_CKPT,
     sr: int = SR,
@@ -234,6 +246,11 @@ def run_temporal_smoke_report(
         frame_size=frame_size,
     )
 
+    if tones is None:
+        if family not in TEMPORAL_FAMILIES:
+            raise ValueError(f"Unknown temporal family: {family}")
+        tones = TEMPORAL_FAMILIES[family]
+
     stimulus = generate_tone_sequence(
         tones,
         sr=sr,
@@ -246,6 +263,7 @@ def run_temporal_smoke_report(
 
     return {
         "stimulus_tones": [[float(freq), float(duration)] for freq, duration in tones],
+        "family": family,
         "checkpoint_paths": {
             "controller": str(Path(controller_ckpt_path)),
             "substrate": str(Path(substrate_ckpt_path)),
