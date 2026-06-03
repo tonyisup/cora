@@ -54,6 +54,10 @@ Current: ~3–4 seconds per trial. Speech needs: real-time or near-real-time
 
 ## Recommended Sequence
 
+### Near-term recommendation
+1. Add a small regression harness around live-capture retrain so the current vowel path stays stable under noisy-room/device variation.
+2. Then move to temporal sequences (2–3 vowel/frequency transitions per utterance).
+
 ### Phase 1: Temporal Sequences (next step)
 - Stimulus: 2–3 frequency sequence (e.g., 220 Hz 0.3s → 330 Hz 0.3s)
 - Producer must learn to switch frequencies mid-utterance

@@ -7,7 +7,7 @@
 ```
 
 - 59 M8 tests (tracker, speaking policy, reward, model)
-- The M2/M3 artifact replay tests now pass after restoring the missing data from the corollary copy
+- The M2/M3 artifact replay tests now pass after restoring imported fixtures from the corollary copy; those assets are optional for fresh clones, but present in this checkout for local replay coverage
 
 ## Milestone Status
 
