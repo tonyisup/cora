@@ -22,6 +22,22 @@ class TestTemporalNoiseRobustness:
         assert report["rendered_frame_count"] == 12
 
 
+class TestTemporalDeviceVariation:
+    def test_smoke_report_handles_device_highpass_profile(self):
+        report = run_temporal_smoke_report(
+            device_profile="highpass",
+            device_gain=0.8,
+            input_noise_rms=0.01,
+            noise_seed=13,
+        )
+
+        assert report["device_profile"] == "highpass"
+        assert report["device_gain"] == 0.8
+        assert report["decoded_transition_count"] == 2
+        assert report["rendered_frame_count"] == 12
+        assert report["max_boundary_delta"] < 0.12
+
+
 class TestTemporalToneGeneration:
     def test_generate_tone_sequence_is_frame_aligned(self):
         tones = [(220.0, 0.12), (330.0, 0.12), (440.0, 0.12)]

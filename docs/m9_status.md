@@ -25,6 +25,7 @@
 - **Frame continuity check**: cumulative phase rendering now has a regression harness
 - **Noisy-room regression**: additive input noise can be injected deterministically and still preserve the 2-transition decode
 - **Diphthong-family coverage**: a 5-tone transition family exercises longer temporal sequences
+- **Device-profile regression**: high-pass/gain variation stays stable under the smoke harness
 - **CLI**: `scripts/m9_temporal_sequence_smoke.py`
 
 ### Architecture

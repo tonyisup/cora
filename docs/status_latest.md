@@ -3,7 +3,7 @@
 ## Test Health
 
 ```
-592 passed, 1 skipped, 0 failed
+593 passed, 1 skipped, 0 failed
 ```
 
 - 59 M8 tests (tracker, speaking policy, reward, model)
@@ -12,6 +12,7 @@
 - Added an M9 temporal-sequence smoke harness over the saved temporal controller/substrate pair
 - Added a noisy-room regression for the temporal smoke path so small additive input noise stays stable
 - Added a diphthong-family temporal regression with a longer 5-tone transition family
+- Added a device-profile regression for the temporal smoke path so capture high-pass/gain variation stays stable
 
 ## Milestone Status
 

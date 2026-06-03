@@ -34,6 +34,8 @@ TEMPORAL_FAMILIES: dict[str, list[tuple[float, float]]] = {
     ],
 }
 
+DEVICE_PROFILES = ("flat", "highpass")
+
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_CONTROLLER_CKPT = REPO_ROOT / "data" / "m9_controller_temporal_v3.ckpt.json"
 DEFAULT_SUBSTRATE_CKPT = REPO_ROOT / "data" / "m9_substrate_live.ckpt.json"
@@ -76,6 +78,30 @@ def frame_audio(audio: np.ndarray, *, frame_size: int = FRAME_SIZE) -> list[np.n
     audio = np.asarray(audio, dtype=np.float32).reshape(-1)
     n_frames = len(audio) // frame_size
     return [audio[i * frame_size : (i + 1) * frame_size].copy() for i in range(n_frames)]
+
+
+def apply_device_profile(
+    audio: np.ndarray,
+    *,
+    device_profile: str = "flat",
+    device_gain: float = 1.0,
+) -> np.ndarray:
+    """Apply a deterministic device profile used by the smoke regression."""
+    audio = np.asarray(audio, dtype=np.float32).reshape(-1) * float(device_gain)
+    if device_profile == "flat":
+        return audio.astype(np.float32)
+    if device_profile == "highpass":
+        # Simple first-order high-pass to mimic the common capture-device profile.
+        y = np.empty_like(audio)
+        prev_x = 0.0
+        prev_y = 0.0
+        alpha = 0.98
+        for idx, sample in enumerate(audio):
+            y[idx] = alpha * (prev_y + sample - prev_x)
+            prev_x = float(sample)
+            prev_y = float(y[idx])
+        return y.astype(np.float32)
+    raise ValueError(f"Unknown device profile: {device_profile}")
 
 
 def _render_frame(params: ControllerParams, *, sr: int, frame_size: int, cumulative_phase: float) -> np.ndarray:
@@ -237,6 +263,8 @@ def run_temporal_smoke_report(
     frame_size: int = FRAME_SIZE,
     input_noise_rms: float = 0.0,
     noise_seed: int | None = None,
+    device_profile: str = "flat",
+    device_gain: float = 1.0,
 ) -> dict[str, object]:
     """Run a lightweight temporal-sequence smoke check and return a JSONable report."""
     producer = load_temporal_demo_producer(
@@ -257,9 +285,15 @@ def run_temporal_smoke_report(
         noise_rms=input_noise_rms,
         noise_seed=noise_seed,
     )
+    stimulus = apply_device_profile(stimulus, device_profile=device_profile, device_gain=device_gain)
     params = decode_temporal_sequence(producer, stimulus, frame_size=frame_size)
     rendered, render_report = render_param_sequence(params, sr=sr, frame_size=frame_size)
     stimulus_frames = frame_audio(stimulus, frame_size=frame_size)
+
+    decoded_transition_count = count_decoded_transitions(
+        params,
+        smooth_window=5 if device_profile != "flat" else 3,
+    )
 
     return {
         "stimulus_tones": [[float(freq), float(duration)] for freq, duration in tones],
@@ -273,7 +307,7 @@ def run_temporal_smoke_report(
         "rendered_samples": int(len(rendered)),
         "rendered_frame_count": int(render_report["frame_count"]),
         "input_transition_count": int(max(0, len(tones) - 1)),
-        "decoded_transition_count": int(count_decoded_transitions(params)),
+        "decoded_transition_count": int(decoded_transition_count),
         "decoded_freq_min": float(render_report["freq_min"]),
         "decoded_freq_max": float(render_report["freq_max"]),
         "decoded_freq_span": float(render_report["freq_span"]),
@@ -282,4 +316,6 @@ def run_temporal_smoke_report(
         "mean_boundary_delta": float(render_report["mean_boundary_delta"]),
         "input_noise_rms": float(input_noise_rms),
         "noise_seed": noise_seed,
+        "device_profile": device_profile,
+        "device_gain": float(device_gain),
     }
