@@ -43,6 +43,15 @@ VOWEL_IPA = {'i': '/i/', 'E': '/ɛ/', 'a': '/ɑ/', 'O': '/ɔ/', 'u': '/u/'}
 CAPTURE_DIR = Path('data/m9_live_captures')
 HP_SOS = butter(4, 100, btype='high', fs=SR, output='sos')
 
+
+def summarize_live_captures(captures):
+    """Return a compact count summary for a captures dict."""
+    counts = {v: len(captures.get(v, [])) for v in VOWEL_NAMES}
+    return {
+        'vowel_counts': counts,
+        'live_captured': sum(counts.values()),
+    }
+
 # ── Mel filterbank (same as training) ──────────────────────────────────────
 
 def hz_to_mel(hz): return 2595.0 * np.log10(1.0 + hz / 700.0)
@@ -85,9 +94,10 @@ def audio_to_mel_frames(audio, hp_sos=HP_SOS):
 
 # ── Capture ───────────────────────────────────────────────────────────────
 
-def capture_vowels(n_per_vowel=10, duration=1.5, input_device=1, threshold=0.003):
+def capture_vowels(n_per_vowel=10, duration=1.5, input_device=1, threshold=0.003, capture_dir=CAPTURE_DIR):
     """Record live vowel samples from the mic."""
-    CAPTURE_DIR.mkdir(parents=True, exist_ok=True)
+    capture_dir = Path(capture_dir)
+    capture_dir.mkdir(parents=True, exist_ok=True)
 
     print(f"Live Vowel Capture")
     print(f"  {n_per_vowel} samples per vowel, {duration}s each")
@@ -103,7 +113,7 @@ def capture_vowels(n_per_vowel=10, duration=1.5, input_device=1, threshold=0.003
         print(f"  Say and hold '{ipa}' when recording starts.")
 
         captured = 0
-        existing = list(CAPTURE_DIR.glob(f'{v}_*.json'))
+        existing = list(capture_dir.glob(f'{v}_*.json'))
         if existing:
             captured = len(existing)
             print(f"  Found {captured} existing captures.")
@@ -131,7 +141,7 @@ def capture_vowels(n_per_vowel=10, duration=1.5, input_device=1, threshold=0.003
                 'mel_frames': mel_frames.tolist(),
                 'n_frames': len(mel_frames),
             }
-            path = CAPTURE_DIR / f'{v}_{captured:03d}.json'
+            path = capture_dir / f'{v}_{captured:03d}.json'
             path.write_text(json.dumps(sample))
             captures[v].append(mel_frames)
             captured += 1
@@ -141,10 +151,12 @@ def capture_vowels(n_per_vowel=10, duration=1.5, input_device=1, threshold=0.003
 
     return captures
 
-def load_captures():
+
+def load_captures(capture_dir=CAPTURE_DIR):
     """Load previously captured vowel samples."""
+    capture_dir = Path(capture_dir)
     captures = {v: [] for v in VOWEL_NAMES}
-    for path in sorted(CAPTURE_DIR.glob('*.json')):
+    for path in sorted(capture_dir.glob('*.json')):
         v = path.stem.split('_')[0]
         if v not in VOWEL_NAMES:
             continue
@@ -153,7 +165,6 @@ def load_captures():
         captures[v].append(mel)
     return captures
 
-# ── Train with live data ─────────────────────────────────────────────────
 
 def train_with_live_data(live_captures, n_synthetic=200, epochs=300,
                          lr=0.001, margin=8.0, desat_weight=0.2, l2_weight=1e-4):
@@ -303,6 +314,86 @@ def main():
             return
     else:
         captures = capture_vowels(n_per_vowel=args.n_per_vowel, input_device=args.input_device)
+
+    print(f"\nRetraining with live + synthetic data...")
+    W_h, W_x, b, dataset, centroids = train_with_live_data(
+        captures, n_synthetic=args.n_synthetic, epochs=args.epochs)
+
+    # Save
+    ckpt = {'W_h': W_h.tolist(), 'W_x': W_x.tolist(), 'b': b.tolist(),
+            'hidden_dim': HIDDEN_DIM, 'n_mel': N_MEL, 'sr': SR,
+            'live_captured': sum(len(v) for v in captures.values())}
+    Path('data/m9_substrate_spectral.ckpt.json').write_text(json.dumps(ckpt))
+    print("\nSaved retrained substrate: data/m9_substrate_spectral.ckpt.json")
+    print("Run: python scripts/m9_train_spectral.py --eval-only  # to rebuild lookup")
+
+
+def run_smoke_retrain(capture_dir=CAPTURE_DIR, n_synthetic=1, epochs=1, input_device=1):
+    """Run a lightweight live-capture retrain regression over local fixtures."""
+    capture_dir = Path(capture_dir)
+    captures = load_captures(capture_dir)
+    summary = summarize_live_captures(captures)
+    if summary['live_captured'] == 0:
+        raise FileNotFoundError(f"No live captures found in {capture_dir}")
+
+    W_h, W_x, b, dataset, centroids = train_with_live_data(
+        captures,
+        n_synthetic=n_synthetic,
+        epochs=epochs,
+    )
+
+    return {
+        'capture_dir': str(capture_dir),
+        'trained': True,
+        'n_synthetic': n_synthetic,
+        'epochs': epochs,
+        'dataset_size': len(dataset),
+        'centroid_count': len(centroids),
+        **summary,
+        'checkpoint_shape': {
+            'W_h': list(W_h.shape),
+            'W_x': list(W_x.shape),
+            'b': list(b.shape),
+        },
+    }
+
+
+def main():
+    parser = argparse.ArgumentParser(description='M9 Live Capture + Retrain')
+    parser.add_argument('--skip-capture', action='store_true', help='Reuse existing captures')
+    parser.add_argument('--smoke', action='store_true', help='Run a lightweight regression over an existing capture fixture')
+    parser.add_argument('--capture-dir', type=str, default=str(CAPTURE_DIR), help='Directory of live capture JSON fixtures')
+    parser.add_argument('--n-per-vowel', type=int, default=10, help='Live samples per vowel')
+    parser.add_argument('--input-device', type=int, default=1, help='Mic input device')
+    parser.add_argument('--epochs', type=int, default=200, help='Retrain epochs')
+    parser.add_argument('--n-synthetic', type=int, default=200, help='Synthetic samples per vowel')
+    args = parser.parse_args()
+
+    capture_dir = Path(args.capture_dir)
+
+    if args.smoke:
+        report = run_smoke_retrain(
+            capture_dir=capture_dir,
+            n_synthetic=args.n_synthetic,
+            epochs=args.epochs,
+            input_device=args.input_device,
+        )
+        print(json.dumps(report, indent=2))
+        return
+
+    if args.skip_capture:
+        captures = load_captures(capture_dir)
+        total = sum(len(v) for v in captures.values())
+        print(f"Loaded {total} existing live captures")
+        if total == 0:
+            print("No captures found. Run without --skip-capture first.")
+            return
+    else:
+        captures = capture_vowels(
+            n_per_vowel=args.n_per_vowel,
+            input_device=args.input_device,
+            capture_dir=capture_dir,
+        )
 
     print(f"\nRetraining with live + synthetic data...")
     W_h, W_x, b, dataset, centroids = train_with_live_data(
