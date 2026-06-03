@@ -34,10 +34,13 @@ def generate_tone_sequence(
     sr: int = SR,
     amplitude: float = 0.5,
     phase_offset: float = 0.0,
+    noise_rms: float = 0.0,
+    noise_seed: int | None = None,
 ) -> np.ndarray:
     """Generate a deterministic tone sequence for temporal smoke tests."""
     parts: list[np.ndarray] = []
     current_phase = float(phase_offset)
+    rng = np.random.default_rng(noise_seed) if noise_rms > 0.0 else None
 
     for freq_hz, duration_s in tones:
         n_samples = int(round(sr * duration_s))
@@ -45,6 +48,8 @@ def generate_tone_sequence(
             continue
         t = np.arange(n_samples, dtype=np.float32) / sr
         frame = amplitude * np.sin(2.0 * np.pi * float(freq_hz) * t + current_phase)
+        if rng is not None:
+            frame = frame + rng.normal(0.0, noise_rms, size=n_samples).astype(np.float32)
         parts.append(frame.astype(np.float32))
         current_phase = float(
             (current_phase + 2.0 * np.pi * float(freq_hz) * (n_samples / sr)) % (2.0 * np.pi)
@@ -183,18 +188,31 @@ def count_decoded_transitions(
     params: Sequence[ControllerParams],
     *,
     freq_threshold_hz: float = 40.0,
+    smooth_window: int = 3,
 ) -> int:
-    """Count coarse transitions in a decoded frequency trace."""
+    """Count coarse transitions in a decoded frequency trace.
+
+    A small median filter makes the count robust to jitter in noisy captures.
+    """
     if not params:
         return 0
 
+    freqs = np.array([float(p.freq_hz) for p in params], dtype=np.float32)
+    if smooth_window > 1 and len(freqs) >= smooth_window:
+        half = smooth_window // 2
+        smoothed = freqs.copy()
+        for idx in range(len(freqs)):
+            lo = max(0, idx - half)
+            hi = min(len(freqs), idx + half + 1)
+            smoothed[idx] = float(np.median(freqs[lo:hi]))
+        freqs = smoothed
+
     transitions = 0
-    prev = float(params[0].freq_hz)
-    for current in params[1:]:
-        freq = float(current.freq_hz)
-        if abs(freq - prev) >= freq_threshold_hz:
+    prev = float(freqs[0])
+    for freq in freqs[1:]:
+        if abs(float(freq) - prev) >= freq_threshold_hz:
             transitions += 1
-            prev = freq
+            prev = float(freq)
     return transitions
 
 
@@ -205,6 +223,8 @@ def run_temporal_smoke_report(
     substrate_ckpt_path: str | Path = DEFAULT_SUBSTRATE_CKPT,
     sr: int = SR,
     frame_size: int = FRAME_SIZE,
+    input_noise_rms: float = 0.0,
+    noise_seed: int | None = None,
 ) -> dict[str, object]:
     """Run a lightweight temporal-sequence smoke check and return a JSONable report."""
     producer = load_temporal_demo_producer(
@@ -214,7 +234,12 @@ def run_temporal_smoke_report(
         frame_size=frame_size,
     )
 
-    stimulus = generate_tone_sequence(tones, sr=sr)
+    stimulus = generate_tone_sequence(
+        tones,
+        sr=sr,
+        noise_rms=input_noise_rms,
+        noise_seed=noise_seed,
+    )
     params = decode_temporal_sequence(producer, stimulus, frame_size=frame_size)
     rendered, render_report = render_param_sequence(params, sr=sr, frame_size=frame_size)
     stimulus_frames = frame_audio(stimulus, frame_size=frame_size)
@@ -237,4 +262,6 @@ def run_temporal_smoke_report(
         "max_boundary_delta": float(render_report["max_boundary_delta"]),
         "min_boundary_delta": float(render_report["min_boundary_delta"]),
         "mean_boundary_delta": float(render_report["mean_boundary_delta"]),
+        "input_noise_rms": float(input_noise_rms),
+        "noise_seed": noise_seed,
     }

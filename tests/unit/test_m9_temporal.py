@@ -12,6 +12,16 @@ from m9_sound.temporal import (
 )
 
 
+class TestTemporalNoiseRobustness:
+    def test_smoke_report_handles_room_noise(self):
+        report = run_temporal_smoke_report(input_noise_rms=0.02, noise_seed=7)
+
+        assert report["input_noise_rms"] == 0.02
+        assert report["noise_seed"] == 7
+        assert report["decoded_transition_count"] == 2
+        assert report["rendered_frame_count"] == 12
+
+
 class TestTemporalToneGeneration:
     def test_generate_tone_sequence_is_frame_aligned(self):
         tones = [(220.0, 0.12), (330.0, 0.12), (440.0, 0.12)]

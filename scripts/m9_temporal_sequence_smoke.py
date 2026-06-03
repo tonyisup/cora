@@ -8,6 +8,7 @@ checks.
 
 from __future__ import annotations
 
+import argparse
 import json
 import sys
 from pathlib import Path
@@ -18,7 +19,15 @@ from m9_sound.temporal import run_temporal_smoke_report
 
 
 def main() -> None:
-    report = run_temporal_smoke_report()
+    parser = argparse.ArgumentParser(description="M9 temporal-sequence smoke harness")
+    parser.add_argument("--input-noise-rms", type=float, default=0.0, help="Add deterministic Gaussian noise to the stimulus")
+    parser.add_argument("--noise-seed", type=int, default=None, help="Seed used when adding input noise")
+    args = parser.parse_args()
+
+    report = run_temporal_smoke_report(
+        input_noise_rms=args.input_noise_rms,
+        noise_seed=args.noise_seed,
+    )
     print(json.dumps(report, indent=2))
 
 

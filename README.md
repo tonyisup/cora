@@ -34,7 +34,7 @@ pip install -r requirements.txt
 
 ## Project Status
 
-**Tests:** 591 passed, 1 skipped, 0 data-missing
+**Tests:** 592 passed, 1 skipped, 0 data-missing
 
 Imported M2/M3 replay fixtures live under `data/` and were copied from the corollary project for optional local replay coverage.
 
@@ -53,7 +53,7 @@ Imported M2/M3 replay fixtures live under `data/` and were copied from the corol
 | M6 | ✅ Live validated | SAG introspective queries functional, M4 accept rate 95.7% |
 | M7 | ✅ Complete | Trust-gated NLMS + DriftAlarm + IR bank + device profile; live room-change validated |
 | M8 | ✅ Complete | Speaking policy: heuristic (M8a), distilled 98.7% (M8b), PPO +3062% on expanded (M8c), live hardware validated |
-| M9 | ✅ Vowel imitation working | Formant synthesis, vowel classification, live mic → headphone imitation, plus temporal-sequence smoke harness; see docs/m9_status.md |
+| M9 | ✅ Vowel imitation working | Formant synthesis, vowel classification, live mic → headphone imitation, plus temporal-sequence smoke harness and noisy-room regression; see docs/m9_status.md |
 
 ### M4 Self-Voice Detector
 
@@ -129,7 +129,7 @@ cora/
     m8_policy/           # M8 distilled + PPO speaking policies, scripted episode env
   data/                  # Captures, trained models, benchmarks
   scripts/               # Evaluation harnesses, capture scripts, diagnostics
-  tests/unit/            # 591 tests, 0 data-missing
+  tests/unit/            # 592 tests, 0 data-missing
 ```
 
 ## Key Scripts

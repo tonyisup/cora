@@ -23,6 +23,7 @@
 ### Temporal Smoke Harness
 - **Saved temporal controller/substrate pair**: hardware-free smoke run over a 3-tone sequence
 - **Frame continuity check**: cumulative phase rendering now has a regression harness
+- **Noisy-room regression**: additive input noise can be injected deterministically and still preserve the 2-transition decode
 - **CLI**: `scripts/m9_temporal_sequence_smoke.py`
 
 ### Architecture
@@ -79,5 +80,6 @@ scripts/archive/m9_train_*.py           # Superseded training scripts
 ### Next Steps
 - Live-capture substrate retraining (train on real mic audio, not synthetic)
 - Temporal sequence expansion (diphthongs / vowel transitions, e.g. /aɪ/ in "buy")
+- Noisy-room/device variation regression (temporal path)
 - Expand pronunciation dictionary
 - Consonant frame modeling (fricatives, stops, nasals)
