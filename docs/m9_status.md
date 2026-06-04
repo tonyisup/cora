@@ -1,5 +1,7 @@
 # M9 Sound-First Motor Learning — Status
 
+_Updated: 2026-06-04_
+
 > Status: 5-vowel spectral imitation on hardware. Text→vowel association working.
 
 ## What Works
@@ -22,8 +24,8 @@
 
 ### Temporal Smoke Harness
 - **Saved temporal controller/substrate pair**: hardware-free smoke run over a 3-tone sequence
-- **Frame continuity check**: cumulative phase rendering now has a regression harness
-- **Noisy-room regression**: additive input noise can be injected deterministically and still preserve the 2-transition decode
+- **Frame continuity check**: cumulative phase rendering verified by regression harness
+- **Noisy-room regression**: additive input noise can be injected deterministically and still preserve the decode
 - **Diphthong-family coverage**: a 5-tone transition family exercises longer temporal sequences
 - **Wide-sweep family coverage**: a 7-tone transition family expands the transition span further
 - **Device-profile regression**: high-pass/gain variation stays stable under the smoke harness
@@ -78,12 +80,12 @@ scripts/archive/m9_train_*.py           # Superseded training scripts
 ### Known Limitations
 - /i/ and /ɛ/ sometimes confused on live mic in noisy rooms
 - Mic sensitivity varies — threshold may need tuning per environment
-- Only steady-state vowels — diphthongs and consonant-vowel transitions not yet modeled
 - /ɪ/ (bit) and /ʊ/ (book) excluded — too close to /i/ and /u/ for 3-formant modeling
+- Temporal harness currently uses pure-tone families; vowel-transition family over the spectral substrate is the next step
 
 ### Next Steps
-- Live-capture substrate retraining (train on real mic audio, not synthetic)
-- Temporal sequence expansion (diphthongs / vowel transitions, e.g. /aɪ/ in "buy")
-- Noisy-room/device variation regression (temporal path)
+- Vowel-transition family coverage over the spectral substrate path
+- Longer temporal sequences with real formant transitions
 - Expand pronunciation dictionary
 - Consonant frame modeling (fricatives, stops, nasals)
+- Substrate retraining on live mic audio (reduce synthetic-domain gap)

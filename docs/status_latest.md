@@ -1,4 +1,4 @@
-# Cora Status — 2026-06-03
+# Cora Status — 2026-06-04
 
 ## Test Health
 
@@ -6,7 +6,7 @@
 596 passed, 1 skipped, 0 failed
 ```
 
-- 59 M8 tests (tracker, speaking policy, reward, model)
+- 596 total tests across M8/M9 and earlier suites
 - The M2/M3 artifact replay tests now pass after restoring imported fixtures from the corollary copy; those assets are optional for fresh clones, but present in this checkout for local replay coverage
 - Added an M9 live-capture retrain smoke harness so the current vowel path can be regression-tested without hardware
 - Added an M9 temporal-sequence smoke harness over the saved temporal controller/substrate pair
@@ -67,13 +67,15 @@
 
 ## Recent Commits (newest first)
 
-- `2ce8b9d` feat(m9d): text association with bidirectional word-sound edges
-- `e284ed2` feat(m9c): weak terminal confirmation and label attachment
-- `0c51931` feat(m9b): repeatability and convergence with acoustic prototype refinement
-- `6a27849` feat(m9): add acoustic SAG nodes and edge helpers
-- `ab4dbd2` feat(m9a): sound imitation primitive — complete M9a implementation
-- `c790af8` feat(m9a): sound imitation primitive — oscillator, substrate, controller, producer
-- `0508411` docs: add storage/memory assessment to M9 spec
+- `62c7dad` feat(m9): add live temporal capture wrapper
+- `e1be563` feat(m9): add wav export for temporal smoke
+- `acbee80` docs: sync status after temporal regression
+- `f77dbfa` feat(m9): add wide sweep temporal regression
+- `96652c3` feat(m9): add device profile temporal regression
+- `82e87d7` feat(m9): add diphthong temporal family
+- `ddff5a8` feat(m9): add noisy temporal smoke regression
+- `5f426c9` feat(m9): add temporal sequence smoke harness
+- `c0660f3` feat(m9): add live retrain smoke harness
 
 ## Key Metrics
 
@@ -91,14 +93,7 @@
 
 ## Open Items
 
-- 5 data-missing test failures (M2/M3 artifacts) — need artifact regeneration or test skip markers
-- `packages/salience/` is a stub (empty `__init__.py`)
+- M9 temporal path now includes device-profile regression and live-capture validation wrapper
 - M8 known gap: clarify/repair actions not triggered by heuristic in current episode types — distilled never learned them
-- M9 acoustic imitation: working on real hardware with clear temporal patterns
-  - Substrate pre-trained on live audio (frequency classification, 87.5% acc)
-  - Controller trained on 2-tone sequences (13 pairs x 5 repeats, 1690 samples)
-  - 2-tone stimulus -> matching 2-tone imitation, scores 0.88-0.94 on live hardware
-  - Single frequency: 220-660 Hz range, scores 0.92-0.99
-  - Key breakthroughs: phase continuity, noise filtering, small controller, EMA smoothing
-  - See docs/m9_troubleshooting_log.md for detailed iteration history
-  - Next: formant synthesis for speech-like sounds, text association
+- `packages/salience/` remains a stub (empty `__init__.py`)
+- M9 next: vowel-transition family coverage over the formant/spectral substrate path, then longer temporal sequences with real vowel transitions

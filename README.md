@@ -129,7 +129,7 @@ cora/
     m8_policy/           # M8 distilled + PPO speaking policies, scripted episode env
   data/                  # Captures, trained models, benchmarks
   scripts/               # Evaluation harnesses, capture scripts, diagnostics
-  tests/unit/            # 593 tests, 0 data-missing
+  tests/unit/            # 596 tests, 0 data-missing
 ```
 
 ## Key Scripts
