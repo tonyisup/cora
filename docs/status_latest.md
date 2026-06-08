@@ -3,10 +3,10 @@
 ## Test Health
 
 ```
-609 passed, 1 skipped, 0 failed
+611 passed, 1 skipped, 0 failed
 ```
 
-- 610 total tests across M8/M9 and earlier suites
+- 612 total tests across M8/M9 and earlier suites
 - The M2/M3 artifact replay tests now pass after restoring imported fixtures from the corollary copy; those assets are optional for fresh clones, but present in this checkout for local replay coverage
 - Added an M9 live-capture retrain smoke harness so the current vowel path can be regression-tested without hardware
 - Added an M9 temporal-sequence smoke harness over the saved temporal controller/substrate pair
@@ -96,4 +96,4 @@
 - M9 temporal path now includes device-profile regression and live-capture validation wrapper
 - M8 known gap: clarify/repair actions not triggered by heuristic in current episode types — distilled never learned them
 - `packages/salience/` remains a stub (empty `__init__.py`)
-- M9 next: longer temporal sequences with real vowel transitions, then broader formant-rich coverage
+- M9 next: longer temporal sequences with broader formant-rich coverage

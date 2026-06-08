@@ -13,7 +13,7 @@ from collections import Counter
 from functools import lru_cache
 import json
 from pathlib import Path
-from typing import Any, Sequence
+from typing import Any, Sequence, cast
 
 import numpy as np
 
@@ -133,20 +133,31 @@ def _synthesize_vowel_frames(
     lookup_ckpt_path: str | Path = DEFAULT_LOOKUP_CKPT,
     sr: int = SR,
     frame_size: int = FRAME_SIZE,
-) -> np.ndarray:
+) -> tuple[np.ndarray, list[dict[str, object]]]:
     templates = _load_templates(lookup_ckpt_path)
-    frames_per_vowel = max(1, int(round(duration_s * sr / frame_size)))
+    frames_per_segment = max(1, int(round(duration_s * sr / frame_size)))
     rendered: list[np.ndarray] = []
+    segment_meta: list[dict[str, object]] = []
     phases = {key: 0.0 for key, _ in FORMANT_KEYS}
 
-    for vowel in vowels:
-        template = templates[vowel]
-        for _ in range(frames_per_vowel):
+    if not vowels:
+        return np.zeros(0, dtype=np.float32), segment_meta
+
+    segments: list[tuple[str, str]] = [(vowels[0], vowels[0])] + list(zip(vowels[:-1], vowels[1:]))
+
+    for start_vowel, end_vowel in segments:
+        start_template = templates[start_vowel]
+        end_template = templates[end_vowel]
+        segment_meta.append(
+            {"start_vowel": start_vowel, "end_vowel": end_vowel, "frame_count": frames_per_segment}
+        )
+        for frame_index in range(frames_per_segment):
+            t = 0.0 if frames_per_segment == 1 else frame_index / float(frames_per_segment - 1)
             frame_t = np.arange(frame_size, dtype=np.float32) / sr
             frame = np.zeros(frame_size, dtype=np.float32)
             for fk, ak in FORMANT_KEYS:
-                freq_hz = float(template[fk])
-                amp = float(template[ak])
+                freq_hz = float((1.0 - t) * start_template[fk] + t * end_template[fk])
+                amp = float((1.0 - t) * start_template[ak] + t * end_template[ak])
                 frame += amp * np.sin(2.0 * np.pi * freq_hz * frame_t + phases[fk])
                 phases[fk] = float((phases[fk] + 2.0 * np.pi * freq_hz * (frame_size / sr)) % (2.0 * np.pi))
             peak = float(np.max(np.abs(frame)))
@@ -155,8 +166,8 @@ def _synthesize_vowel_frames(
             rendered.append(frame.astype(np.float32))
 
     if not rendered:
-        return np.zeros(0, dtype=np.float32)
-    return np.concatenate(rendered).astype(np.float32)
+        return np.zeros(0, dtype=np.float32), segment_meta
+    return np.concatenate(rendered).astype(np.float32), segment_meta
 
 
 def _decode_vowel_frames(
@@ -241,14 +252,14 @@ def _score_transition_family(
     duration_s = _family_duration(family)
     heldout_duration_s = _family_duration(heldout_family)
 
-    stimulus = _synthesize_vowel_frames(
+    stimulus, transition_segments = _synthesize_vowel_frames(
         vowels,
         duration_s=duration_s,
         lookup_ckpt_path=lookup_ckpt_path,
         sr=sr,
         frame_size=frame_size,
     )
-    heldout_stimulus = _synthesize_vowel_frames(
+    heldout_stimulus, heldout_transition_segments = _synthesize_vowel_frames(
         heldout_vowels,
         duration_s=heldout_duration_s,
         lookup_ckpt_path=lookup_ckpt_path,
@@ -306,6 +317,7 @@ def _score_transition_family(
         0.65 * heldout_alignment + 0.35 * heldout_continuity - noise_rms * 5.0 + 0.01 * input_transition_count
     )
 
+    segment_frame_count = cast(int, cast(dict[str, object], transition_segments[0])["frame_count"])
     report: dict[str, object] = {
         "family": family,
         "heldout_family": heldout_family,
@@ -325,6 +337,11 @@ def _score_transition_family(
         "heldout_stimulus_samples": int(len(heldout_rendered_audio)),
         "stimulus_frame_count": int(len(frame_audio(rendered_audio, frame_size=frame_size))),
         "heldout_stimulus_frame_count": int(len(frame_audio(heldout_rendered_audio, frame_size=frame_size))),
+        "transition_segments": list(transition_segments),
+        "transition_segment_count": int(len(transition_segments)),
+        "segment_frame_count": segment_frame_count,
+        "heldout_transition_segments": list(heldout_transition_segments),
+        "heldout_transition_segment_count": int(len(heldout_transition_segments)),
         "rendered_samples": int(len(rendered_audio)),
         "rendered_frame_count": int(len(frame_audio(rendered_audio, frame_size=frame_size))),
         "mean_boundary_delta": float(boundary["mean_boundary_delta"]),

@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import subprocess
+import sys
 import wave
 from pathlib import Path
 
@@ -31,6 +33,17 @@ class TestVowelTransitionFamilies:
         assert report1["stimulus_frame_count"] == 12
         assert report1["rendered_frame_count"] == 12
         assert report1["checkpoint_paths"]["substrate"]
+
+    def test_default_family_contains_real_transition_segments(self):
+        report = VT.build_vowel_transition_report(family="default", noise_rms=0.0, noise_seed=7)
+
+        assert report["transition_segments"] == [
+            {"start_vowel": "i", "end_vowel": "i", "frame_count": 4},
+            {"start_vowel": "i", "end_vowel": "E", "frame_count": 4},
+            {"start_vowel": "E", "end_vowel": "u", "frame_count": 4},
+        ]
+        assert report["segment_frame_count"] == 4
+        assert report["transition_segment_count"] == 3
 
     def test_longer_family_has_expected_transition_count(self):
         report = VT.build_vowel_transition_report(family="wide_sweep", noise_rms=0.01, noise_seed=13)
@@ -75,6 +88,33 @@ class TestVowelTransitionArtifacts:
             assert wav_file.getsampwidth() == 2
             assert wav_file.getframerate() == 16000
             assert wav_file.getnframes() == report["rendered_samples"]
+
+    def test_cli_smoke_writes_transition_segments_json(self, tmp_path):
+        output_json = tmp_path / "m9-vowel-transition.json"
+
+        script = PROJECT_ROOT / "scripts" / "m9_vowel_transition_smoke.py"
+        result = subprocess.run(
+            [
+                sys.executable,
+                str(script),
+                "--family",
+                "default",
+                "--output",
+                str(output_json),
+            ],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+
+        assert result.returncode == 0
+        payload = json.loads(output_json.read_text())
+        assert payload["family"] == "default"
+        assert payload["transition_segments"] == [
+            {"start_vowel": "i", "end_vowel": "i", "frame_count": 4},
+            {"start_vowel": "i", "end_vowel": "E", "frame_count": 4},
+            {"start_vowel": "E", "end_vowel": "u", "frame_count": 4},
+        ]
 
 
 class TestVowelTransitionControllerDecoding:
