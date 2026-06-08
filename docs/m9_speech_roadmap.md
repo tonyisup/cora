@@ -1,6 +1,6 @@
 # M9 Speech Imitation Roadmap
 
-> Status: Historical roadmap for the earlier tone-imitation phase. The current M9 vowel-imitation path is working and live-capture retrain is validated; temporal sequences remain the next major gap.
+> Status: Historical roadmap for the earlier tone-imitation phase. The current M9 vowel-imitation path is working and live-capture retrain is validated; the next immediate step is vowel-transition family coverage over the spectral/formant substrate path, with longer temporal sequences as the follow-on gap.
 
 ## Where We Are
 
@@ -18,13 +18,13 @@
 
 ## What Speech Requires (and what's missing)
 
-### 1. Temporal Structure (NEXT)
-Speech is a rapid sequence of sounds, not a single tone. Need:
-- Stimulus: sequence of frequencies (e.g., 220 Hz → 330 Hz → 440 Hz)
-- Producer: must change parameters over time, not just sustain one tone
-- Substrate: must learn temporal patterns, not just static state
+### 1. Vowel-transition family coverage (NEXT)
+Speech is a rapid sequence of vowel-like transitions, not just isolated steady states. Need:
+- Stimulus: sequence of vowel transitions (e.g., /i/ → /ɛ/ → /u/)
+- Producer: must change parameters over time, not just sustain one vowel
+- Substrate: must learn transition patterns, not just static state
 
-### 2. Richer Oscillator (AFTER TEMPORAL)
+### 2. Richer Oscillator (AFTER TRANSITIONS)
 Pure tones (sine, triangle, square) don't sound like speech. Need:
 - Formant synthesis: multiple resonant frequencies simultaneously
 - Vocal tract model or formant filter bank
@@ -55,20 +55,20 @@ Current: ~3–4 seconds per trial. Speech needs: real-time or near-real-time
 ## Recommended Sequence
 
 ### Near-term recommendation
-1. Add a small regression harness around live-capture retrain so the current vowel path stays stable under noisy-room/device variation.
-2. Then move to temporal sequences (2–3 vowel/frequency transitions per utterance).
+1. Keep the current vowel path stable under noisy-room/device variation with a small live-capture retrain regression harness.
+2. Then move to vowel-transition family coverage over the spectral/formant substrate path (2–3 vowel transitions per utterance).
 
-### Phase 1: Temporal Sequences (next step)
-- Stimulus: 2–3 frequency sequence (e.g., 220 Hz 0.3s → 330 Hz 0.3s)
-- Producer must learn to switch frequencies mid-utterance
-- Substrate must track temporal context
-- Success metric: can the producer match a 2-tone sequence?
+### Phase 1: Vowel-transition family coverage (next step)
+- Stimulus: 2–3 vowel-transition sequence (e.g., /i/ 0.3s → /ɛ/ 0.3s → /u/ 0.3s)
+- Producer must learn to switch vowel targets mid-utterance
+- Substrate must track transition context
+- Success metric: can the producer match a 2-transition vowel family?
 
-### Phase 2: Formant Sounds
-- Replace pure tones with formant-rich stimuli (vowel-like)
-- May need richer oscillator (formant filter bank)
-- Controller learns to produce formant patterns
-- Success metric: can the producer match a simple vowel?
+### Phase 2: Temporal Sequences (after vowel transitions)
+- Extend the vowel-transition families to longer sequences
+- Producer must switch targets mid-utterance over more steps
+- Substrate must retain temporal context over the longer span
+- Success metric: can the producer match a 2–3 transition sequence?
 
 ### Phase 3: Phoneme Sequences
 - Stimulus: sequences of 2–3 phoneme-like sounds
