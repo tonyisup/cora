@@ -19,8 +19,8 @@ from m9_sound.vowel_transitions import build_vowel_transition_report, write_vowe
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="M9 vowel-transition family smoke harness")
-    parser.add_argument("--family", type=str, default="default", choices=["default", "diphthong", "wide_sweep"])
-    parser.add_argument("--heldout-family", type=str, default="diphthong", choices=["default", "diphthong", "wide_sweep"])
+    parser.add_argument("--family", type=str, default="default", choices=["default", "diphthong", "wide_sweep", "long_arc"])
+    parser.add_argument("--heldout-family", type=str, default="diphthong", choices=["default", "diphthong", "wide_sweep", "long_arc"])
     parser.add_argument("--noise-rms", type=float, default=0.0)
     parser.add_argument("--noise-seed", type=int, default=None)
     parser.add_argument("--device-profile", type=str, default="flat", choices=["flat", "highpass"])

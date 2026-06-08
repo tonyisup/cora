@@ -56,16 +56,16 @@ Current: ~3–4 seconds per trial. Speech needs: real-time or near-real-time
 
 ### Near-term recommendation
 1. Keep the current vowel path stable under noisy-room/device variation with a small live-capture retrain regression harness.
-2. Then move to vowel-transition family coverage over the spectral/formant substrate path (2–3 vowel transitions per utterance).
+2. Then extend beyond the new long_arc slice toward broader formant-rich temporal coverage over the spectral/formant substrate path.
 
-### Phase 1: Vowel-transition family coverage (next step)
+### Phase 1: Vowel-transition family coverage (done)
 - Stimulus: 2–3 vowel-transition sequence (e.g., /i/ 0.3s → /ɛ/ 0.3s → /u/ 0.3s)
 - Producer must learn to switch vowel targets mid-utterance
 - Substrate must track transition context
 - Success metric: can the producer match a 2-transition vowel family?
 
-### Phase 2: Temporal Sequences (after vowel transitions)
-- Extend the vowel-transition families to longer sequences
+### Phase 2: Temporal Sequences (in progress)
+- The first longer chain (`long_arc`) is now implemented; extend the vowel-transition families to broader temporal sequences
 - Producer must switch targets mid-utterance over more steps
 - Substrate must retain temporal context over the longer span
 - Success metric: can the producer match a 2–3 transition sequence?

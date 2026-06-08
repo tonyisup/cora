@@ -55,6 +55,18 @@ class TestVowelTransitionFamilies:
         assert report["rendered_frame_count"] == 21
         assert len(report["stimulus_vowels"]) == 7
 
+    def test_long_arc_family_uses_a_longer_transition_chain(self):
+        report = VT.build_vowel_transition_report(family="long_arc", noise_rms=0.0, noise_seed=13)
+
+        assert report["family"] == "long_arc"
+        assert report["input_transition_count"] == 8
+        assert report["transition_segment_count"] == 9
+        assert report["segment_frame_count"] == 2
+        assert report["stimulus_frame_count"] == 18
+        assert report["rendered_frame_count"] == 18
+        assert report["transition_segments"][0] == {"start_vowel": "i", "end_vowel": "i", "frame_count": 2}
+        assert report["transition_segments"][-1] == {"start_vowel": "E", "end_vowel": "i", "frame_count": 2}
+
     def test_heldout_family_changes_reward_surface(self):
         base = VT.build_vowel_transition_report(family="default", noise_rms=0.0, noise_seed=7)
         heldout = VT.build_vowel_transition_report(
@@ -115,6 +127,30 @@ class TestVowelTransitionArtifacts:
             {"start_vowel": "i", "end_vowel": "E", "frame_count": 4},
             {"start_vowel": "E", "end_vowel": "u", "frame_count": 4},
         ]
+
+    def test_cli_smoke_accepts_long_arc_family(self, tmp_path):
+        output_json = tmp_path / "m9-vowel-transition-long-arc.json"
+
+        script = PROJECT_ROOT / "scripts" / "m9_vowel_transition_smoke.py"
+        result = subprocess.run(
+            [
+                sys.executable,
+                str(script),
+                "--family",
+                "long_arc",
+                "--output",
+                str(output_json),
+            ],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+
+        assert result.returncode == 0
+        payload = json.loads(output_json.read_text())
+        assert payload["family"] == "long_arc"
+        assert payload["transition_segment_count"] == 9
+        assert payload["segment_frame_count"] == 2
 
 
 class TestVowelTransitionControllerDecoding:

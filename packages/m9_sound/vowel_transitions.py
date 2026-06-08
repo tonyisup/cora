@@ -27,12 +27,14 @@ VOWEL_FAMILIES: dict[str, list[str]] = {
     "default": ["i", "E", "u"],
     "diphthong": ["i", "E", "a", "O", "u"],
     "wide_sweep": ["i", "E", "a", "O", "u", "O", "a"],
+    "long_arc": ["i", "E", "a", "O", "u", "O", "a", "E", "i"],
 }
 
 FAMILY_DURATIONS_S: dict[str, float] = {
     "default": 0.12,
     "diphthong": 0.06,
     "wide_sweep": 0.09,
+    "long_arc": 0.06,
 }
 
 FORMANT_KEYS = (("f1", "a1"), ("f2", "a2"), ("f3", "a3"))
