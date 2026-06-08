@@ -26,7 +26,7 @@ DEFAULT_LOOKUP_CKPT = REPO_ROOT / "data" / "m9_formant_lookup_v5.json"
 VOWEL_FAMILIES: dict[str, list[str]] = {
     "default": ["i", "E", "u"],
     "diphthong": ["i", "E", "a", "O", "u"],
-    "phase_triad": ["i", "E", "i", "i"],
+    "phase_triad": ["i", "E", "a", "i"],
     "wide_sweep": ["i", "E", "a", "O", "u", "O", "a"],
     "long_arc": ["i", "E", "a", "O", "u", "O", "a", "E", "i"],
     "formant_rich": ["i", "E", "a", "O", "u", "O", "a", "E", "i", "u", "a", "O", "i"],
@@ -39,7 +39,7 @@ VOWEL_FAMILIES: dict[str, list[str]] = {
 FAMILY_DURATIONS_S: dict[str, float] = {
     "default": 0.12,
     "diphthong": 0.06,
-    "phase_triad": 0.08,
+    "phase_triad": 0.18,
     "wide_sweep": 0.09,
     "long_arc": 0.06,
     "formant_rich": 0.05,

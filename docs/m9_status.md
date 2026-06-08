@@ -8,7 +8,7 @@ _Updated: 2026-06-04_
 
 ### Vowel Imitation (main path)
 - **5 vowels**: /i/ (beat), /ɛ/ (bet), /ɑ/ (hot), /ɔ/ (caught), /u/ (boot)
-- **Validated suite:** 623 passed, 1 skipped, 0 failed
+- **Validated suite:** 624 passed, 1 skipped, 0 failed
 - **Mel spectral substrate**: 26-bin Mel filterbank → RNN (32-dim) → nearest-centroid lookup
 - **100% synthetic accuracy**, separation ratio 3.39 (3 vowels) / 1.21 (5 vowels)
 - **Live mic input**: Real-time classification + synthesis through headphones
@@ -89,7 +89,8 @@ scripts/archive/m9_train_*.py           # Superseded training scripts
 - Mic sensitivity varies — threshold may need tuning per environment
 - /ɪ/ (bit) and /ʊ/ (book) excluded — too close to /i/ and /u/ for 3-formant modeling
 - Vowel-transition family coverage over the spectral substrate is implemented via `packages/m9_sound/vowel_transitions.py` and `scripts/m9_vowel_transition_smoke.py`; it now renders real segment-level vowel transitions and emits transition metadata for smoke audits, including the longer `long_arc`, `formant_rich`, `dense_cycle`, `ultra_dense`, `hyper_dense`, and `mega_dense` chains
-- Live vowel-transition capture is now wrapped in `packages/m9_sound/live_capture.py` / `scripts/m9_live_vowel_transition_capture.py` with a phase-closure score so the current sequence path can be exercised through hardware or a dry-run capture
+- Live vowel-transition capture is now wrapped in `packages/m9_sound/live_capture.py` / `scripts/m9_live_vowel_transition_capture.py` with a phase-closure score so the current sequence path can be exercised through hardware or a dry-run capture; `phase_triad` now uses longer spacing to keep the 3-transition slice stable
+
 - The live phase-closure gate is now available in `scripts/m9_live_vowel_transition_gate.py` for repeatable promotion checks over the 2–3 transition family slice
 
 ### Next Steps

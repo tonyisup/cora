@@ -45,6 +45,22 @@ class TestVowelTransitionFamilies:
         assert report["segment_frame_count"] == 4
         assert report["transition_segment_count"] == 3
 
+    def test_phase_triad_family_forms_a_clean_three_transition_chain(self):
+        report = VT.build_vowel_transition_report(family="phase_triad", noise_rms=0.0, noise_seed=11)
+
+        assert report["family"] == "phase_triad"
+        assert report["input_transition_count"] == 3
+        assert report["transition_segment_count"] == 4
+        assert report["segment_frame_count"] == 6
+        assert report["stimulus_frame_count"] == 24
+        assert report["rendered_frame_count"] == 24
+        assert report["transition_segments"] == [
+            {"start_vowel": "i", "end_vowel": "i", "frame_count": 6},
+            {"start_vowel": "i", "end_vowel": "E", "frame_count": 6},
+            {"start_vowel": "E", "end_vowel": "a", "frame_count": 6},
+            {"start_vowel": "a", "end_vowel": "i", "frame_count": 6},
+        ]
+
     def test_longer_family_has_expected_transition_count(self):
         report = VT.build_vowel_transition_report(family="wide_sweep", noise_rms=0.01, noise_seed=13)
 
