@@ -19,7 +19,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "packages"))
 from m9_sound.temporal import write_pcm16_wav
 from m9_sound.vowel_transitions import VOWEL_FAMILIES, build_vowel_transition_report, write_vowel_transition_wav
 
-DEFAULT_FAMILIES = ["long_arc", "formant_rich", "dense_cycle", "ultra_dense"]
+DEFAULT_FAMILIES = ["long_arc", "formant_rich", "dense_cycle", "ultra_dense", "hyper_dense"]
 DEFAULT_PAUSE_SECONDS = 0.35
 SR = 16000
 
