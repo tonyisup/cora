@@ -17,6 +17,7 @@ import numpy as np
 from m9_sound.temporal import (
     DEFAULT_CONTROLLER_CKPT,
     DEFAULT_SUBSTRATE_CKPT,
+    FRAME_SIZE,
     SR,
     build_temporal_smoke_artifact,
     write_pcm16_wav,
@@ -276,3 +277,130 @@ def run_live_vowel_transition_capture_report(
 
     (output_dir / "report.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
     return report
+
+
+def _dry_run_phase_closure_capture_audio(playback_audio: np.ndarray, *, sr: int, **_: object) -> np.ndarray:
+    return np.asarray(playback_audio, dtype=np.float32).reshape(-1)
+
+
+def run_live_vowel_transition_gate(
+    output_dir: str | Path,
+    *,
+    families: list[str] | None = None,
+    repeats: int = 1,
+    threshold: float = 0.7,
+    dry_run: bool = False,
+    capture_audio_fn: CaptureFn | None = None,
+    heldout_family: str = "diphthong",
+    input_noise_rms: float = 0.0,
+    noise_seed: int | None = None,
+    device_profile: str = "flat",
+    device_gain: float = 1.0,
+    input_device: int | None = None,
+    output_device: int | None = None,
+    lead_in_s: float = 0.25,
+    tail_s: float = 0.25,
+    substrate_ckpt_path: str | Path | None = None,
+    lookup_ckpt_path: str | Path | None = None,
+    sr: int = SR,
+    frame_size: int = FRAME_SIZE,
+) -> dict[str, object]:
+    """Run a live phase-closure gate over one or more vowel-transition families."""
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    family_list = list(families or ["default", "phase_triad"])
+    repeats = max(1, int(repeats))
+    capture_audio_fn = capture_audio_fn or (_dry_run_phase_closure_capture_audio if dry_run else None)
+
+    rows: list[dict[str, object]] = []
+    for family in family_list:
+        for repeat_idx in range(repeats):
+            row = run_live_vowel_transition_capture_report(
+                output_dir=output_dir / family / f"repeat-{repeat_idx + 1}",
+                family=family,
+                heldout_family=heldout_family,
+                input_noise_rms=input_noise_rms,
+                noise_seed=noise_seed,
+                device_profile=device_profile,
+                device_gain=device_gain,
+                input_device=input_device,
+                output_device=output_device,
+                lead_in_s=lead_in_s,
+                tail_s=tail_s,
+                capture_audio_fn=capture_audio_fn,
+                substrate_ckpt_path=substrate_ckpt_path,
+                lookup_ckpt_path=lookup_ckpt_path,
+                sr=sr,
+                frame_size=frame_size,
+            )
+            phase = dict(cast(dict[str, object], row["phase_closure"]))
+            phase["threshold"] = threshold
+            phase["passed"] = bool(float(cast(float, phase["score"])) >= threshold)
+            row["phase_closure"] = phase
+            row["family"] = family
+            row["repeat"] = repeat_idx + 1
+            row["verdict"] = {"threshold": threshold, "passed": phase["passed"]}
+            rows.append(row)
+
+    family_summaries: list[dict[str, object]] = []
+    for family in family_list:
+        group = [row for row in rows if row["family"] == family]
+        if not group:
+            continue
+        phase_rows = [cast(dict[str, object], row["phase_closure"]) for row in group]
+        scores = [float(cast(float, phase["score"])) for phase in phase_rows]
+        pass_count = sum(1 for phase in phase_rows if phase["passed"])
+        family_summaries.append(
+            {
+                "family": family,
+                "pass_count": pass_count,
+                "total": len(group),
+                "pass_rate": pass_count / len(group),
+                "avg_score": float(np.mean(scores)),
+                "worst_score": float(np.min(scores)),
+            }
+        )
+
+    phase_rows = [cast(dict[str, object], row["phase_closure"]) for row in rows]
+    pass_count = sum(1 for phase in phase_rows if phase["passed"])
+    total = len(rows)
+    pass_rate = pass_count / max(total, 1)
+    scores = [float(cast(float, phase["score"])) for phase in phase_rows]
+    avg_score = float(np.mean(scores)) if scores else 0.0
+    worst_score = float(np.min(scores)) if scores else 0.0
+    verdict = pass_rate >= 0.80
+
+    report = {
+        "config": {
+            "dry_run": dry_run,
+            "families": family_list,
+            "repeats": repeats,
+            "threshold": threshold,
+            "heldout_family": heldout_family,
+            "input_noise_rms": input_noise_rms,
+            "noise_seed": noise_seed,
+            "device_profile": device_profile,
+            "device_gain": device_gain,
+            "input_device": input_device,
+            "output_device": output_device,
+            "lead_in_s": lead_in_s,
+            "tail_s": tail_s,
+            "sr": sr,
+            "frame_size": frame_size,
+        },
+        "results": rows,
+        "summary": {
+            "pass_count": pass_count,
+            "total": total,
+            "pass_rate": pass_rate,
+            "avg_score": avg_score,
+            "worst_score": worst_score,
+            "verdict": verdict,
+            "family_summaries": family_summaries,
+        },
+    }
+
+    (output_dir / "report.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
+    return report
+

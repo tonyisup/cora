@@ -8,7 +8,7 @@ _Updated: 2026-06-04_
 
 ### Vowel Imitation (main path)
 - **5 vowels**: /i/ (beat), /ɛ/ (bet), /ɑ/ (hot), /ɔ/ (caught), /u/ (boot)
-- **Validated suite:** 621 passed, 1 skipped, 0 failed
+- **Validated suite:** 623 passed, 1 skipped, 0 failed
 - **Mel spectral substrate**: 26-bin Mel filterbank → RNN (32-dim) → nearest-centroid lookup
 - **100% synthetic accuracy**, separation ratio 3.39 (3 vowels) / 1.21 (5 vowels)
 - **Live mic input**: Real-time classification + synthesis through headphones
@@ -51,6 +51,7 @@ _Updated: 2026-06-04_
 | `scripts/m9_vowel_transition_smoke.py` | Deterministic vowel-transition family smoke harness |
 | `scripts/m9_vowel_transition_demo.py` | Listening demo that renders long_arc/formant_rich/dense_cycle/ultra_dense/hyper_dense/mega_dense WAVs plus a combined montage |
 | `scripts/m9_live_vowel_transition_capture.py` | Live mic/speaker capture wrapper for vowel-transition families with phase-closure scoring |
+| `scripts/m9_live_vowel_transition_gate.py` | Live phase-closure gate over vowel-transition families |
 | `scripts/m9_temporal_train.py` | In-memory temporal trainer with sweep-derived held-out weighting |
 | `scripts/m9_temporal_family_sweep.py` | Ordered family-pair sweep and generalization report |
 | `docs/m9_temporal_training_workflow.md` | Reusable note for the promoted temporal-training workflow |
@@ -89,6 +90,7 @@ scripts/archive/m9_train_*.py           # Superseded training scripts
 - /ɪ/ (bit) and /ʊ/ (book) excluded — too close to /i/ and /u/ for 3-formant modeling
 - Vowel-transition family coverage over the spectral substrate is implemented via `packages/m9_sound/vowel_transitions.py` and `scripts/m9_vowel_transition_smoke.py`; it now renders real segment-level vowel transitions and emits transition metadata for smoke audits, including the longer `long_arc`, `formant_rich`, `dense_cycle`, `ultra_dense`, `hyper_dense`, and `mega_dense` chains
 - Live vowel-transition capture is now wrapped in `packages/m9_sound/live_capture.py` / `scripts/m9_live_vowel_transition_capture.py` with a phase-closure score so the current sequence path can be exercised through hardware or a dry-run capture
+- The live phase-closure gate is now available in `scripts/m9_live_vowel_transition_gate.py` for repeatable promotion checks over the 2–3 transition family slice
 
 ### Next Steps
 - Even denser formant-rich temporal coverage
