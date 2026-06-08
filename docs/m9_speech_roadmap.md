@@ -56,7 +56,7 @@ Current: ~3–4 seconds per trial. Speech needs: real-time or near-real-time
 
 ### Near-term recommendation
 1. Keep the current vowel path stable under noisy-room/device variation with a small live-capture retrain regression harness.
-2. Then extend beyond the new long_arc, formant_rich, and dense_cycle slices toward even denser formant-rich temporal coverage over the spectral/formant substrate path.
+2. Then extend beyond the new long_arc, formant_rich, dense_cycle, and ultra_dense slices toward even denser formant-rich temporal coverage over the spectral/formant substrate path.
 
 ### Phase 1: Vowel-transition family coverage (done)
 - Stimulus: 2–3 vowel-transition sequence (e.g., /i/ 0.3s → /ɛ/ 0.3s → /u/ 0.3s)

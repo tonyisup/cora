@@ -93,6 +93,19 @@ class TestVowelTransitionFamilies:
         assert report["transition_segments"][0] == {"start_vowel": "i", "end_vowel": "i", "frame_count": 2}
         assert report["transition_segments"][-1] == {"start_vowel": "E", "end_vowel": "i", "frame_count": 2}
 
+    def test_ultra_dense_family_pushes_beyond_dense_cycle(self):
+        report = VT.build_vowel_transition_report(family="ultra_dense", noise_rms=0.0, noise_seed=21)
+
+        assert report["family"] == "ultra_dense"
+        assert report["input_transition_count"] == 21
+        assert report["transition_segment_count"] == 22
+        assert report["segment_frame_count"] == 2
+        assert report["stimulus_frame_count"] == 44
+        assert report["rendered_frame_count"] == 44
+        assert report["stimulus_unique_vowel_count"] == 5
+        assert report["transition_segments"][0] == {"start_vowel": "i", "end_vowel": "i", "frame_count": 2}
+        assert report["transition_segments"][-1] == {"start_vowel": "i", "end_vowel": "i", "frame_count": 2}
+
     def test_heldout_family_changes_reward_surface(self):
         base = VT.build_vowel_transition_report(family="default", noise_rms=0.0, noise_seed=7)
         heldout = VT.build_vowel_transition_report(
@@ -197,12 +210,13 @@ class TestVowelTransitionArtifacts:
 
         assert result.returncode == 0
         manifest = json.loads(manifest_path.read_text())
-        assert manifest["families"] == ["long_arc", "formant_rich", "dense_cycle"]
+        assert manifest["families"] == ["long_arc", "formant_rich", "dense_cycle", "ultra_dense"]
         assert manifest["montage_wav"] == str(output_dir / "m9-vowel-transition-demo.wav")
-        assert len(manifest["sections"]) == 3
+        assert len(manifest["sections"]) == 4
         assert (output_dir / "m9-vowel-transition-long_arc.wav").exists()
         assert (output_dir / "m9-vowel-transition-formant_rich.wav").exists()
         assert (output_dir / "m9-vowel-transition-dense_cycle.wav").exists()
+        assert (output_dir / "m9-vowel-transition-ultra_dense.wav").exists()
         assert (output_dir / "m9-vowel-transition-demo.wav").exists()
 
         with wave.open(str(output_dir / "m9-vowel-transition-demo.wav"), "rb") as wav_file:

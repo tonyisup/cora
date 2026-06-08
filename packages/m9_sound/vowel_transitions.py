@@ -30,6 +30,7 @@ VOWEL_FAMILIES: dict[str, list[str]] = {
     "long_arc": ["i", "E", "a", "O", "u", "O", "a", "E", "i"],
     "formant_rich": ["i", "E", "a", "O", "u", "O", "a", "E", "i", "u", "a", "O", "i"],
     "dense_cycle": ["i", "E", "a", "O", "u", "O", "a", "E", "i", "E", "a", "O", "u", "O", "a", "E", "i"],
+    "ultra_dense": ["i", "E", "a", "O", "u", "O", "a", "E", "i", "u", "a", "O", "E", "i", "O", "u", "a", "E", "i", "O", "i", "i"],
 }
 
 FAMILY_DURATIONS_S: dict[str, float] = {
@@ -39,6 +40,7 @@ FAMILY_DURATIONS_S: dict[str, float] = {
     "long_arc": 0.06,
     "formant_rich": 0.05,
     "dense_cycle": 0.05,
+    "ultra_dense": 0.05,
 }
 
 FORMANT_KEYS = (("f1", "a1"), ("f2", "a2"), ("f3", "a3"))
