@@ -360,6 +360,106 @@ def count_decoded_transitions(
     return transitions
 
 
+def timing_alignment_score(
+    params: Sequence[ControllerParams],
+    *,
+    sr: int = SR,
+    frame_size: int = FRAME_SIZE,
+    expected_transitions: int = 2,
+    expected_order: Sequence[tuple[float, float, float]] | None = None,
+    epsilon_hz: float = 40.0,
+    refractory_frames: int = 1,
+) -> dict[str, float | int]:
+    """Rate how well decoded parameter transitions align with a target trajectory.
+
+    expected_order is a sequence of target windows represented as
+    (low_hz, high_hz, center_hz) tuples. The metric scores both the count of
+    transitions and whether the decoded values land near the requested centers.
+    """
+    if not params:
+        return {
+            "transition_count": 0,
+            "order_coverage": 0.0,
+            "boundary_variance": 0.0,
+            "transition_recall": 0.0,
+            "transition_precision": 0.0,
+            "timing_error_frames": 0.0,
+        }
+
+    transition_frames: list[int] = []
+    prev = float(params[0].freq_hz)
+    for idx, param in enumerate(params[1:], start=1):
+        if abs(float(param.freq_hz) - prev) >= epsilon_hz:
+            transition_frames.append(idx)
+            prev = float(param.freq_hz)
+    transition_count = len(transition_frames)
+
+    order_coverage = 0.0
+    transition_recall = 0.0
+    transition_precision = 0.0
+    timing_error_frames: list[float] = []
+    if expected_transitions > 0:
+        transition_recall = min(1.0, transition_count / expected_transitions)
+        transition_precision = 1.0 if transition_count == expected_transitions else 0.0
+
+    if expected_order:
+        matched = 0
+        start_pos = 0
+        last_matched_frame = -10**9
+        for low_hz, high_hz, center_hz in expected_order:
+            found = False
+            min_bound = low_hz - epsilon_hz
+            max_bound = high_hz + epsilon_hz
+            for pos in range(start_pos, len(transition_frames)):
+                frame_idx = transition_frames[pos]
+                if frame_idx < last_matched_frame + max(1, refractory_frames):
+                    continue
+                freq = float(params[frame_idx].freq_hz)
+                if min_bound <= freq <= max_bound:
+                    found = True
+                    matched += 1
+                    start_pos = pos + 1
+                    last_matched_frame = frame_idx
+                    timing_error_frames.append(float(abs(freq - center_hz) / max(epsilon_hz, 1.0)))
+                    break
+            if not found:
+                break
+        if expected_transitions > 0:
+            order_coverage = float(matched / expected_transitions)
+
+    boundary_deltas: list[float] = []
+    prev_frame = None
+    cumulative_phase = 0.0
+    for idx in range(len(params)):
+        frame = _render_frame(
+            params[idx],
+            sr=sr,
+            frame_size=frame_size,
+            cumulative_phase=cumulative_phase,
+        )
+        if prev_frame is not None:
+            boundary_deltas.append(float(abs(frame[0] - prev_frame[-1])))
+        prev_frame = frame
+        cumulative_phase = float(
+            (cumulative_phase + 2.0 * np.pi * float(params[idx].freq_hz) * (frame_size / sr)) % (2.0 * np.pi)
+        )
+
+    boundary_variance = float(np.var(boundary_deltas) if boundary_deltas else 0.0)
+    transition_recall = float(np.clip(float(transition_recall), 0.0, 1.0))
+    transition_precision = float(np.clip(float(transition_precision), 0.0, 1.0))
+    order_coverage = float(np.clip(float(order_coverage), 0.0, 1.0))
+    timing_error_mean = float(np.mean(timing_error_frames) if timing_error_frames else 0.0)
+
+    return {
+        "transition_count": int(transition_count),
+        "order_coverage": float(order_coverage),
+        "boundary_variance": float(boundary_variance),
+        "transition_recall": float(transition_recall),
+        "transition_precision": float(transition_precision),
+        "timing_error_frames": float(timing_error_mean),
+    }
+
+
 def run_temporal_smoke_report(
     *,
     family: str = "default",

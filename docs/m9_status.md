@@ -23,14 +23,15 @@ _Updated: 2026-06-04_
 - **Multi-vowel words**: `hello` → /ɛ/-/u/, `cora` → /ɔ/-/ɑ/
 
 ### Temporal Smoke Harness
-- **Saved temporal controller/substrate pair**: hardware-free smoke run over a 3-tone sequence
-- **Frame continuity check**: cumulative phase rendering verified by regression harness
-- **Noisy-room regression**: additive input noise can be injected deterministically and still preserve the decode
-- **Diphthong-family coverage**: a 5-tone transition family exercises longer temporal sequences
-- **Wide-sweep family coverage**: a 7-tone transition family expands the transition span further
-- **Device-profile regression**: high-pass/gain variation stays stable under the smoke harness
-- **Live capture wrapper**: `scripts/m9_live_temporal_capture.py` plays the temporal sequence through real audio hardware and writes rendered/captured WAV artifacts
-- **CLI**: `scripts/m9_temporal_sequence_smoke.py` (supports `--output-wav` for a listenable rendered artifact)
+|- **Saved temporal controller/substrate pair**: hardware-free smoke run over a 3-tone sequence
+|- **Frame continuity check**: cumulative phase rendering verified by regression harness
+|- **Noisy-room regression**: additive input noise can be injected deterministically and still preserve the decode
+|- **Diphthong-family coverage**: a 5-tone transition family exercises longer temporal sequences
+|- **Wide-sweep family coverage**: a 7-tone transition family expands the transition span further
+|- **Device-profile regression**: high-pass/gain variation stays stable under the smoke harness
+|- **Family-pair sweep**: ordered pair sweep reports primary/held-out rewards and sweep-derived blend weights
+|- **Trainer**: `scripts/m9_temporal_train.py` now scores in-memory weights locally and uses sweep-derived held-out weighting by default
+|- **CLI**: `scripts/m9_temporal_sequence_smoke.py` (supports `--output-wav` for a listenable rendered artifact)
 
 ### Architecture
 - **Substrate**: RNN (32-dim), Mel spectral input, contrastive triplet-trained
@@ -46,8 +47,9 @@ _Updated: 2026-06-04_
 | `scripts/m9_train_spectral.py` | Contrastive spectral substrate training |
 | `scripts/m9_train_substrate_contrastive.py` | Raw-audio contrastive training (superseded) |
 | `scripts/m9_temporal_sequence_smoke.py` | Hardware-free temporal-sequence smoke harness |
-| `data/m9_substrate_spectral.ckpt.json` | Spectral substrate (1,888 params) |
-| `data/m9_formant_lookup_v5.json` | 5-vowel lookup table (centroids + templates) |
+| `scripts/m9_temporal_train.py` | In-memory temporal trainer with sweep-derived held-out weighting |
+| `scripts/m9_temporal_family_sweep.py` | Ordered family-pair sweep and generalization report |
+| `docs/m9_temporal_training_workflow.md` | Reusable note for the promoted temporal-training workflow |
 
 ### Active Checkpoints
 ```
