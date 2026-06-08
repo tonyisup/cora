@@ -65,7 +65,7 @@ Current: ~3–4 seconds per trial. Speech needs: real-time or near-real-time
 - Success metric: can the producer match a 2-transition vowel family?
 
 ### Phase 2: Temporal Sequences (in progress)
-- The longer chains (`long_arc`, `formant_rich`, `dense_cycle`, `ultra_dense`, `hyper_dense`) are now implemented; extend the vowel-transition families to broader temporal sequences
+- The longer chains (`long_arc`, `formant_rich`, `dense_cycle`, `ultra_dense`, `hyper_dense`, `mega_dense`) are now implemented; extend the vowel-transition families to broader temporal sequences
 - Producer must switch targets mid-utterance over more steps
 - Substrate must retain temporal context over the longer span
 - Success metric: can the producer match a 2–3 transition sequence?

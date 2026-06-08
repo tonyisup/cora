@@ -409,6 +409,38 @@ def build_vowel_transition_report(
     )
 
 
+def decode_vowel_transition_audio(
+    audio: np.ndarray,
+    *,
+    substrate_ckpt_path: str | Path = DEFAULT_SUBSTRATE_CKPT,
+    lookup_ckpt_path: str | Path = DEFAULT_LOOKUP_CKPT,
+    frame_size: int = FRAME_SIZE,
+    smooth_window: int = 3,
+) -> dict[str, object]:
+    """Decode a rendered vowel-transition audio buffer into a compact report."""
+    decoded = _smooth_labels(
+        _decode_vowel_frames(
+            audio,
+            substrate_ckpt_path=substrate_ckpt_path,
+            lookup_ckpt_path=lookup_ckpt_path,
+            frame_size=frame_size,
+        ),
+        window=smooth_window,
+    )
+    boundary = _boundary_report(np.asarray(audio, dtype=np.float32), frame_size=frame_size)
+    decoded_transition_count = int(_count_label_transitions(decoded))
+    return {
+        "decoded_vowels": list(decoded),
+        "decoded_transition_count": decoded_transition_count,
+        "decoded_unique_vowel_count": int(len(set(decoded))) if decoded else 0,
+        "frame_count": int(len(frame_audio(audio, frame_size=frame_size))),
+        "mean_boundary_delta": float(boundary["mean_boundary_delta"]),
+        "max_boundary_delta": float(boundary["max_boundary_delta"]),
+        "min_boundary_delta": float(boundary["min_boundary_delta"]),
+        "continuity": float(max(0.0, 1.0 - boundary["mean_boundary_delta"] * 10.0)),
+    }
+
+
 def write_vowel_transition_wav(
     output_path: str | Path,
     *,

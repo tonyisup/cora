@@ -25,7 +25,7 @@ from m9_sound.temporal import (
     write_pcm16_wav,
     write_temporal_smoke_wav,
 )
-from m9_sound.live_capture import run_live_temporal_capture_report
+from m9_sound.live_capture import run_live_temporal_capture_report, run_live_vowel_transition_capture_report
 from m9_sound.text_association import TextAssociationStats, TextAssociationStore, WordSoundPair
 from m9_sound.vowel_transitions import (
     DEFAULT_LOOKUP_CKPT,
@@ -33,6 +33,7 @@ from m9_sound.vowel_transitions import (
     FAMILY_DURATIONS_S,
     VOWEL_FAMILIES,
     build_vowel_transition_report,
+    decode_vowel_transition_audio,
     write_vowel_transition_wav,
 )
 
@@ -65,6 +66,7 @@ __all__ = [
     "write_pcm16_wav",
     "write_temporal_smoke_wav",
     "run_live_temporal_capture_report",
+    "run_live_vowel_transition_capture_report",
     "TextAssociationStats",
     "TextAssociationStore",
     "WordSoundPair",

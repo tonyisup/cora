@@ -10,7 +10,7 @@ from __future__ import annotations
 import json
 import time
 from pathlib import Path
-from typing import Callable
+from typing import Callable, cast
 
 import numpy as np
 
@@ -20,6 +20,12 @@ from m9_sound.temporal import (
     SR,
     build_temporal_smoke_artifact,
     write_pcm16_wav,
+)
+from m9_sound.vowel_transitions import (
+    DEFAULT_LOOKUP_CKPT,
+    DEFAULT_SUBSTRATE_CKPT as DEFAULT_VOWEL_TRANSITION_SUBSTRATE_CKPT,
+    decode_vowel_transition_audio,
+    build_vowel_transition_report,
 )
 
 CaptureFn = Callable[..., np.ndarray]
@@ -156,6 +162,115 @@ def run_live_temporal_capture_report(
             "tail_s": float(tail_s),
             "input_device": input_device,
             "output_device": output_device,
+        }
+    )
+
+    (output_dir / "report.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
+    return report
+
+
+def run_live_vowel_transition_capture_report(
+    output_dir: str | Path,
+    *,
+    family: str = "default",
+    heldout_family: str = "diphthong",
+    input_noise_rms: float = 0.0,
+    noise_seed: int | None = None,
+    device_profile: str = "flat",
+    device_gain: float = 1.0,
+    input_device: int | None = None,
+    output_device: int | None = None,
+    lead_in_s: float = 0.25,
+    tail_s: float = 0.25,
+    capture_audio_fn: CaptureFn | None = None,
+    sleep_fn: Callable[[float], None] = time.sleep,
+    substrate_ckpt_path: str | Path | None = None,
+    lookup_ckpt_path: str | Path | None = None,
+    sr: int = SR,
+    frame_size: int = 480,
+) -> dict[str, object]:
+    """Render a vowel-transition family, capture it live, and score phase closure."""
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    render_report = cast(
+        dict[str, object],
+        build_vowel_transition_report(
+            family=family,
+            heldout_family=heldout_family,
+            noise_rms=input_noise_rms,
+            noise_seed=noise_seed,
+            device_profile=device_profile,
+            device_gain=device_gain,
+            substrate_ckpt_path=substrate_ckpt_path or DEFAULT_VOWEL_TRANSITION_SUBSTRATE_CKPT,
+            lookup_ckpt_path=lookup_ckpt_path or DEFAULT_LOOKUP_CKPT,
+            sr=sr,
+            frame_size=frame_size,
+        ),
+    )
+    rendered_audio = np.asarray(cast(list[float], render_report["rendered_audio"]), dtype=np.float32)
+
+    rendered_wav = output_dir / "rendered_vowel_transition.wav"
+    rendered_meta = write_pcm16_wav(rendered_wav, rendered_audio, sr=sr)
+
+    if capture_audio_fn is None:
+        capture_audio_fn = _capture_audio_with_sounddevice
+
+    live_capture = capture_audio_fn(
+        rendered_audio,
+        sr=sr,
+        input_device=input_device,
+        output_device=output_device,
+        lead_in_s=lead_in_s,
+        tail_s=tail_s,
+        sleep_fn=sleep_fn,
+    )
+    live_capture = np.asarray(live_capture, dtype=np.float32).reshape(-1)
+
+    captured_wav = output_dir / "captured_vowel_transition.wav"
+    captured_meta = write_pcm16_wav(captured_wav, live_capture, sr=sr)
+    captured_decode = decode_vowel_transition_audio(
+        live_capture,
+        substrate_ckpt_path=substrate_ckpt_path or DEFAULT_VOWEL_TRANSITION_SUBSTRATE_CKPT,
+        lookup_ckpt_path=lookup_ckpt_path or DEFAULT_LOOKUP_CKPT,
+        frame_size=frame_size,
+    )
+
+    target_transition_count = int(render_report["input_transition_count"])
+    captured_transition_count = int(cast(int, captured_decode["decoded_transition_count"]))
+    transition_alignment = float(min(1.0, captured_transition_count / max(target_transition_count, 1)))
+    continuity = float(cast(float, captured_decode["continuity"]))
+    phase_closure_score = float(0.7 * transition_alignment + 0.3 * continuity)
+    phase_closure_passed = bool(transition_alignment >= 1.0 and phase_closure_score >= 0.7)
+
+    report: dict[str, object] = dict(render_report)
+    report.update(
+        {
+            "output_dir": str(output_dir),
+            "rendered_wav": str(rendered_meta["path"]),
+            "captured_wav": str(captured_meta["path"]),
+            "report_json": str(output_dir / "report.json"),
+            "live_capture_samples": int(len(live_capture)),
+            "live_capture_rms": float(np.sqrt(np.mean(live_capture**2))) if len(live_capture) else 0.0,
+            "lead_in_s": float(lead_in_s),
+            "tail_s": float(tail_s),
+            "input_device": input_device,
+            "output_device": output_device,
+            "captured_decoded_vowels": list(cast(list[str], captured_decode["decoded_vowels"])),
+            "captured_decoded_transition_count": captured_transition_count,
+            "captured_decoded_unique_vowel_count": int(cast(int, captured_decode["decoded_unique_vowel_count"])),
+            "captured_continuity": continuity,
+            "captured_mean_boundary_delta": float(cast(float, captured_decode["mean_boundary_delta"])),
+            "captured_max_boundary_delta": float(cast(float, captured_decode["max_boundary_delta"])),
+            "captured_min_boundary_delta": float(cast(float, captured_decode["min_boundary_delta"])),
+            "phase_closure": {
+                "target_transition_count": target_transition_count,
+                "captured_transition_count": captured_transition_count,
+                "transition_alignment": transition_alignment,
+                "continuity": continuity,
+                "score": phase_closure_score,
+                "passed": phase_closure_passed,
+            },
         }
     )
 
