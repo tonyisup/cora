@@ -8,7 +8,7 @@ _Updated: 2026-06-04_
 
 ### Vowel Imitation (main path)
 - **5 vowels**: /i/ (beat), /ɛ/ (bet), /ɑ/ (hot), /ɔ/ (caught), /u/ (boot)
-- **Validated suite:** 613 passed, 1 skipped, 0 failed
+- **Validated suite:** 614 passed, 1 skipped, 0 failed
 - **Mel spectral substrate**: 26-bin Mel filterbank → RNN (32-dim) → nearest-centroid lookup
 - **100% synthetic accuracy**, separation ratio 3.39 (3 vowels) / 1.21 (5 vowels)
 - **Live mic input**: Real-time classification + synthesis through headphones
@@ -85,10 +85,10 @@ scripts/archive/m9_train_*.py           # Superseded training scripts
 - /i/ and /ɛ/ sometimes confused on live mic in noisy rooms
 - Mic sensitivity varies — threshold may need tuning per environment
 - /ɪ/ (bit) and /ʊ/ (book) excluded — too close to /i/ and /u/ for 3-formant modeling
-- Vowel-transition family coverage over the spectral substrate is implemented via `packages/m9_sound/vowel_transitions.py` and `scripts/m9_vowel_transition_smoke.py`; it now renders real segment-level vowel transitions and emits transition metadata for smoke audits, including the longer `long_arc` chain
+- Vowel-transition family coverage over the spectral substrate is implemented via `packages/m9_sound/vowel_transitions.py` and `scripts/m9_vowel_transition_smoke.py`; it now renders real segment-level vowel transitions and emits transition metadata for smoke audits, including the longer `long_arc` and `formant_rich` chains
 
 ### Next Steps
-- Longer temporal sequences with broader formant-rich coverage
+- Even denser formant-rich temporal coverage
 - Expand pronunciation dictionary
 - Consonant frame modeling (fricatives, stops, nasals)
 - Substrate retraining on live mic audio (reduce synthetic-domain gap)

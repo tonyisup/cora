@@ -67,6 +67,19 @@ class TestVowelTransitionFamilies:
         assert report["transition_segments"][0] == {"start_vowel": "i", "end_vowel": "i", "frame_count": 2}
         assert report["transition_segments"][-1] == {"start_vowel": "E", "end_vowel": "i", "frame_count": 2}
 
+    def test_formant_rich_family_spans_all_vowels(self):
+        report = VT.build_vowel_transition_report(family="formant_rich", noise_rms=0.0, noise_seed=21)
+
+        assert report["family"] == "formant_rich"
+        assert report["input_transition_count"] == 12
+        assert report["transition_segment_count"] == 13
+        assert report["segment_frame_count"] == 2
+        assert report["stimulus_frame_count"] == 26
+        assert report["rendered_frame_count"] == 26
+        assert report["stimulus_unique_vowel_count"] == 5
+        assert report["transition_segments"][0] == {"start_vowel": "i", "end_vowel": "i", "frame_count": 2}
+        assert report["transition_segments"][-1] == {"start_vowel": "O", "end_vowel": "i", "frame_count": 2}
+
     def test_heldout_family_changes_reward_surface(self):
         base = VT.build_vowel_transition_report(family="default", noise_rms=0.0, noise_seed=7)
         heldout = VT.build_vowel_transition_report(

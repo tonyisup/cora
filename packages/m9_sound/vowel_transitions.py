@@ -28,6 +28,7 @@ VOWEL_FAMILIES: dict[str, list[str]] = {
     "diphthong": ["i", "E", "a", "O", "u"],
     "wide_sweep": ["i", "E", "a", "O", "u", "O", "a"],
     "long_arc": ["i", "E", "a", "O", "u", "O", "a", "E", "i"],
+    "formant_rich": ["i", "E", "a", "O", "u", "O", "a", "E", "i", "u", "a", "O", "i"],
 }
 
 FAMILY_DURATIONS_S: dict[str, float] = {
@@ -35,6 +36,7 @@ FAMILY_DURATIONS_S: dict[str, float] = {
     "diphthong": 0.06,
     "wide_sweep": 0.09,
     "long_arc": 0.06,
+    "formant_rich": 0.05,
 }
 
 FORMANT_KEYS = (("f1", "a1"), ("f2", "a2"), ("f3", "a3"))
@@ -325,6 +327,8 @@ def _score_transition_family(
         "heldout_family": heldout_family,
         "stimulus_vowels": list(vowels),
         "heldout_stimulus_vowels": list(heldout_vowels),
+        "stimulus_unique_vowel_count": int(len(set(vowels))),
+        "heldout_unique_vowel_count": int(len(set(heldout_vowels))),
         "input_transition_count": input_transition_count,
         "heldout_input_transition_count": heldout_transition_count,
         "decoded_transition_count": decoded_transition_count,
