@@ -165,6 +165,38 @@ class TestVowelTransitionArtifacts:
         assert payload["transition_segment_count"] == 9
         assert payload["segment_frame_count"] == 2
 
+    def test_demo_script_writes_listenable_montage(self, tmp_path):
+        output_dir = tmp_path / "demo"
+        manifest_path = output_dir / "m9-vowel-transition-demo.json"
+
+        script = PROJECT_ROOT / "scripts" / "m9_vowel_transition_demo.py"
+        result = subprocess.run(
+            [
+                sys.executable,
+                str(script),
+                "--output-dir",
+                str(output_dir),
+            ],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+
+        assert result.returncode == 0
+        manifest = json.loads(manifest_path.read_text())
+        assert manifest["families"] == ["long_arc", "formant_rich"]
+        assert manifest["montage_wav"] == str(output_dir / "m9-vowel-transition-demo.wav")
+        assert len(manifest["sections"]) == 2
+        assert (output_dir / "m9-vowel-transition-long_arc.wav").exists()
+        assert (output_dir / "m9-vowel-transition-formant_rich.wav").exists()
+        assert (output_dir / "m9-vowel-transition-demo.wav").exists()
+
+        with wave.open(str(output_dir / "m9-vowel-transition-demo.wav"), "rb") as wav_file:
+            assert wav_file.getnchannels() == 1
+            assert wav_file.getsampwidth() == 2
+            assert wav_file.getframerate() == 16000
+            assert wav_file.getnframes() == manifest["montage_sample_count"]
+
 
 class TestVowelTransitionControllerDecoding:
     def test_rendered_report_includes_controller_shape_metadata(self):

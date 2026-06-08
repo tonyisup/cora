@@ -34,7 +34,7 @@ pip install -r requirements.txt
 
 ## Project Status
 
-**Tests:** 614 passed, 1 skipped, 0 data-missing
+**Tests:** 615 passed, 1 skipped, 0 data-missing
 
 Imported M2/M3 replay fixtures live under `data/` and were copied from the corollary project for optional local replay coverage.
 
@@ -129,7 +129,7 @@ cora/
     m8_policy/           # M8 distilled + PPO speaking policies, scripted episode env
   data/                  # Captures, trained models, benchmarks
   scripts/               # Evaluation harnesses, capture scripts, diagnostics
-  tests/unit/            # 615 tests, 0 data-missing
+  tests/unit/            # 616 tests, 0 data-missing
 ```
 
 ## Key Scripts
@@ -150,6 +150,7 @@ cora/
 | `scripts/m8_eval.py` | Evaluate heuristic vs distilled vs PPO speaking policies |
 | `scripts/m9_temporal_sequence_smoke.py` | Hardware-free temporal-sequence smoke harness for the saved controller/substrate pair |
 | `scripts/m9_vowel_transition_smoke.py` | Deterministic vowel-transition family smoke harness |
+| `scripts/m9_vowel_transition_demo.py` | Listening demo: renders long_arc/formant_rich WAVs plus a combined montage |
 | `scripts/m9_live_temporal_capture.py` | Live mic/speaker capture wrapper that records rendered and captured WAV artifacts |
 
 ## Evaluation Metrics

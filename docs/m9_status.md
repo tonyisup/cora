@@ -8,7 +8,7 @@ _Updated: 2026-06-04_
 
 ### Vowel Imitation (main path)
 - **5 vowels**: /i/ (beat), /ɛ/ (bet), /ɑ/ (hot), /ɔ/ (caught), /u/ (boot)
-- **Validated suite:** 614 passed, 1 skipped, 0 failed
+- **Validated suite:** 615 passed, 1 skipped, 0 failed
 - **Mel spectral substrate**: 26-bin Mel filterbank → RNN (32-dim) → nearest-centroid lookup
 - **100% synthetic accuracy**, separation ratio 3.39 (3 vowels) / 1.21 (5 vowels)
 - **Live mic input**: Real-time classification + synthesis through headphones
@@ -49,6 +49,7 @@ _Updated: 2026-06-04_
 | `packages/m9_sound/vowel_transitions.py` | Deterministic vowel-transition family helpers, scoring, and WAV export |
 | `scripts/m9_temporal_sequence_smoke.py` | Hardware-free temporal-sequence smoke harness |
 | `scripts/m9_vowel_transition_smoke.py` | Deterministic vowel-transition family smoke harness |
+| `scripts/m9_vowel_transition_demo.py` | Listening demo that renders long_arc/formant_rich WAVs plus a combined montage |
 | `scripts/m9_temporal_train.py` | In-memory temporal trainer with sweep-derived held-out weighting |
 | `scripts/m9_temporal_family_sweep.py` | Ordered family-pair sweep and generalization report |
 | `docs/m9_temporal_training_workflow.md` | Reusable note for the promoted temporal-training workflow |
