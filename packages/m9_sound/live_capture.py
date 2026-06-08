@@ -351,14 +351,32 @@ def run_live_vowel_transition_gate(
         phase_rows = [cast(dict[str, object], row["phase_closure"]) for row in group]
         scores = [float(cast(float, phase["score"])) for phase in phase_rows]
         pass_count = sum(1 for phase in phase_rows if phase["passed"])
+        failure_rows = [
+            {
+                "repeat": row["repeat"],
+                "score": float(cast(float, cast(dict[str, object], row["phase_closure"])["score"])),
+                "passed": bool(cast(dict[str, object], row["phase_closure"])["passed"]),
+                "captured_transition_count": int(cast(int, row["captured_decoded_transition_count"])),
+                "captured_continuity": float(cast(float, row["captured_continuity"])),
+                "captured_mean_boundary_delta": float(cast(float, row["captured_mean_boundary_delta"])),
+                "captured_unique_vowel_count": int(cast(int, row["captured_decoded_unique_vowel_count"])),
+            }
+            for row in group
+            if not bool(cast(dict[str, object], row["phase_closure"])["passed"])
+        ]
         family_summaries.append(
             {
                 "family": family,
                 "pass_count": pass_count,
+                "failure_count": len(group) - pass_count,
                 "total": len(group),
                 "pass_rate": pass_count / len(group),
                 "avg_score": float(np.mean(scores)),
+                "median_score": float(np.median(scores)),
+                "std_score": float(np.std(scores)),
                 "worst_score": float(np.min(scores)),
+                "best_score": float(np.max(scores)),
+                "failure_rows": failure_rows,
             }
         )
 
@@ -368,7 +386,24 @@ def run_live_vowel_transition_gate(
     pass_rate = pass_count / max(total, 1)
     scores = [float(cast(float, phase["score"])) for phase in phase_rows]
     avg_score = float(np.mean(scores)) if scores else 0.0
+    median_score = float(np.median(scores)) if scores else 0.0
+    std_score = float(np.std(scores)) if scores else 0.0
     worst_score = float(np.min(scores)) if scores else 0.0
+    best_score = float(np.max(scores)) if scores else 0.0
+    failure_rows = [
+        {
+            "family": row["family"],
+            "repeat": row["repeat"],
+            "score": float(cast(float, cast(dict[str, object], row["phase_closure"])["score"])),
+            "passed": bool(cast(dict[str, object], row["phase_closure"])["passed"]),
+            "captured_transition_count": int(cast(int, row["captured_decoded_transition_count"])),
+            "captured_continuity": float(cast(float, row["captured_continuity"])),
+            "captured_mean_boundary_delta": float(cast(float, row["captured_mean_boundary_delta"])),
+            "captured_unique_vowel_count": int(cast(int, row["captured_decoded_unique_vowel_count"])),
+        }
+        for row in rows
+        if not bool(cast(dict[str, object], row["phase_closure"])["passed"])
+    ]
     verdict = pass_rate >= 0.80
 
     report = {
@@ -395,7 +430,11 @@ def run_live_vowel_transition_gate(
             "total": total,
             "pass_rate": pass_rate,
             "avg_score": avg_score,
+            "median_score": median_score,
+            "std_score": std_score,
             "worst_score": worst_score,
+            "best_score": best_score,
+            "failure_rows": failure_rows,
             "verdict": verdict,
             "family_summaries": family_summaries,
         },

@@ -33,6 +33,8 @@ def test_run_live_vowel_transition_gate_dry_run_passes(tmp_path: Path):
     assert report["summary"]["total"] == 4
     assert {row["family"] for row in report["results"]} == {"default", "phase_triad"}
     assert all(row["phase_closure"]["passed"] for row in report["results"])
+    assert report["summary"]["failure_rows"] == []
+    assert report["summary"]["median_score"] == report["summary"]["avg_score"]
     assert (tmp_path / "report.json").exists()
 
     persisted = json.loads((tmp_path / "report.json").read_text(encoding="utf-8"))
