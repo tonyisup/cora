@@ -8,6 +8,7 @@ _Updated: 2026-06-04_
 
 ### Vowel Imitation (main path)
 - **5 vowels**: /i/ (beat), /ɛ/ (bet), /ɑ/ (hot), /ɔ/ (caught), /u/ (boot)
+- **Validated suite:** 604 passed, 1 skipped, 0 failed
 - **Mel spectral substrate**: 26-bin Mel filterbank → RNN (32-dim) → nearest-centroid lookup
 - **100% synthetic accuracy**, separation ratio 3.39 (3 vowels) / 1.21 (5 vowels)
 - **Live mic input**: Real-time classification + synthesis through headphones

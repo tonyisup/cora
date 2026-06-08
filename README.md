@@ -34,7 +34,7 @@ pip install -r requirements.txt
 
 ## Project Status
 
-**Tests:** 596 passed, 1 skipped, 0 data-missing
+**Tests:** 604 passed, 1 skipped, 0 data-missing
 
 Imported M2/M3 replay fixtures live under `data/` and were copied from the corollary project for optional local replay coverage.
 
@@ -129,7 +129,7 @@ cora/
     m8_policy/           # M8 distilled + PPO speaking policies, scripted episode env
   data/                  # Captures, trained models, benchmarks
   scripts/               # Evaluation harnesses, capture scripts, diagnostics
-  tests/unit/            # 596 tests, 0 data-missing
+  tests/unit/            # 605 tests, 0 data-missing
 ```
 
 ## Key Scripts
