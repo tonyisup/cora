@@ -8,7 +8,7 @@ _Updated: 2026-06-04_
 
 ### Vowel Imitation (main path)
 - **5 vowels**: /i/ (beat), /ɛ/ (bet), /ɑ/ (hot), /ɔ/ (caught), /u/ (boot)
-- **Validated suite:** 615 passed, 1 skipped, 0 failed
+- **Validated suite:** 616 passed, 1 skipped, 0 failed
 - **Mel spectral substrate**: 26-bin Mel filterbank → RNN (32-dim) → nearest-centroid lookup
 - **100% synthetic accuracy**, separation ratio 3.39 (3 vowels) / 1.21 (5 vowels)
 - **Live mic input**: Real-time classification + synthesis through headphones
@@ -49,7 +49,7 @@ _Updated: 2026-06-04_
 | `packages/m9_sound/vowel_transitions.py` | Deterministic vowel-transition family helpers, scoring, and WAV export |
 | `scripts/m9_temporal_sequence_smoke.py` | Hardware-free temporal-sequence smoke harness |
 | `scripts/m9_vowel_transition_smoke.py` | Deterministic vowel-transition family smoke harness |
-| `scripts/m9_vowel_transition_demo.py` | Listening demo that renders long_arc/formant_rich WAVs plus a combined montage |
+| `scripts/m9_vowel_transition_demo.py` | Listening demo that renders long_arc/formant_rich/dense_cycle WAVs plus a combined montage |
 | `scripts/m9_temporal_train.py` | In-memory temporal trainer with sweep-derived held-out weighting |
 | `scripts/m9_temporal_family_sweep.py` | Ordered family-pair sweep and generalization report |
 | `docs/m9_temporal_training_workflow.md` | Reusable note for the promoted temporal-training workflow |
@@ -86,7 +86,7 @@ scripts/archive/m9_train_*.py           # Superseded training scripts
 - /i/ and /ɛ/ sometimes confused on live mic in noisy rooms
 - Mic sensitivity varies — threshold may need tuning per environment
 - /ɪ/ (bit) and /ʊ/ (book) excluded — too close to /i/ and /u/ for 3-formant modeling
-- Vowel-transition family coverage over the spectral substrate is implemented via `packages/m9_sound/vowel_transitions.py` and `scripts/m9_vowel_transition_smoke.py`; it now renders real segment-level vowel transitions and emits transition metadata for smoke audits, including the longer `long_arc` and `formant_rich` chains
+- Vowel-transition family coverage over the spectral substrate is implemented via `packages/m9_sound/vowel_transitions.py` and `scripts/m9_vowel_transition_smoke.py`; it now renders real segment-level vowel transitions and emits transition metadata for smoke audits, including the longer `long_arc`, `formant_rich`, and `dense_cycle` chains
 
 ### Next Steps
 - Even denser formant-rich temporal coverage

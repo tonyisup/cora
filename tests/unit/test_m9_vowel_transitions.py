@@ -80,6 +80,19 @@ class TestVowelTransitionFamilies:
         assert report["transition_segments"][0] == {"start_vowel": "i", "end_vowel": "i", "frame_count": 2}
         assert report["transition_segments"][-1] == {"start_vowel": "O", "end_vowel": "i", "frame_count": 2}
 
+    def test_dense_cycle_family_extends_formant_rich_coverage(self):
+        report = VT.build_vowel_transition_report(family="dense_cycle", noise_rms=0.0, noise_seed=21)
+
+        assert report["family"] == "dense_cycle"
+        assert report["input_transition_count"] == 16
+        assert report["transition_segment_count"] == 17
+        assert report["segment_frame_count"] == 2
+        assert report["stimulus_frame_count"] == 34
+        assert report["rendered_frame_count"] == 34
+        assert report["stimulus_unique_vowel_count"] == 5
+        assert report["transition_segments"][0] == {"start_vowel": "i", "end_vowel": "i", "frame_count": 2}
+        assert report["transition_segments"][-1] == {"start_vowel": "E", "end_vowel": "i", "frame_count": 2}
+
     def test_heldout_family_changes_reward_surface(self):
         base = VT.build_vowel_transition_report(family="default", noise_rms=0.0, noise_seed=7)
         heldout = VT.build_vowel_transition_report(
@@ -184,11 +197,12 @@ class TestVowelTransitionArtifacts:
 
         assert result.returncode == 0
         manifest = json.loads(manifest_path.read_text())
-        assert manifest["families"] == ["long_arc", "formant_rich"]
+        assert manifest["families"] == ["long_arc", "formant_rich", "dense_cycle"]
         assert manifest["montage_wav"] == str(output_dir / "m9-vowel-transition-demo.wav")
-        assert len(manifest["sections"]) == 2
+        assert len(manifest["sections"]) == 3
         assert (output_dir / "m9-vowel-transition-long_arc.wav").exists()
         assert (output_dir / "m9-vowel-transition-formant_rich.wav").exists()
+        assert (output_dir / "m9-vowel-transition-dense_cycle.wav").exists()
         assert (output_dir / "m9-vowel-transition-demo.wav").exists()
 
         with wave.open(str(output_dir / "m9-vowel-transition-demo.wav"), "rb") as wav_file:

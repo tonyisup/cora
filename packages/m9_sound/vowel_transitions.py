@@ -29,6 +29,7 @@ VOWEL_FAMILIES: dict[str, list[str]] = {
     "wide_sweep": ["i", "E", "a", "O", "u", "O", "a"],
     "long_arc": ["i", "E", "a", "O", "u", "O", "a", "E", "i"],
     "formant_rich": ["i", "E", "a", "O", "u", "O", "a", "E", "i", "u", "a", "O", "i"],
+    "dense_cycle": ["i", "E", "a", "O", "u", "O", "a", "E", "i", "E", "a", "O", "u", "O", "a", "E", "i"],
 }
 
 FAMILY_DURATIONS_S: dict[str, float] = {
@@ -37,6 +38,7 @@ FAMILY_DURATIONS_S: dict[str, float] = {
     "wide_sweep": 0.09,
     "long_arc": 0.06,
     "formant_rich": 0.05,
+    "dense_cycle": 0.05,
 }
 
 FORMANT_KEYS = (("f1", "a1"), ("f2", "a2"), ("f3", "a3"))

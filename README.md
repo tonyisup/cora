@@ -34,7 +34,7 @@ pip install -r requirements.txt
 
 ## Project Status
 
-**Tests:** 615 passed, 1 skipped, 0 data-missing
+**Tests:** 616 passed, 1 skipped, 0 data-missing
 
 Imported M2/M3 replay fixtures live under `data/` and were copied from the corollary project for optional local replay coverage.
 
@@ -53,7 +53,7 @@ Imported M2/M3 replay fixtures live under `data/` and were copied from the corol
 | M6 | ✅ Live validated | SAG introspective queries functional, M4 accept rate 95.7% |
 | M7 | ✅ Complete | Trust-gated NLMS + DriftAlarm + IR bank + device profile; live room-change validated |
 | M8 | ✅ Complete | Speaking policy: heuristic (M8a), distilled 98.7% (M8b), PPO +3062% on expanded (M8c), live hardware validated |
-| M9 | ✅ Vowel imitation working | Formant synthesis, vowel classification, live mic → headphone imitation, plus temporal-sequence smoke harness, noisy-room regression, diphthong-family coverage, wide-sweep family coverage, device-profile regression, live-capture wrapper, and vowel-transition family coverage smoke CLI with real transition segments plus long_arc and formant_rich longer-chain coverage; next step is broader formant-rich temporal coverage over the spectral/formant substrate path; see docs/m9_status.md |
+| M9 | ✅ Vowel imitation working | Formant synthesis, vowel classification, live mic → headphone imitation, plus temporal-sequence smoke harness, noisy-room regression, diphthong-family coverage, wide-sweep family coverage, device-profile regression, live-capture wrapper, and vowel-transition family coverage smoke CLI with real transition segments plus long_arc, formant_rich, and dense_cycle longer-chain coverage; next step is broader formant-rich temporal coverage over the spectral/formant substrate path; see docs/m9_status.md |
 
 ### M4 Self-Voice Detector
 
@@ -129,7 +129,7 @@ cora/
     m8_policy/           # M8 distilled + PPO speaking policies, scripted episode env
   data/                  # Captures, trained models, benchmarks
   scripts/               # Evaluation harnesses, capture scripts, diagnostics
-  tests/unit/            # 616 tests, 0 data-missing
+  tests/unit/            # 617 tests, 0 data-missing
 ```
 
 ## Key Scripts
@@ -150,7 +150,7 @@ cora/
 | `scripts/m8_eval.py` | Evaluate heuristic vs distilled vs PPO speaking policies |
 | `scripts/m9_temporal_sequence_smoke.py` | Hardware-free temporal-sequence smoke harness for the saved controller/substrate pair |
 | `scripts/m9_vowel_transition_smoke.py` | Deterministic vowel-transition family smoke harness |
-| `scripts/m9_vowel_transition_demo.py` | Listening demo: renders long_arc/formant_rich WAVs plus a combined montage |
+| `scripts/m9_vowel_transition_demo.py` | Listening demo: renders long_arc/formant_rich/dense_cycle WAVs plus a combined montage |
 | `scripts/m9_live_temporal_capture.py` | Live mic/speaker capture wrapper that records rendered and captured WAV artifacts |
 
 ## Evaluation Metrics
