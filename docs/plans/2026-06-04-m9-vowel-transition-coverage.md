@@ -1,5 +1,7 @@
 # M9 Vowel-Transition Coverage Implementation Plan
 
+> **Status:** Phase 1 is implemented in `packages/m9_sound/vowel_transitions.py` and `scripts/m9_vowel_transition_smoke.py`. The next follow-on is longer temporal sequences with real vowel transitions.
+
 > **For Hermes:** Use subagent-driven-development skill to implement this plan task-by-task.
 
 **Goal:** Extend M9 from pure-tone temporal coverage to deterministic vowel-transition family coverage over the spectral substrate path, with a smoke harness, held-out generalization checks, and listenable artifacts.

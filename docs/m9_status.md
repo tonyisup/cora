@@ -8,7 +8,7 @@ _Updated: 2026-06-04_
 
 ### Vowel Imitation (main path)
 - **5 vowels**: /i/ (beat), /ɛ/ (bet), /ɑ/ (hot), /ɔ/ (caught), /u/ (boot)
-- **Validated suite:** 604 passed, 1 skipped, 0 failed
+- **Validated suite:** 609 passed, 1 skipped, 0 failed
 - **Mel spectral substrate**: 26-bin Mel filterbank → RNN (32-dim) → nearest-centroid lookup
 - **100% synthetic accuracy**, separation ratio 3.39 (3 vowels) / 1.21 (5 vowels)
 - **Live mic input**: Real-time classification + synthesis through headphones
@@ -39,7 +39,6 @@ _Updated: 2026-06-04_
 - **Classifier**: Nearest-centroid in 32-dim hidden state space
 - **Synthesizer**: 3-formant oscillator with phase continuity + HP filter on input
 - **Training**: Adam optimizer with gradient clipping, triplet margin loss, desaturation penalty, analytic BPTT
-
 ### Key Files
 | File | Purpose |
 |------|---------|
@@ -47,7 +46,9 @@ _Updated: 2026-06-04_
 | `scripts/m9_vowel_say.py` | Text → vowel association (type words, hear vowels) |
 | `scripts/m9_train_spectral.py` | Contrastive spectral substrate training |
 | `scripts/m9_train_substrate_contrastive.py` | Raw-audio contrastive training (superseded) |
+| `packages/m9_sound/vowel_transitions.py` | Deterministic vowel-transition family helpers, scoring, and WAV export |
 | `scripts/m9_temporal_sequence_smoke.py` | Hardware-free temporal-sequence smoke harness |
+| `scripts/m9_vowel_transition_smoke.py` | Deterministic vowel-transition family smoke harness |
 | `scripts/m9_temporal_train.py` | In-memory temporal trainer with sweep-derived held-out weighting |
 | `scripts/m9_temporal_family_sweep.py` | Ordered family-pair sweep and generalization report |
 | `docs/m9_temporal_training_workflow.md` | Reusable note for the promoted temporal-training workflow |
@@ -84,11 +85,11 @@ scripts/archive/m9_train_*.py           # Superseded training scripts
 - /i/ and /ɛ/ sometimes confused on live mic in noisy rooms
 - Mic sensitivity varies — threshold may need tuning per environment
 - /ɪ/ (bit) and /ʊ/ (book) excluded — too close to /i/ and /u/ for 3-formant modeling
-- Temporal harness currently uses pure-tone families; vowel-transition family over the spectral substrate is the next step
+- Vowel-transition family coverage over the spectral substrate is implemented via `packages/m9_sound/vowel_transitions.py` and `scripts/m9_vowel_transition_smoke.py`; next step is longer temporal sequences with real vowel transitions
 
 ### Next Steps
-- Vowel-transition family coverage over the spectral substrate path
 - Longer temporal sequences with real formant transitions
+- Broader formant-rich coverage
 - Expand pronunciation dictionary
 - Consonant frame modeling (fricatives, stops, nasals)
 - Substrate retraining on live mic audio (reduce synthetic-domain gap)

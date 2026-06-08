@@ -18,11 +18,11 @@
 
 ## What Speech Requires (and what's missing)
 
-### 1. Vowel-transition family coverage (NEXT)
-Speech is a rapid sequence of vowel-like transitions, not just isolated steady states. Need:
+### 1. Vowel-transition family coverage (DONE)
+Speech is a rapid sequence of vowel-like transitions, not just isolated steady states. The current slice is now implemented as a deterministic helper + smoke CLI.
 - Stimulus: sequence of vowel transitions (e.g., /i/ → /ɛ/ → /u/)
-- Producer: must change parameters over time, not just sustain one vowel
-- Substrate: must learn transition patterns, not just static state
+- Producer: changes parameters over time, not just sustain one vowel
+- Substrate: learns transition patterns, not just static state
 
 ### 2. Richer Oscillator (AFTER TRANSITIONS)
 Pure tones (sine, triangle, square) don't sound like speech. Need:

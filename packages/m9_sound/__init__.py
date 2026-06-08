@@ -27,6 +27,14 @@ from m9_sound.temporal import (
 )
 from m9_sound.live_capture import run_live_temporal_capture_report
 from m9_sound.text_association import TextAssociationStats, TextAssociationStore, WordSoundPair
+from m9_sound.vowel_transitions import (
+    DEFAULT_LOOKUP_CKPT,
+    DEFAULT_SUBSTRATE_CKPT,
+    FAMILY_DURATIONS_S,
+    VOWEL_FAMILIES,
+    build_vowel_transition_report,
+    write_vowel_transition_wav,
+)
 
 __all__ = [
     "OscillatorBank",
@@ -60,4 +68,10 @@ __all__ = [
     "TextAssociationStats",
     "TextAssociationStore",
     "WordSoundPair",
+    "DEFAULT_LOOKUP_CKPT",
+    "DEFAULT_SUBSTRATE_CKPT",
+    "FAMILY_DURATIONS_S",
+    "VOWEL_FAMILIES",
+    "build_vowel_transition_report",
+    "write_vowel_transition_wav",
 ]
