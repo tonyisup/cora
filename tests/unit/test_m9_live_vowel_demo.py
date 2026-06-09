@@ -10,7 +10,7 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
 
-def test_live_vowel_demo_dry_run_loops_and_writes_latest_report(tmp_path: Path):
+def test_live_vowel_demo_dry_run_waits_for_mic_and_writes_report(tmp_path: Path):
     output_dir = tmp_path / "demo"
     script = PROJECT_ROOT / "scripts" / "m9_live_vowel_demo.py"
     result = subprocess.run(
@@ -20,8 +20,6 @@ def test_live_vowel_demo_dry_run_loops_and_writes_latest_report(tmp_path: Path):
             "--dry-run",
             "--iterations",
             "2",
-            "--family",
-            "phase_triad",
             "--output-dir",
             str(output_dir),
         ],
@@ -31,19 +29,16 @@ def test_live_vowel_demo_dry_run_loops_and_writes_latest_report(tmp_path: Path):
     )
 
     assert result.returncode == 0
-    assert "M9 Live Vowel Imitation Loop" in result.stdout
-    assert "[0001] family=phase_triad" in result.stdout
-    assert "[0002] family=phase_triad" in result.stdout
+    assert "Cora Vowel Imitation (Spectral)" in result.stdout
+    assert "heard=True" in result.stdout
+    assert "Dry-run summary: 2/2" in result.stdout
     report = json.loads((output_dir / "report.json").read_text(encoding="utf-8"))
-    assert report["family"] == "phase_triad"
-    assert report["phase_closure"]["passed"] is True
-    assert (output_dir / "run-0001" / "report.json").exists()
-    assert (output_dir / "run-0002" / "report.json").exists()
-    assert (output_dir / "run-0001" / "rendered_vowel_transition.wav").exists()
-    assert (output_dir / "run-0002" / "captured_vowel_transition.wav").exists()
+    assert report["mode"] == "dry_run"
+    assert report["iterations"] == 2
+    assert (output_dir / "report.json").exists()
 
 
-def test_live_vowel_legacy_shim_routes_to_loop(tmp_path: Path):
+def test_live_vowel_legacy_shim_routes_to_demo(tmp_path: Path):
     output_dir = tmp_path / "legacy"
     script = PROJECT_ROOT / "scripts" / "m9_live_vowel.py"
     result = subprocess.run(
@@ -53,8 +48,6 @@ def test_live_vowel_legacy_shim_routes_to_loop(tmp_path: Path):
             "--dry-run",
             "--iterations",
             "1",
-            "--family",
-            "phase_arc",
             "--output-dir",
             str(output_dir),
         ],
@@ -64,8 +57,7 @@ def test_live_vowel_legacy_shim_routes_to_loop(tmp_path: Path):
     )
 
     assert result.returncode == 0
-    assert "M9 Live Vowel Imitation Loop" in result.stdout
-    assert "family=phase_arc" in result.stdout
+    assert "Cora Vowel Imitation (Spectral)" in result.stdout
     report = json.loads((output_dir / "report.json").read_text(encoding="utf-8"))
-    assert report["family"] == "phase_arc"
-    assert report["phase_closure"]["passed"] is True
+    assert report["iterations"] == 1
+    assert report["mode"] == "dry_run"
