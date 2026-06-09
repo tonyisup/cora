@@ -93,7 +93,7 @@
 
 ## Open Items
 
-- M9 temporal path now includes device-profile regression, live-capture validation wrapper, live vowel-transition phase-closure capture wrapper, and the live vowel-transition phase-closure gate; `phase_triad` is now a clean 3-transition chain with longer segment spacing for live stability, and `phase_arc` adds a second stable 2-transition family
+- M9 temporal path now includes device-profile regression, live-capture validation wrapper, live vowel-transition phase-closure capture wrapper, and the live vowel-transition phase-closure gate; `phase_triad` is now a clean 3-transition chain with longer segment spacing for live stability, and `phase_arc` adds a second stable 2-transition family. The current live imitation phase is ready for use under the highpass profile at threshold 0.9.
 - M8 known gap: clarify/repair actions not triggered by heuristic in current episode types — distilled never learned them
 - `packages/salience/` remains a stub (empty `__init__.py`)
 - M9 next: broader formant-rich temporal coverage beyond the long_arc, formant_rich, dense_cycle, ultra_dense, hyper_dense, and mega_dense slices
