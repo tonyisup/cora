@@ -1,4 +1,4 @@
-"""Regression tests for the M9 live vowel imitation demo."""
+"""Regression tests for the M9 live vowel-transition imitation demo."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
 
-def test_live_vowel_demo_dry_run_waits_for_mic_and_writes_report(tmp_path: Path):
+def test_live_vowel_demo_dry_run_waits_for_speech_and_imitates_transitions(tmp_path: Path):
     output_dir = tmp_path / "demo"
     script = PROJECT_ROOT / "scripts" / "m9_live_vowel_demo.py"
     result = subprocess.run(
@@ -20,6 +20,8 @@ def test_live_vowel_demo_dry_run_waits_for_mic_and_writes_report(tmp_path: Path)
             "--dry-run",
             "--iterations",
             "2",
+            "--families",
+            "phase_triad,phase_arc",
             "--output-dir",
             str(output_dir),
         ],
@@ -29,16 +31,21 @@ def test_live_vowel_demo_dry_run_waits_for_mic_and_writes_report(tmp_path: Path)
     )
 
     assert result.returncode == 0
-    assert "Cora Vowel Imitation (Spectral)" in result.stdout
-    assert "heard=True" in result.stdout
-    assert "Dry-run summary: 2/2" in result.stdout
+    assert "M9 Live Vowel-Transition Imitation Loop" in result.stdout
+    assert "heard speech" in result.stdout
+    assert "imitate phase_triad" in result.stdout
+    assert "imitate phase_arc" in result.stdout
+    assert "Loop summary: 2/2 transition triggers passed" in result.stdout
+
     report = json.loads((output_dir / "report.json").read_text(encoding="utf-8"))
-    assert report["mode"] == "dry_run"
-    assert report["iterations"] == 2
-    assert (output_dir / "report.json").exists()
+    assert report["family"] in {"phase_triad", "phase_arc"}
+    assert report["phase_closure"]["passed"] is True
+    assert report["phase_closure"]["target_transition_count"] >= 2
+    assert (output_dir / "run-0001" / "report.json").exists()
+    assert (output_dir / "run-0002" / "report.json").exists()
 
 
-def test_live_vowel_legacy_shim_routes_to_demo(tmp_path: Path):
+def test_live_vowel_legacy_shim_routes_to_transition_demo(tmp_path: Path):
     output_dir = tmp_path / "legacy"
     script = PROJECT_ROOT / "scripts" / "m9_live_vowel.py"
     result = subprocess.run(
@@ -57,7 +64,7 @@ def test_live_vowel_legacy_shim_routes_to_demo(tmp_path: Path):
     )
 
     assert result.returncode == 0
-    assert "Cora Vowel Imitation (Spectral)" in result.stdout
+    assert "M9 Live Vowel-Transition Imitation Loop" in result.stdout
     report = json.loads((output_dir / "report.json").read_text(encoding="utf-8"))
-    assert report["iterations"] == 1
-    assert report["mode"] == "dry_run"
+    assert report["phase_closure"]["passed"] is True
+    assert report["family"] in {"phase_triad", "phase_arc"}
