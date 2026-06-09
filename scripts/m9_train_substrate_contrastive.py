@@ -550,7 +550,7 @@ def main():
     centroids, within_stats, accuracy = build_lookup(W_h, W_x, b, dataset, hp_sos)
     save_lookup(centroids, within_stats, accuracy, 'data/m9_formant_lookup_v4.json')
 
-    print("\nDone. Update m9_live_vowel.py to use v2 substrate + v4 lookup, then live test.")
+    print("\nDone. Update m9_live_vowel_demo.py (or its m9_live_vowel.py shim) to use v2 substrate + v4 lookup, then live test.")
 
 
 if __name__ == '__main__':

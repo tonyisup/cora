@@ -517,7 +517,7 @@ def main():
     centroids, within_stats, accuracy = build_lookup(W_h, W_x, b, dataset, hp_sos)
     save_lookup(centroids, within_stats, accuracy, 'data/m9_formant_lookup_v5.json')
 
-    print("\nDone. Update m9_live_vowel.py to use spectral substrate + v5 lookup.")
+    print("\nDone. Update m9_live_vowel_demo.py (or its m9_live_vowel.py shim) to use spectral substrate + v5 lookup.")
 
 
 if __name__ == '__main__':

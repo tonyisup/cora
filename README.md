@@ -34,7 +34,7 @@ pip install -r requirements.txt
 
 ## Project Status
 
-**Tests:** 625 passed, 1 skipped, 0 data-missing
+**Tests:** 627 passed, 1 skipped, 0 data-missing
 
 Imported M2/M3 replay fixtures live under `data/` and were copied from the corollary project for optional local replay coverage.
 
@@ -53,7 +53,7 @@ Imported M2/M3 replay fixtures live under `data/` and were copied from the corol
 | M6 | ✅ Live validated | SAG introspective queries functional, M4 accept rate 95.7% |
 | M7 | ✅ Complete | Trust-gated NLMS + DriftAlarm + IR bank + device profile; live room-change validated |
 | M8 | ✅ Complete | Speaking policy: heuristic (M8a), distilled 98.7% (M8b), PPO +3062% on expanded (M8c), live hardware validated |
-| M9 | ✅ Vowel imitation working | Formant synthesis, vowel classification, live mic → headphone imitation, plus temporal-sequence smoke harness, noisy-room regression, diphthong-family coverage, wide-sweep family coverage, device-profile regression, live-capture wrapper, live vowel-transition capture wrapper, live vowel-transition phase-closure gate, and vowel-transition family coverage smoke CLI with real transition segments plus long_arc, formant_rich, dense_cycle, ultra_dense, hyper_dense, and mega_dense longer-chain coverage; live imitation phase ready under the highpass profile at threshold 0.9; next step is broader formant-rich temporal coverage over the spectral/formant substrate path; see docs/m9_status.md |
+| M9 | ✅ Vowel imitation working | Formant synthesis, vowel classification, live mic → headphone imitation, plus temporal-sequence smoke harness, noisy-room regression, diphthong-family coverage, wide-sweep family coverage, device-profile regression, live-capture wrapper, live vowel-transition capture wrapper, live vowel-transition phase-closure gate, and vowel-transition family coverage smoke CLI with real transition segments plus long_arc, formant_rich, dense_cycle, ultra_dense, hyper_dense, and mega_dense longer-chain coverage; live imitation phase ready under the highpass profile at threshold 0.9; main demo now routes through the latest phase-closure path; next step is broader formant-rich temporal coverage over the spectral/formant substrate path; see docs/m9_status.md |
 
 ### M4 Self-Voice Detector
 
@@ -153,6 +153,7 @@ cora/
 | `scripts/m9_vowel_transition_demo.py` | Listening demo: renders long_arc/formant_rich/dense_cycle/ultra_dense/hyper_dense/mega_dense WAVs plus a combined montage |
 | `scripts/m9_live_temporal_capture.py` | Live mic/speaker capture wrapper that records rendered and captured WAV artifacts |
 | `scripts/m9_live_vowel_transition_capture.py` | Live mic/speaker capture wrapper for vowel-transition families with phase-closure scoring |
+| `scripts/m9_live_vowel_demo.py` | Live mic → vowel imitation main demo (latest path; compatibility shim: `scripts/m9_live_vowel.py`) |
 | `scripts/m9_live_vowel_transition_gate.py` | Live phase-closure gate over vowel-transition families |
 
 ## Evaluation Metrics
