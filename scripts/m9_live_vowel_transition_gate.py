@@ -21,7 +21,7 @@ from m9_sound.vowel_transitions import VOWEL_FAMILIES
 def main() -> None:
     parser = argparse.ArgumentParser(description="M9 live vowel-transition phase-closure gate")
     parser.add_argument("--output", type=Path, default=Path("/tmp/m9_live_vowel_transition_gate.json"), help="Where to write the JSON report")
-    parser.add_argument("--families", type=str, default="default,phase_triad", help="Comma-separated vowel-transition families to gate")
+    parser.add_argument("--families", type=str, default="default,phase_triad,phase_arc", help="Comma-separated vowel-transition families to gate")
     parser.add_argument("--repeats", type=int, default=2, help="How many repeats per family")
     parser.add_argument("--threshold", type=float, default=0.7, help="Phase-closure score threshold")
     parser.add_argument("--dry-run", action="store_true", help="Use a synthetic capture path instead of hardware")

@@ -3,10 +3,10 @@
 ## Test Health
 
 ```
-624 passed, 1 skipped, 0 failed
+625 passed, 1 skipped, 0 failed
 ```
 
-- 625 total tests across M8/M9 and earlier suites
+- 626 total tests across M8/M9 and earlier suites
 - The M2/M3 artifact replay tests now pass after restoring imported fixtures from the corollary copy; those assets are optional for fresh clones, but present in this checkout for local replay coverage
 - Added an M9 live-capture retrain smoke harness so the current vowel path can be regression-tested without hardware
 - Added an M9 temporal-sequence smoke harness over the saved temporal controller/substrate pair
@@ -14,7 +14,7 @@
 - Added a diphthong-family temporal regression with a longer 5-tone transition family
 - Added a wide-sweep temporal regression with a 7-tone transition family
 - Added a device-profile regression for the temporal smoke path so capture high-pass/gain variation stays stable
-- Added a live-capture wrapper so the temporal sequence can be played through hardware and written back out as rendered/captured WAV artifacts; `phase_triad` is now a stable clean 3-transition chain with longer spacing
+- Added a live-capture wrapper so the temporal sequence can be played through hardware and written back out as rendered/captured WAV artifacts; `phase_triad` is now a stable clean 3-transition chain with longer spacing, and `phase_arc` adds a second stable 2-transition live family
 
 ## Milestone Status
 
@@ -93,7 +93,7 @@
 
 ## Open Items
 
-- M9 temporal path now includes device-profile regression, live-capture validation wrapper, live vowel-transition phase-closure capture wrapper, and the live vowel-transition phase-closure gate; `phase_triad` is now a clean 3-transition chain with longer segment spacing for live stability
+- M9 temporal path now includes device-profile regression, live-capture validation wrapper, live vowel-transition phase-closure capture wrapper, and the live vowel-transition phase-closure gate; `phase_triad` is now a clean 3-transition chain with longer segment spacing for live stability, and `phase_arc` adds a second stable 2-transition family
 - M8 known gap: clarify/repair actions not triggered by heuristic in current episode types — distilled never learned them
 - `packages/salience/` remains a stub (empty `__init__.py`)
 - M9 next: broader formant-rich temporal coverage beyond the long_arc, formant_rich, dense_cycle, ultra_dense, hyper_dense, and mega_dense slices

@@ -309,7 +309,7 @@ def run_live_vowel_transition_gate(
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    family_list = list(families or ["default", "phase_triad"])
+    family_list = list(families or ["default", "phase_triad", "phase_arc"])
     repeats = max(1, int(repeats))
     capture_audio_fn = capture_audio_fn or (_dry_run_phase_closure_capture_audio if dry_run else None)
 

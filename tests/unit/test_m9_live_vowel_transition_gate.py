@@ -22,7 +22,7 @@ def test_run_live_vowel_transition_gate_dry_run_passes(tmp_path: Path):
 
     report = run_live_vowel_transition_gate(
         output_dir=tmp_path,
-        families=["default", "phase_triad"],
+        families=["default", "phase_triad", "phase_arc"],
         repeats=2,
         threshold=0.7,
         dry_run=True,
@@ -30,11 +30,11 @@ def test_run_live_vowel_transition_gate_dry_run_passes(tmp_path: Path):
 
     assert report["summary"]["verdict"] is True
     assert report["summary"]["pass_rate"] == 1.0
-    assert report["summary"]["total"] == 4
-    assert {row["family"] for row in report["results"]} == {"default", "phase_triad"}
+    assert report["summary"]["total"] == 6
+    assert {row["family"] for row in report["results"]} == {"default", "phase_triad", "phase_arc"}
     assert all(row["phase_closure"]["passed"] for row in report["results"])
     assert report["summary"]["failure_rows"] == []
-    assert report["summary"]["median_score"] == report["summary"]["avg_score"]
+    assert abs(report["summary"]["median_score"] - report["summary"]["avg_score"]) < 1e-12
     assert (tmp_path / "report.json").exists()
 
     persisted = json.loads((tmp_path / "report.json").read_text(encoding="utf-8"))
@@ -51,7 +51,7 @@ def test_live_vowel_transition_gate_script_dry_run(tmp_path: Path):
             str(script),
             "--dry-run",
             "--families",
-            "default,phase_triad",
+            "default,phase_triad,phase_arc",
             "--repeats",
             "1",
             "--threshold",
@@ -68,4 +68,4 @@ def test_live_vowel_transition_gate_script_dry_run(tmp_path: Path):
     payload = json.loads(output_path.read_text(encoding="utf-8"))
     assert payload["summary"]["verdict"] is True
     assert payload["summary"]["pass_rate"] == 1.0
-    assert {row["family"] for row in payload["results"]} == {"default", "phase_triad"}
+    assert {row["family"] for row in payload["results"]} == {"default", "phase_triad", "phase_arc"}

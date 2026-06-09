@@ -61,6 +61,21 @@ class TestVowelTransitionFamilies:
             {"start_vowel": "a", "end_vowel": "i", "frame_count": 6},
         ]
 
+    def test_phase_arc_family_forms_a_two_transition_chain(self):
+        report = VT.build_vowel_transition_report(family="phase_arc", noise_rms=0.0, noise_seed=13)
+
+        assert report["family"] == "phase_arc"
+        assert report["input_transition_count"] == 2
+        assert report["transition_segment_count"] == 3
+        assert report["segment_frame_count"] == 4
+        assert report["stimulus_frame_count"] == 12
+        assert report["rendered_frame_count"] == 12
+        assert report["transition_segments"] == [
+            {"start_vowel": "i", "end_vowel": "i", "frame_count": 4},
+            {"start_vowel": "i", "end_vowel": "O", "frame_count": 4},
+            {"start_vowel": "O", "end_vowel": "i", "frame_count": 4},
+        ]
+
     def test_longer_family_has_expected_transition_count(self):
         report = VT.build_vowel_transition_report(family="wide_sweep", noise_rms=0.01, noise_seed=13)
 
