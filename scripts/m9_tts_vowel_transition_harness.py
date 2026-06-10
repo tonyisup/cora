@@ -42,20 +42,6 @@ DEFAULT_MIN_CONTINUITY = 0.88
 DEFAULT_MONITOR_OUTPUT_DEVICE = 3
 DEFAULT_MONITOR_MODE = "project"
 DEFAULT_MONITOR_FAMILY = "auto"
-PROJECT_MONITOR_FAMILY_ORDER = [
-    "phase_arc",
-    "phase_triad",
-    "diphthong",
-    "wide_sweep",
-    "long_arc",
-    "formant_rich",
-    "dense_cycle",
-    "ultra_dense",
-    "hyper_dense",
-    "mega_dense",
-    "max_dense",
-    "ultra_max_dense",
-]
 
 DEFAULT_PHRASES = [
     "eee eeeh ehh ahh ohh ooo",
@@ -188,12 +174,17 @@ def _default_monitor_audio_fn(pcm: np.ndarray, *, output_device: int) -> dict[st
     return _play_pcm_on_device(pcm, output_device=output_device, label="captured")
 
 
-def _select_project_monitor_family(decoded_unique_vowel_count: int) -> str:
-    count = max(1, int(decoded_unique_vowel_count))
-    for family in PROJECT_MONITOR_FAMILY_ORDER:
-        if len(VOWEL_FAMILIES[family]) >= count:
-            return family
-    return PROJECT_MONITOR_FAMILY_ORDER[-1]
+def _select_project_monitor_family(decoded_unique_vowel_count: int, decoded_transition_count: int) -> str:
+    unique_count = max(1, int(decoded_unique_vowel_count))
+    transition_count = max(0, int(decoded_transition_count))
+
+    if unique_count >= 8:
+        return "long_arc"
+    if unique_count >= 5:
+        return "diphthong"
+    if transition_count >= 7:
+        return "phase_triad"
+    return "phase_arc"
 
 
 def _generate_project_imitation_audio(
@@ -319,8 +310,11 @@ def run_tts_vowel_transition_harness(
             resolved_monitor_family = monitor_family
             monitor_family_source = "explicit"
             if monitor_mode == "project" and monitor_family == "auto":
-                resolved_monitor_family = _select_project_monitor_family(int(decoded["decoded_unique_vowel_count"]))
-                monitor_family_source = "decoded_unique_vowel_count"
+                resolved_monitor_family = _select_project_monitor_family(
+                    int(decoded["decoded_unique_vowel_count"]),
+                    transition_count,
+                )
+                monitor_family_source = "decoded_shape"
             monitor_meta = None
             if monitor_fn is not None and monitor_output_device is not None:
                 if monitor_mode == "project":

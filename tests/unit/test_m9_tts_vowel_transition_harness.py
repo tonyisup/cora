@@ -88,11 +88,10 @@ def test_tts_vowel_transition_harness_project_monitor_mode_plays_project_audio(t
     assert (output_dir / "repeat-01" / "phrase-01" / "project_imitation.wav").exists()
 
 
-def test_select_project_monitor_family_tracks_unique_vowel_count():
-    assert HARNESS._select_project_monitor_family(1) == "phase_arc"
-    assert HARNESS._select_project_monitor_family(4) == "phase_triad"
-    assert HARNESS._select_project_monitor_family(5) == "diphthong"
-    assert HARNESS._select_project_monitor_family(8) == "long_arc"
+def test_select_project_monitor_family_tracks_shape():
+    assert HARNESS._select_project_monitor_family(4, 9) == "phase_triad"
+    assert HARNESS._select_project_monitor_family(4, 4) == "phase_arc"
+    assert HARNESS._select_project_monitor_family(8, 7) == "long_arc"
 
 
 def test_tts_vowel_transition_harness_auto_monitor_family_uses_decoded_shape(tmp_path: Path):
@@ -159,4 +158,4 @@ def test_tts_vowel_transition_harness_auto_monitor_family_uses_decoded_shape(tmp
     assert report["monitor_family"] == "auto"
     assert report["runs"][0]["monitor"]["family"] == "long_arc"
     assert report["runs"][0]["monitor"]["resolved_family"] == "long_arc"
-    assert report["runs"][0]["monitor"]["family_source"] == "decoded_unique_vowel_count"
+    assert report["runs"][0]["monitor"]["family_source"] == "decoded_shape"
