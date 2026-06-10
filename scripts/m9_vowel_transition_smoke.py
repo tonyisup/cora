@@ -14,17 +14,18 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "packages"))
 
-from m9_sound.vowel_transitions import build_vowel_transition_report, write_vowel_transition_wav
+from m9_sound.vowel_transitions import VOWEL_FAMILIES, build_vowel_transition_report, write_vowel_transition_wav
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="M9 vowel-transition family smoke harness")
-    parser.add_argument("--family", type=str, default="default", choices=["default", "diphthong", "wide_sweep", "long_arc", "formant_rich"])
-    parser.add_argument("--heldout-family", type=str, default="diphthong", choices=["default", "diphthong", "wide_sweep", "long_arc", "formant_rich"])
+    parser.add_argument("--family", type=str, default="default", choices=sorted(VOWEL_FAMILIES.keys()))
+    parser.add_argument("--heldout-family", type=str, default="diphthong", choices=sorted(VOWEL_FAMILIES.keys()))
     parser.add_argument("--noise-rms", type=float, default=0.0)
     parser.add_argument("--noise-seed", type=int, default=None)
     parser.add_argument("--device-profile", type=str, default="flat", choices=["flat", "highpass"])
     parser.add_argument("--device-gain", type=float, default=1.0)
+    parser.add_argument("--duration-scale", type=float, default=1.0)
     parser.add_argument("--output", type=Path, default=None, help="Optional path to write the JSON report")
     parser.add_argument("--output-wav", type=Path, default=None, help="Optional path to write the rendered WAV")
     args = parser.parse_args()
@@ -38,6 +39,7 @@ def main() -> None:
             noise_seed=args.noise_seed,
             device_profile=args.device_profile,
             device_gain=args.device_gain,
+            duration_scale=args.duration_scale,
         )
     else:
         report = build_vowel_transition_report(
@@ -47,6 +49,7 @@ def main() -> None:
             noise_seed=args.noise_seed,
             device_profile=args.device_profile,
             device_gain=args.device_gain,
+            duration_scale=args.duration_scale,
         )
 
     if args.output is not None:

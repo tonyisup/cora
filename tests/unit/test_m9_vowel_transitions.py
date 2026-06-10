@@ -15,10 +15,120 @@ from m9_sound.controller import ControllerParams
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 MODULE_PATH = PROJECT_ROOT / "packages" / "m9_sound" / "vowel_transitions.py"
+LIVE_CAPTURE_MODULE_PATH = PROJECT_ROOT / "packages" / "m9_sound" / "live_capture.py"
 SPEC = importlib.util.spec_from_file_location("m9_sound.vowel_transitions", MODULE_PATH)
+LIVE_CAPTURE_SPEC = importlib.util.spec_from_file_location("m9_sound.live_capture", LIVE_CAPTURE_MODULE_PATH)
 assert SPEC is not None and SPEC.loader is not None
+assert LIVE_CAPTURE_SPEC is not None and LIVE_CAPTURE_SPEC.loader is not None
 VT = importlib.util.module_from_spec(SPEC)
+LC = importlib.util.module_from_spec(LIVE_CAPTURE_SPEC)
 SPEC.loader.exec_module(VT)
+LIVE_CAPTURE_SPEC.loader.exec_module(LC)
+
+
+class TestLiveVowelTransitionPresets:
+    def test_validated_long_arc_preset_resolves_hardened_live_tuning(self):
+        resolved = LC.resolve_live_vowel_transition_tuning(preset="validated_long_arc")
+
+        assert resolved == {
+            "device_profile": "highpass",
+            "device_gain": 1.0,
+            "lead_in_s": 1.0,
+            "tail_s": 1.5,
+            "duration_scale": 4.0,
+        }
+
+    def test_validated_dense_stack_preset_resolves_hardened_live_tuning(self):
+        resolved = LC.resolve_live_vowel_transition_tuning(preset="validated_dense_stack")
+
+        assert resolved == {
+            "device_profile": "highpass",
+            "device_gain": 1.0,
+            "lead_in_s": 1.0,
+            "tail_s": 1.5,
+            "duration_scale": 7.0,
+        }
+
+    def test_validated_formant_rich_preset_resolves_hardened_live_tuning(self):
+        resolved = LC.resolve_live_vowel_transition_tuning(preset="validated_formant_rich")
+
+        assert resolved == {
+            "device_profile": "highpass",
+            "device_gain": 1.0,
+            "lead_in_s": 1.0,
+            "tail_s": 1.5,
+            "duration_scale": 7.2,
+        }
+
+    def test_validated_formant_rich_preset_reaches_capture_report(self, tmp_path):
+        def capture_audio(playback_audio, *, sr, **kwargs):
+            return np.asarray(playback_audio, dtype=np.float32).reshape(-1)
+
+        report = LC.run_live_vowel_transition_capture_report(
+            tmp_path / "capture",
+            family="formant_rich",
+            capture_audio_fn=capture_audio,
+            preset="validated_formant_rich",
+        )
+
+        assert report["device_profile"] == "highpass"
+        assert report["device_gain"] == 1.0
+        assert report["lead_in_s"] == 1.0
+        assert report["tail_s"] == 1.5
+        assert report["duration_scale"] == 7.2
+        assert report["stimulus_frame_count"] > report["input_transition_count"]
+        assert report["phase_closure"]["target_transition_count"] == report["input_transition_count"]
+
+    def test_long_arc_duration_scale_is_forwarded_into_live_capture(self, tmp_path):
+        def capture_audio(playback_audio, *, sr, **kwargs):
+            return np.asarray(playback_audio, dtype=np.float32).reshape(-1)
+
+        report = LC.run_live_vowel_transition_capture_report(
+            tmp_path / "long-arc",
+            family="long_arc",
+            capture_audio_fn=capture_audio,
+            preset="validated_long_arc",
+        )
+
+        assert report["device_profile"] == "highpass"
+        assert report["lead_in_s"] == 1.0
+        assert report["tail_s"] == 1.5
+        assert report["duration_scale"] == 4.0
+        assert report["stimulus_frame_count"] == 72
+        assert report["input_transition_count"] == 8
+        assert report["phase_closure"]["target_transition_count"] == 8
+
+    def test_validated_dense_stack_preset_reaches_gate_report(self, tmp_path):
+        report = LC.run_live_vowel_transition_gate(
+            tmp_path / "dense-stack",
+            families=["max_dense"],
+            repeats=1,
+            threshold=0.8,
+            dry_run=True,
+            preset="validated_dense_stack",
+        )
+
+        assert report["config"]["device_profile"] == "highpass"
+        assert report["config"]["lead_in_s"] == 1.0
+        assert report["config"]["tail_s"] == 1.5
+        assert report["config"]["duration_scale"] == 7.0
+        assert report["summary"]["total"] == 1
+
+    def test_validated_formant_rich_preset_reaches_gate_report(self, tmp_path):
+        report = LC.run_live_vowel_transition_gate(
+            tmp_path / "gate",
+            families=["formant_rich"],
+            repeats=1,
+            threshold=0.8,
+            dry_run=True,
+            preset="validated_formant_rich",
+        )
+
+        assert report["config"]["device_profile"] == "highpass"
+        assert report["config"]["lead_in_s"] == 1.0
+        assert report["config"]["tail_s"] == 1.5
+        assert report["config"]["duration_scale"] == 7.2
+        assert report["summary"]["total"] == 1
 
 
 class TestVowelTransitionFamilies:
@@ -163,6 +273,32 @@ class TestVowelTransitionFamilies:
         assert report["transition_segments"][0] == {"start_vowel": "i", "end_vowel": "i", "frame_count": 2}
         assert report["transition_segments"][-1] == {"start_vowel": "a", "end_vowel": "i", "frame_count": 2}
 
+    def test_max_dense_family_extends_mega_dense_coverage(self):
+        report = VT.build_vowel_transition_report(family="max_dense", noise_rms=0.0, noise_seed=21)
+
+        assert report["family"] == "max_dense"
+        assert report["input_transition_count"] == 38
+        assert report["transition_segment_count"] == 39
+        assert report["segment_frame_count"] == 2
+        assert report["stimulus_frame_count"] == 78
+        assert report["rendered_frame_count"] == 78
+        assert report["stimulus_unique_vowel_count"] == 5
+        assert report["transition_segments"][0] == {"start_vowel": "i", "end_vowel": "i", "frame_count": 2}
+        assert report["transition_segments"][-1] == {"start_vowel": "u", "end_vowel": "i", "frame_count": 2}
+
+    def test_ultra_max_dense_family_extends_max_dense_coverage(self):
+        report = VT.build_vowel_transition_report(family="ultra_max_dense", noise_rms=0.0, noise_seed=21)
+
+        assert report["family"] == "ultra_max_dense"
+        assert report["input_transition_count"] == 43
+        assert report["transition_segment_count"] == 44
+        assert report["segment_frame_count"] == 2
+        assert report["stimulus_frame_count"] == 88
+        assert report["rendered_frame_count"] == 88
+        assert report["stimulus_unique_vowel_count"] == 5
+        assert report["transition_segments"][0] == {"start_vowel": "i", "end_vowel": "i", "frame_count": 2}
+        assert report["transition_segments"][-1] == {"start_vowel": "a", "end_vowel": "i", "frame_count": 2}
+
     def test_heldout_family_changes_reward_surface(self):
         base = VT.build_vowel_transition_report(family="default", noise_rms=0.0, noise_seed=7)
         heldout = VT.build_vowel_transition_report(
@@ -267,15 +403,17 @@ class TestVowelTransitionArtifacts:
 
         assert result.returncode == 0
         manifest = json.loads(manifest_path.read_text())
-        assert manifest["families"] == ["long_arc", "formant_rich", "dense_cycle", "ultra_dense", "hyper_dense", "mega_dense"]
+        assert manifest["families"] == ["long_arc", "formant_rich", "dense_cycle", "ultra_dense", "hyper_dense", "mega_dense", "max_dense", "ultra_max_dense"]
         assert manifest["montage_wav"] == str(output_dir / "m9-vowel-transition-demo.wav")
-        assert len(manifest["sections"]) == 6
+        assert len(manifest["sections"]) == 8
         assert (output_dir / "m9-vowel-transition-long_arc.wav").exists()
         assert (output_dir / "m9-vowel-transition-formant_rich.wav").exists()
         assert (output_dir / "m9-vowel-transition-dense_cycle.wav").exists()
         assert (output_dir / "m9-vowel-transition-ultra_dense.wav").exists()
         assert (output_dir / "m9-vowel-transition-hyper_dense.wav").exists()
         assert (output_dir / "m9-vowel-transition-mega_dense.wav").exists()
+        assert (output_dir / "m9-vowel-transition-max_dense.wav").exists()
+        assert (output_dir / "m9-vowel-transition-ultra_max_dense.wav").exists()
         assert (output_dir / "m9-vowel-transition-demo.wav").exists()
 
         with wave.open(str(output_dir / "m9-vowel-transition-demo.wav"), "rb") as wav_file:

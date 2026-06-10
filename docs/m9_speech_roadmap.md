@@ -5,7 +5,7 @@
 ## Where We Are
 
 ### Working
-- Acoustic imitation loop: play stimulus (device 3) → capture (device 1) → producer generates imitation → play (device 2) → capture → score → REINFORCE update
+- Acoustic imitation loop: play stimulus (device 3) → capture (device 1) → producer generates imitation → play (device 3) → capture → score → REINFORCE update
 - Two-layer controller (664 params) learns multiple frequencies without forgetting
 - Checkpoint persistence saves/loads weights as JSON
 - Similarity metric v4: mel-scale binning + octave-tolerant autocorrelation pitch
@@ -55,8 +55,8 @@ Current: ~3–4 seconds per trial. Speech needs: real-time or near-real-time
 ## Recommended Sequence
 
 ### Near-term recommendation
-1. Keep the current vowel path stable under noisy-room/device variation with a small live-capture retrain regression harness.
-2. Then extend beyond the new long_arc, formant_rich, dense_cycle, ultra_dense, hyper_dense, and mega_dense slices toward even denser formant-rich temporal coverage over the spectral/formant substrate path.
+1. Keep the current vowel-transition live path stable under noisy-room/device variation with the validated hardware demo, the 4-repeat phase_triad/phase_arc sweep, the live-capture regression harness, and the named longer-family live presets (`validated_long_arc`, `validated_dense_stack`, `validated_formant_rich`), using the Mac mini speakers as the primary output path.
+2. Then extend beyond the new long_arc, formant_rich, dense_cycle, ultra_dense, hyper_dense, mega_dense, max_dense, and ultra_max_dense slices toward even denser formant-rich temporal coverage over the spectral/formant substrate path once the longer-family capture/decoder path stops collapsing transitions.
 
 ### Phase 1: Vowel-transition family coverage (done)
 - Stimulus: 2–3 vowel-transition sequence (e.g., /i/ 0.3s → /ɛ/ 0.3s → /u/ 0.3s)

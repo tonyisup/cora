@@ -11,7 +11,7 @@ _Updated: 2026-06-04_
 - **Validated suite:** 627 passed, 1 skipped, 0 failed
 - **Mel spectral substrate**: 26-bin Mel filterbank → RNN (32-dim) → nearest-centroid lookup
 - **100% synthetic accuracy**, separation ratio 3.39 (3 vowels) / 1.21 (5 vowels)
-- **Live mic input**: Real-time classification + synthesis through headphones
+- **Live mic input**: Real-time classification + synthesis through Mac mini speakers
 - **Zero warble**: Lookup table approach eliminates frame-to-frame jitter
 - **Phase-continuous synthesis**: Smooth across frame boundaries
 - **Temporal smoothing**: 3-frame majority vote
@@ -49,7 +49,7 @@ _Updated: 2026-06-04_
 | `packages/m9_sound/vowel_transitions.py` | Deterministic vowel-transition family helpers, scoring, and WAV export |
 | `scripts/m9_temporal_sequence_smoke.py` | Hardware-free temporal-sequence smoke harness |
 | `scripts/m9_vowel_transition_smoke.py` | Deterministic vowel-transition family smoke harness |
-| `scripts/m9_vowel_transition_demo.py` | Listening demo that renders long_arc/formant_rich/dense_cycle/ultra_dense/hyper_dense/mega_dense WAVs plus a combined montage |
+| `scripts/m9_vowel_transition_demo.py` | Listening demo that renders long_arc/formant_rich/dense_cycle/ultra_dense/hyper_dense/mega_dense/max_dense/ultra_max_dense WAVs plus a combined montage |
 | `scripts/m9_live_vowel_transition_capture.py` | Live mic/speaker capture wrapper for vowel-transition families with phase-closure scoring |
 | `scripts/m9_live_vowel_transition_gate.py` | Live phase-closure gate over vowel-transition families |
 | `scripts/m9_temporal_train.py` | In-memory temporal trainer with sweep-derived held-out weighting |
@@ -88,13 +88,14 @@ scripts/archive/m9_train_*.py           # Superseded training scripts
 - /i/ and /ɛ/ sometimes confused on live mic in noisy rooms
 - Mic sensitivity varies — threshold may need tuning per environment
 - /ɪ/ (bit) and /ʊ/ (book) excluded — too close to /i/ and /u/ for 3-formant modeling
-- Vowel-transition family coverage over the spectral substrate is implemented via `packages/m9_sound/vowel_transitions.py` and `scripts/m9_vowel_transition_smoke.py`; it now renders real segment-level vowel transitions and emits transition metadata for smoke audits, including the longer `long_arc`, `formant_rich`, `dense_cycle`, `ultra_dense`, `hyper_dense`, and `mega_dense` chains
-- Live vowel-transition capture is now wrapped in `packages/m9_sound/live_capture.py` / `scripts/m9_live_vowel_transition_capture.py` with a phase-closure score so the current sequence path can be exercised through hardware or a dry-run capture; the new main demo `scripts/m9_live_vowel_demo.py` (compatibility shim: `scripts/m9_live_vowel.py`) now waits for mic speech and runs the latest spectral transition loop; `phase_triad` now uses longer spacing to keep the 3-transition slice stable and `phase_arc` adds a second stable 2-transition family. The current live imitation phase is ready for use under the highpass profile at threshold 0.9.
+- Vowel-transition family coverage over the spectral substrate is implemented via `packages/m9_sound/vowel_transitions.py` and `scripts/m9_vowel_transition_smoke.py`; it now renders real segment-level vowel transitions and emits transition metadata for smoke audits, including the longer `long_arc`, `formant_rich`, `dense_cycle`, `ultra_dense`, `hyper_dense`, `mega_dense`, `max_dense`, and `ultra_max_dense` chains.
+- Live vowel-transition capture is now wrapped in `packages/m9_sound/live_capture.py` / `scripts/m9_live_vowel_transition_capture.py` with a phase-closure score so the current sequence path can be exercised through hardware or a dry-run capture; the new main demo `scripts/m9_live_vowel_demo.py` (compatibility shim: `scripts/m9_live_vowel.py`) now waits for mic speech and runs the latest spectral transition loop; `phase_triad` now uses longer spacing to keep the 3-transition slice stable and `phase_arc` adds a second stable 2-transition family. The current live acceptance baseline is the `phase_triad` speaker path on Mac mini speakers (device 3), which passes live at threshold 0.8; the default invocation on device 3 scored 0.9444 in the latest verification, the 4-repeat repeatability sweep passed 8/8 with mean score 0.9946, and the longer-family live path now forwards `duration-scale` into the live capture render (fixing the earlier tuning bug): `validated_long_arc` and `validated_formant_rich` are live-verified, while `validated_dense_stack` is now also live-verified on max_dense and ultra_max_dense at duration-scale 7.0; `long_arc` passes at duration-scale 4.0 on the highpass profile with longer lead-in/tail, `max_dense` / `ultra_max_dense` at duration-scale 7.0 (2/2 at threshold 0.8), and `formant_rich` at duration-scale 7.2 with longer lead-in/tail (4/4 at threshold 0.8).
 
-- The live phase-closure gate is now available in `scripts/m9_live_vowel_transition_gate.py` for repeatable promotion checks over the 2–3 transition family slice, now including `phase_arc` as a second stable 2-transition family
+- The live phase-closure gate is now available in `scripts/m9_live_vowel_transition_gate.py` for repeatable promotion checks over the 2–3 transition family slice, now including `phase_arc` as a second stable 2-transition family; the current acceptance baseline is the `phase_triad` speaker path on Mac mini speakers (device 3), which passes live at threshold 0.8.
 
 ### Next Steps
-- Even denser formant-rich temporal coverage
+- Long-family live capture/decoder tuning to stop transition collapse
+- Even denser formant-rich temporal coverage after the longer families stabilize
 - Expand pronunciation dictionary
 - Consonant frame modeling (fricatives, stops, nasals)
 - Substrate retraining on live mic audio (reduce synthetic-domain gap)

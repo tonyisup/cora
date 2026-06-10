@@ -19,6 +19,7 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "packages"))
 
 from m9_sound import VOWEL_FAMILIES, run_live_vowel_transition_capture_report
+from m9_sound.live_capture import LIVE_VOWEL_TRANSITION_PRESETS
 
 
 def _dry_run_capture_audio(playback_audio: np.ndarray, *, sr: int, **_: object) -> np.ndarray:
@@ -36,9 +37,11 @@ def main() -> None:
     parser.add_argument("--device-profile", type=str, default="flat", choices=["flat", "highpass"], help="Deterministic device profile to apply before capture")
     parser.add_argument("--device-gain", type=float, default=1.0, help="Gain applied as part of the device profile")
     parser.add_argument("--input-device", type=int, default=None, help="sounddevice input device index")
-    parser.add_argument("--output-device", type=int, default=None, help="sounddevice output device index")
+    parser.add_argument("--output-device", type=int, default=3, help="sounddevice output device index (Mac mini Speakers)")
     parser.add_argument("--lead-in-s", type=float, default=0.25, help="Silent lead-in before playback")
     parser.add_argument("--tail-s", type=float, default=0.25, help="Silent tail after playback")
+    parser.add_argument("--duration-scale", type=float, default=1.0, help="Scale family durations for live tuning")
+    parser.add_argument("--preset", type=str, default="default", choices=sorted(LIVE_VOWEL_TRANSITION_PRESETS.keys()), help="Named live-tuning preset")
     parser.add_argument("--dry-run", action="store_true", help="Skip hardware and use a synthetic capture tail")
     args = parser.parse_args()
 
@@ -54,6 +57,8 @@ def main() -> None:
         output_device=args.output_device,
         lead_in_s=args.lead_in_s,
         tail_s=args.tail_s,
+        duration_scale=args.duration_scale,
+        preset=args.preset,
         capture_audio_fn=_dry_run_capture_audio if args.dry_run else None,
     )
     print(json.dumps(report, indent=2))

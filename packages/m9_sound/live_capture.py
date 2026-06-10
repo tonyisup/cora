@@ -31,6 +31,53 @@ from m9_sound.vowel_transitions import (
 
 CaptureFn = Callable[..., np.ndarray]
 
+LIVE_VOWEL_TRANSITION_PRESETS: dict[str, dict[str, float | str]] = {
+    "default": {},
+    "validated_long_arc": {
+        "device_profile": "highpass",
+        "device_gain": 1.0,
+        "lead_in_s": 1.0,
+        "tail_s": 1.5,
+        "duration_scale": 4.0,
+    },
+    "validated_dense_stack": {
+        "device_profile": "highpass",
+        "device_gain": 1.0,
+        "lead_in_s": 1.0,
+        "tail_s": 1.5,
+        "duration_scale": 7.0,
+    },
+    "validated_formant_rich": {
+        "device_profile": "highpass",
+        "device_gain": 1.0,
+        "lead_in_s": 1.0,
+        "tail_s": 1.5,
+        "duration_scale": 7.2,
+    },
+}
+
+
+def resolve_live_vowel_transition_tuning(
+    *,
+    preset: str = "default",
+    device_profile: str = "flat",
+    device_gain: float = 1.0,
+    lead_in_s: float = 0.25,
+    tail_s: float = 0.25,
+    duration_scale: float = 1.0,
+) -> dict[str, float | str]:
+    if preset not in LIVE_VOWEL_TRANSITION_PRESETS:
+        raise ValueError(f"Unknown live vowel-transition preset: {preset}")
+    resolved: dict[str, float | str] = {
+        "device_profile": device_profile,
+        "device_gain": float(device_gain),
+        "lead_in_s": float(lead_in_s),
+        "tail_s": float(tail_s),
+        "duration_scale": float(duration_scale),
+    }
+    resolved.update(LIVE_VOWEL_TRANSITION_PRESETS[preset])
+    return resolved
+
 
 def _capture_audio_with_sounddevice(
     playback_audio: np.ndarray,
@@ -110,6 +157,8 @@ def run_live_temporal_capture_report(
     output_device: int | None = None,
     lead_in_s: float = 0.25,
     tail_s: float = 0.25,
+    duration_scale: float = 1.0,
+    preset: str = "default",
     capture_audio_fn: CaptureFn | None = None,
     sleep_fn: Callable[[float], None] = time.sleep,
 ) -> dict[str, object]:
@@ -161,6 +210,8 @@ def run_live_temporal_capture_report(
             "live_capture_rms": float(np.sqrt(np.mean(live_capture**2))) if len(live_capture) else 0.0,
             "lead_in_s": float(lead_in_s),
             "tail_s": float(tail_s),
+            "duration_scale": float(duration_scale),
+            "preset": preset,
             "input_device": input_device,
             "output_device": output_device,
         }
@@ -189,10 +240,26 @@ def run_live_vowel_transition_capture_report(
     lookup_ckpt_path: str | Path | None = None,
     sr: int = SR,
     frame_size: int = 480,
+    duration_scale: float = 1.0,
+    preset: str = "default",
 ) -> dict[str, object]:
     """Render a vowel-transition family, capture it live, and score phase closure."""
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
+
+    tuning = resolve_live_vowel_transition_tuning(
+        preset=preset,
+        device_profile=device_profile,
+        device_gain=device_gain,
+        lead_in_s=lead_in_s,
+        tail_s=tail_s,
+        duration_scale=duration_scale,
+    )
+    device_profile = str(tuning["device_profile"])
+    device_gain = float(tuning["device_gain"])
+    lead_in_s = float(tuning["lead_in_s"])
+    tail_s = float(tuning["tail_s"])
+    duration_scale = float(tuning["duration_scale"])
 
     render_report = cast(
         dict[str, object],
@@ -207,6 +274,7 @@ def run_live_vowel_transition_capture_report(
             lookup_ckpt_path=lookup_ckpt_path or DEFAULT_LOOKUP_CKPT,
             sr=sr,
             frame_size=frame_size,
+            duration_scale=duration_scale,
         ),
     )
     rendered_audio = np.asarray(cast(list[float], render_report["rendered_audio"]), dtype=np.float32)
@@ -255,6 +323,8 @@ def run_live_vowel_transition_capture_report(
             "live_capture_rms": float(np.sqrt(np.mean(live_capture**2))) if len(live_capture) else 0.0,
             "lead_in_s": float(lead_in_s),
             "tail_s": float(tail_s),
+            "duration_scale": float(duration_scale),
+            "preset": preset,
             "input_device": input_device,
             "output_device": output_device,
             "captured_decoded_vowels": list(cast(list[str], captured_decode["decoded_vowels"])),
@@ -304,6 +374,8 @@ def run_live_vowel_transition_gate(
     lookup_ckpt_path: str | Path | None = None,
     sr: int = SR,
     frame_size: int = FRAME_SIZE,
+    duration_scale: float = 1.0,
+    preset: str = "default",
 ) -> dict[str, object]:
     """Run a live phase-closure gate over one or more vowel-transition families."""
     output_dir = Path(output_dir)
@@ -312,6 +384,19 @@ def run_live_vowel_transition_gate(
     family_list = list(families or ["default", "phase_triad", "phase_arc"])
     repeats = max(1, int(repeats))
     capture_audio_fn = capture_audio_fn or (_dry_run_phase_closure_capture_audio if dry_run else None)
+    tuning = resolve_live_vowel_transition_tuning(
+        preset=preset,
+        device_profile=device_profile,
+        device_gain=device_gain,
+        lead_in_s=lead_in_s,
+        tail_s=tail_s,
+        duration_scale=duration_scale,
+    )
+    device_profile = str(tuning["device_profile"])
+    device_gain = float(tuning["device_gain"])
+    lead_in_s = float(tuning["lead_in_s"])
+    tail_s = float(tuning["tail_s"])
+    duration_scale = float(tuning["duration_scale"])
 
     rows: list[dict[str, object]] = []
     for family in family_list:
@@ -333,6 +418,8 @@ def run_live_vowel_transition_gate(
                 lookup_ckpt_path=lookup_ckpt_path,
                 sr=sr,
                 frame_size=frame_size,
+                duration_scale=duration_scale,
+                preset=preset,
             )
             phase = dict(cast(dict[str, object], row["phase_closure"]))
             phase["threshold"] = threshold
@@ -419,8 +506,10 @@ def run_live_vowel_transition_gate(
             "device_gain": device_gain,
             "input_device": input_device,
             "output_device": output_device,
-            "lead_in_s": lead_in_s,
-            "tail_s": tail_s,
+            "lead_in_s": float(lead_in_s),
+            "tail_s": float(tail_s),
+            "duration_scale": float(duration_scale),
+            "preset": preset,
             "sr": sr,
             "frame_size": frame_size,
         },

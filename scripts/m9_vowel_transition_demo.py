@@ -19,12 +19,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "packages"))
 from m9_sound.temporal import write_pcm16_wav
 from m9_sound.vowel_transitions import VOWEL_FAMILIES, build_vowel_transition_report, write_vowel_transition_wav
 
-DEFAULT_FAMILIES = ["long_arc", "formant_rich", "dense_cycle", "ultra_dense", "hyper_dense", "mega_dense"]
+DEFAULT_FAMILIES = ["long_arc", "formant_rich", "dense_cycle", "ultra_dense", "hyper_dense", "mega_dense", "max_dense", "ultra_max_dense"]
 DEFAULT_PAUSE_SECONDS = 0.35
 SR = 16000
 
 
-def _render_section(output_dir: Path, family: str, heldout_family: str) -> dict[str, object]:
+def _render_section(output_dir: Path, family: str, heldout_family: str, *, duration_scale: float) -> dict[str, object]:
     section_path = output_dir / f"m9-vowel-transition-{family}.wav"
     return write_vowel_transition_wav(
         section_path,
@@ -34,6 +34,7 @@ def _render_section(output_dir: Path, family: str, heldout_family: str) -> dict[
         noise_seed=7,
         device_profile="flat",
         device_gain=1.0,
+        duration_scale=duration_scale,
     )
 
 
@@ -66,6 +67,12 @@ def main() -> None:
         help="Silence inserted between families in the combined montage",
     )
     parser.add_argument(
+        "--duration-scale",
+        type=float,
+        default=1.0,
+        help="Scale family durations for the montage render",
+    )
+    parser.add_argument(
         "--manifest",
         type=Path,
         default=None,
@@ -83,7 +90,7 @@ def main() -> None:
     pause = np.zeros(max(0, pause_samples), dtype=np.float32)
 
     for idx, family in enumerate(args.families):
-        report = _render_section(output_dir, family, args.heldout_family)
+        report = _render_section(output_dir, family, args.heldout_family, duration_scale=args.duration_scale)
         sections.append(
             {
                 "family": report["family"],

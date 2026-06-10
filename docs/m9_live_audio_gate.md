@@ -14,12 +14,12 @@ Prove that the M9 sound/text pipeline survives real audio I/O:
 ## Current hardware
 
 - input: BL-2021USB (device 1)
-- output: External Headphones (device 2)
+- output: Mac mini Speakers (device 3)
 - waveform improvement: square uses soft-limited approximation
 
 ## Threshold bracket (v4 — pitch distance capping)
 
-8 targets, 3 repeats, output device 2, improved similarity (mel bins + autocorrelation pitch + octave-tolerant capping):
+8 targets, 3 repeats, output device 3, improved similarity (mel bins + autocorrelation pitch + octave-tolerant capping):
 
 | Threshold | Pass rate | Avg | Worst | Verdict |
 |-----------|-----------|-----|-------|---------|
@@ -43,4 +43,4 @@ At 0.80, beta/247/triangle and iota/440/square drop below threshold.
 - The octave-tolerant pitch capping fixed the high-frequency pitch detection gap.
 - All 8 targets pass at 0.75 with 3 repeats — a strong promotion-grade result.
 - The 0.80 threshold is beyond the reliable range for this hardware pair.
-- Recommended promotion gate: 0.75 threshold, 8 targets, 2+ repeats on output device 2.
+- Recommended promotion gate: 0.75 threshold, 8 targets, 2+ repeats on output device 3.

@@ -143,7 +143,7 @@ def main() -> None:
     parser.add_argument("--device-profile", type=str, default="highpass", choices=["flat", "highpass"], help="Device profile used for the transition render")
     parser.add_argument("--device-gain", type=float, default=1.0, help="Gain applied as part of the device profile")
     parser.add_argument("--input-device", type=int, default=1, help="sounddevice input device index")
-    parser.add_argument("--output-device", type=int, default=2, help="sounddevice output device index")
+    parser.add_argument("--output-device", type=int, default=3, help="sounddevice output device index (Mac mini Speakers)")
     parser.add_argument("--lead-in-s", type=float, default=0.25, help="Silent lead-in before playback")
     parser.add_argument("--tail-s", type=float, default=0.25, help="Silent tail after playback")
     parser.add_argument("--listen-window-s", type=float, default=0.6, help="How long to listen before deciding whether speech is present")

@@ -143,14 +143,14 @@ Interpretation:
 
 See `docs/m9_live_audio_gate.md` for full hardware history.
 
-Hardware: input device 1 (BL-2021USB), output device 2 (External Headphones)
+Hardware: input device 1 (BL-2021USB), output device 3 (Mac mini Speakers)
 Similarity v2: mel-scale binning + autocorrelation pitch
 Waveforms: soft-limited square
 
 **8-target gate (v4 — improved pitch):**
 - 0.75 threshold, 3 repeats: 24/24 pass (100%), avg 0.8137, worst 0.7783
 - 0.80 threshold: 14/24 pass (58%) — FAIL
-- Recommended promotion gate: 0.75 threshold, 8 targets, 2+ repeats on output device 2
+- Recommended promotion gate: 0.75 threshold, 8 targets, 2+ repeats on output device 3
 
 **Notes:**
 
@@ -164,7 +164,10 @@ Waveforms: soft-limited square
 - M9b: repeatability and acoustic prototype refinement complete
 - M9c: weak terminal confirmation complete
 - M9d: text association complete (synthetic gate)
-- Live audio promotion gate: scaffolded and partially validated; stable at 0.70 on output device 2
+- Live audio promotion gate: scaffolded and partially validated; stable at 0.70 on output device 3
+- Live transition demo: validated live on hardware with the mic-triggered phase_triad/phase_arc loop under the highpass profile at threshold 0.9; the acceptance baseline is now the passing `phase_triad` speaker path on device 3 at threshold 0.8, and the default gate invocation on device 3 scored 0.9444 in the latest verification.
+- Repeatability sweep: phase_triad + phase_arc, 4 repeats each, 8/8 pass at threshold 0.9, mean score 0.9946
+- Longer-family tuning: duration-scale 2.0 raises long_arc/formant_rich transition counts, duration-scale 4.0 gets long_arc to 4/4 pass at threshold 0.8 on the highpass profile with longer lead-in/tail, duration-scale 7.0 gets max_dense / ultra_max_dense to 2/2 pass at threshold 0.8, and duration-scale 7.2 with longer lead-in/tail gets formant_rich to 4/4 pass at threshold 0.8; the same settings are now wrapped as named presets (`validated_long_arc`, `validated_dense_stack`, `validated_formant_rich`) and validated on hardware, while broader coverage remains open
 
 ## Notes
 

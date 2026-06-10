@@ -35,6 +35,8 @@ VOWEL_FAMILIES: dict[str, list[str]] = {
     "ultra_dense": ["i", "E", "a", "O", "u", "O", "a", "E", "i", "u", "a", "O", "E", "i", "O", "u", "a", "E", "i", "O", "i", "i"],
     "hyper_dense": ["i", "E", "a", "O", "u", "i", "E", "a", "O", "u", "O", "a", "E", "i", "u", "O", "a", "E", "i", "O", "u", "E", "a", "i", "O", "u", "i", "i"],
     "mega_dense": ["i", "E", "a", "O", "u", "i", "E", "a", "O", "u", "O", "a", "E", "i", "u", "O", "a", "E", "i", "O", "u", "E", "a", "i", "O", "u", "i", "E", "a", "O", "u", "E", "a", "i"],
+    "max_dense": ["i", "E", "a", "O", "u", "i", "E", "a", "O", "u", "O", "a", "E", "i", "u", "O", "a", "E", "i", "O", "u", "E", "a", "i", "O", "u", "i", "E", "a", "O", "u", "E", "a", "i", "E", "a", "O", "u", "i"],
+    "ultra_max_dense": ["i", "E", "a", "O", "u", "i", "E", "a", "O", "u", "O", "a", "E", "i", "u", "O", "a", "E", "i", "O", "u", "E", "a", "i", "O", "u", "i", "E", "a", "O", "u", "E", "a", "i", "E", "a", "O", "u", "i", "O", "u", "E", "a", "i"],
 }
 
 FAMILY_DURATIONS_S: dict[str, float] = {
@@ -49,6 +51,8 @@ FAMILY_DURATIONS_S: dict[str, float] = {
     "ultra_dense": 0.05,
     "hyper_dense": 0.05,
     "mega_dense": 0.05,
+    "max_dense": 0.05,
+    "ultra_max_dense": 0.05,
 }
 
 FORMANT_KEYS = (("f1", "a1"), ("f2", "a2"), ("f3", "a3"))
@@ -138,8 +142,8 @@ def _normalize_family_name(family: str) -> str:
     return family
 
 
-def _family_duration(family: str) -> float:
-    return float(FAMILY_DURATIONS_S[_normalize_family_name(family)])
+def _family_duration(family: str, *, duration_scale: float = 1.0) -> float:
+    return float(FAMILY_DURATIONS_S[_normalize_family_name(family)] * duration_scale)
 
 
 def _synthesize_vowel_frames(
@@ -260,13 +264,14 @@ def _score_transition_family(
     lookup_ckpt_path: str | Path = DEFAULT_LOOKUP_CKPT,
     sr: int = SR,
     frame_size: int = FRAME_SIZE,
+    duration_scale: float = 1.0,
 ) -> dict[str, object]:
     family = _normalize_family_name(family)
     heldout_family = _normalize_family_name(heldout_family)
     vowels = VOWEL_FAMILIES[family]
     heldout_vowels = VOWEL_FAMILIES[heldout_family]
-    duration_s = _family_duration(family)
-    heldout_duration_s = _family_duration(heldout_family)
+    duration_s = _family_duration(family, duration_scale=duration_scale)
+    heldout_duration_s = _family_duration(heldout_family, duration_scale=duration_scale)
 
     stimulus, transition_segments = _synthesize_vowel_frames(
         vowels,
@@ -397,6 +402,7 @@ def build_vowel_transition_report(
     lookup_ckpt_path: str | Path = DEFAULT_LOOKUP_CKPT,
     sr: int = SR,
     frame_size: int = FRAME_SIZE,
+    duration_scale: float = 1.0,
 ) -> dict[str, object]:
     """Generate and score a deterministic vowel-transition family report."""
     return _score_transition_family(
@@ -410,6 +416,7 @@ def build_vowel_transition_report(
         lookup_ckpt_path=lookup_ckpt_path,
         sr=sr,
         frame_size=frame_size,
+        duration_scale=duration_scale,
     )
 
 
@@ -458,6 +465,7 @@ def write_vowel_transition_wav(
     lookup_ckpt_path: str | Path = DEFAULT_LOOKUP_CKPT,
     sr: int = SR,
     frame_size: int = FRAME_SIZE,
+    duration_scale: float = 1.0,
 ) -> dict[str, object]:
     """Render a vowel-transition family to a listenable WAV file."""
     report = _score_transition_family(
@@ -471,6 +479,7 @@ def write_vowel_transition_wav(
         lookup_ckpt_path=lookup_ckpt_path,
         sr=sr,
         frame_size=frame_size,
+        duration_scale=duration_scale,
     )
     rendered = np.asarray(report["rendered_audio"], dtype=np.float32)
     wav_meta = write_pcm16_wav(output_path, rendered, sr=sr)
