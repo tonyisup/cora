@@ -39,6 +39,8 @@ DEFAULT_TAIL_S = 0.25
 DEFAULT_FRAME_SIZE = 480
 DEFAULT_MIN_TRANSITIONS = 2
 DEFAULT_MIN_CONTINUITY = 0.88
+DEFAULT_MONITOR_OUTPUT_DEVICE = 3
+DEFAULT_MONITOR_MODE = "captured"
 
 DEFAULT_PHRASES = [
     "eee eeeh ehh ahh ohh ooo",
@@ -151,6 +153,26 @@ def _default_capture_audio_fn(
     )
 
 
+def _play_pcm_on_device(pcm: np.ndarray, *, output_device: int, label: str = "monitor") -> dict[str, Any]:
+    """Play a mono PCM buffer on an output device and wait for completion."""
+    try:
+        import sounddevice as sd
+    except ImportError as exc:  # pragma: no cover - only on real hardware
+        raise RuntimeError("sounddevice is required for monitor playback") from exc
+
+    pcm = np.asarray(pcm, dtype=np.float32).reshape(-1)
+    sd.play(pcm, samplerate=SR, device=output_device, blocking=True)
+    return {
+        "output_device": int(output_device),
+        "label": label,
+        "sample_count": int(len(pcm)),
+    }
+
+
+def _default_monitor_audio_fn(pcm: np.ndarray, *, output_device: int) -> dict[str, Any]:
+    return _play_pcm_on_device(pcm, output_device=output_device, label="captured")
+
+
 def _parse_phrases(values: Sequence[str]) -> list[str]:
     phrases = [value.strip() for value in values if value.strip()]
     if not phrases:
@@ -175,8 +197,11 @@ def run_tts_vowel_transition_harness(
     threshold_continuity: float = DEFAULT_MIN_CONTINUITY,
     frame_size: int = DEFAULT_FRAME_SIZE,
     dry_run: bool = False,
+    monitor_output_device: int | None = DEFAULT_MONITOR_OUTPUT_DEVICE,
+    monitor_mode: str = DEFAULT_MONITOR_MODE,
     tts_audio_fn: Callable[..., np.ndarray] | None = None,
     capture_audio_fn: Callable[..., tuple[np.ndarray, dict[str, Any]]] | None = None,
+    monitor_audio_fn: Callable[..., dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -186,6 +211,7 @@ def run_tts_vowel_transition_harness(
 
     synth_fn = tts_audio_fn or _write_tts_audio_to_wav
     capture_fn = capture_audio_fn or _default_capture_audio_fn
+    monitor_fn = monitor_audio_fn or _default_monitor_audio_fn if monitor_mode != "off" else None
 
     runs: list[dict[str, Any]] = []
     for repeat_idx in range(repeats):
@@ -224,6 +250,10 @@ def run_tts_vowel_transition_harness(
 
             captured_pcm = np.asarray(captured_pcm, dtype=np.float32).reshape(-1)
             captured_meta = write_pcm16_wav(captured_wav, captured_pcm, sr=SR)
+            monitor_meta = None
+            if monitor_fn is not None and monitor_output_device is not None:
+                monitor_pcm = captured_pcm if monitor_mode == "captured" else target_pcm
+                monitor_meta = monitor_fn(pcm=monitor_pcm, output_device=monitor_output_device)
             decoded = decode_vowel_transition_audio(captured_pcm, frame_size=frame_size)
             transition_count = int(decoded["decoded_transition_count"])
             continuity = float(decoded["continuity"])
@@ -238,6 +268,7 @@ def run_tts_vowel_transition_harness(
                     "tts_sample_count": int(len(target_pcm)),
                     "captured_sample_count": int(captured_meta["sample_count"]),
                     "capture": capture_meta,
+                    "monitor": monitor_meta,
                     "decoded": {
                         "decoded_transition_count": transition_count,
                         "decoded_unique_vowel_count": int(decoded["decoded_unique_vowel_count"]),
@@ -316,6 +347,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--threshold-continuity", type=float, default=DEFAULT_MIN_CONTINUITY)
     parser.add_argument("--frame-size", type=int, default=DEFAULT_FRAME_SIZE)
     parser.add_argument("--dry-run", action="store_true", help="Skip hardware capture and treat the synthesized phrase as perfectly captured")
+    parser.add_argument("--monitor-output-device", type=int, default=DEFAULT_MONITOR_OUTPUT_DEVICE, help="Optional output device used to play the captured imitation back for listening")
+    parser.add_argument("--monitor-mode", choices=["captured", "target", "off"], default=DEFAULT_MONITOR_MODE, help="What audio to replay on the monitor output device")
     return parser.parse_args()
 
 
@@ -337,6 +370,8 @@ def main() -> None:
         threshold_continuity=args.threshold_continuity,
         frame_size=args.frame_size,
         dry_run=args.dry_run,
+        monitor_output_device=args.monitor_output_device,
+        monitor_mode=args.monitor_mode,
     )
 
     for run in report["runs"]:

@@ -30,6 +30,10 @@ def _fake_tts_audio_fn(*, text: str, output_wav: Path, voice: str, rate: str, pi
     return pcm
 
 
+def _fake_monitor_audio_fn(*, pcm: np.ndarray, output_device: int) -> dict[str, object]:
+    return {"output_device": output_device, "sample_count": int(len(pcm)), "label": "captured"}
+
+
 def test_parse_phrases_uses_nonempty_values():
     phrases = HARNESS._parse_phrases(["  eee ahh  ", "ooo ohh", "", "   "])
     assert phrases == ["eee ahh", "ooo ohh"]
@@ -46,6 +50,7 @@ def test_tts_vowel_transition_harness_dry_run_writes_report_and_artifacts(tmp_pa
         repeats=2,
         dry_run=True,
         tts_audio_fn=_fake_tts_audio_fn,
+        monitor_audio_fn=_fake_monitor_audio_fn,
         threshold_transitions=0,
         threshold_continuity=0.0,
     )
@@ -70,6 +75,7 @@ def test_tts_vowel_transition_harness_dry_run_writes_report_and_artifacts(tmp_pa
     assert (output_dir / "repeat-02" / "phrase-02" / "captured.wav").exists()
 
     first_run = report["runs"][0]
+    assert first_run["monitor"] == {"output_device": 3, "sample_count": 16000, "label": "captured"}
     assert first_run["phrase"] == "eee ehh ahh ohh ooo"
     assert first_run["verdict"]["passed"] is True
     assert first_run["decoded"]["continuity"] >= 0.0
