@@ -41,7 +41,21 @@ DEFAULT_MIN_TRANSITIONS = 2
 DEFAULT_MIN_CONTINUITY = 0.88
 DEFAULT_MONITOR_OUTPUT_DEVICE = 3
 DEFAULT_MONITOR_MODE = "project"
-DEFAULT_MONITOR_FAMILY = "phase_triad"
+DEFAULT_MONITOR_FAMILY = "auto"
+PROJECT_MONITOR_FAMILY_ORDER = [
+    "phase_arc",
+    "phase_triad",
+    "diphthong",
+    "wide_sweep",
+    "long_arc",
+    "formant_rich",
+    "dense_cycle",
+    "ultra_dense",
+    "hyper_dense",
+    "mega_dense",
+    "max_dense",
+    "ultra_max_dense",
+]
 
 DEFAULT_PHRASES = [
     "eee eeeh ehh ahh ohh ooo",
@@ -174,6 +188,14 @@ def _default_monitor_audio_fn(pcm: np.ndarray, *, output_device: int) -> dict[st
     return _play_pcm_on_device(pcm, output_device=output_device, label="captured")
 
 
+def _select_project_monitor_family(decoded_unique_vowel_count: int) -> str:
+    count = max(1, int(decoded_unique_vowel_count))
+    for family in PROJECT_MONITOR_FAMILY_ORDER:
+        if len(VOWEL_FAMILIES[family]) >= count:
+            return family
+    return PROJECT_MONITOR_FAMILY_ORDER[-1]
+
+
 def _generate_project_imitation_audio(
     *,
     family: str,
@@ -189,7 +211,7 @@ def _generate_project_imitation_audio(
 ) -> tuple[np.ndarray, dict[str, Any]]:
     """Render the project's own imitation audio for listening."""
     report = build_vowel_transition_report(
-        family=monitor_family,
+        family=family,
         heldout_family=heldout_family,
         noise_rms=noise_rms,
         noise_seed=noise_seed,
@@ -291,12 +313,20 @@ def run_tts_vowel_transition_harness(
 
             captured_pcm = np.asarray(captured_pcm, dtype=np.float32).reshape(-1)
             captured_meta = write_pcm16_wav(captured_wav, captured_pcm, sr=SR)
+            decoded = decode_vowel_transition_audio(captured_pcm, frame_size=frame_size)
+            transition_count = int(decoded["decoded_transition_count"])
+            continuity = float(decoded["continuity"])
+            resolved_monitor_family = monitor_family
+            monitor_family_source = "explicit"
+            if monitor_mode == "project" and monitor_family == "auto":
+                resolved_monitor_family = _select_project_monitor_family(int(decoded["decoded_unique_vowel_count"]))
+                monitor_family_source = "decoded_unique_vowel_count"
             monitor_meta = None
             if monitor_fn is not None and monitor_output_device is not None:
                 if monitor_mode == "project":
                     project_wav = run_dir / "project_imitation.wav"
                     monitor_pcm, monitor_meta = _generate_project_imitation_audio(
-                        family=monitor_family,
+                        family=resolved_monitor_family,
                         heldout_family="diphthong",
                         device_profile="highpass",
                         device_gain=1.0,
@@ -307,15 +337,16 @@ def run_tts_vowel_transition_harness(
                         frame_size=frame_size,
                         output_wav=project_wav,
                     )
+                    playback_meta = _play_pcm_on_device(monitor_pcm, output_device=monitor_output_device, label="project")
+                    monitor_meta = {
+                        **monitor_meta,
+                        **playback_meta,
+                        "resolved_family": resolved_monitor_family,
+                        "family_source": monitor_family_source,
+                    }
                 else:
                     monitor_pcm = captured_pcm if monitor_mode == "captured" else target_pcm
                     monitor_meta = monitor_fn(pcm=monitor_pcm, output_device=monitor_output_device)
-                if monitor_mode == "project":
-                    playback_meta = _play_pcm_on_device(monitor_pcm, output_device=monitor_output_device, label="project")
-                    monitor_meta = {**monitor_meta, **playback_meta} if isinstance(monitor_meta, dict) else playback_meta
-            decoded = decode_vowel_transition_audio(captured_pcm, frame_size=frame_size)
-            transition_count = int(decoded["decoded_transition_count"])
-            continuity = float(decoded["continuity"])
             passed = transition_count >= threshold_transitions and continuity >= threshold_continuity
             runs.append(
                 {
@@ -411,7 +442,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--dry-run", action="store_true", help="Skip hardware capture and treat the synthesized phrase as perfectly captured")
     parser.add_argument("--monitor-output-device", type=int, default=DEFAULT_MONITOR_OUTPUT_DEVICE, help="Optional output device used to replay the project-generated imitation")
     parser.add_argument("--monitor-mode", choices=["captured", "target", "project", "off"], default=DEFAULT_MONITOR_MODE, help="What audio to replay on the monitor output device")
-    parser.add_argument("--monitor-family", type=str, default=DEFAULT_MONITOR_FAMILY, choices=list(VOWEL_FAMILIES.keys()), help="Family rendered for the project-generated monitor playback")
+    parser.add_argument("--monitor-family", type=str, default=DEFAULT_MONITOR_FAMILY, choices=["auto", *VOWEL_FAMILIES.keys()], help="Family rendered for the project-generated monitor playback")
     return parser.parse_args()
 
 
