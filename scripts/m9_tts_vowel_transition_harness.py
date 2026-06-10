@@ -174,7 +174,57 @@ def _default_monitor_audio_fn(pcm: np.ndarray, *, output_device: int) -> dict[st
     return _play_pcm_on_device(pcm, output_device=output_device, label="captured")
 
 
-def _select_project_monitor_family(decoded_unique_vowel_count: int, decoded_transition_count: int) -> str:
+PROJECT_MONITOR_FAMILY_ORDER = [
+    "phase_arc",
+    "phase_triad",
+    "diphthong",
+    "wide_sweep",
+    "long_arc",
+    "formant_rich",
+    "dense_cycle",
+    "ultra_dense",
+    "hyper_dense",
+    "mega_dense",
+    "max_dense",
+    "ultra_max_dense",
+]
+
+
+def _family_rank(family: str) -> int:
+    try:
+        return PROJECT_MONITOR_FAMILY_ORDER.index(family)
+    except ValueError:
+        return -1
+
+
+def _project_family_from_phrase_token_count(token_count: int) -> str:
+    count = max(1, int(token_count))
+    if count <= 1:
+        return "phase_arc"
+    if count == 2:
+        return "phase_triad"
+    if count == 3:
+        return "diphthong"
+    if count == 4:
+        return "wide_sweep"
+    if count == 5:
+        return "long_arc"
+    if count == 6:
+        return "formant_rich"
+    if count <= 8:
+        return "dense_cycle"
+    if count <= 10:
+        return "ultra_dense"
+    if count <= 12:
+        return "hyper_dense"
+    if count <= 16:
+        return "mega_dense"
+    if count <= 20:
+        return "max_dense"
+    return "ultra_max_dense"
+
+
+def _project_family_from_decoded_shape(decoded_unique_vowel_count: int, decoded_transition_count: int) -> str:
     unique_count = max(1, int(decoded_unique_vowel_count))
     transition_count = max(0, int(decoded_transition_count))
 
@@ -185,6 +235,13 @@ def _select_project_monitor_family(decoded_unique_vowel_count: int, decoded_tran
     if transition_count >= 7:
         return "phase_triad"
     return "phase_arc"
+
+
+def _select_project_monitor_family(phrase_token_count: int, decoded_unique_vowel_count: int, decoded_transition_count: int) -> tuple[str, str, str]:
+    phrase_family = _project_family_from_phrase_token_count(phrase_token_count)
+    decoded_family = _project_family_from_decoded_shape(decoded_unique_vowel_count, decoded_transition_count)
+    resolved_family = phrase_family if _family_rank(phrase_family) >= _family_rank(decoded_family) else decoded_family
+    return resolved_family, phrase_family, decoded_family
 
 
 def _generate_project_imitation_audio(
@@ -307,14 +364,21 @@ def run_tts_vowel_transition_harness(
             decoded = decode_vowel_transition_audio(captured_pcm, frame_size=frame_size)
             transition_count = int(decoded["decoded_transition_count"])
             continuity = float(decoded["continuity"])
+            phrase_token_count = len([token for token in phrase.split() if token])
             resolved_monitor_family = monitor_family
+            phrase_monitor_family = _project_family_from_phrase_token_count(phrase_token_count)
+            decoded_monitor_family = _project_family_from_decoded_shape(
+                int(decoded["decoded_unique_vowel_count"]),
+                transition_count,
+            )
             monitor_family_source = "explicit"
             if monitor_mode == "project" and monitor_family == "auto":
-                resolved_monitor_family = _select_project_monitor_family(
+                resolved_monitor_family, phrase_monitor_family, decoded_monitor_family = _select_project_monitor_family(
+                    phrase_token_count,
                     int(decoded["decoded_unique_vowel_count"]),
                     transition_count,
                 )
-                monitor_family_source = "decoded_shape"
+                monitor_family_source = "phrase_shape" if _family_rank(phrase_monitor_family) >= _family_rank(decoded_monitor_family) else "decoded_shape"
             monitor_meta = None
             if monitor_fn is not None and monitor_output_device is not None:
                 if monitor_mode == "project":
@@ -336,6 +400,9 @@ def run_tts_vowel_transition_harness(
                         **monitor_meta,
                         **playback_meta,
                         "resolved_family": resolved_monitor_family,
+                        "phrase_family": phrase_monitor_family,
+                        "decoded_family": decoded_monitor_family,
+                        "phrase_token_count": phrase_token_count,
                         "family_source": monitor_family_source,
                     }
                 else:

@@ -34,6 +34,15 @@ def test_parse_phrases_uses_nonempty_values():
     assert phrases == ["eee ahh", "ooo ohh"]
 
 
+def test_project_family_from_phrase_token_count_spreads_across_lengths():
+    assert HARNESS._project_family_from_phrase_token_count(1) == "phase_arc"
+    assert HARNESS._project_family_from_phrase_token_count(2) == "phase_triad"
+    assert HARNESS._project_family_from_phrase_token_count(3) == "diphthong"
+    assert HARNESS._project_family_from_phrase_token_count(4) == "wide_sweep"
+    assert HARNESS._project_family_from_phrase_token_count(5) == "long_arc"
+    assert HARNESS._project_family_from_phrase_token_count(6) == "formant_rich"
+
+
 def test_tts_vowel_transition_harness_project_monitor_mode_plays_project_audio(tmp_path: Path):
     output_dir = tmp_path / "tts-harness-project"
     output = tmp_path / "project-report.json"
@@ -88,22 +97,16 @@ def test_tts_vowel_transition_harness_project_monitor_mode_plays_project_audio(t
     assert (output_dir / "repeat-01" / "phrase-01" / "project_imitation.wav").exists()
 
 
-def test_select_project_monitor_family_tracks_shape():
-    assert HARNESS._select_project_monitor_family(4, 9) == "phase_triad"
-    assert HARNESS._select_project_monitor_family(4, 4) == "phase_arc"
-    assert HARNESS._select_project_monitor_family(8, 7) == "long_arc"
-
-
-def test_tts_vowel_transition_harness_auto_monitor_family_uses_decoded_shape(tmp_path: Path):
+def test_tts_vowel_transition_harness_auto_monitor_family_follows_phrase_shape_when_decode_collapses(tmp_path: Path):
     output_dir = tmp_path / "tts-harness-auto"
     output = tmp_path / "auto-report.json"
-    observed: dict[str, object] = {}
+    observed: list[str] = []
 
     def fake_decode_vowel_transition_audio(audio: np.ndarray, *, frame_size: int, **kwargs: object) -> dict[str, object]:
         return {
-            "decoded_vowels": ["i", "E", "a", "O", "u", "O", "a", "E"],
-            "decoded_transition_count": 7,
-            "decoded_unique_vowel_count": 8,
+            "decoded_vowels": ["a", "a", "a", "a", "a", "a"],
+            "decoded_transition_count": 2,
+            "decoded_unique_vowel_count": 2,
             "continuity": 0.95,
             "mean_boundary_delta": 0.005,
             "max_boundary_delta": 0.01,
@@ -111,8 +114,7 @@ def test_tts_vowel_transition_harness_auto_monitor_family_uses_decoded_shape(tmp
         }
 
     def fake_project_imitation_audio(*, family: str, heldout_family: str, device_profile: str, device_gain: float, monitor_family: str, noise_rms: float, noise_seed: int | None, duration_scale: float, frame_size: int, output_wav: Path):
-        observed["family"] = family
-        observed["heldout_family"] = heldout_family
+        observed.append(family)
         pcm = np.full(SR // 4, 0.05, dtype=np.float32)
         HARNESS.write_pcm16_wav(output_wav, pcm, sr=SR)
         return pcm, {
@@ -124,7 +126,7 @@ def test_tts_vowel_transition_harness_auto_monitor_family_uses_decoded_shape(tmp
             "duration_scale": duration_scale,
             "sample_count": int(len(pcm)),
             "wav_path": str(output_wav),
-            "decoded_transition_count": 7,
+            "decoded_transition_count": 2,
         }
 
     def fake_play_pcm_on_device(pcm: np.ndarray, *, output_device: int, label: str = "monitor") -> dict[str, object]:
@@ -140,7 +142,7 @@ def test_tts_vowel_transition_harness_auto_monitor_family_uses_decoded_shape(tmp
         report = HARNESS.run_tts_vowel_transition_harness(
             output_dir=output_dir,
             output=output,
-            phrases=["eee ehh ahh ohh ooo"],
+            phrases=["eee", "eee ahh", "eee ahh eee", "eee eeeh ehh ahh ohh ooo"],
             repeats=1,
             dry_run=True,
             monitor_mode="project",
@@ -154,8 +156,8 @@ def test_tts_vowel_transition_harness_auto_monitor_family_uses_decoded_shape(tmp
         setattr(HARNESS, "_generate_project_imitation_audio", original_generate)
         setattr(HARNESS, "_play_pcm_on_device", original_play)
 
-    assert observed["family"] == "long_arc"
-    assert report["monitor_family"] == "auto"
-    assert report["runs"][0]["monitor"]["family"] == "long_arc"
-    assert report["runs"][0]["monitor"]["resolved_family"] == "long_arc"
-    assert report["runs"][0]["monitor"]["family_source"] == "decoded_shape"
+    assert observed == ["phase_arc", "phase_triad", "diphthong", "formant_rich"]
+    assert [run["monitor"]["resolved_family"] for run in report["runs"]] == ["phase_arc", "phase_triad", "diphthong", "formant_rich"]
+    assert [run["monitor"]["phrase_family"] for run in report["runs"]] == ["phase_arc", "phase_triad", "diphthong", "formant_rich"]
+    assert all(run["monitor"]["family_source"] == "phrase_shape" for run in report["runs"])
+    assert all(run["monitor"]["decoded_family"] == "phase_arc" for run in report["runs"])
