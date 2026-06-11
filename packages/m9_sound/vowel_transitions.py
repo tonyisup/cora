@@ -159,7 +159,7 @@ def _synthesize_vowel_frames(
     # Each vowel gets frames_per_vowel frames of stable body
     # Plus a crossfade to the next vowel
     n_stable = max(2, int(round(duration_s * sr / frame_size / n_vowels * 0.7)))
-    n_crossfade = max(2, int(round(duration_s * sr / frame_size / n_vowels * 0.3)))
+    n_crossfade = min(n_stable, max(7, int(round(duration_s * sr / frame_size / n_vowels * 0.3))))
     rendered: list[np.ndarray] = []
     segment_meta: list[dict[str, object]] = []
     phases = {key: 0.0 for key, _ in FORMANT_KEYS}
