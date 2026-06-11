@@ -551,11 +551,15 @@ def run_tts_vowel_transition_harness(
 
             captured_pcm = np.asarray(captured_pcm, dtype=np.float32).reshape(-1)
             captured_meta = write_pcm16_wav(captured_wav, captured_pcm, sr=SR)
-            silence_rms = _estimate_silence_rms(captured_pcm, frame_size=frame_size)
+            # Apply HP100 preprocessing to match v9 substrate training
+            from scipy.signal import butter, sosfilt
+            hp100_sos = butter(4, 100, btype='high', fs=SR, output='sos')
+            captured_proc = sosfilt(hp100_sos, captured_pcm).astype(np.float32)
+            silence_rms = _estimate_silence_rms(captured_proc, frame_size=frame_size)
             decoded = decode_vowel_transition_audio(
-                captured_pcm, frame_size=frame_size,
-                silence_threshold=silence_rms * 3.0,
-                consonant_gate=2.0,
+                captured_proc, frame_size=frame_size,
+                silence_threshold=silence_rms * 8.0,
+                consonant_gate=0.0,
             )
             transition_count = int(decoded["decoded_transition_count"])
             continuity = float(decoded["continuity"])
