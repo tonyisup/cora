@@ -553,7 +553,9 @@ def run_tts_vowel_transition_harness(
             captured_meta = write_pcm16_wav(captured_wav, captured_pcm, sr=SR)
             silence_rms = _estimate_silence_rms(captured_pcm, frame_size=frame_size)
             decoded = decode_vowel_transition_audio(
-                captured_pcm, frame_size=frame_size, silence_threshold=silence_rms * 3.0
+                captured_pcm, frame_size=frame_size,
+                silence_threshold=silence_rms * 3.0,
+                consonant_gate=2.0,
             )
             transition_count = int(decoded["decoded_transition_count"])
             continuity = float(decoded["continuity"])

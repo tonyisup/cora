@@ -220,6 +220,7 @@ def _decode_vowel_frames(
     lookup_ckpt_path: str | Path = DEFAULT_LOOKUP_CKPT,
     frame_size: int = FRAME_SIZE,
     silence_threshold: float = 0.0,
+    consonant_gate: float = 0.0,
 ) -> list[str]:
     weights = _load_substrate_weights(substrate_ckpt_path)
     vowel_names, centroids = _load_centroids(lookup_ckpt_path)
@@ -238,7 +239,12 @@ def _decode_vowel_frames(
             mel = _mel_features(frame)
             hidden_state = np.tanh(W_h @ hidden_state + W_x @ mel + b).astype(np.float32)
             distances = np.linalg.norm(centroids - hidden_state.reshape(1, -1), axis=1)
-            decoded.append(vowel_names[int(np.argmin(distances))])
+            best_idx = int(np.argmin(distances))
+            confidence = float(distances[best_idx])
+            if consonant_gate > 0.0 and confidence > consonant_gate:
+                decoded.append("_")
+            else:
+                decoded.append(vowel_names[best_idx])
     return decoded
 
 
@@ -456,6 +462,7 @@ def decode_vowel_transition_audio(
     frame_size: int = FRAME_SIZE,
     smooth_window: int = 3,
     silence_threshold: float = 0.0,
+    consonant_gate: float = 0.0,
 ) -> dict[str, object]:
     """Decode a rendered vowel-transition audio buffer into a compact report."""
     decoded = _smooth_labels(
@@ -465,6 +472,7 @@ def decode_vowel_transition_audio(
             lookup_ckpt_path=lookup_ckpt_path,
             frame_size=frame_size,
             silence_threshold=silence_threshold,
+            consonant_gate=consonant_gate,
         ),
         window=smooth_window,
     )
