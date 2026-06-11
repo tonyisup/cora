@@ -219,6 +219,7 @@ def _decode_vowel_frames(
     substrate_ckpt_path: str | Path = DEFAULT_SUBSTRATE_CKPT,
     lookup_ckpt_path: str | Path = DEFAULT_LOOKUP_CKPT,
     frame_size: int = FRAME_SIZE,
+    silence_threshold: float = 0.0,
 ) -> list[str]:
     weights = _load_substrate_weights(substrate_ckpt_path)
     vowel_names, centroids = _load_centroids(lookup_ckpt_path)
@@ -230,10 +231,14 @@ def _decode_vowel_frames(
 
     decoded: list[str] = []
     for frame in frame_audio(audio, frame_size=frame_size):
-        mel = _mel_features(frame)
-        hidden_state = np.tanh(W_h @ hidden_state + W_x @ mel + b).astype(np.float32)
-        distances = np.linalg.norm(centroids - hidden_state.reshape(1, -1), axis=1)
-        decoded.append(vowel_names[int(np.argmin(distances))])
+        rms = float(np.sqrt(np.mean(frame.astype(np.float32) ** 2)))
+        if rms < silence_threshold:
+            decoded.append("_")
+        else:
+            mel = _mel_features(frame)
+            hidden_state = np.tanh(W_h @ hidden_state + W_x @ mel + b).astype(np.float32)
+            distances = np.linalg.norm(centroids - hidden_state.reshape(1, -1), axis=1)
+            decoded.append(vowel_names[int(np.argmin(distances))])
     return decoded
 
 
@@ -450,6 +455,7 @@ def decode_vowel_transition_audio(
     lookup_ckpt_path: str | Path = DEFAULT_LOOKUP_CKPT,
     frame_size: int = FRAME_SIZE,
     smooth_window: int = 3,
+    silence_threshold: float = 0.0,
 ) -> dict[str, object]:
     """Decode a rendered vowel-transition audio buffer into a compact report."""
     decoded = _smooth_labels(
@@ -458,20 +464,59 @@ def decode_vowel_transition_audio(
             substrate_ckpt_path=substrate_ckpt_path,
             lookup_ckpt_path=lookup_ckpt_path,
             frame_size=frame_size,
+            silence_threshold=silence_threshold,
         ),
         window=smooth_window,
     )
     boundary = _boundary_report(np.asarray(audio, dtype=np.float32), frame_size=frame_size)
     decoded_transition_count = int(_count_label_transitions(decoded))
+
+    # Extract silence-separated vowel segments
+    vowel_segments: list[dict[str, object]] = []
+    current_vowel = ""
+    current_start = 0
+    for idx, label in enumerate(decoded):
+        if label == "_":
+            if current_vowel:
+                vowel_segments.append({
+                    "vowel": current_vowel,
+                    "start_frame": current_start,
+                    "end_frame": idx,
+                    "duration_frames": idx - current_start,
+                })
+                current_vowel = ""
+        else:
+            if not current_vowel:
+                current_vowel = label
+                current_start = idx
+            elif label != current_vowel:
+                vowel_segments.append({
+                    "vowel": current_vowel,
+                    "start_frame": current_start,
+                    "end_frame": idx,
+                    "duration_frames": idx - current_start,
+                })
+                current_vowel = label
+                current_start = idx
+    if current_vowel:
+        vowel_segments.append({
+            "vowel": current_vowel,
+            "start_frame": current_start,
+            "end_frame": len(decoded),
+            "duration_frames": len(decoded) - current_start,
+        })
+
     return {
         "decoded_vowels": list(decoded),
         "decoded_transition_count": decoded_transition_count,
-        "decoded_unique_vowel_count": int(len(set(decoded))) if decoded else 0,
+        "decoded_unique_vowel_count": int(len(set(v for v in decoded if v != "_"))) if decoded else 0,
         "frame_count": int(len(frame_audio(audio, frame_size=frame_size))),
         "mean_boundary_delta": float(boundary["mean_boundary_delta"]),
         "max_boundary_delta": float(boundary["max_boundary_delta"]),
         "min_boundary_delta": float(boundary["min_boundary_delta"]),
         "continuity": float(max(0.0, 1.0 - boundary["mean_boundary_delta"] * 10.0)),
+        "vowel_segments": vowel_segments,
+        "silence_threshold": silence_threshold,
     }
 
 

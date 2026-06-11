@@ -293,6 +293,7 @@ def _generate_decoded_imitation_audio(
     frame_size: int,
     output_wav: Path,
     vowel_timing: list[tuple[str, float]] | None = None,
+    silence_timing: list[float] | None = None,
     tts_duration: float = 2.0,
 ) -> tuple[np.ndarray, dict[str, Any]]:
     """Render imitation audio that follows the decoded TTS vowel sequence.
@@ -300,6 +301,9 @@ def _generate_decoded_imitation_audio(
     If vowel_timing is provided, each vowel body is rendered for its
     matched duration (with a minimum of 0.1s). Otherwise falls back to
     uniform timing based on tts_duration.
+
+    If silence_timing is provided, silence gaps are inserted between
+    vowels to match the TTS rhythm.
     """
     from m9_sound.vowel_transitions import write_pcm16_wav
 
@@ -342,6 +346,13 @@ def _generate_decoded_imitation_audio(
                 frame += t[ak] * np.sin(2*np.pi*t[fk]*frame_t + phases[fk])
                 phases[fk] = (phases[fk] + 2*np.pi*t[fk]*(fs_frame/fs)) % (2*np.pi)
             rendered.append(frame.astype(np.float32))
+
+        # Insert silence gap between vowels to match TTS rhythm
+        if silence_timing and idx < len(silence_timing):
+            gap_s = silence_timing[idx]
+            gap_samples = int(round(gap_s * fs))
+            if gap_samples > 0:
+                rendered.append(np.zeros(gap_samples, dtype=np.float32))
 
         if idx < len(vowel_sequence) - 1:
             next_v = vowel_sequence[idx + 1]
@@ -409,6 +420,41 @@ def _extract_vowel_timing(decoded_vowels, *, frame_size=480, sr=16000):
             count = 1
     timing.append((current, count * frame_size / sr))
     return timing
+
+
+def _extract_silence_timing(decoded: dict[str, object], *, frame_size=480, sr=16000) -> list[float]:
+    """Extract silence gap durations between vowel segments."""
+    segments = decoded.get("vowel_segments", [])
+    if len(segments) < 2:
+        return []
+    timing = []
+    for idx in range(len(segments) - 1):
+        end_frame = segments[idx]["end_frame"]
+        start_frame = segments[idx + 1]["start_frame"]
+        gap_frames = start_frame - end_frame
+        if gap_frames > 0:
+            timing.append(gap_frames * frame_size / sr)
+        else:
+            timing.append(0.0)
+    return timing
+
+
+def _estimate_silence_rms(audio: np.ndarray, *, frame_size=480) -> float:
+    """Estimate the RMS level of silence in the audio.
+
+    Uses the 10th percentile of frame RMS values as the silence floor.
+    """
+    audio = np.asarray(audio, dtype=np.float32).reshape(-1)
+    n_frames = len(audio) // frame_size
+    if n_frames == 0:
+        return 0.001
+    rms_values = []
+    for i in range(n_frames):
+        frame = audio[i * frame_size:(i + 1) * frame_size]
+        rms = float(np.sqrt(np.mean(frame ** 2)))
+        rms_values.append(rms)
+    rms_arr = np.array(rms_values)
+    return float(np.percentile(rms_arr, 10))
 
 
 def _load_templates(lookup_ckpt_path):
@@ -496,7 +542,10 @@ def run_tts_vowel_transition_harness(
 
             captured_pcm = np.asarray(captured_pcm, dtype=np.float32).reshape(-1)
             captured_meta = write_pcm16_wav(captured_wav, captured_pcm, sr=SR)
-            decoded = decode_vowel_transition_audio(captured_pcm, frame_size=frame_size)
+            silence_rms = _estimate_silence_rms(captured_pcm, frame_size=frame_size)
+            decoded = decode_vowel_transition_audio(
+                captured_pcm, frame_size=frame_size, silence_threshold=silence_rms * 3.0
+            )
             transition_count = int(decoded["decoded_transition_count"])
             continuity = float(decoded["continuity"])
             phrase_token_count = len([token for token in phrase.split() if token])
@@ -508,6 +557,7 @@ def run_tts_vowel_transition_harness(
             )
             monitor_family_source = "explicit"
             if monitor_mode == "project" and monitor_family == "auto":
+
                 resolved_monitor_family, phrase_monitor_family, decoded_monitor_family = _select_project_monitor_family(
                     phrase_token_count,
                     int(decoded["decoded_unique_vowel_count"]),
@@ -542,12 +592,22 @@ def run_tts_vowel_transition_harness(
                     }
                 elif monitor_mode == "decoded":
                     project_wav = run_dir / "project_imitation.wav"
-                    decoded_vowels = list(decoded["decoded_vowels"])
+                    vowel_segments = decoded.get("vowel_segments", [])
+                    if vowel_segments:
+                        vowel_timing = [
+                            (seg["vowel"], seg["duration_frames"] * frame_size / SR)
+                            for seg in vowel_segments
+                        ]
+                        vowel_sequence = [seg["vowel"] for seg in vowel_segments]
+                    else:
+                        vowel_sequence = list(decoded["decoded_vowels"])
+                        vowel_timing = None
                     tts_duration = float(len(target_pcm)) / SR if len(target_pcm) > 0 else 2.0
-                    vowel_timing = _extract_vowel_timing(decoded_vowels, frame_size=frame_size)
+                    silence_timing = _extract_silence_timing(decoded, frame_size=frame_size)
                     monitor_pcm, monitor_meta = _generate_decoded_imitation_audio(
-                        decoded_vowels=decoded_vowels,
+                        decoded_vowels=vowel_sequence,
                         vowel_timing=vowel_timing,
+                        silence_timing=silence_timing,
                         tts_duration=tts_duration,
                         device_profile="highpass",
                         device_gain=1.0,
@@ -585,6 +645,8 @@ def run_tts_vowel_transition_harness(
                         "mean_boundary_delta": float(decoded["mean_boundary_delta"]),
                         "max_boundary_delta": float(decoded["max_boundary_delta"]),
                         "decoded_vowels_preview": list(decoded["decoded_vowels"][:20]),
+                        "vowel_segments": decoded.get("vowel_segments", []),
+                        "silence_threshold": decoded.get("silence_threshold", 0.0),
                     },
                     "verdict": {
                         "threshold_transitions": int(threshold_transitions),
