@@ -283,6 +283,112 @@ def _generate_project_imitation_audio(
     }
 
 
+def _generate_decoded_imitation_audio(
+    *,
+    decoded_vowels: list[str],
+    device_profile: str,
+    device_gain: float,
+    noise_rms: float,
+    noise_seed: int | None,
+    duration_scale: float,
+    frame_size: int,
+    output_wav: Path,
+) -> tuple[np.ndarray, dict[str, Any]]:
+    """Render imitation audio that follows the decoded TTS vowel sequence."""
+    from m9_sound.vowel_transitions import write_pcm16_wav
+
+    # Build a vowel sequence from the decoded vowels, repeating to fill ~2s
+    unique_vowels = list(dict.fromkeys(decoded_vowels))
+    if not unique_vowels:
+        unique_vowels = ["i", "E", "u"]
+
+    # Create a sequence that cycles through the unique vowels
+    target_duration = 2.0 * duration_scale
+    vowels_per_second = 3.0
+    n_vowels = max(3, int(round(target_duration * vowels_per_second)))
+    vowel_sequence = []
+    for i in range(n_vowels):
+        vowel_sequence.append(unique_vowels[i % len(unique_vowels)])
+
+    duration_s = target_duration
+    fs = SR
+    fs_frame = frame_size
+
+    # Synthesize using the vowel sequence directly
+    from m9_sound.vowel_transitions import DEFAULT_LOOKUP_CKPT as _DEFAULT_LOOKUP_CKPT
+    templates = _load_templates(_DEFAULT_LOOKUP_CKPT)
+    n_v = len(vowel_sequence)
+    n_stable = max(2, int(round(duration_s * fs / fs_frame / n_v * 0.7)))
+    n_crossfade = min(n_stable, max(7, int(round(duration_s * fs / fs_frame / n_v * 0.3))))
+
+    rendered = []
+    phases = {fk: 0.0 for fk, _ in [("f1","a1"),("f2","a2"),("f3","a3")]}
+
+    for idx, vowel in enumerate(vowel_sequence):
+        if vowel not in templates:
+            vowel = "i"
+        t = templates[vowel]
+        for fi in range(n_stable):
+            frame_t = np.arange(fs_frame, dtype=np.float32) / fs
+            frame = np.zeros(fs_frame, dtype=np.float32)
+            for fk, ak in [("f1","a1"),("f2","a2"),("f3","a3")]:
+                frame += t[ak] * np.sin(2*np.pi*t[fk]*frame_t + phases[fk])
+                phases[fk] = (phases[fk] + 2*np.pi*t[fk]*(fs_frame/fs)) % (2*np.pi)
+            rendered.append(frame.astype(np.float32))
+
+        if idx < n_v - 1:
+            next_v = vowel_sequence[idx + 1]
+            if next_v not in templates:
+                next_v = "i"
+            nt = templates[next_v]
+            for fi in range(n_crossfade):
+                t_raw = fi / max(1, n_crossfade - 1) if n_crossfade > 1 else 1.0
+                alpha = 0.5 * (1 - np.cos(np.pi * t_raw))
+                ao = 1.0 - alpha
+                ai = alpha
+                frame_t = np.arange(fs_frame, dtype=np.float32) / fs
+                frame = np.zeros(fs_frame, dtype=np.float32)
+                for fk, ak in [("f1","a1"),("f2","a2"),("f3","a3")]:
+                    freq = (1-alpha)*t[fk] + alpha*nt[fk]
+                    amp = ao*t[ak] + ai*nt[ak]
+                    frame += amp * np.sin(2*np.pi*freq*frame_t + phases[fk])
+                    phases[fk] = (phases[fk] + 2*np.pi*freq*(fs_frame/fs)) % (2*np.pi)
+                rendered.append(frame.astype(np.float32))
+
+    if rendered:
+        peak = float(np.max(np.abs(np.concatenate(rendered))))
+        if peak > 1.0:
+            rendered = [f/peak for f in rendered]
+
+    rendered_pcm = np.concatenate(rendered).astype(np.float32)
+    rendered_pcm = np.asarray(rendered_pcm, dtype=np.float32).reshape(-1)
+
+    if noise_rms > 0.0:
+        rng = np.random.default_rng(noise_seed)
+        rendered_pcm = rendered_pcm + rng.normal(0.0, noise_rms, size=len(rendered_pcm)).astype(np.float32)
+
+    from m9_sound.temporal import apply_device_profile
+    rendered_pcm = apply_device_profile(rendered_pcm, device_profile=device_profile, device_gain=device_gain)
+
+    rendered_meta = write_pcm16_wav(output_wav, rendered_pcm, sr=fs)
+    return rendered_pcm, {
+        "family": "decoded",
+        "vowel_sequence": vowel_sequence,
+        "device_profile": device_profile,
+        "device_gain": float(device_gain),
+        "duration_scale": float(duration_scale),
+        "sample_count": int(rendered_meta["sample_count"]),
+        "wav_path": str(rendered_meta["path"]),
+    }
+
+
+def _load_templates(lookup_ckpt_path):
+    import json
+    from pathlib import Path
+    data = json.loads(Path(lookup_ckpt_path).read_text())
+    return {v: dict(data["lookup"][v]["template"]) for v in data["vowel_names"]}
+
+
 def _parse_phrases(values: Sequence[str]) -> list[str]:
     phrases = [value.strip() for value in values if value.strip()]
     if not phrases:
@@ -405,6 +511,26 @@ def run_tts_vowel_transition_harness(
                         "phrase_token_count": phrase_token_count,
                         "family_source": monitor_family_source,
                     }
+                elif monitor_mode == "decoded":
+                    project_wav = run_dir / "project_imitation.wav"
+                    decoded_vowels = list(decoded["decoded_vowels"])
+                    monitor_pcm, monitor_meta = _generate_decoded_imitation_audio(
+                        decoded_vowels=decoded_vowels,
+                        device_profile="highpass",
+                        device_gain=1.0,
+                        noise_rms=0.0,
+                        noise_seed=None,
+                        duration_scale=1.0,
+                        frame_size=frame_size,
+                        output_wav=project_wav,
+                    )
+                    playback_meta = _play_pcm_on_device(monitor_pcm, output_device=monitor_output_device, label="project")
+                    monitor_meta = {
+                        **monitor_meta,
+                        **playback_meta,
+                        "resolved_family": "decoded",
+                        "family_source": "decoded_vowels",
+                    }
                 else:
                     monitor_pcm = captured_pcm if monitor_mode == "captured" else target_pcm
                     monitor_meta = monitor_fn(pcm=monitor_pcm, output_device=monitor_output_device)
@@ -502,7 +628,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--frame-size", type=int, default=DEFAULT_FRAME_SIZE)
     parser.add_argument("--dry-run", action="store_true", help="Skip hardware capture and treat the synthesized phrase as perfectly captured")
     parser.add_argument("--monitor-output-device", type=int, default=DEFAULT_MONITOR_OUTPUT_DEVICE, help="Optional output device used to replay the project-generated imitation")
-    parser.add_argument("--monitor-mode", choices=["captured", "target", "project", "off"], default=DEFAULT_MONITOR_MODE, help="What audio to replay on the monitor output device")
+    parser.add_argument("--monitor-mode", choices=["captured", "target", "project", "decoded", "off"], default=DEFAULT_MONITOR_MODE, help="What audio to replay on the monitor output device")
     parser.add_argument("--monitor-family", type=str, default=DEFAULT_MONITOR_FAMILY, choices=["auto", *VOWEL_FAMILIES.keys()], help="Family rendered for the project-generated monitor playback")
     return parser.parse_args()
 
