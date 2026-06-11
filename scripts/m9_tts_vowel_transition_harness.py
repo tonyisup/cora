@@ -295,6 +295,7 @@ def _generate_decoded_imitation_audio(
     vowel_timing: list[tuple[str, float]] | None = None,
     silence_timing: list[float] | None = None,
     tts_duration: float = 2.0,
+    hold_duration: float = 0.0,
 ) -> tuple[np.ndarray, dict[str, Any]]:
     """Render imitation audio that follows the decoded TTS vowel sequence.
 
@@ -304,6 +305,10 @@ def _generate_decoded_imitation_audio(
 
     If silence_timing is provided, silence gaps are inserted between
     vowels to match the TTS rhythm.
+
+    If hold_duration > 0, each vowel is held for exactly that duration
+    (useful for "booooot" style sustained vowels that give the substrate
+    more time to classify).
     """
     from m9_sound.vowel_transitions import write_pcm16_wav
 
@@ -336,7 +341,10 @@ def _generate_decoded_imitation_audio(
         if vowel not in templates:
             vowel = "i"
         t = templates[vowel]
-        vowel_dur = per_vowel_duration[idx] if idx < len(per_vowel_duration) else 0.3
+        if hold_duration > 0:
+            vowel_dur = hold_duration
+        else:
+            vowel_dur = per_vowel_duration[idx] if idx < len(per_vowel_duration) else 0.3
         n_stable = max(2, int(round(vowel_dur * fs / fs_frame * 0.7)))
         n_crossfade = min(n_stable, max(4, int(round(vowel_dur * fs / fs_frame * 0.3))))
         for fi in range(n_stable):
@@ -491,6 +499,7 @@ def run_tts_vowel_transition_harness(
     monitor_output_device: int | None = DEFAULT_MONITOR_OUTPUT_DEVICE,
     monitor_mode: str = DEFAULT_MONITOR_MODE,
     monitor_family: str = DEFAULT_MONITOR_FAMILY,
+    hold_duration: float = 0.0,
     tts_audio_fn: Callable[..., np.ndarray] | None = None,
     capture_audio_fn: Callable[..., tuple[np.ndarray, dict[str, Any]]] | None = None,
     monitor_audio_fn: Callable[..., dict[str, Any]] | None = None,
@@ -609,6 +618,7 @@ def run_tts_vowel_transition_harness(
                         vowel_timing=vowel_timing,
                         silence_timing=silence_timing,
                         tts_duration=tts_duration,
+                        hold_duration=hold_duration,
                         device_profile="highpass",
                         device_gain=1.0,
                         noise_rms=0.0,
@@ -724,6 +734,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--monitor-output-device", type=int, default=DEFAULT_MONITOR_OUTPUT_DEVICE, help="Optional output device used to replay the project-generated imitation")
     parser.add_argument("--monitor-mode", choices=["captured", "target", "project", "decoded", "off"], default=DEFAULT_MONITOR_MODE, help="What audio to replay on the monitor output device")
     parser.add_argument("--monitor-family", type=str, default=DEFAULT_MONITOR_FAMILY, choices=["auto", *VOWEL_FAMILIES.keys()], help="Family rendered for the project-generated monitor playback")
+    parser.add_argument("--hold-duration", type=float, default=0.0, help="Hold each vowel for this duration in seconds (0 = use TTS timing)")
     return parser.parse_args()
 
 
@@ -748,6 +759,7 @@ def main() -> None:
         monitor_output_device=args.monitor_output_device,
         monitor_mode=args.monitor_mode,
         monitor_family=args.monitor_family,
+        hold_duration=args.hold_duration,
     )
 
     for run in report["runs"]:
