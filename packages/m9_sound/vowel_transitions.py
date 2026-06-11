@@ -20,8 +20,8 @@ import numpy as np
 from m9_sound.temporal import FRAME_SIZE, SR, apply_device_profile, frame_audio, write_pcm16_wav
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_SUBSTRATE_CKPT = REPO_ROOT / "data" / "m9_substrate_spectral_v2.ckpt.json"
-DEFAULT_LOOKUP_CKPT = REPO_ROOT / "data" / "m9_formant_lookup_v6.json"
+DEFAULT_SUBSTRATE_CKPT = REPO_ROOT / "data" / "m9_substrate_spectral_v5.ckpt.json"
+DEFAULT_LOOKUP_CKPT = REPO_ROOT / "data" / "m9_formant_lookup_v9.json"
 
 VOWEL_FAMILIES: dict[str, list[str]] = {
     "default": ["i", "E", "u"],
