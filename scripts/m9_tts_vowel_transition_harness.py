@@ -290,36 +290,40 @@ def _generate_decoded_imitation_audio(
     device_gain: float,
     noise_rms: float,
     noise_seed: int | None,
-    duration_scale: float,
     frame_size: int,
     output_wav: Path,
+    vowel_timing: list[tuple[str, float]] | None = None,
+    tts_duration: float = 2.0,
 ) -> tuple[np.ndarray, dict[str, Any]]:
-    """Render imitation audio that follows the decoded TTS vowel sequence."""
+    """Render imitation audio that follows the decoded TTS vowel sequence.
+
+    If vowel_timing is provided, each vowel body is rendered for its
+    matched duration (with a minimum of 0.1s). Otherwise falls back to
+    uniform timing based on tts_duration.
+    """
     from m9_sound.vowel_transitions import write_pcm16_wav
 
-    # Build a vowel sequence from the decoded vowels, repeating to fill ~2s
+    # Build a vowel sequence from the decoded vowels
     unique_vowels = list(dict.fromkeys(decoded_vowels))
     if not unique_vowels:
         unique_vowels = ["i", "E", "u"]
 
-    # Create a sequence that cycles through the unique vowels
-    target_duration = 2.0 * duration_scale
-    vowels_per_second = 3.0
-    n_vowels = max(3, int(round(target_duration * vowels_per_second)))
-    vowel_sequence = []
-    for i in range(n_vowels):
-        vowel_sequence.append(unique_vowels[i % len(unique_vowels)])
+    # Use per-vowel timing from TTS if available, otherwise uniform
+    if vowel_timing:
+        vowel_sequence = [v for v, _ in vowel_timing]
+        per_vowel_duration = [max(0.1, d) for _, d in vowel_timing]
+    else:
+        vowels_per_second = 3.0
+        n_vowels = max(3, int(round(tts_duration * vowels_per_second)))
+        vowel_sequence = [unique_vowels[i % len(unique_vowels)] for i in range(n_vowels)]
+        per_vowel_duration = [tts_duration / n_vowels] * n_vowels
 
-    duration_s = target_duration
     fs = SR
     fs_frame = frame_size
 
     # Synthesize using the vowel sequence directly
     from m9_sound.vowel_transitions import DEFAULT_LOOKUP_CKPT as _DEFAULT_LOOKUP_CKPT
     templates = _load_templates(_DEFAULT_LOOKUP_CKPT)
-    n_v = len(vowel_sequence)
-    n_stable = max(2, int(round(duration_s * fs / fs_frame / n_v * 0.7)))
-    n_crossfade = min(n_stable, max(7, int(round(duration_s * fs / fs_frame / n_v * 0.3))))
 
     rendered = []
     phases = {fk: 0.0 for fk, _ in [("f1","a1"),("f2","a2"),("f3","a3")]}
@@ -328,6 +332,9 @@ def _generate_decoded_imitation_audio(
         if vowel not in templates:
             vowel = "i"
         t = templates[vowel]
+        vowel_dur = per_vowel_duration[idx] if idx < len(per_vowel_duration) else 0.3
+        n_stable = max(2, int(round(vowel_dur * fs / fs_frame * 0.7)))
+        n_crossfade = min(n_stable, max(4, int(round(vowel_dur * fs / fs_frame * 0.3))))
         for fi in range(n_stable):
             frame_t = np.arange(fs_frame, dtype=np.float32) / fs
             frame = np.zeros(fs_frame, dtype=np.float32)
@@ -336,7 +343,7 @@ def _generate_decoded_imitation_audio(
                 phases[fk] = (phases[fk] + 2*np.pi*t[fk]*(fs_frame/fs)) % (2*np.pi)
             rendered.append(frame.astype(np.float32))
 
-        if idx < n_v - 1:
+        if idx < len(vowel_sequence) - 1:
             next_v = vowel_sequence[idx + 1]
             if next_v not in templates:
                 next_v = "i"
@@ -376,10 +383,32 @@ def _generate_decoded_imitation_audio(
         "vowel_sequence": vowel_sequence,
         "device_profile": device_profile,
         "device_gain": float(device_gain),
-        "duration_scale": float(duration_scale),
         "sample_count": int(rendered_meta["sample_count"]),
         "wav_path": str(rendered_meta["path"]),
     }
+
+
+def _extract_vowel_timing(decoded_vowels, *, frame_size=480, sr=16000):
+    """Extract per-vowel durations from decoded vowel sequence.
+
+    Returns list of (vowel, duration_s) tuples, where each duration
+    is the number of frames that vowel was active.
+    """
+    if not decoded_vowels:
+        return [("i", 0.3), ("E", 0.3), ("u", 0.3)]
+
+    timing = []
+    current = decoded_vowels[0]
+    count = 1
+    for v in decoded_vowels[1:]:
+        if v == current:
+            count += 1
+        else:
+            timing.append((current, count * frame_size / sr))
+            current = v
+            count = 1
+    timing.append((current, count * frame_size / sr))
+    return timing
 
 
 def _load_templates(lookup_ckpt_path):
@@ -514,13 +543,16 @@ def run_tts_vowel_transition_harness(
                 elif monitor_mode == "decoded":
                     project_wav = run_dir / "project_imitation.wav"
                     decoded_vowels = list(decoded["decoded_vowels"])
+                    tts_duration = float(len(target_pcm)) / SR if len(target_pcm) > 0 else 2.0
+                    vowel_timing = _extract_vowel_timing(decoded_vowels, frame_size=frame_size)
                     monitor_pcm, monitor_meta = _generate_decoded_imitation_audio(
                         decoded_vowels=decoded_vowels,
+                        vowel_timing=vowel_timing,
+                        tts_duration=tts_duration,
                         device_profile="highpass",
                         device_gain=1.0,
                         noise_rms=0.0,
                         noise_seed=None,
-                        duration_scale=1.0,
                         frame_size=frame_size,
                         output_wav=project_wav,
                     )
