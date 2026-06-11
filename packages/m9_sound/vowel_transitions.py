@@ -20,8 +20,8 @@ import numpy as np
 from m9_sound.temporal import FRAME_SIZE, SR, apply_device_profile, frame_audio, write_pcm16_wav
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_SUBSTRATE_CKPT = REPO_ROOT / "data" / "m9_substrate_spectral.ckpt.json"
-DEFAULT_LOOKUP_CKPT = REPO_ROOT / "data" / "m9_formant_lookup_v5.json"
+DEFAULT_SUBSTRATE_CKPT = REPO_ROOT / "data" / "m9_substrate_spectral_v2.ckpt.json"
+DEFAULT_LOOKUP_CKPT = REPO_ROOT / "data" / "m9_formant_lookup_v6.json"
 
 VOWEL_FAMILIES: dict[str, list[str]] = {
     "default": ["i", "E", "u"],
@@ -40,19 +40,19 @@ VOWEL_FAMILIES: dict[str, list[str]] = {
 }
 
 FAMILY_DURATIONS_S: dict[str, float] = {
-    "default": 0.12,
-    "diphthong": 0.06,
-    "phase_triad": 0.18,
-    "phase_arc": 0.12,
-    "wide_sweep": 0.09,
-    "long_arc": 0.06,
-    "formant_rich": 0.05,
-    "dense_cycle": 0.05,
-    "ultra_dense": 0.05,
-    "hyper_dense": 0.05,
-    "mega_dense": 0.05,
-    "max_dense": 0.05,
-    "ultra_max_dense": 0.05,
+    "default": 0.24,
+    "diphthong": 0.12,
+    "phase_triad": 0.36,
+    "phase_arc": 0.24,
+    "wide_sweep": 0.18,
+    "long_arc": 0.12,
+    "formant_rich": 0.10,
+    "dense_cycle": 0.08,
+    "ultra_dense": 0.08,
+    "hyper_dense": 0.08,
+    "mega_dense": 0.08,
+    "max_dense": 0.08,
+    "ultra_max_dense": 0.08,
 }
 
 FORMANT_KEYS = (("f1", "a1"), ("f2", "a2"), ("f3", "a3"))
