@@ -476,6 +476,7 @@ def decode_vowel_transition_audio(
     smooth_window: int = 3,
     silence_threshold: float = 0.0,
     consonant_gate: float = 0.0,
+    center_mel: bool = False,
 ) -> dict[str, object]:
     """Decode a rendered vowel-transition audio buffer into a compact report."""
     decoded = _smooth_labels(
@@ -486,6 +487,7 @@ def decode_vowel_transition_audio(
             frame_size=frame_size,
             silence_threshold=silence_threshold,
             consonant_gate=consonant_gate,
+            center_mel=center_mel,
         ),
         window=smooth_window,
     )
