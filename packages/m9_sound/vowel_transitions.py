@@ -221,6 +221,7 @@ def _decode_vowel_frames(
     frame_size: int = FRAME_SIZE,
     silence_threshold: float = 0.0,
     consonant_gate: float = 0.0,
+    center_mel: bool = False,
 ) -> list[str]:
     weights = _load_substrate_weights(substrate_ckpt_path)
     vowel_names, centroids = _load_centroids(lookup_ckpt_path)
@@ -230,13 +231,24 @@ def _decode_vowel_frames(
     W_x = np.asarray(weights["W_x"], dtype=np.float32)
     b = np.asarray(weights["b"], dtype=np.float32)
 
+    # First pass: compute all mel features if centering
+    if center_mel:
+        all_mel = []
+        for frame in frame_audio(audio, frame_size=frame_size):
+            all_mel.append(_mel_features(frame))
+        if all_mel:
+            mean_mel = np.mean(all_mel, axis=0, keepdims=True)
+
     decoded: list[str] = []
+    frame_idx = 0
     for frame in frame_audio(audio, frame_size=frame_size):
         rms = float(np.sqrt(np.mean(frame.astype(np.float32) ** 2)))
         if rms < silence_threshold:
             decoded.append("_")
         else:
             mel = _mel_features(frame)
+            if center_mel and all_mel:
+                mel = mel - mean_mel[0]
             hidden_state = np.tanh(W_h @ hidden_state + W_x @ mel + b).astype(np.float32)
             distances = np.linalg.norm(centroids - hidden_state.reshape(1, -1), axis=1)
             best_idx = int(np.argmin(distances))
@@ -245,6 +257,7 @@ def _decode_vowel_frames(
                 decoded.append("_")
             else:
                 decoded.append(vowel_names[best_idx])
+        frame_idx += 1
     return decoded
 
 
