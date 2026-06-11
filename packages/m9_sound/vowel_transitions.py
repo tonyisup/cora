@@ -40,19 +40,19 @@ VOWEL_FAMILIES: dict[str, list[str]] = {
 }
 
 FAMILY_DURATIONS_S: dict[str, float] = {
-    "default": 0.24,
-    "diphthong": 0.12,
-    "phase_triad": 0.36,
-    "phase_arc": 0.24,
-    "wide_sweep": 0.18,
-    "long_arc": 0.12,
-    "formant_rich": 0.10,
-    "dense_cycle": 0.08,
-    "ultra_dense": 0.08,
-    "hyper_dense": 0.08,
-    "mega_dense": 0.08,
-    "max_dense": 0.08,
-    "ultra_max_dense": 0.08,
+    "default": 0.60,
+    "diphthong": 0.40,
+    "phase_triad": 0.90,
+    "phase_arc": 0.60,
+    "wide_sweep": 0.60,
+    "long_arc": 0.50,
+    "formant_rich": 0.50,
+    "dense_cycle": 0.50,
+    "ultra_dense": 0.50,
+    "hyper_dense": 0.50,
+    "mega_dense": 0.50,
+    "max_dense": 0.50,
+    "ultra_max_dense": 0.50,
 }
 
 FORMANT_KEYS = (("f1", "a1"), ("f2", "a2"), ("f3", "a3"))
@@ -156,8 +156,10 @@ def _synthesize_vowel_frames(
 ) -> tuple[np.ndarray, list[dict[str, object]]]:
     templates = _load_templates(lookup_ckpt_path)
     n_vowels = len(vowels)
-    # Each vowel gets frames_per_segment frames; transitions happen between them
-    frames_per_vowel = max(1, int(round(duration_s * sr / frame_size / n_vowels)))
+    # Each vowel gets frames_per_vowel frames of stable body
+    # Plus a crossfade to the next vowel
+    n_stable = max(2, int(round(duration_s * sr / frame_size / n_vowels * 0.7)))
+    n_crossfade = max(2, int(round(duration_s * sr / frame_size / n_vowels * 0.3)))
     rendered: list[np.ndarray] = []
     segment_meta: list[dict[str, object]] = []
     phases = {key: 0.0 for key, _ in FORMANT_KEYS}
@@ -165,33 +167,40 @@ def _synthesize_vowel_frames(
     if not vowels:
         return np.zeros(0, dtype=np.float32), segment_meta
 
-    # Render each vowel body, then transition to next
+    # Render each vowel body, then crossfade to next
     for vowel_idx, vowel in enumerate(vowels):
         template = templates[vowel]
         # Render stable vowel body
-        for frame_index in range(frames_per_vowel):
+        for frame_index in range(n_stable):
             frame_t = np.arange(frame_size, dtype=np.float32) / sr
             frame = np.zeros(frame_size, dtype=np.float32)
             for fk, ak in FORMANT_KEYS:
                 frame += template[ak] * np.sin(2.0 * np.pi * template[fk] * frame_t + phases[fk])
                 phases[fk] = float((phases[fk] + 2.0 * np.pi * template[fk] * (frame_size / sr)) % (2.0 * np.pi))
             rendered.append(frame.astype(np.float32))
+        segment_meta.append({"vowel": vowel, "frame_count": n_stable})
 
-        # Transition to next vowel (if not last)
+        # Crossfade to next vowel (if not last)
         if vowel_idx < n_vowels - 1:
             next_template = templates[vowels[vowel_idx + 1]]
-            n_transition = max(1, frames_per_vowel // 2)
-            for frame_index in range(n_transition):
-                t = frame_index / max(1, n_transition - 1) if n_transition > 1 else 1.0
+            for frame_index in range(n_crossfade):
+                # Smoothraised-cosine crossfade
+                t_raw = frame_index / max(1, n_crossfade - 1) if n_crossfade > 1 else 1.0
+                # Raised cosine for smoother transition
+                t = 0.5 * (1 - np.cos(np.pi * t_raw))
+                # Amplitude envelope: fade out current, fade in next
+                amp_out = 1.0 - t
+                amp_in = t
                 frame_t = np.arange(frame_size, dtype=np.float32) / sr
                 frame = np.zeros(frame_size, dtype=np.float32)
+                # Interpolate formant frequencies and amplitudes
                 for fk, ak in FORMANT_KEYS:
                     freq_hz = float((1.0 - t) * template[fk] + t * next_template[fk])
-                    amp = float((1.0 - t) * template[ak] + t * next_template[ak])
+                    amp = amp_out * float(template[ak]) + amp_in * float(next_template[ak])
                     frame += amp * np.sin(2.0 * np.pi * freq_hz * frame_t + phases[fk])
                     phases[fk] = float((phases[fk] + 2.0 * np.pi * freq_hz * (frame_size / sr)) % (2.0 * np.pi))
                 rendered.append(frame.astype(np.float32))
-            segment_meta.append({"vowel": f"{vowel}->{vowels[vowel_idx+1]}", "frame_count": n_transition})
+            segment_meta.append({"vowel": f"{vowel}->{vowels[vowel_idx+1]}", "frame_count": n_crossfade})
 
     if not rendered:
         return np.zeros(0, dtype=np.float32), segment_meta
