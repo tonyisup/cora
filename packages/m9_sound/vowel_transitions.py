@@ -155,7 +155,9 @@ def _synthesize_vowel_frames(
     frame_size: int = FRAME_SIZE,
 ) -> tuple[np.ndarray, list[dict[str, object]]]:
     templates = _load_templates(lookup_ckpt_path)
-    frames_per_segment = max(1, int(round(duration_s * sr / frame_size)))
+    n_vowels = len(vowels)
+    # Each vowel gets frames_per_segment frames; transitions happen between them
+    frames_per_vowel = max(1, int(round(duration_s * sr / frame_size / n_vowels)))
     rendered: list[np.ndarray] = []
     segment_meta: list[dict[str, object]] = []
     phases = {key: 0.0 for key, _ in FORMANT_KEYS}
@@ -163,30 +165,42 @@ def _synthesize_vowel_frames(
     if not vowels:
         return np.zeros(0, dtype=np.float32), segment_meta
 
-    segments: list[tuple[str, str]] = [(vowels[0], vowels[0])] + list(zip(vowels[:-1], vowels[1:]))
-
-    for start_vowel, end_vowel in segments:
-        start_template = templates[start_vowel]
-        end_template = templates[end_vowel]
-        segment_meta.append(
-            {"start_vowel": start_vowel, "end_vowel": end_vowel, "frame_count": frames_per_segment}
-        )
-        for frame_index in range(frames_per_segment):
-            t = 0.0 if frames_per_segment == 1 else frame_index / float(frames_per_segment - 1)
+    # Render each vowel body, then transition to next
+    for vowel_idx, vowel in enumerate(vowels):
+        template = templates[vowel]
+        # Render stable vowel body
+        for frame_index in range(frames_per_vowel):
             frame_t = np.arange(frame_size, dtype=np.float32) / sr
             frame = np.zeros(frame_size, dtype=np.float32)
             for fk, ak in FORMANT_KEYS:
-                freq_hz = float((1.0 - t) * start_template[fk] + t * end_template[fk])
-                amp = float((1.0 - t) * start_template[ak] + t * end_template[ak])
-                frame += amp * np.sin(2.0 * np.pi * freq_hz * frame_t + phases[fk])
-                phases[fk] = float((phases[fk] + 2.0 * np.pi * freq_hz * (frame_size / sr)) % (2.0 * np.pi))
-            peak = float(np.max(np.abs(frame)))
-            if peak > 1.0:
-                frame = frame / peak
+                frame += template[ak] * np.sin(2.0 * np.pi * template[fk] * frame_t + phases[fk])
+                phases[fk] = float((phases[fk] + 2.0 * np.pi * template[fk] * (frame_size / sr)) % (2.0 * np.pi))
             rendered.append(frame.astype(np.float32))
+
+        # Transition to next vowel (if not last)
+        if vowel_idx < n_vowels - 1:
+            next_template = templates[vowels[vowel_idx + 1]]
+            n_transition = max(1, frames_per_vowel // 2)
+            for frame_index in range(n_transition):
+                t = frame_index / max(1, n_transition - 1) if n_transition > 1 else 1.0
+                frame_t = np.arange(frame_size, dtype=np.float32) / sr
+                frame = np.zeros(frame_size, dtype=np.float32)
+                for fk, ak in FORMANT_KEYS:
+                    freq_hz = float((1.0 - t) * template[fk] + t * next_template[fk])
+                    amp = float((1.0 - t) * template[ak] + t * next_template[ak])
+                    frame += amp * np.sin(2.0 * np.pi * freq_hz * frame_t + phases[fk])
+                    phases[fk] = float((phases[fk] + 2.0 * np.pi * freq_hz * (frame_size / sr)) % (2.0 * np.pi))
+                rendered.append(frame.astype(np.float32))
+            segment_meta.append({"vowel": f"{vowel}->{vowels[vowel_idx+1]}", "frame_count": n_transition})
 
     if not rendered:
         return np.zeros(0, dtype=np.float32), segment_meta
+
+    # Normalize the entire rendered signal once, not per-frame
+    peak = float(np.max(np.abs(np.concatenate(rendered))))
+    if peak > 1.0:
+        rendered = [frame / peak for frame in rendered]
+
     return np.concatenate(rendered).astype(np.float32), segment_meta
 
 
