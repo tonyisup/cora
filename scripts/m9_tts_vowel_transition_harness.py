@@ -44,12 +44,12 @@ DEFAULT_MONITOR_MODE = "project"
 DEFAULT_MONITOR_FAMILY = "auto"
 
 DEFAULT_PHRASES = [
-    "eee eeeh ehh ahh ohh ooo",
-    "ooo ooh ohh ahh ehh eee",
-    "eee ahh eee ohh ooo",
-    "ooo ahh ooo ehh eee",
-    "eee ehh ahh ehh eee",
-    "ooo ohh ahh ohh ooo",
+    "beat bet hot caught boot",
+    "boot caught hot bet beat",
+    "beat hot bet boot caught",
+    "caught boot bet hot beat",
+    "bet beat boot caught hot",
+    "hot caught beat boot bet",
 ]
 
 
