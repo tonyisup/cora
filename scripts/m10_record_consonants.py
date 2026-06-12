@@ -108,6 +108,7 @@ def main() -> None:
     parser.add_argument("--input-device", type=int, default=1, help="sounddevice input device index")
     parser.add_argument("--duration-s", type=float, default=1.0, help="Recording duration per prompt")
     parser.add_argument("--dry-run", action="store_true", help="Print prompts without recording")
+    parser.add_argument("--auto", action="store_true", help="Auto-record without waiting for Enter (with countdown)")
     parser.add_argument("--prompts", type=Path, default=PROMPTS_PATH, help="Path to prompts JSON")
     args = parser.parse_args()
 
@@ -146,14 +147,18 @@ def main() -> None:
             label = prompt_entry["label"]
             category = prompt_entry["category"]
 
-            print(f"[{idx + 1}/{len(prompts)}] Say '{token}' ({label}, {category})")
-            print("  Press Enter to record (or 's' to skip, 'q' to quit)...")
-            user_input = input("  > ").strip().lower()
-            if user_input == "q":
-                break
-            if user_input == "s":
-                print("  Skipped.")
-                continue
+            if args.auto:
+                print(f"[{idx + 1}/{len(prompts)}] Say '{token}' ({label}, {category}) - recording in 1s...")
+                time.sleep(1.0)
+            else:
+                print(f"[{idx + 1}/{len(prompts)}] Say '{token}' ({label}, {category})")
+                print("  Press Enter to record (or 's' to skip, 'q' to quit)...")
+                user_input = input("  > ").strip().lower()
+                if user_input == "q":
+                    break
+                if user_input == "s":
+                    print("  Skipped.")
+                    continue
 
             audio, meta = _record_wav(token, args.speaker, session_id, args.input_device, args.duration_s)
             row = _save_capture(audio, meta, label, category, output_dir)
