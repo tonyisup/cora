@@ -258,9 +258,13 @@ def load_real_consonant_captures(data_dir="data/m10", split=None, holdout_pct=20
             if split == "eval" and split_key >= holdout_pct:
                 continue
 
-            full_path = Path(data_dir).parent / wav_path
+            # wav_path is relative to repo root
+            full_path = Path(wav_path)
             if not full_path.exists():
-                continue
+                # Try relative to data_dir
+                full_path = Path(data_dir) / wav_path
+                if not full_path.exists():
+                    continue
 
             import wave
             with wave.open(str(full_path), 'rb') as wf:
