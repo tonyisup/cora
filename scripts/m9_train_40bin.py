@@ -11,7 +11,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / 'packages'))
 SR = 16000
 FRAME = 480
 HIDDEN_DIM = 32
-N_MELS = 40
+N_MELS = 32
 
 VOWEL_FORMANTS = {
     'i': {'f1': 220, 'f2': 3200, 'f3': 3600, 'a1': 1.0, 'a2': 0.55, 'a3': 0.30},
@@ -55,6 +55,9 @@ def fwd_centered(W_h, W_x, b, audio):
     all_mel = []
     for i in range(nf):
         frame = audio[i*FRAME:(i+1)*FRAME].flatten().astype(np.float32)
+        rms = np.sqrt(np.mean(frame ** 2))
+        if rms > 1e-6:
+            frame = frame / rms
         all_mel.append(mel_feat(frame))
     mean_mel = np.mean(all_mel, axis=0)
     h = np.zeros(HIDDEN_DIM, dtype=np.float32)
@@ -110,12 +113,12 @@ def load_real_captures(data_dir="data/m9_tts_captures"):
     data_dir = Path(data_dir)
     ds = []
     phrase_vowels = {
-        "beat_bet_hot_caught_boot": ["i", "E", "a", "O", "u"],
-        "boot_caught_hot_bet_beat": ["u", "O", "a", "E", "i"],
-        "beat_hot_bet_boot_caught": ["i", "a", "E", "u", "O"],
+        "beat_bet_hot_caught": ["i", "E", "a", "O", "u"],
+        "beat_hot_bet_boot_ca": ["i", "a", "E", "u", "O"],
+        "boot_caught_hot_bet": ["u", "O", "a", "E", "i"],
     }
     for wav_path in sorted(data_dir.glob("*.wav")):
-        name = wav_path.stem
+        name = wav_path.stem.lower()
         phrase = None
         for p in phrase_vowels:
             if p in name:
@@ -203,12 +206,12 @@ def train(epochs=500, lr=0.001, n_synth=300, margin=3.0, seed=42):
 def build_lookup(W_h, W_x, b, ds, n_augment=200):
     from scipy.spatial import cKDTree
     embeddings = {v: [] for v in VOWEL_NAMES}
-    for v,a in ds: h,_ = fwd_centered(W_h,Wx,b,a); embeddings[v].append(h)
+    for v,a in ds: h,_ = fwd_centered(W_h,W_x,b,a); embeddings[v].append(h)
     rng = np.random.RandomState(123)
     for v in VOWEL_NAMES:
         for _ in range(n_augment):
             a = gen_synth(1, rng.randint(10000))[0][1]
-            h,_ = fwd_centered(W_h,Wx,b,a); embeddings[v].append(h)
+            h,_ = fwd_centered(W_h,W_x,b,a); embeddings[v].append(h)
     cents = {v: np.mean(embeddings[v],axis=0).astype(np.float32) for v in VOWEL_NAMES}
     all_h, all_labels = [], []
     for v in VOWEL_NAMES:

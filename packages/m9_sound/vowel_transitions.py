@@ -120,7 +120,7 @@ def _mel_filterbank(n_mels: int = 26, n_fft: int = 512, sr: int = SR, fmin: int 
     return fb
 
 
-MEL_FILTERBANK = _mel_filterbank(n_mels=40)
+MEL_FILTERBANK = _mel_filterbank(n_mels=32)
 
 
 def _mel_features(frame: np.ndarray, *, mel_fb: np.ndarray = MEL_FILTERBANK, n_fft: int = 512) -> np.ndarray:

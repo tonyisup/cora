@@ -555,6 +555,22 @@ def run_tts_vowel_transition_harness(
             from scipy.signal import butter, sosfilt
             hp100_sos = butter(4, 100, btype='high', fs=SR, output='sos')
             captured_proc = sosfilt(hp100_sos, captured_pcm).astype(np.float32)
+            # Per-frame RMS normalization to remove energy as a cue
+            # This forces the substrate to use spectral shape for vowel classification
+            frame_size = FRAME_SIZE
+            n_frames = len(captured_proc) // frame_size
+            for i in range(n_frames):
+                frame = captured_proc[i*frame_size:(i+1)*frame_size]
+                rms = np.sqrt(np.mean(frame ** 2))
+                if rms > 1e-6:
+                    frame[:] = frame / rms
+            # Also apply to trailing samples
+            remainder = len(captured_proc) % frame_size
+            if remainder > 0:
+                frame = captured_proc[n_frames*frame_size:]
+                rms = np.sqrt(np.mean(frame ** 2))
+                if rms > 1e-6:
+                    frame[:] = frame / rms
             silence_rms = _estimate_silence_rms(captured_proc, frame_size=frame_size)
             decoded = decode_vowel_transition_audio(
                 captured_proc, frame_size=frame_size,
