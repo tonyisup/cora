@@ -67,10 +67,10 @@ def _real_capture_split_key(wav_path: Path) -> int:
     return digest[0] % 100
 
 
-def load_real_captures(data_dir="data/m9_tts_captures", split=None, holdout_pct=20):
+def _load_real_capture_items(data_dir="data/m9_tts_captures", split=None, holdout_pct=20):
     import wave
     data_dir = Path(data_dir)
-    ds = []
+    items = []
     phrase_vowels = {
         "beat_bet_hot_caught": ["i", "E", "a", "O", "u"],
         "boot_caught_hot_bet": ["u", "O", "a", "E", "i"],
@@ -92,6 +92,7 @@ def load_real_captures(data_dir="data/m9_tts_captures", split=None, holdout_pct=
             continue
 
         vowels = phrase_vowels[phrase]
+        speaker = wav_path.stem.split("_")[0]
         with wave.open(str(wav_path), 'rb') as wf:
             audio = np.frombuffer(wf.readframes(wf.getnframes()), dtype=np.int16).astype(np.float32)/32768.0
         mel = extract_mel_rms(audio)
@@ -103,8 +104,23 @@ def load_real_captures(data_dir="data/m9_tts_captures", split=None, holdout_pct=
             start = idx * chunk_size
             end = (idx + 1) * chunk_size if idx < 4 else nf
             mid = (start + end) // 2
-            ds.append((vowels[idx], mel[mid]))
-    return ds
+            items.append({
+                "speaker": speaker,
+                "file": wav_path.name,
+                "phrase": phrase,
+                "split_key": split_key,
+                "vowel_index": idx,
+                "true_vowel": vowels[idx],
+                "mel": mel[mid],
+                "frames": nf,
+                "chunk_size": chunk_size,
+            })
+    return items
+
+
+def load_real_captures(data_dir="data/m9_tts_captures", split=None, holdout_pct=20):
+    items = _load_real_capture_items(data_dir=data_dir, split=split, holdout_pct=holdout_pct)
+    return [(item["true_vowel"], item["mel"]) for item in items]
 
 def gen_synth(n_per=300, seed=42):
     rng = np.random.RandomState(seed)
@@ -128,7 +144,7 @@ def _adam_step(param, grad, m, v, beta1, beta2, eps, t, lr):
     param -= lr * mh / (np.sqrt(vh) + eps)
 
 
-def train_ce(epochs=500, lr=0.01, n_synth=300, seed=42):
+def train_ce(epochs=500, lr=0.01, n_synth=300, seed=42, a_weight=1.0):
     """Train with cross-entropy + softmax loss."""
     rng = np.random.RandomState(seed)
     
@@ -184,7 +200,10 @@ def train_ce(epochs=500, lr=0.01, n_synth=300, seed=42):
             
             # Cross-entropy loss
             correct_probs = probs[np.arange(len(by)), by]
-            loss = -np.mean(np.log(correct_probs + 1e-8))
+            sample_weights = np.ones(len(by), dtype=np.float32)
+            if a_weight != 1.0:
+                sample_weights[by == VOWEL_NAMES.index('a')] = float(a_weight)
+            loss = -np.mean(sample_weights * np.log(correct_probs + 1e-8))
             total_loss += float(loss)
             
             # Accuracy
@@ -194,6 +213,7 @@ def train_ce(epochs=500, lr=0.01, n_synth=300, seed=42):
             # Backward
             dlogits = probs.copy()
             dlogits[np.arange(len(by)), by] -= 1
+            dlogits *= sample_weights[:, None]
             dlogits /= len(by)
             
             dW2 = h.T @ dlogits
@@ -221,12 +241,12 @@ def train_ce(epochs=500, lr=0.01, n_synth=300, seed=42):
 
 def evaluate_real_only(W1, b1, W2, b2, holdout_pct=20):
     """Evaluate on held-out real captures only and print a confusion matrix."""
-    eval_ds = load_real_captures(split="eval", holdout_pct=holdout_pct)
-    if not eval_ds:
+    eval_items = _load_real_capture_items(split="eval", holdout_pct=holdout_pct)
+    if not eval_items:
         raise ValueError("Real evaluation split is empty")
 
-    X_eval = np.array([m for _, m in eval_ds], dtype=np.float32)
-    y_eval = np.array([VOWEL_NAMES.index(v) for v, _ in eval_ds], dtype=np.int32)
+    X_eval = np.array([item["mel"] for item in eval_items], dtype=np.float32)
+    y_eval = np.array([VOWEL_NAMES.index(item["true_vowel"]) for item in eval_items], dtype=np.int32)
 
     h = np.maximum(X_eval @ W1 + b1, 0)
     logits = h @ W2 + b2
@@ -241,9 +261,51 @@ def evaluate_real_only(W1, b1, W2, b2, holdout_pct=20):
     total = int(cm.sum())
     acc = correct / total if total else float("nan")
 
+    per_class = {}
+    for i, v in enumerate(VOWEL_NAMES):
+        tp = int(cm[i, i])
+        support = int(cm[i].sum())
+        pred_pos = int(cm[:, i].sum())
+        fp = pred_pos - tp
+        fn = support - tp
+        precision = tp / pred_pos if pred_pos else float("nan")
+        recall = tp / support if support else float("nan")
+        f1 = (2 * precision * recall / (precision + recall)) if precision > 0 and recall > 0 else float("nan")
+        per_class[v] = {
+            "support": support,
+            "precision": float(precision),
+            "recall": float(recall),
+            "f1": float(f1),
+            "tp": tp,
+            "fp": int(fp),
+            "fn": int(fn),
+        }
+
+    errors = []
+    for item, yt, yp, logit in zip(eval_items, y_eval, preds, logits):
+        if yt != yp:
+            errors.append({
+                "file": item["file"],
+                "speaker": item["speaker"],
+                "phrase": item["phrase"],
+                "vowel_index": int(item["vowel_index"]),
+                "true": VOWEL_NAMES[int(yt)],
+                "pred": VOWEL_NAMES[int(yp)],
+                "frames": int(item["frames"]),
+                "chunk_size": int(item["chunk_size"]),
+                "logits": [float(x) for x in np.round(logit, 2)],
+            })
+
     print("\n--- Held-out real-capture evaluation ---")
     print(f"Eval examples: {total}")
     print(f"Accuracy: {acc:.1%} ({correct}/{total})")
+    print("Per-class metrics:")
+    for v in VOWEL_NAMES:
+        pc = per_class[v]
+        print(
+            f"  {v}: precision={pc['precision']:.1%} recall={pc['recall']:.1%} f1={pc['f1']:.1%} "
+            f"support={pc['support']}"
+        )
     print("Confusion matrix (rows=true, cols=pred):")
     header = "       " + " ".join(f"{v:>4s}" for v in VOWEL_NAMES)
     print(header)
@@ -252,6 +314,13 @@ def evaluate_real_only(W1, b1, W2, b2, holdout_pct=20):
         row_total = int(cm[i].sum())
         row_acc = (cm[i, i] / row_total) if row_total else float("nan")
         print(f"{v:>4s}  {row}   | acc={row_acc:.1%} n={row_total}")
+    if errors:
+        print("Misclassified examples:")
+        for err in errors[:10]:
+            print(
+                f"  {err['file']} speaker={err['speaker']} phrase={err['phrase']} idx={err['vowel_index']} "
+                f"true={err['true']} pred={err['pred']} frames={err['frames']}"
+            )
 
     return {
         "holdout_pct": holdout_pct,
@@ -259,6 +328,8 @@ def evaluate_real_only(W1, b1, W2, b2, holdout_pct=20):
         "correct": correct,
         "total": total,
         "confusion_matrix": cm.tolist(),
+        "per_class": per_class,
+        "error_examples": errors,
     }
 
 
@@ -266,8 +337,9 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument('--epochs',type=int,default=500)
     p.add_argument('--n-synth',type=int,default=300)
+    p.add_argument('--a-weight',type=float,default=1.0)
     a = p.parse_args()
-    params = train_ce(epochs=a.epochs, n_synth=a.n_synth)
+    params = train_ce(epochs=a.epochs, n_synth=a.n_synth, a_weight=a.a_weight)
     eval_results = evaluate_real_only(params['W1'], params['b1'], params['W2'], params['b2'])
     with open('data/m9_ce_v1.json','w') as f:
         json.dump({k: v.tolist() for k,v in params.items()}, f)

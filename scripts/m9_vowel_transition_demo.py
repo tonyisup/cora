@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import subprocess
 import sys
 from pathlib import Path
 
@@ -19,7 +20,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "packages"))
 from m9_sound.temporal import write_pcm16_wav
 from m9_sound.vowel_transitions import VOWEL_FAMILIES, build_vowel_transition_report, write_vowel_transition_wav
 
-DEFAULT_FAMILIES = ["long_arc", "formant_rich", "dense_cycle", "ultra_dense", "hyper_dense", "mega_dense", "max_dense", "ultra_max_dense"]
+DEFAULT_FAMILIES = ["default", "phase_triad", "phase_arc", "long_arc", "formant_rich"]
 DEFAULT_PAUSE_SECONDS = 0.35
 SR = 16000
 
@@ -78,6 +79,11 @@ def main() -> None:
         default=None,
         help="Optional JSON manifest path; defaults to <output-dir>/m9-vowel-transition-demo.json",
     )
+    parser.add_argument(
+        "--play",
+        action="store_true",
+        help="Play the montage with afplay after rendering",
+    )
     args = parser.parse_args()
 
     output_dir: Path = args.output_dir
@@ -121,6 +127,9 @@ def main() -> None:
     }
     manifest_path.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
     print(json.dumps(manifest, indent=2))
+
+    if args.play:
+        subprocess.run(["afplay", str(montage_path)], check=True)
 
 
 if __name__ == "__main__":

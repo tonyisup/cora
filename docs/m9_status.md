@@ -1,8 +1,8 @@
 # M9 Sound-First Motor Learning — Status
 
-_Updated: 2026-06-04_
+_Updated: 2026-06-12_
 
-> Status: 5-vowel spectral imitation on hardware. Text→vowel association working.
+> Status: M9 complete. Vowel-transition imitation, CE baseline eval, and the live wait/listen/imitate demo are all working. Next milestone: M10 consonant learning.
 
 ## What Works
 
@@ -93,9 +93,19 @@ scripts/archive/m9_train_*.py           # Superseded training scripts
 
 - The live phase-closure gate is now available in `scripts/m9_live_vowel_transition_gate.py` for repeatable promotion checks over the 2–3 transition family slice, now including `phase_arc` as a second stable 2-transition family; the current acceptance baseline is the `phase_triad` speaker path on Mac mini speakers (device 3), which passes live at threshold 0.8.
 
+### M9 Completion Note
+- The vowel-transition path is validated and no longer needs more M9 churn.
+- CE is the stable baseline for real-capture vowel work.
+- The live imitation demo is working and ready for daily use.
+- The remaining weakness is not a broken vowel system; it is consonant modeling.
+
+### M10 Goal
+- Learn consonants as first-class speech events, not just vowel-adjacent noise.
+- Start with consonant detection and consonant-aware decoding.
+- Build toward stop/fricative/nasal imitation on top of the existing live demo and capture harness.
+
 ### Next Steps
-- Long-family live capture/decoder tuning to stop transition collapse
-- Even denser formant-rich temporal coverage after the longer families stabilize
-- Expand pronunciation dictionary
-- Consonant frame modeling (fricatives, stops, nasals)
-- Substrate retraining on live mic audio (reduce synthetic-domain gap)
+- Start M10 with a small consonant set and a consonant gate
+- Add a consonant-aware live demo and capture harness
+- Collect a small controlled consonant corpus for segmentation and timing
+- Keep the vowel demo intact as a regression baseline
