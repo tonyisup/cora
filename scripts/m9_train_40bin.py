@@ -10,7 +10,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / 'packages'))
 
 SR = 16000
 FRAME = 480
-HIDDEN_DIM = 32
+HIDDEN_DIM = 64
 N_MELS = 32
 
 VOWEL_FORMANTS = {
