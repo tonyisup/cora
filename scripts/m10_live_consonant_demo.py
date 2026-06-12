@@ -30,6 +30,13 @@ from m9_sound.vowel_transitions import (
 )
 from m9_sound.temporal import FRAME_SIZE, SR, write_pcm16_wav
 
+# Class names for M10
+VOWEL_NAMES = ['i', 'E', 'a', 'O', 'u']
+CONSONANT_NAMES = ['p', 't', 'k', 's', 'f', 'sh', 'm', 'n']
+ALL_NAMES = VOWEL_NAMES + CONSONANT_NAMES
+
+N_MELS = 32
+
 HP_SOS = butter(4, 100, btype="high", fs=SR, output="sos")
 
 # Default consonant-vowel imitation families
@@ -120,23 +127,68 @@ def _synthesize_imitation(
     )
 
 
+def _load_m10_model(model_path: Path | None = None):
+    """Load the M10 trained model if available."""
+    if model_path is None:
+        model_path = Path("data/m10_v1.json")
+    if not model_path.exists():
+        return None
+    params = json.loads(model_path.read_text())
+    return {
+        "W1": np.array(params["W1"], dtype=np.float32),
+        "b1": np.array(params["b1"], dtype=np.float32),
+        "W2": np.array(params["W2"], dtype=np.float32),
+        "b2": np.array(params["b2"], dtype=np.float32),
+    }
+
+
 def _decode_and_report(
     audio: np.ndarray,
     *,
     consonant_gate: float,
     silence_threshold: float,
+    m10_model: dict | None = None,
 ) -> dict[str, object]:
-    """Decode audio with consonant awareness and return a structured report."""
-    decode = decode_vowel_transition_audio(
-        audio,
-        consonant_gate=consonant_gate,
-        silence_threshold=silence_threshold,
-    )
-    decode = dict(decode)
+    """Decode audio with consonant awareness, using M10 model if available."""
+    from m9_sound.temporal import FRAME_SIZE
 
-    labels: list[str] = list(cast(list[str], decode["decoded_vowels"]))
-    consonant_frames = [i for i, l in enumerate(labels) if l == "C"]
-    vowel_frames = [i for i, l in enumerate(labels) if l not in ("_", "C")]
+    # Extract mel features
+    audio_filt = np.asarray(sosfilt(HP_SOS, np.asarray(audio, dtype=np.float32).reshape(-1)), dtype=np.float32)
+    n_frames = len(audio_filt) // FRAME_SIZE
+
+    if m10_model is not None:
+        # Use M10 trained model
+        W1 = m10_model["W1"]
+        b1 = m10_model["b1"]
+        W2 = m10_model["W2"]
+        b2 = m10_model["b2"]
+
+        labels = []
+        for i in range(n_frames):
+            frame = audio_filt[i * FRAME_SIZE : (i + 1) * FRAME_SIZE]
+            if len(frame) < FRAME_SIZE:
+                frame = np.zeros(FRAME_SIZE, dtype=np.float32)
+                frame[:len(audio_filt[i * FRAME_SIZE:])] = audio_filt[i * FRAME_SIZE:]
+            rms = float(np.sqrt(np.mean(frame**2)))
+            if rms < silence_threshold:
+                labels.append("_")
+            else:
+                mel = _mel_feat_for_frame(frame)
+                h = np.maximum(mel @ W1 + b1, 0)
+                logits = h @ W2 + b2
+                pred_idx = int(np.argmax(logits))
+                labels.append(ALL_NAMES[pred_idx] if pred_idx < len(ALL_NAMES) else "_")
+    else:
+        # Fallback: use vowel centroid decoder
+        decode = decode_vowel_transition_audio(
+            audio,
+            consonant_gate=consonant_gate,
+            silence_threshold=silence_threshold,
+        )
+        labels = list(decode["decoded_vowels"])
+
+    consonant_frames = [i for i, l in enumerate(labels) if l in CONSONANT_NAMES]
+    vowel_frames = [i for i, l in enumerate(labels) if l in VOWEL_NAMES]
     silence_frames = [i for i, l in enumerate(labels) if l == "_"]
     total = max(len(labels), 1)
 
@@ -149,10 +201,52 @@ def _decode_and_report(
         "silence_count": len(silence_frames),
         "silence_rate": len(silence_frames) / total,
         "consonant_frames": consonant_frames[:20],
-        "vowel_segments": decode.get("vowel_segments", []),
-        "transition_count": decode.get("decoded_transition_count", 0),
-        "continuity": decode.get("continuity", 0.0),
+        "transition_count": sum(1 for i in range(1, len(labels)) if labels[i] != labels[i-1]),
     }
+
+
+def _mel_feat_for_frame(frame: np.ndarray, n_mels: int = N_MELS, n_fft: int = 512) -> np.ndarray:
+    """Extract mel features from a single frame."""
+    x = np.zeros(n_fft, dtype=np.float32)
+    n = min(len(frame), n_fft)
+    x[:n] = frame[:n]
+    spectrum = np.abs(np.fft.rfft(x))
+    mel_fb = _get_mel_fb_demo()
+    mel_spec = mel_fb @ spectrum
+    mel_spec = np.log(mel_spec + 1e-6).astype(np.float32)
+    rms = float(np.sqrt(np.mean(mel_spec**2)))
+    if rms > 1e-6:
+        mel_spec /= rms
+    return mel_spec
+
+
+def _mel_filterbank_demo(n_mels, n_fft, sr):
+    def hz_to_mel(hz):
+        return 2595.0 * np.log10(1.0 + hz / 700.0)
+    def mel_to_hz(mel):
+        return 700.0 * (10.0 ** (mel / 2595.0) - 1.0)
+    n_bins = n_fft // 2 + 1
+    mel_points = np.linspace(hz_to_mel(80), hz_to_mel(7600), n_mels + 2)
+    bin_points = np.floor((n_fft + 1) * mel_to_hz(mel_points) / sr).astype(int)
+    fb = np.zeros((n_mels, n_bins), dtype=np.float32)
+    for m in range(n_mels):
+        left, center, right = bin_points[m], bin_points[m + 1], bin_points[m + 2]
+        for k in range(left, center):
+            if k < n_bins and center > left:
+                fb[m, k] = (k - left) / (center - left)
+        for k in range(center, right):
+            if k < n_bins and right > center:
+                fb[m, k] = (right - k) / (right - center)
+    return fb
+
+
+_MEL_FB_DEMO = None
+
+def _get_mel_fb_demo():
+    global _MEL_FB_DEMO
+    if _MEL_FB_DEMO is None:
+        _MEL_FB_DEMO = _mel_filterbank_demo(N_MELS, 512, SR)
+    return _MEL_FB_DEMO
 
 
 def _parse_family_list(text: str) -> list[str]:
@@ -192,6 +286,13 @@ def main() -> None:
     families = _parse_family_list(args.families)
     output_root = args.output_dir
     output_root.mkdir(parents=True, exist_ok=True)
+
+    # Load M10 model if available
+    m10_model = _load_m10_model()
+    if m10_model is not None:
+        print("  Model:             m10_v1 (13 classes)")
+    else:
+        print("  Model:             vowel-centroid fallback (5 classes)")
 
     print("=" * 78)
     print("M10 Live Consonant Imitation Demo")
@@ -239,6 +340,7 @@ def main() -> None:
                 listen_audio,
                 consonant_gate=args.consonant_gate,
                 silence_threshold=args.silence_threshold,
+                m10_model=m10_model,
             )
             print(f"  heard: consonant_rate={heard_report['consonant_rate']:.1%} vowel_rate={heard_report['vowel_rate']:.1%}")
 
