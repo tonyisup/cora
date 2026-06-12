@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
-"""M10 live consonant demo.
+"""M10 live consonant imitation demo.
 
-Wait for the user to speak, detect consonant activity, and decode the
-consonant/vowel/silence structure of what was said. Saves rendered/captured
-WAVs and a JSON report.
+Wait for the user to speak, detect the consonant/vowel structure, synthesize
+an imitation that includes consonant-like sounds, and play it back.
 
 Use --dry-run to exercise the full loop without hardware.
 """
@@ -23,10 +22,32 @@ from scipy.signal import butter, sosfilt
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "packages"))
 
-from m9_sound.vowel_transitions import VOWEL_FAMILIES, build_vowel_transition_report, decode_vowel_transition_audio
-from m9_sound.temporal import FRAME_SIZE, SR
+from m9_sound.vowel_transitions import (
+    VOWEL_FAMILIES,
+    build_vowel_transition_report,
+    decode_vowel_transition_audio,
+    _synthesize_consonant_sequence,
+)
+from m9_sound.temporal import FRAME_SIZE, SR, write_pcm16_wav
 
 HP_SOS = butter(4, 100, btype="high", fs=SR, output="sos")
+
+# Default consonant-vowel imitation families
+CONSONANT_FAMILIES: dict[str, list[str]] = {
+    "cv_simple": ["p", "a", "t", "a"],
+    "cv_fricative": ["s", "a", "f", "a"],
+    "cv_nasal": ["m", "a", "n", "a"],
+    "cvc": ["p", "a", "t", "a", "k"],
+    "mixed": ["s", "a", "m", "a", "t", "a"],
+}
+
+FAMILY_DURATIONS_S: dict[str, float] = {
+    "cv_simple": 0.8,
+    "cv_fricative": 1.0,
+    "cv_nasal": 0.9,
+    "cvc": 1.0,
+    "mixed": 1.2,
+}
 
 
 def _dry_run_capture_audio(playback_audio: np.ndarray, *, sr: int, **_: object) -> np.ndarray:
@@ -81,6 +102,24 @@ def _listen_window_audio(
     return np.asarray(recorded, dtype=np.float32).reshape(-1)
 
 
+def _synthesize_imitation(
+    family: str,
+    *,
+    duration_scale: float = 1.0,
+    noise_seed: int = 7,
+) -> tuple[np.ndarray, list[dict[str, object]]]:
+    """Synthesize a consonant-vowel imitation."""
+    tokens = CONSONANT_FAMILIES.get(family, CONSONANT_FAMILIES["cv_simple"])
+    duration_s = FAMILY_DURATIONS_S.get(family, 0.8) * duration_scale
+    return _synthesize_consonant_sequence(
+        tokens,
+        duration_s=duration_s,
+        sr=SR,
+        frame_size=FRAME_SIZE,
+        noise_seed=noise_seed,
+    )
+
+
 def _decode_and_report(
     audio: np.ndarray,
     *,
@@ -116,44 +155,61 @@ def _decode_and_report(
     }
 
 
+def _parse_family_list(text: str) -> list[str]:
+    families = [item.strip() for item in text.split(",") if item.strip()]
+    if not families:
+        raise ValueError("At least one consonant family is required")
+    for family in families:
+        if family not in CONSONANT_FAMILIES:
+            raise ValueError(f"Unknown consonant family: {family}. Choose from: {', '.join(sorted(CONSONANT_FAMILIES.keys()))}")
+    return families
+
+
 def main() -> None:
-    parser = argparse.ArgumentParser(description="M10 live consonant demo")
-    parser.add_argument("--output-dir", type=Path, default=Path("/tmp/m10-live-consonant-demo"))
+    parser = argparse.ArgumentParser(description="M10 live consonant imitation demo")
+    parser.add_argument("--output-dir", type=Path, default=Path("/tmp/m10-live-consonant-imitate"))
+    parser.add_argument("--families", type=str, default="cv_simple,cv_fricative,cv_nasal", help="Comma-separated consonant families to imitate in rotation")
     parser.add_argument("--listen-family", type=str, default="phase_triad", choices=list(VOWEL_FAMILIES.keys()))
     parser.add_argument("--input-device", type=int, default=1)
+    parser.add_argument("--output-device", type=int, default=3)
     parser.add_argument("--listen-window-s", type=float, default=0.6)
     parser.add_argument("--trigger-threshold", type=float, default=0.003)
     parser.add_argument("--min-speech-frames", type=int, default=2)
     parser.add_argument("--consonant-gate", type=float, default=2.0)
     parser.add_argument("--silence-threshold", type=float, default=0.001)
+    parser.add_argument("--duration-scale", type=float, default=1.0)
     parser.add_argument("--pause-s", type=float, default=0.5)
     parser.add_argument("--iterations", type=int, default=0)
     parser.add_argument("--once", action="store_true")
     parser.add_argument("--dry-run", action="store_true")
-    parser.add_argument("--play", action="store_true")
+    parser.add_argument("--play", action="store_true", default=True, help="Play the imitation audio")
+    parser.add_argument("--no-play", action="store_true", help="Skip playing the imitation audio")
     args = parser.parse_args()
 
     if args.once and args.iterations == 0:
         args.iterations = 1
 
+    families = _parse_family_list(args.families)
     output_root = args.output_dir
     output_root.mkdir(parents=True, exist_ok=True)
 
     print("=" * 78)
-    print("M10 Live Consonant Demo")
+    print("M10 Live Consonant Imitation Demo")
     print("=" * 78)
-    print("Speak into the microphone. CORA will detect consonants and vowels.")
+    print("Speak into the microphone. CORA will listen and imitate with consonants.")
+    print(f"  Families:          {', '.join(families)}")
     print(f"  Listen family:     {args.listen_family}")
     print(f"  Input device:      {args.input_device}")
+    print(f"  Output device:     {args.output_device}")
     print(f"  Consonant gate:    {args.consonant_gate}")
-    print(f"  Silence threshold: {args.silence_threshold}")
-    print(f"  Listen window:     {args.listen_window_s:.2f}s")
-    print(f"  Trigger threshold: {args.trigger_threshold}")
+    print(f"  Duration scale:    {args.duration_scale}")
     print(f"  Output dir:        {output_root}")
     print(f"  Iterations:        {'forever' if args.iterations <= 0 else args.iterations}")
     print("  Ctrl+C to stop.\n")
 
     trigger_count = 0
+    passed = 0
+    family_index = 0
     try:
         while args.iterations <= 0 or trigger_count < args.iterations:
             listen_audio = _listen_window_audio(
@@ -174,32 +230,69 @@ def main() -> None:
                 continue
 
             trigger_count += 1
-            print(f"[trigger {trigger_count:04d}] heard speech (rms={listen_rms:.4f}, frames={speech_frames})")
+            family = families[family_index % len(families)]
+            family_index += 1
+            print(f"[trigger {trigger_count:04d}] heard speech (rms={listen_rms:.4f}, frames={speech_frames}) -> imitate {family}")
 
-            report = _decode_and_report(
+            # Decode what was heard
+            heard_report = _decode_and_report(
                 listen_audio,
                 consonant_gate=args.consonant_gate,
                 silence_threshold=args.silence_threshold,
             )
+            print(f"  heard: consonant_rate={heard_report['consonant_rate']:.1%} vowel_rate={heard_report['vowel_rate']:.1%}")
 
-            print(f"  consonant_rate={report['consonant_rate']:.1%} vowel_rate={report['vowel_rate']:.1%} silence_rate={report['silence_rate']:.1%}")
-            print(f"  transitions={report['transition_count']} continuity={report['continuity']:.3f}")
+            # Synthesize imitation
+            imitation_audio, imitation_segs = _synthesize_imitation(
+                family,
+                duration_scale=args.duration_scale,
+                noise_seed=7 + trigger_count,
+            )
 
             # Save artifacts
             iteration_dir = output_root / f"run-{trigger_count:04d}"
             iteration_dir.mkdir(parents=True, exist_ok=True)
-            wav_path = iteration_dir / "captured.wav"
-            from m9_sound.temporal import write_pcm16_wav
-            write_pcm16_wav(wav_path, listen_audio, sr=SR)
-            report_path = iteration_dir / "report.json"
-            report["trigger_idx"] = trigger_count
-            report["wav"] = str(wav_path)
-            report_path.write_text(json.dumps(report, indent=2), encoding="utf-8")
-            print(f"  saved: {wav_path}")
-            print(f"  report: {report_path}")
 
-            if args.play:
-                subprocess.run(["afplay", str(wav_path)], check=True)
+            heard_wav = iteration_dir / "heard.wav"
+            imitation_wav = iteration_dir / "imitation.wav"
+            write_pcm16_wav(heard_wav, listen_audio, sr=SR)
+            write_pcm16_wav(imitation_wav, imitation_audio, sr=SR)
+
+            # Decode the imitation
+            imitation_report = _decode_and_report(
+                imitation_audio,
+                consonant_gate=args.consonant_gate,
+                silence_threshold=args.silence_threshold,
+            )
+
+            report = {
+                "trigger_idx": trigger_count,
+                "family": family,
+                "heard": heard_report,
+                "imitation": imitation_report,
+                "imitation_segments": imitation_segs,
+                "heard_wav": str(heard_wav),
+                "imitation_wav": str(imitation_wav),
+            }
+            report_path = iteration_dir / "report.json"
+            report_path.write_text(json.dumps(report, indent=2), encoding="utf-8")
+
+            print(f"  imitation: consonant_rate={imitation_report['consonant_rate']:.1%} vowel_rate={imitation_report['vowel_rate']:.1%}")
+            print(f"  segments: {len(imitation_segs)}")
+            print(f"  saved: {imitation_wav}")
+
+            # Play the imitation
+            if args.play and not args.no_play:
+                print(f"  Playing imitation...")
+                if args.dry_run:
+                    subprocess.run(["afplay", str(imitation_wav)], check=True)
+                else:
+                    try:
+                        import sounddevice as sd
+                        sd.play(imitation_audio, samplerate=SR, device=args.output_device)
+                        sd.wait()
+                    except Exception:
+                        subprocess.run(["afplay", str(imitation_wav)], check=True)
 
             if args.pause_s > 0:
                 time.sleep(args.pause_s)

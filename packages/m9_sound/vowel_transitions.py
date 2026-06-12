@@ -57,6 +57,124 @@ FAMILY_DURATIONS_S: dict[str, float] = {
 
 FORMANT_KEYS = (("f1", "a1"), ("f2", "a2"), ("f3", "a3"))
 
+CONSONANT_SYNTH: dict[str, dict[str, object]] = {
+    "p": {"type": "stop", "noise_ms": 20, "gap_ms": 60},
+    "t": {"type": "stop", "noise_ms": 15, "gap_ms": 50},
+    "k": {"type": "stop", "noise_ms": 25, "gap_ms": 55},
+    "s": {"type": "fricative", "noise_ms": 120, "freq_hz": 6000, "amp": 0.3},
+    "f": {"type": "fricative", "noise_ms": 100, "freq_hz": 8000, "amp": 0.2},
+    "sh": {"type": "fricative", "noise_ms": 140, "freq_hz": 3500, "amp": 0.25},
+    "m": {"type": "nasal", "freq_hz": 250, "amp": 0.4, "duration_ms": 80},
+    "n": {"type": "nasal", "freq_hz": 280, "amp": 0.35, "duration_ms": 80},
+}
+
+
+def _synthesize_consonant_frame(
+    consonant: str,
+    *,
+    sr: int = SR,
+    frame_size: int = FRAME_SIZE,
+    rng: np.random.Generator | None = None,
+) -> np.ndarray:
+    """Synthesize a single frame of consonant-like audio."""
+    if rng is None:
+        rng = np.random.default_rng()
+
+    info = CONSONANT_SYNTH.get(consonant, {"type": "stop", "noise_ms": 20, "gap_ms": 50})
+    frame = np.zeros(frame_size, dtype=np.float32)
+
+    if info["type"] == "stop":
+        # Short noise burst (closure/release)
+        burst_samples = min(frame_size, int(sr * info["noise_ms"] / 1000.0))
+        frame[:burst_samples] = rng.normal(0.0, 0.15, size=burst_samples).astype(np.float32)
+    elif info["type"] == "fricative":
+        # Aspiration noise with spectral coloring
+        noise = rng.normal(0.0, 1.0, size=frame_size).astype(np.float32)
+        # Simple high-pass emphasis via difference
+        noise = np.diff(noise, prepend=0.0).astype(np.float32) * info.get("amp", 0.3)
+        # Modulate with a center frequency
+        t = np.arange(frame_size, dtype=np.float32) / sr
+        frame = (noise * np.sin(2.0 * np.pi * info.get("freq_hz", 6000) * t)).astype(np.float32)
+        frame *= info.get("amp", 0.3)
+    elif info["type"] == "nasal":
+        # Low-frequency resonance
+        t = np.arange(frame_size, dtype=np.float32) / sr
+        frame = (info.get("amp", 0.4) * np.sin(2.0 * np.pi * info.get("freq_hz", 250) * t)).astype(np.float32)
+        # Add slight nasal formant
+        frame += (info.get("amp", 0.4) * 0.3 * np.sin(2.0 * np.pi * info.get("freq_hz", 250) * 2.5 * t)).astype(np.float32)
+
+    # Gate to a reasonable level
+    peak = float(np.max(np.abs(frame)))
+    if peak > 0.5:
+        frame = frame * 0.5 / peak
+
+    return frame
+
+
+def _synthesize_consonant_sequence(
+    tokens: Sequence[str],
+    *,
+    duration_s: float,
+    lookup_ckpt_path: str | Path = DEFAULT_LOOKUP_CKPT,
+    sr: int = SR,
+    frame_size: int = FRAME_SIZE,
+    noise_seed: int = 7,
+) -> tuple[np.ndarray, list[dict[str, object]]]:
+    """Synthesize a sequence of consonant and vowel tokens."""
+    rng = np.random.default_rng(noise_seed)
+    n_tokens = len(tokens)
+    if n_tokens == 0:
+        return np.zeros(0, dtype=np.float32), []
+
+    frames_per_token = max(2, int(round(duration_s * sr / frame_size / n_tokens * 0.8)))
+    gap_frames = max(1, int(round(duration_s * sr / frame_size / n_tokens * 0.2)))
+
+    rendered: list[np.ndarray] = []
+    segment_meta: list[dict[str, object]] = []
+
+    vowel_set: set[str] = set()
+    for fam in VOWEL_FAMILIES.values():
+        vowel_set.update(fam)
+
+    for token_idx, token in enumerate(tokens):
+        is_consonant = token not in vowel_set
+        if is_consonant:
+            for _ in range(frames_per_token):
+                frame = _synthesize_consonant_frame(token, sr=sr, frame_size=frame_size, rng=rng)
+                rendered.append(frame)
+            segment_meta.append({"token": token, "type": "consonant", "frame_count": frames_per_token})
+        else:
+            # Synthesize as vowel
+            vowel_audio, vowel_segs = _synthesize_vowel_frames(
+                [token],
+                duration_s=duration_s / n_tokens,
+                lookup_ckpt_path=lookup_ckpt_path,
+                sr=sr,
+                frame_size=frame_size,
+            )
+            # Split vowel audio into frames
+            n_vframes = len(vowel_audio) // frame_size
+            for i in range(n_vframes):
+                rendered.append(vowel_audio[i * frame_size : (i + 1) * frame_size])
+            segment_meta.append({"token": token, "type": "vowel", "frame_count": n_vframes})
+
+        # Gap between tokens
+        if token_idx < n_tokens - 1:
+            for _ in range(gap_frames):
+                rendered.append(np.zeros(frame_size, dtype=np.float32))
+            segment_meta.append({"token": "gap", "type": "silence", "frame_count": gap_frames})
+
+    if not rendered:
+        return np.zeros(0, dtype=np.float32), []
+
+    audio = np.concatenate(rendered).astype(np.float32)
+
+    peak = float(np.max(np.abs(audio)))
+    if peak > 1.0:
+        audio = audio / peak
+
+    return audio, segment_meta
+
 
 @lru_cache(maxsize=1)
 def _load_lookup_data(lookup_ckpt_path: str | Path = DEFAULT_LOOKUP_CKPT) -> Any:

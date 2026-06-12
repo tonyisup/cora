@@ -61,7 +61,7 @@ def test_m10_consonant_smoke_writes_wav(tmp_path: Path):
 
 
 def test_m10_live_consonant_demo_dry_run_once(tmp_path: Path):
-    """Live demo should run once in dry-run mode and produce artifacts."""
+    """Live demo should run once in dry-run mode and produce artifacts with imitation."""
     output_dir = tmp_path / "demo"
     result = subprocess.run(
         [
@@ -71,6 +71,7 @@ def test_m10_live_consonant_demo_dry_run_once(tmp_path: Path):
             "--once",
             "--output-dir", str(output_dir),
             "--consonant-gate", "2.0",
+            "--no-play",
         ],
         check=True,
         capture_output=True,
@@ -78,14 +79,15 @@ def test_m10_live_consonant_demo_dry_run_once(tmp_path: Path):
         cwd=str(PROJECT_ROOT),
     )
     assert result.returncode == 0
-    assert "M10 Live Consonant Demo" in result.stdout
-    assert "consonant_rate=" in result.stdout
+    assert "M10 Live Consonant Imitation Demo" in result.stdout
+    assert "imitation:" in result.stdout
 
     run_dir = output_dir / "run-0001"
-    assert (run_dir / "captured.wav").exists()
+    assert (run_dir / "heard.wav").exists()
+    assert (run_dir / "imitation.wav").exists()
     assert (run_dir / "report.json").exists()
 
     report = json.loads((run_dir / "report.json").read_text())
-    assert "consonant_count" in report
-    assert "consonant_rate" in report
-    assert "labels" in report
+    assert "imitation" in report
+    assert "heard" in report
+    assert "imitation_segments" in report
