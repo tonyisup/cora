@@ -1,0 +1,205 @@
+#!/usr/bin/env python3
+"""M9 Substrate Training — cross-entropy + softmax (classification, not contrastive)."""
+
+import sys, json, argparse
+import numpy as np
+from pathlib import Path
+from scipy.signal import butter, sosfilt
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / 'packages'))
+
+SR = 16000
+FRAME = 480
+HIDDEN_DIM = 64
+N_MELS = 32
+
+VOWEL_FORMANTS = {
+    'i': {'f1': 220, 'f2': 3200, 'f3': 3600, 'a1': 1.0, 'a2': 0.55, 'a3': 0.30},
+    'E': {'f1': 500, 'f2': 2400, 'f3': 2800, 'a1': 1.0, 'a2': 0.60, 'a3': 0.35},
+    'a': {'f1': 900, 'f2': 700,  'f3': 2300, 'a1': 1.0, 'a2': 0.80, 'a3': 0.45},
+    'O': {'f1': 620, 'f2': 500,  'f3': 2250, 'a1': 1.0, 'a2': 0.70, 'a3': 0.40},
+    'u': {'f1': 350, 'f2': 550,  'f3': 2100, 'a1': 1.0, 'a2': 0.50, 'a3': 0.25},
+}
+VOWEL_NAMES = ['i', 'E', 'a', 'O', 'u']
+HP100 = butter(4, 100, btype='high', fs=SR, output='sos')
+
+def gen_vowel(vowel, duration=0.5, f0=120.0, jitter=0.05, noise_db=-40.0, rng=None):
+    if rng is None:
+        rng = np.random.RandomState()
+    t = VOWEL_FORMANTS[vowel]
+    f1, f2, f3 = [t[k]*(1+jitter*rng.randn()) for k in ('f1','f2','f3')]
+    a1, a2, a3 = t['a1'], max(0.05, t['a2']*(1+jitter*rng.randn())), max(0.05, t['a3']*(1+jitter*rng.randn()))
+    n = int(SR * duration)
+    t_arr = np.arange(n, dtype=np.float32) / SR
+    phase0 = rng.uniform(0, 2*np.pi)
+    sig = (0.3*np.sin(2*np.pi*f0*t_arr+phase0) + a1*np.sin(2*np.pi*f1*t_arr+phase0*1.3) +
+           a2*np.sin(2*np.pi*f2*t_arr+phase0*0.7) + a3*np.sin(2*np.pi*f3*t_arr+phase0*1.1))
+    if noise_db > -60:
+        sig += (10**(noise_db/20)) * rng.randn(n).astype(np.float32)
+    peak = np.max(np.abs(sig))
+    return (sig / peak if peak > 1e-6 else sig).astype(np.float32)
+
+def mel_feat(frame):
+    from m9_sound.vowel_transitions import MEL_FILTERBANK
+    x = np.zeros(512, dtype=np.float32)
+    x[:min(len(frame), 512)] = frame[:min(len(frame), 512)].astype(np.float32)
+    mel = MEL_FILTERBANK @ np.abs(np.fft.rfft(x))
+    mel = np.log(mel + 1e-6).astype(np.float32)
+    r = np.sqrt(np.mean(mel**2))
+    return mel / r if r > 1e-6 else mel
+
+def extract_mel_rms(audio):
+    """Extract mel features with per-frame RMS normalization (no centering)."""
+    audio = sosfilt(HP100, audio).astype(np.float32)
+    nf = len(audio) // FRAME
+    all_mel = []
+    for i in range(nf):
+        frame = audio[i*FRAME:(i+1)*FRAME].flatten().astype(np.float32)
+        rms = np.sqrt(np.mean(frame ** 2))
+        if rms > 1e-6:
+            frame = frame / rms
+        all_mel.append(mel_feat(frame))
+    return np.array(all_mel, dtype=np.float32)
+
+def load_real_captures(data_dir="data/m9_tts_captures"):
+    import wave
+    data_dir = Path(data_dir)
+    ds = []
+    phrase_vowels = {
+        "beat_bet_hot_caught": ["i", "E", "a", "O", "u"],
+        "boot_caught_hot_bet": ["u", "O", "a", "E", "i"],
+        "beat_hot_bet_boot": ["i", "a", "E", "u", "O"],
+    }
+    for wav_path in sorted(data_dir.glob("*.wav")):
+        name = wav_path.stem.lower()
+        phrase = None
+        for p in phrase_vowels:
+            if p in name:
+                phrase = p; break
+        if not phrase: continue
+        vowels = phrase_vowels[phrase]
+        with wave.open(str(wav_path), 'rb') as wf:
+            audio = np.frombuffer(wf.readframes(wf.getnframes()), dtype=np.int16).astype(np.float32)/32768.0
+        mel = extract_mel_rms(audio)
+        nf = len(mel)
+        if nf < 5: continue
+        chunk_size = nf // 5
+        for idx in range(5):
+            start = idx * chunk_size
+            end = (idx + 1) * chunk_size if idx < 4 else nf
+            mid = (start + end) // 2
+            ds.append((vowels[idx], mel[mid]))
+    return ds
+
+def gen_synth(n_per=300, seed=42):
+    rng = np.random.RandomState(seed)
+    ds = []
+    for v in VOWEL_NAMES:
+        for _ in range(n_per):
+            audio = gen_vowel(v, duration=rng.uniform(0.3,0.6), f0=rng.uniform(100,180),
+                              jitter=rng.uniform(0.02,0.08), noise_db=rng.uniform(-45,-30), rng=rng)
+            mel = extract_mel_rms(audio)
+            if len(mel) > 0:
+                mid = len(mel) // 2
+                ds.append((v, mel[mid]))
+    return ds
+
+def train_ce(epochs=500, lr=0.01, n_synth=300, seed=42):
+    """Train with cross-entropy + softmax loss."""
+    rng = np.random.RandomState(seed)
+    
+    # Simple feedforward: 32 -> 64 -> 5
+    W1 = rng.randn(N_MELS, HIDDEN_DIM).astype(np.float32) * np.sqrt(2.0 / N_MELS)
+    b1 = np.zeros(HIDDEN_DIM, dtype=np.float32)
+    W2 = rng.randn(HIDDEN_DIM, 5).astype(np.float32) * np.sqrt(2.0 / HIDDEN_DIM)
+    b2 = np.zeros(5, dtype=np.float32)
+    
+    # Load data
+    real = load_real_captures()
+    synth = gen_synth(n_synth, seed)
+    ds = real + synth
+    
+    X = np.array([m for _, m in ds], dtype=np.float32)
+    y = np.array([VOWEL_NAMES.index(v) for v, _ in ds], dtype=np.int32)
+    
+    print(f"Real: {len(real)}, Synth: {len(synth)}, Total: {len(ds)}")
+    print(f"Epochs: {epochs}, lr: {lr}")
+    print()
+    
+    b1_adam, b2_adam, eps = 0.9, 0.999, 1e-8
+    mW1, vW1 = np.zeros_like(W1), np.zeros_like(W1)
+    mb1, vb1 = np.zeros_like(b1), np.zeros_like(b1)
+    mW2, vW2 = np.zeros_like(W2), np.zeros_like(W2)
+    mb2, vb2 = np.zeros_like(b2), np.zeros_like(b2)
+    
+    batch_size = 256
+    n_batches = len(X) // batch_size
+    
+    for ep in range(epochs):
+        perm = rng.permutation(len(X))
+        X, y = X[perm], y[perm]
+        
+        total_loss = 0
+        correct = 0
+        
+        for bi in range(n_batches):
+            bx = X[bi*batch_size:(bi+1)*batch_size]
+            by = y[bi*batch_size:(bi+1)*batch_size]
+            
+            # Forward
+            h = np.maximum(bx @ W1 + b1, 0)  # ReLU
+            logits = h @ W2 + b2  # (batch, 5)
+            
+            # Softmax
+            logits_shifted = logits - np.max(logits, axis=1, keepdims=True)
+            exp_logits = np.exp(logits_shifted)
+            probs = exp_logits / np.sum(exp_logits, axis=1, keepdims=True)
+            
+            # Cross-entropy loss
+            correct_probs = probs[np.arange(len(by)), by]
+            loss = -np.mean(np.log(correct_probs + 1e-8))
+            total_loss += loss
+            
+            # Accuracy
+            preds = np.argmax(logits, axis=1)
+            correct += np.sum(preds == by)
+            
+            # Backward
+            dlogits = probs.copy()
+            dlogits[np.arange(len(by)), by] -= 1
+            dlogits /= len(by)
+            
+            dW2 = h.T @ dlogits
+            db2 = np.sum(dlogits, axis=0)
+            dh = dlogits @ W2.T
+            dh = dh * (h > 0).astype(np.float32)  # ReLU backward
+            
+            dW1 = bx.T @ dh
+            db1 = np.sum(dh, axis=0)
+            
+            # Adam update
+            t = ep * n_batches + bi + 1
+            for param, grad, m, v in [(W1,dW1,mW1,vW1),(b1,db1,vb1,vb1),(W2,dW2,mW2,vW2),(b2,db2,mb2,vb2)]:
+                m[:] = b1_adam*m + (1-b1_adam)*grad
+                v[:] = b2_adam*v + (1-b2_adam)*grad**2
+                mh = m / (1 - b1_adam**t)
+                vh = v / (1 - b2_adam**t)
+                param -= lr * mh / (np.sqrt(vh) + eps)
+        
+        acc = correct / len(X)
+        if ep % 50 == 0 or ep == epochs - 1:
+            print(f"  E{ep:4d} loss={total_loss/n_batches:.4f} acc={acc:.1%}")
+    
+    return {'W1':W1,'b1':b1,'W2':W2,'b2':b2}
+
+def main():
+    p = argparse.ArgumentParser()
+    p.add_argument('--epochs',type=int,default=500)
+    p.add_argument('--n-synth',type=int,default=300)
+    a = p.parse_args()
+    params = train_ce(epochs=a.epochs, n_synth=a.n_synth)
+    json.dump({k: v.tolist() for k,v in params.items()},
+              open('data/m9_ce_v1.json','w'))
+    print("Saved m9_ce_v1.json")
+
+if __name__=='__main__': main()
