@@ -254,7 +254,7 @@ def _decode_vowel_frames(
             best_idx = int(np.argmin(distances))
             confidence = float(distances[best_idx])
             if consonant_gate > 0.0 and confidence > consonant_gate:
-                decoded.append("_")
+                decoded.append("C")
             else:
                 decoded.append(vowel_names[best_idx])
         frame_idx += 1
@@ -532,7 +532,7 @@ def decode_vowel_transition_audio(
     return {
         "decoded_vowels": list(decoded),
         "decoded_transition_count": decoded_transition_count,
-        "decoded_unique_vowel_count": int(len(set(v for v in decoded if v != "_"))) if decoded else 0,
+        "decoded_unique_vowel_count": int(len(set(v for v in decoded if v != "_" and v != "C"))) if decoded else 0,
         "frame_count": int(len(frame_audio(audio, frame_size=frame_size))),
         "mean_boundary_delta": float(boundary["mean_boundary_delta"]),
         "max_boundary_delta": float(boundary["max_boundary_delta"]),
@@ -540,6 +540,8 @@ def decode_vowel_transition_audio(
         "continuity": float(max(0.0, 1.0 - boundary["mean_boundary_delta"] * 10.0)),
         "vowel_segments": vowel_segments,
         "silence_threshold": silence_threshold,
+        "consonant_count": int(sum(1 for v in decoded if v == "C")),
+        "consonant_rate": float(sum(1 for v in decoded if v == "C") / max(len(decoded), 1)),
     }
 
 

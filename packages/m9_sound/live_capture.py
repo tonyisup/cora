@@ -242,6 +242,8 @@ def run_live_vowel_transition_capture_report(
     frame_size: int = 480,
     duration_scale: float = 1.0,
     preset: str = "default",
+    silence_threshold: float = 0.0,
+    consonant_gate: float = 0.0,
 ) -> dict[str, object]:
     """Render a vowel-transition family, capture it live, and score phase closure."""
     output_dir = Path(output_dir)
@@ -303,6 +305,8 @@ def run_live_vowel_transition_capture_report(
         substrate_ckpt_path=substrate_ckpt_path or DEFAULT_VOWEL_TRANSITION_SUBSTRATE_CKPT,
         lookup_ckpt_path=lookup_ckpt_path or DEFAULT_LOOKUP_CKPT,
         frame_size=frame_size,
+        silence_threshold=silence_threshold,
+        consonant_gate=consonant_gate,
     )
 
     target_transition_count = int(render_report["input_transition_count"])
@@ -330,6 +334,8 @@ def run_live_vowel_transition_capture_report(
             "captured_decoded_vowels": list(cast(list[str], captured_decode["decoded_vowels"])),
             "captured_decoded_transition_count": captured_transition_count,
             "captured_decoded_unique_vowel_count": int(cast(int, captured_decode["decoded_unique_vowel_count"])),
+            "captured_consonant_count": int(cast(int, captured_decode.get("consonant_count", 0))),
+            "captured_consonant_rate": float(cast(float, captured_decode.get("consonant_rate", 0.0))),
             "captured_continuity": continuity,
             "captured_mean_boundary_delta": float(cast(float, captured_decode["mean_boundary_delta"])),
             "captured_max_boundary_delta": float(cast(float, captured_decode["max_boundary_delta"])),
@@ -376,6 +382,8 @@ def run_live_vowel_transition_gate(
     frame_size: int = FRAME_SIZE,
     duration_scale: float = 1.0,
     preset: str = "default",
+    silence_threshold: float = 0.0,
+    consonant_gate: float = 0.0,
 ) -> dict[str, object]:
     """Run a live phase-closure gate over one or more vowel-transition families."""
     output_dir = Path(output_dir)
@@ -420,6 +428,8 @@ def run_live_vowel_transition_gate(
                 frame_size=frame_size,
                 duration_scale=duration_scale,
                 preset=preset,
+                silence_threshold=silence_threshold,
+                consonant_gate=consonant_gate,
             )
             phase = dict(cast(dict[str, object], row["phase_closure"]))
             phase["threshold"] = threshold
