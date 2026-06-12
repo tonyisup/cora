@@ -1,0 +1,37 @@
+{
+  "description": "M10 consonant capture prompts. Each entry maps a prompt token to a label and category.",
+  "version": "1.0.0",
+  "created": "2026-06-12",
+  "categories": {
+    "stop": {
+      "description": "Plosive stop consonants",
+      "labels": ["p", "t", "k"]
+    },
+    "fricative": {
+      "description": "Fricative consonants",
+      "labels": ["s", "f", "sh"]
+    },
+    "nasal": {
+      "description": "Nasal consonants",
+      "labels": ["m", "n"]
+    }
+  },
+  "prompts": [
+    {"token": "pa", "label": "p", "category": "stop"},
+    {"token": "ta", "label": "t", "category": "stop"},
+    {"token": "ka", "label": "k", "category": "stop"},
+    {"token": "sa", "label": "s", "category": "fricative"},
+    {"token": "fa", "label": "f", "category": "fricative"},
+    {"token": "sha", "label": "sh", "category": "fricative"},
+    {"token": "ma", "label": "m", "category": "nasal"},
+    {"token": "na", "label": "n", "category": "nasal"},
+    {"token": "apa", "label": "p", "category": "stop"},
+    {"token": "ata", "label": "t", "category": "stop"},
+    {"token": "aka", "label": "k", "category": "stop"},
+    {"token": "asa", "label": "s", "category": "fricative"},
+    {"token": "afa", "label": "f", "category": "fricative"},
+    {"token": "asha", "label": "sh", "category": "fricative"},
+    {"token": "ama", "label": "m", "category": "nasal"},
+    {"token": "ana", "label": "n", "category": "nasal"}
+  ]
+}
