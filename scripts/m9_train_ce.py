@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """M9 Substrate Training — cross-entropy + softmax (classification, not contrastive)."""
 
-import sys, json, argparse
+import sys, json, argparse, hashlib
 import numpy as np
 from pathlib import Path
 from scipy.signal import butter, sosfilt
@@ -61,7 +61,13 @@ def extract_mel_rms(audio):
         all_mel.append(mel_feat(frame))
     return np.array(all_mel, dtype=np.float32)
 
-def load_real_captures(data_dir="data/m9_tts_captures"):
+def _real_capture_split_key(wav_path: Path) -> int:
+    """Stable per-file split key in [0, 99]."""
+    digest = hashlib.sha1(wav_path.stem.encode("utf-8")).digest()
+    return digest[0] % 100
+
+
+def load_real_captures(data_dir="data/m9_tts_captures", split=None, holdout_pct=20):
     import wave
     data_dir = Path(data_dir)
     ds = []
@@ -76,13 +82,22 @@ def load_real_captures(data_dir="data/m9_tts_captures"):
         for p in phrase_vowels:
             if p in name:
                 phrase = p; break
-        if not phrase: continue
+        if not phrase:
+            continue
+
+        split_key = _real_capture_split_key(wav_path)
+        if split == "train" and split_key < holdout_pct:
+            continue
+        if split == "eval" and split_key >= holdout_pct:
+            continue
+
         vowels = phrase_vowels[phrase]
         with wave.open(str(wav_path), 'rb') as wf:
             audio = np.frombuffer(wf.readframes(wf.getnframes()), dtype=np.int16).astype(np.float32)/32768.0
         mel = extract_mel_rms(audio)
         nf = len(mel)
-        if nf < 5: continue
+        if nf < 5:
+            continue
         chunk_size = nf // 5
         for idx in range(5):
             start = idx * chunk_size
@@ -104,6 +119,15 @@ def gen_synth(n_per=300, seed=42):
                 ds.append((v, mel[mid]))
     return ds
 
+def _adam_step(param, grad, m, v, beta1, beta2, eps, t, lr):
+    """In-place Adam update with separate first/second-moment buffers."""
+    m[:] = beta1 * m + (1.0 - beta1) * grad
+    v[:] = beta2 * v + (1.0 - beta2) * (grad ** 2)
+    mh = m / (1.0 - beta1 ** t)
+    vh = v / (1.0 - beta2 ** t)
+    param -= lr * mh / (np.sqrt(vh) + eps)
+
+
 def train_ce(epochs=500, lr=0.01, n_synth=300, seed=42):
     """Train with cross-entropy + softmax loss."""
     rng = np.random.RandomState(seed)
@@ -115,31 +139,34 @@ def train_ce(epochs=500, lr=0.01, n_synth=300, seed=42):
     b2 = np.zeros(5, dtype=np.float32)
     
     # Load data
-    real = load_real_captures()
+    real_train = load_real_captures(split="train")
+    real_eval = load_real_captures(split="eval")
     synth = gen_synth(n_synth, seed)
-    ds = real + synth
+    ds = real_train + synth
     
     X = np.array([m for _, m in ds], dtype=np.float32)
     y = np.array([VOWEL_NAMES.index(v) for v, _ in ds], dtype=np.int32)
     
-    print(f"Real: {len(real)}, Synth: {len(synth)}, Total: {len(ds)}")
+    print(f"Real train: {len(real_train)}, Real eval: {len(real_eval)}, Synth: {len(synth)}, Total train: {len(ds)}")
     print(f"Epochs: {epochs}, lr: {lr}")
     print()
     
-    b1_adam, b2_adam, eps = 0.9, 0.999, 1e-8
+    beta1, beta2, eps = 0.9, 0.999, 1e-8
     mW1, vW1 = np.zeros_like(W1), np.zeros_like(W1)
     mb1, vb1 = np.zeros_like(b1), np.zeros_like(b1)
     mW2, vW2 = np.zeros_like(W2), np.zeros_like(W2)
     mb2, vb2 = np.zeros_like(b2), np.zeros_like(b2)
     
-    batch_size = 256
+    batch_size = min(256, len(X))
     n_batches = len(X) // batch_size
+    if n_batches == 0:
+        raise ValueError(f"Not enough training examples ({len(X)}) for batch_size={batch_size}")
     
     for ep in range(epochs):
         perm = rng.permutation(len(X))
         X, y = X[perm], y[perm]
         
-        total_loss = 0
+        total_loss = 0.0
         correct = 0
         
         for bi in range(n_batches):
@@ -158,11 +185,11 @@ def train_ce(epochs=500, lr=0.01, n_synth=300, seed=42):
             # Cross-entropy loss
             correct_probs = probs[np.arange(len(by)), by]
             loss = -np.mean(np.log(correct_probs + 1e-8))
-            total_loss += loss
+            total_loss += float(loss)
             
             # Accuracy
             preds = np.argmax(logits, axis=1)
-            correct += np.sum(preds == by)
+            correct += int(np.sum(preds == by))
             
             # Backward
             dlogits = probs.copy()
@@ -179,18 +206,61 @@ def train_ce(epochs=500, lr=0.01, n_synth=300, seed=42):
             
             # Adam update
             t = ep * n_batches + bi + 1
-            for param, grad, m, v in [(W1,dW1,mW1,vW1),(b1,db1,vb1,vb1),(W2,dW2,mW2,vW2),(b2,db2,mb2,vb2)]:
-                m[:] = b1_adam*m + (1-b1_adam)*grad
-                v[:] = b2_adam*v + (1-b2_adam)*grad**2
-                mh = m / (1 - b1_adam**t)
-                vh = v / (1 - b2_adam**t)
-                param -= lr * mh / (np.sqrt(vh) + eps)
+            _adam_step(W1, dW1, mW1, vW1, beta1, beta2, eps, t, lr)
+            _adam_step(b1, db1, mb1, vb1, beta1, beta2, eps, t, lr)
+            _adam_step(W2, dW2, mW2, vW2, beta1, beta2, eps, t, lr)
+            _adam_step(b2, db2, mb2, vb2, beta1, beta2, eps, t, lr)
         
         acc = correct / len(X)
         if ep % 50 == 0 or ep == epochs - 1:
             print(f"  E{ep:4d} loss={total_loss/n_batches:.4f} acc={acc:.1%}")
+            if not np.isfinite(total_loss) or not np.isfinite(acc):
+                raise FloatingPointError("Non-finite loss/accuracy detected during training")
     
     return {'W1':W1,'b1':b1,'W2':W2,'b2':b2}
+
+def evaluate_real_only(W1, b1, W2, b2, holdout_pct=20):
+    """Evaluate on held-out real captures only and print a confusion matrix."""
+    eval_ds = load_real_captures(split="eval", holdout_pct=holdout_pct)
+    if not eval_ds:
+        raise ValueError("Real evaluation split is empty")
+
+    X_eval = np.array([m for _, m in eval_ds], dtype=np.float32)
+    y_eval = np.array([VOWEL_NAMES.index(v) for v, _ in eval_ds], dtype=np.int32)
+
+    h = np.maximum(X_eval @ W1 + b1, 0)
+    logits = h @ W2 + b2
+    preds = np.argmax(logits, axis=1)
+
+    n_classes = len(VOWEL_NAMES)
+    cm = np.zeros((n_classes, n_classes), dtype=np.int32)
+    for yt, yp in zip(y_eval, preds):
+        cm[yt, yp] += 1
+
+    correct = int(np.trace(cm))
+    total = int(cm.sum())
+    acc = correct / total if total else float("nan")
+
+    print("\n--- Held-out real-capture evaluation ---")
+    print(f"Eval examples: {total}")
+    print(f"Accuracy: {acc:.1%} ({correct}/{total})")
+    print("Confusion matrix (rows=true, cols=pred):")
+    header = "       " + " ".join(f"{v:>4s}" for v in VOWEL_NAMES)
+    print(header)
+    for i, v in enumerate(VOWEL_NAMES):
+        row = " ".join(f"{int(n):4d}" for n in cm[i])
+        row_total = int(cm[i].sum())
+        row_acc = (cm[i, i] / row_total) if row_total else float("nan")
+        print(f"{v:>4s}  {row}   | acc={row_acc:.1%} n={row_total}")
+
+    return {
+        "holdout_pct": holdout_pct,
+        "accuracy": float(acc),
+        "correct": correct,
+        "total": total,
+        "confusion_matrix": cm.tolist(),
+    }
+
 
 def main():
     p = argparse.ArgumentParser()
@@ -198,8 +268,12 @@ def main():
     p.add_argument('--n-synth',type=int,default=300)
     a = p.parse_args()
     params = train_ce(epochs=a.epochs, n_synth=a.n_synth)
-    json.dump({k: v.tolist() for k,v in params.items()},
-              open('data/m9_ce_v1.json','w'))
+    eval_results = evaluate_real_only(params['W1'], params['b1'], params['W2'], params['b2'])
+    with open('data/m9_ce_v1.json','w') as f:
+        json.dump({k: v.tolist() for k,v in params.items()}, f)
+    with open('data/m9_ce_v1_eval.json','w') as f:
+        json.dump(eval_results, f, indent=2)
     print("Saved m9_ce_v1.json")
+    print("Saved m9_ce_v1_eval.json")
 
 if __name__=='__main__': main()

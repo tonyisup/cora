@@ -108,7 +108,7 @@ def triplet_loss(emb, labels, margin=2.0):
     if na>0: loss/=na; de/=na
     return loss, de, cents
 
-def load_real_captures(data_dir="data/m9_tts_captures"):
+def load_real_captures(data_dir="data/m9_tts_captures", min_segment_frames=2, trim_boundary_frames=0):
     import wave
     data_dir = Path(data_dir)
     ds = []
@@ -123,7 +123,8 @@ def load_real_captures(data_dir="data/m9_tts_captures"):
         for p in phrase_vowels:
             if p in name:
                 phrase = p; break
-        if not phrase: continue
+        if not phrase:
+            continue
         vowels = phrase_vowels[phrase]
         with wave.open(str(wav_path), 'rb') as wf:
             audio = np.frombuffer(wf.readframes(wf.getnframes()), dtype=np.int16).astype(np.float32)/32768.0
@@ -141,10 +142,14 @@ def load_real_captures(data_dir="data/m9_tts_captures"):
                 if not in_seg: seg_start = i; in_seg = True
         if in_seg: segments.append((seg_start, nf))
         for idx, (s, e) in enumerate(segments):
-            seg_audio = audio[s*FRAME:e*FRAME]
-            dur = (e-s)*FRAME/SR
-            if dur >= 0.1 and idx < len(vowels):
-                ds.append((vowels[idx], seg_audio))
+            if idx >= len(vowels):
+                break
+            s2 = s + trim_boundary_frames
+            e2 = e - trim_boundary_frames
+            if e2 - s2 < min_segment_frames:
+                continue
+            seg_audio = audio[s2*FRAME:e2*FRAME]
+            ds.append((vowels[idx], seg_audio))
     return ds
 
 def gen_synth(n_per=300, seed=42):
@@ -203,16 +208,20 @@ def train(epochs=500, lr=0.001, n_synth=300, margin=3.0, seed=42):
             print(f"  E{ep:4d} loss={tot:.4f} (tri={tl:.4f}) bmin={min(bt):.2f} wmax={wm:.2f} r={min(bt)/wm:.2f}")
     return bWh,bWx,bB,ds
 
-def build_lookup(W_h, W_x, b, ds, n_augment=200):
+def build_lookup(W_h, W_x, b, ds, n_augment=50):
     from scipy.spatial import cKDTree
     embeddings = {v: [] for v in VOWEL_NAMES}
-    for v,a in ds: h,_ = fwd_centered(W_h,W_x,b,a); embeddings[v].append(h)
+    for v,a in ds:
+        h,_ = fwd_centered(W_h, W_x, b, a)
+        embeddings[v].append(h)
     rng = np.random.RandomState(123)
     for v in VOWEL_NAMES:
         for _ in range(n_augment):
             a = gen_synth(1, rng.randint(10000))[0][1]
-            h,_ = fwd_centered(W_h,W_x,b,a); embeddings[v].append(h)
-    cents = {v: np.mean(embeddings[v],axis=0).astype(np.float32) for v in VOWEL_NAMES}
+            h,_ = fwd_centered(W_h, W_x, b, a)
+            embeddings[v].append(h)
+
+    cents = {v: np.mean(embeddings[v], axis=0).astype(np.float32) for v in VOWEL_NAMES}
     all_h, all_labels = [], []
     for v in VOWEL_NAMES:
         all_h.extend(embeddings[v]); all_labels.extend([v]*len(embeddings[v]))
