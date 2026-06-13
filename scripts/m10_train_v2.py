@@ -20,6 +20,14 @@ FRAME = 480
 HIDDEN_DIM = 64
 N_MELS = 32
 
+# Speaker→mic simulation: gentle low-pass to partially match speaker response
+# 6kHz cutoff preserves vowel formants while attenuating HF consonant noise
+_SPEAKER_LP = butter(4, 6000, btype='low', fs=SR, output='sos')
+
+def simulate_speaker_mic(audio):
+    """Apply speaker→mic frequency response simulation to clean TTS audio."""
+    return sosfilt(_SPEAKER_LP, audio).astype(np.float32)
+
 VOWEL_FORMANTS = {
     'i': {'f1': 220, 'f2': 3200, 'f3': 3600, 'a1': 1.0, 'a2': 0.55, 'a3': 0.30},
     'E': {'f1': 500, 'f2': 2400, 'f3': 2800, 'a1': 1.0, 'a2': 0.60, 'a3': 0.35},
@@ -196,6 +204,11 @@ def load_real_consonant_captures(split=None, holdout_pct=20):
             continue
         with wave.open(str(wav_path), 'rb') as wf:
             audio = np.frombuffer(wf.readframes(wf.getnframes()), dtype=np.int16).astype(np.float32)/32768.0
+        
+        # Apply speaker→mic simulation to direct TTS data (domain adaptation)
+        if row.get("source") == "tts_direct":
+            audio = simulate_speaker_mic(audio)
+        
         mel = extract_mel_rms(audio)
         if len(mel) > 0:
             ds.append((label, mel[len(mel)//2]))
