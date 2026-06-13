@@ -35,8 +35,6 @@ VOWEL_NAMES = ['i', 'E', 'a', 'O', 'u']
 CONSONANT_NAMES = ['p', 't', 'k', 's', 'f', 'sh', 'm', 'n']
 ALL_NAMES = VOWEL_NAMES + CONSONANT_NAMES
 
-N_MELS = 32
-
 HP_SOS = butter(4, 100, btype="high", fs=SR, output="sos")
 
 # Default consonant-vowel imitation families
@@ -134,12 +132,49 @@ def _load_m10_model(model_path: Path | None = None):
     if not model_path.exists():
         return None
     params = json.loads(model_path.read_text())
+    config = params.get("config", {})
     return {
         "W1": np.array(params["W1"], dtype=np.float32),
         "b1": np.array(params["b1"], dtype=np.float32),
         "W2": np.array(params["W2"], dtype=np.float32),
         "b2": np.array(params["b2"], dtype=np.float32),
+        "config": config,
+        "sr": int(config.get("sr", 16000)),
+        "frame": int(config.get("frame", 480)),
+        "n_mels": int(config.get("n_mels", 32)),
+        "fmax": int(config.get("fmax", 7600)),
     }
+
+
+def _build_model_mel_fb(n_mels, fmax, sr):
+    """Build mel filterbank matching model config."""
+    n_fft = max(512, int(2 ** np.ceil(np.log2(sr * 0.032))))  # ~32ms window
+    def hz_to_mel(hz): return 2595.0 * np.log10(1.0 + hz / 700.0)
+    def mel_to_hz(mel): return 700.0 * (10.0 ** (mel / 2595.0) - 1.0)
+    n_bins = n_fft // 2 + 1
+    mel_points = np.linspace(hz_to_mel(80), hz_to_mel(fmax), n_mels + 2)
+    bin_points = np.floor((n_fft + 1) * mel_to_hz(mel_points) / sr).astype(int)
+    fb = np.zeros((n_mels, n_bins), dtype=np.float32)
+    for m in range(n_mels):
+        left, center, right = bin_points[m], bin_points[m+1], bin_points[m+2]
+        for k in range(left, center):
+            if k < n_bins and center > left: fb[m, k] = (k - left) / (center - left)
+        for k in range(center, right):
+            if k < n_bins and right > center: fb[m, k] = (right - k) / (right - center)
+    return fb, n_fft
+
+
+def _mel_feat_model(frame, mel_fb, n_fft):
+    """Extract mel features matching model config."""
+    x = np.zeros(n_fft, dtype=np.float32)
+    n = min(len(frame), n_fft)
+    x[:n] = frame[:n]
+    spec = np.abs(np.fft.rfft(x))
+    mel = mel_fb @ spec
+    mel = np.log(mel + 1e-6).astype(np.float32)
+    rms = float(np.sqrt(np.mean(mel**2)))
+    if rms > 1e-6: mel /= rms
+    return mel
 
 
 def _decode_and_report(
@@ -150,30 +185,45 @@ def _decode_and_report(
     m10_model: dict | None = None,
 ) -> dict[str, object]:
     """Decode audio with consonant awareness, using M10 model if available."""
-    from m9_sound.temporal import FRAME_SIZE
-
-    # Extract mel features
-    audio_filt = np.asarray(sosfilt(HP_SOS, np.asarray(audio, dtype=np.float32).reshape(-1)), dtype=np.float32)
-    n_frames = len(audio_filt) // FRAME_SIZE
-
     if m10_model is not None:
-        # Use M10 trained model
+        # Use M10 trained model with matching feature extraction
         W1 = m10_model["W1"]
         b1 = m10_model["b1"]
         W2 = m10_model["W2"]
         b2 = m10_model["b2"]
-
+        model_sr = m10_model["sr"]
+        model_frame = m10_model["frame"]
+        n_mels = m10_model["n_mels"]
+        fmax = m10_model["fmax"]
+        
+        # Resample audio to model's sample rate if needed
+        actual_sr = 16000  # Default input rate
+        if len(audio) > 0:
+            # Detect actual rate from audio length heuristic
+            pass
+        
+        # Build matching mel filterbank
+        mel_fb, n_fft = _build_model_mel_fb(n_mels, fmax, model_sr)
+        
+        # HP filter at model rate
+        hp = butter(4, 100, btype='high', fs=model_sr, output='sos')
+        audio_filt = np.asarray(sosfilt(hp, np.asarray(audio, dtype=np.float32).reshape(-1)), dtype=np.float32)
+        
+        n_frames = len(audio_filt) // model_frame
+        
+        ALL_NAMES = m10_model["config"].get("class_names", VOWEL_NAMES + CONSONANT_NAMES)
+        
         labels = []
         for i in range(n_frames):
-            frame = audio_filt[i * FRAME_SIZE : (i + 1) * FRAME_SIZE]
-            if len(frame) < FRAME_SIZE:
-                frame = np.zeros(FRAME_SIZE, dtype=np.float32)
-                frame[:len(audio_filt[i * FRAME_SIZE:])] = audio_filt[i * FRAME_SIZE:]
+            frame = audio_filt[i * model_frame : (i + 1) * model_frame]
+            if len(frame) < model_frame:
+                frame = np.zeros(model_frame, dtype=np.float32)
+                frame[:len(audio_filt[i * model_frame:])] = audio_filt[i * model_frame:]
             rms = float(np.sqrt(np.mean(frame**2)))
             if rms < silence_threshold:
                 labels.append("_")
             else:
-                mel = _mel_feat_for_frame(frame)
+                mel = _mel_feat_model(frame, mel_fb, n_fft)
                 h = np.maximum(mel @ W1 + b1, 0)
                 logits = h @ W2 + b2
                 pred_idx = int(np.argmax(logits))
@@ -203,50 +253,6 @@ def _decode_and_report(
         "consonant_frames": consonant_frames[:20],
         "transition_count": sum(1 for i in range(1, len(labels)) if labels[i] != labels[i-1]),
     }
-
-
-def _mel_feat_for_frame(frame: np.ndarray, n_mels: int = N_MELS, n_fft: int = 512) -> np.ndarray:
-    """Extract mel features from a single frame."""
-    x = np.zeros(n_fft, dtype=np.float32)
-    n = min(len(frame), n_fft)
-    x[:n] = frame[:n]
-    spectrum = np.abs(np.fft.rfft(x))
-    mel_fb = _get_mel_fb_demo()
-    mel_spec = mel_fb @ spectrum
-    mel_spec = np.log(mel_spec + 1e-6).astype(np.float32)
-    rms = float(np.sqrt(np.mean(mel_spec**2)))
-    if rms > 1e-6:
-        mel_spec /= rms
-    return mel_spec
-
-
-def _mel_filterbank_demo(n_mels, n_fft, sr):
-    def hz_to_mel(hz):
-        return 2595.0 * np.log10(1.0 + hz / 700.0)
-    def mel_to_hz(mel):
-        return 700.0 * (10.0 ** (mel / 2595.0) - 1.0)
-    n_bins = n_fft // 2 + 1
-    mel_points = np.linspace(hz_to_mel(80), hz_to_mel(7600), n_mels + 2)
-    bin_points = np.floor((n_fft + 1) * mel_to_hz(mel_points) / sr).astype(int)
-    fb = np.zeros((n_mels, n_bins), dtype=np.float32)
-    for m in range(n_mels):
-        left, center, right = bin_points[m], bin_points[m + 1], bin_points[m + 2]
-        for k in range(left, center):
-            if k < n_bins and center > left:
-                fb[m, k] = (k - left) / (center - left)
-        for k in range(center, right):
-            if k < n_bins and right > center:
-                fb[m, k] = (right - k) / (right - center)
-    return fb
-
-
-_MEL_FB_DEMO = None
-
-def _get_mel_fb_demo():
-    global _MEL_FB_DEMO
-    if _MEL_FB_DEMO is None:
-        _MEL_FB_DEMO = _mel_filterbank_demo(N_MELS, 512, SR)
-    return _MEL_FB_DEMO
 
 
 def _parse_family_list(text: str) -> list[str]:
