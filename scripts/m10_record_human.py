@@ -14,7 +14,9 @@ from pathlib import Path
 from datetime import datetime, timezone
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / 'packages'))
-from m9_sound.temporal import SR, write_pcm16_wav
+from m9_sound.temporal import write_pcm16_wav
+
+DEFAULT_SR = 48000
 
 try:
     import sounddevice as sd
@@ -60,11 +62,11 @@ PROMPTS = [
     {"text": "lara", "label": "l", "category": "liquid"},
 ]
 
-def play_tone(freq=440, duration=0.15, sr=SR):
+def play_tone(freq=440, duration=0.15, sr=DEFAULT_SR, output_device=3):
     """Play a short beep as recording cue."""
     t = np.arange(int(sr * duration), dtype=np.float32) / sr
     tone = (0.3 * np.sin(2 * np.pi * freq * t)).astype(np.float32)
-    sd.play(tone, samplerate=sr, device=3)  # Mac mini speakers
+    sd.play(tone, samplerate=sr, device=output_device)
     sd.wait()
 
 def main():
@@ -72,6 +74,7 @@ def main():
     parser.add_argument("--speaker", type=str, default="juicebox")
     parser.add_argument("--input-device", type=int, default=1)
     parser.add_argument("--output-device", type=int, default=3)
+    parser.add_argument("--rate", type=int, default=DEFAULT_SR)
     parser.add_argument("--duration", type=float, default=1.2)
     parser.add_argument("--countdown", type=float, default=1.5)
     args = parser.parse_args()
@@ -88,6 +91,7 @@ def main():
     print("=" * 78)
     print(f"  Prompts:    {total}")
     print(f"  Speaker:    {args.speaker}")
+    print(f"  Rate:       {args.rate} Hz")
     print(f"  Duration:   {args.duration}s per prompt")
     print(f"  Countdown:  {args.countdown}s before each recording")
     print(f"  Output:     {output_dir}")
@@ -116,12 +120,12 @@ def main():
             print(f" NOW!", flush=True)
 
             # Play beep cue
-            play_tone(880, 0.1)
+            play_tone(880, 0.1, sr=args.rate, output_device=args.output_device)
             time.sleep(0.05)
 
             # Record
-            n_samples = int(round(SR * args.duration))
-            recorded = sd.rec(n_samples, samplerate=SR, channels=1,
+            n_samples = int(round(args.rate * args.duration))
+            recorded = sd.rec(n_samples, samplerate=args.rate, channels=1,
                               device=args.input_device, dtype="float32")
             sd.wait()
             audio = np.asarray(recorded, dtype=np.float32).reshape(-1)
@@ -133,7 +137,7 @@ def main():
             capture_id = f"hu_{str(uuid.uuid4())[:8]}"
             filename = f"{timestamp}_{label}_{capture_id}.wav"
             wav_path = output_dir / filename
-            write_pcm16_wav(wav_path, audio, sr=SR)
+            write_pcm16_wav(wav_path, audio, sr=args.rate)
 
             row = {
                 "capture_id": capture_id,
@@ -143,11 +147,13 @@ def main():
                 "label": label,
                 "category": category,
                 "wav_path": str(wav_path.relative_to(Path("."))),
-                "sample_rate": SR,
-                "duration_s": round(len(audio) / SR, 3),
+                "wav_path_48k": str(wav_path.relative_to(Path("."))),
+                "sample_rate": args.rate,
+                "duration_s": round(len(audio) / args.rate, 3),
                 "rms": rms,
                 "peak": peak,
                 "source": "human",
+                "model_version": "m10_48k",
                 "created_at": datetime.now(timezone.utc).isoformat(),
             }
             rows.append(row)

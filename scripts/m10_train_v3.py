@@ -18,14 +18,14 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / 'packages'))
 # 48kHz configuration
 SR = 48000
 FRAME = 1440  # 30ms at 48kHz
-HIDDEN_DIM = 128
-N_MELS = 96  # Even more bins for finer frequency resolution
-FMAX = 22000
 HIDDEN_DIM = 192
+N_MELS = 96
+FMAX = 22000
 VOWEL_NAMES = ['i', 'E', 'a', 'O', 'u']
-CONSONANT_NAMES = ['p', 't', 'k', 's', 'f', 'sh', 'm', 'n']
+CONSONANT_NAMES = ['p', 't', 'k', 'b', 'd', 'g', 's', 'f', 'sh', 'th', 'v', 'z', 'm', 'n', 'l', 'r', 'w', 'y']
 ALL_NAMES = VOWEL_NAMES + CONSONANT_NAMES
 N_CLASSES = len(ALL_NAMES)
+CENTER_MEL = True
 
 # Build wideband mel filterbank
 def _build_mel_fb():
@@ -45,7 +45,7 @@ def _build_mel_fb():
     return fb, n_fft
 
 MEL_FB, N_FFT = _build_mel_fb()
-HP200 = butter(4, 200, btype='high', fs=SR, output='sos')
+HP100 = butter(4, 100, btype='high', fs=SR, output='sos')
 
 
 def mel_feat(frame):
@@ -60,14 +60,17 @@ def mel_feat(frame):
     return mel
 
 
-def extract_mel_rms(audio):
-    audio = sosfilt(HP200, np.asarray(audio, dtype=np.float32).reshape(-1))
+def extract_mel_rms(audio, center_mel=False):
+    audio = sosfilt(HP100, np.asarray(audio, dtype=np.float32).reshape(-1))
     n_frames = len(audio) // FRAME
     if n_frames == 0:
         # Pad to at least one frame
         audio = np.pad(audio, (0, FRAME - len(audio)))
         n_frames = 1
-    return np.array([mel_feat(audio[i*FRAME:(i+1)*FRAME]) for i in range(n_frames)], dtype=np.float32)
+    mels = np.array([mel_feat(audio[i*FRAME:(i+1)*FRAME]) for i in range(n_frames)], dtype=np.float32)
+    if center_mel and len(mels) > 0:
+        mels -= np.mean(mels, axis=0, keepdims=True).astype(np.float32)
+    return mels
 
 
 def split_key(stem):
@@ -119,10 +122,9 @@ def load_48k_consonants(split=None, holdout_pct=20):
             from scipy.signal import resample_poly
             audio = resample_poly(audio, SR // actual_sr, 1)
         
-        mel = extract_mel_rms(audio)
+        mel = extract_mel_rms(audio, center_mel=CENTER_MEL)
         if len(mel) > 0:
             ds.append((label, mel[len(mel)//2]))
-    
     return ds
 
 
@@ -148,7 +150,7 @@ def load_vowels_48k(split=None, holdout_pct=20):
             audio_16k = np.frombuffer(wf.readframes(wf.getnframes()), dtype=np.int16).astype(np.float32)/32768.0
         # Upsample to 48kHz
         audio_48k = resample_poly(audio_16k, 3, 1)
-        mel = extract_mel_rms(audio_48k)
+        mel = extract_mel_rms(audio_48k, center_mel=CENTER_MEL)
         if len(mel) < 5: continue
         chunk = len(mel) // 5
         for idx, v in enumerate(phrase_vowels[phrase]):
@@ -157,14 +159,100 @@ def load_vowels_48k(split=None, holdout_pct=20):
     return ds
 
 
+def load_checkpoint(path):
+    """Load weights, Adam state, and optimizer step from a JSON checkpoint."""
+    path = Path(path)
+    if not path.exists():
+        return None
+    ckpt = json.loads(path.read_text())
+    required = ["W1", "b1", "W2", "b2", "adam_step"]
+    if not all(k in ckpt for k in required):
+        raise ValueError(f"checkpoint {path} is missing required fields: {required}")
+    weights = {
+        "W1": np.asarray(ckpt["W1"], dtype=np.float32),
+        "b1": np.asarray(ckpt["b1"], dtype=np.float32),
+        "W2": np.asarray(ckpt["W2"], dtype=np.float32),
+        "b2": np.asarray(ckpt["b2"], dtype=np.float32),
+    }
+    adam = {
+        "mW1": np.asarray(ckpt["mW1"], dtype=np.float32),
+        "vW1": np.asarray(ckpt["vW1"], dtype=np.float32),
+        "mW2": np.asarray(ckpt["mW2"], dtype=np.float32),
+        "vW2": np.asarray(ckpt["vW2"], dtype=np.float32),
+    }
+    return weights, adam, int(ckpt.get("adam_step", 0))
+
+
+def save_checkpoint(path, *, W1, b1, W2, b2, mW1, vW1, mW2, vW2, adam_step):
+    """Save full training checkpoint with Adam state."""
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    ckpt = {
+        "W1": W1.tolist(),
+        "b1": b1.tolist(),
+        "W2": W2.tolist(),
+        "b2": b2.tolist(),
+        "mW1": mW1.tolist(),
+        "vW1": vW1.tolist(),
+        "mW2": mW2.tolist(),
+        "vW2": vW2.tolist(),
+        "adam_step": int(adam_step),
+        "config": {
+            "sr": SR,
+            "frame": FRAME,
+            "n_mels": N_MELS,
+            "fmax": FMAX,
+            "hidden_dim": HIDDEN_DIM,
+            "n_classes": N_CLASSES,
+            "class_names": ALL_NAMES,
+            "center_mel": CENTER_MEL,
+            "hp_cutoff_hz": 100,
+        },
+    }
+    path.write_text(json.dumps(ckpt, indent=2), encoding="utf-8")
+    return str(path)
+
+
+def summarize_eval(preds, ye, class_names):
+    """Return concise eval metrics and an operational readout."""
+    preds = np.asarray(preds)
+    ye = np.asarray(ye)
+    overall = float(np.mean(preds == ye))
+    per_label = []
+    for i, name in enumerate(class_names):
+        mask = ye == i
+        if mask.sum() > 0:
+            per_label.append((name, float(np.mean(preds[mask] == i)), int(mask.sum())))
+    macro = float(np.mean([acc for _, acc, _ in per_label])) if per_label else 0.0
+    hard_labels = ["k", "sh", "th", "f", "s"]
+    hard_accs = [acc for name, acc, _ in per_label if name in hard_labels]
+    hard_avg = float(np.mean(hard_accs)) if hard_accs else 0.0
+    weakest_name, weakest_acc, weakest_n = min(per_label, key=lambda x: x[1]) if per_label else ("", 0.0, 0)
+    readout = "ON_TRACK" if overall >= 0.58 and macro >= 0.62 and hard_avg >= 0.57 and weakest_acc >= 0.45 else "REVIEW"
+    return {
+        "overall": overall,
+        "macro": macro,
+        "hard_avg": hard_avg,
+        "weakest": weakest_name,
+        "weakest_acc": weakest_acc,
+        "weakest_n": weakest_n,
+        "readout": readout,
+        "per_label": per_label,
+    }
+
+
 def main():
     parser = argparse.ArgumentParser(description="M10 48kHz training")
     parser.add_argument("--epochs", type=int, default=300)
     parser.add_argument("--lr", type=float, default=0.005)
     parser.add_argument("--holdout", type=int, default=20)
+    parser.add_argument("--resume-from", type=str, default="data/m10_v3.ckpt.json", help="Checkpoint path; use 'none' for fresh training")
+    parser.add_argument("--checkpoint-out", type=str, default="data/m10_v3.ckpt.json")
+    parser.add_argument("--model-out", type=str, default="data/m10_v1.json")
     a = parser.parse_args()
 
     print(f"M10 48kHz Training — {N_MELS} mel bins, fmax={FMAX//1000}kHz, SR={SR//1000}kHz")
+    print(f"  center_mel={CENTER_MEL}, hp100=True, classes={N_CLASSES}")
     print()
 
     # Load data
@@ -186,10 +274,24 @@ def main():
 
     # Train
     rng = np.random.RandomState(42)
-    W1 = rng.randn(N_MELS, HIDDEN_DIM).astype(np.float32) * np.sqrt(2.0 / N_MELS)
-    b1 = np.zeros(HIDDEN_DIM, dtype=np.float32)
-    W2 = rng.randn(HIDDEN_DIM, N_CLASSES).astype(np.float32) * np.sqrt(2.0 / HIDDEN_DIM)
-    b2 = np.zeros(N_CLASSES, dtype=np.float32)
+    resumed = False
+    resume = None if a.resume_from.lower() == "none" else load_checkpoint(a.resume_from)
+    if resume is not None:
+        resumed = True
+        weights, adam, adam_step = resume
+        W1, b1, W2, b2 = weights["W1"], weights["b1"], weights["W2"], weights["b2"]
+        mW1, vW1, mW2, vW2 = adam["mW1"], adam["vW1"], adam["mW2"], adam["vW2"]
+        print(f"Resumed checkpoint: {a.resume_from} (adam_step={adam_step})")
+    else:
+        W1 = rng.randn(N_MELS, HIDDEN_DIM).astype(np.float32) * np.sqrt(2.0 / N_MELS)
+        b1 = np.zeros(HIDDEN_DIM, dtype=np.float32)
+        W2 = rng.randn(HIDDEN_DIM, N_CLASSES).astype(np.float32) * np.sqrt(2.0 / HIDDEN_DIM)
+        b2 = np.zeros(N_CLASSES, dtype=np.float32)
+        mW1, vW1 = np.zeros_like(W1), np.zeros_like(W1)
+        mW2, vW2 = np.zeros_like(W2), np.zeros_like(W2)
+        adam_step = 0
+        print("Fresh training run")
+    print()
 
     X = np.array([m for _, m in train_ds], dtype=np.float32)
     y = np.array([ALL_NAMES.index(v) for v, _ in train_ds], dtype=np.int32)
@@ -201,8 +303,9 @@ def main():
             sw[y == i] = 2.0
 
     beta1, beta2, eps = 0.9, 0.999, 1e-8
-    mW1, vW1 = np.zeros_like(W1), np.zeros_like(W1)
-    mW2, vW2 = np.zeros_like(W2), np.zeros_like(W2)
+    if not resumed:
+        mW1, vW1 = np.zeros_like(W1), np.zeros_like(W1)
+        mW2, vW2 = np.zeros_like(W2), np.zeros_like(W2)
 
     bs = min(256, len(X))
     nb = max(1, len(X) // bs)
@@ -241,7 +344,7 @@ def main():
             dW1 = bx.T @ dh
             db1 = np.sum(dh, axis=0)
 
-            t = ep * nb + bi + 1
+            t = adam_step + 1
             mW1[:] = beta1 * mW1 + (1 - beta1) * dW1
             vW1[:] = beta2 * vW1 + (1 - beta2) * (dW1 ** 2)
             mW2[:] = beta1 * mW2 + (1 - beta1) * dW2
@@ -250,6 +353,7 @@ def main():
             W2 -= a.lr * mW2 / (1 - beta1**t) / (np.sqrt(vW2 / (1 - beta2**t)) + eps)
             b1 -= a.lr * db1 / len(by)
             b2 -= a.lr * db2 / len(by)
+            adam_step = t
 
         if ep % 50 == 0 or ep == a.epochs - 1:
             acc = correct / len(X)
@@ -261,16 +365,26 @@ def main():
     h = np.maximum(Xe @ W1 + b1, 0)
     logits = h @ W2 + b2
     preds = np.argmax(logits, axis=1)
-    eval_acc = float(np.mean(preds == ye))
-    print(f"\nEval accuracy: {eval_acc:.1%} ({int(np.sum(preds==ye))}/{len(ye)})")
-    for i, name in enumerate(ALL_NAMES):
-        mask = ye == i
-        if mask.sum() > 0:
-            ca = float(np.mean(preds[mask] == i))
-            print(f"  {name:4s}: {ca:.1%} (n={mask.sum()})")
+    summary = summarize_eval(preds, ye, ALL_NAMES)
+    correct = int(np.sum(preds == ye))
+    print(f"\nEval accuracy: {summary['overall']:.1%} ({correct}/{len(ye)})")
+    print(f"Macro accuracy: {summary['macro']:.1%}")
+    print(f"Hard-label avg (k/sh/th/f/s): {summary['hard_avg']:.1%}")
+    print(f"Weakest label: {summary['weakest']} {summary['weakest_acc']:.1%} (n={summary['weakest_n']})")
+    for name, acc, n in summary["per_label"]:
+        print(f"  {name:4s}: {acc:.1%} (n={n})")
+    print(f"Training readout: {summary['readout']}")
 
     # Save
-    out = Path('data/m10_v1.json')
+    ckpt_path = save_checkpoint(
+        a.checkpoint_out,
+        W1=W1, b1=b1, W2=W2, b2=b2,
+        mW1=mW1, vW1=vW1, mW2=mW2, vW2=vW2,
+        adam_step=adam_step,
+    )
+    print(f"Saved checkpoint: {ckpt_path}")
+
+    out = Path(a.model_out)
     with open(out, 'w') as f:
         json.dump({
             'W1': W1.tolist(), 'b1': b1.tolist(),
@@ -278,7 +392,8 @@ def main():
             'config': {
                 'sr': SR, 'frame': FRAME, 'n_mels': N_MELS,
                 'fmax': FMAX, 'hidden_dim': HIDDEN_DIM,
-                'n_classes': N_CLASSES, 'class_names': ALL_NAMES
+                'n_classes': N_CLASSES, 'class_names': ALL_NAMES,
+                'center_mel': CENTER_MEL, 'hp_cutoff_hz': 100
             }
         }, f)
     print(f"Saved {out}")

@@ -32,7 +32,7 @@ from m9_sound.temporal import FRAME_SIZE, SR, write_pcm16_wav
 
 # Class names for M10
 VOWEL_NAMES = ['i', 'E', 'a', 'O', 'u']
-CONSONANT_NAMES = ['p', 't', 'k', 's', 'f', 'sh', 'm', 'n']
+CONSONANT_NAMES = ['p', 't', 'k', 'b', 'd', 'g', 's', 'f', 'sh', 'th', 'v', 'z', 'm', 'n', 'l', 'r', 'w', 'y']
 ALL_NAMES = VOWEL_NAMES + CONSONANT_NAMES
 
 HP_SOS = butter(4, 100, btype="high", fs=SR, output="sos")
@@ -60,13 +60,13 @@ def _dry_run_capture_audio(playback_audio: np.ndarray, *, sr: int, **_: object) 
     return np.concatenate([np.asarray(playback_audio, dtype=np.float32).reshape(-1), tail])
 
 
-def _detect_speech(audio: np.ndarray, *, threshold: float, min_speech_frames: int) -> tuple[bool, float, int]:
+def _detect_speech(audio: np.ndarray, *, threshold: float, min_speech_frames: int, frame_size: int = FRAME_SIZE) -> tuple[bool, float, int]:
     filtered = np.asarray(sosfilt(HP_SOS, np.asarray(audio, dtype=np.float32).reshape(-1)), dtype=np.float32)
-    frame_count = max(1, len(filtered) // FRAME_SIZE)
+    frame_count = max(1, len(filtered) // frame_size)
     speech_frames = 0
     for idx in range(frame_count):
-        frame = filtered[idx * FRAME_SIZE : (idx + 1) * FRAME_SIZE]
-        if len(frame) < FRAME_SIZE:
+        frame = filtered[idx * frame_size : (idx + 1) * frame_size]
+        if len(frame) < frame_size:
             continue
         frame_rms = float(np.sqrt(np.mean(frame**2)))
         if frame_rms >= threshold:
@@ -81,8 +81,11 @@ def _listen_window_audio(
     listen_window_s: float,
     dry_run: bool,
     listen_family: str,
+    model_config: dict | None = None,
 ) -> np.ndarray:
     if dry_run:
+        sr = int(model_config.get("sr", SR)) if model_config else SR
+        frame_size = int(model_config.get("frame", FRAME_SIZE)) if model_config else FRAME_SIZE
         listen_report = build_vowel_transition_report(
             family=listen_family,
             heldout_family=listen_family,
@@ -90,8 +93,8 @@ def _listen_window_audio(
             noise_seed=7,
             device_profile="highpass",
             device_gain=1.0,
-            sr=SR,
-            frame_size=FRAME_SIZE,
+            sr=sr,
+            frame_size=frame_size,
         )
         listen_report = dict(listen_report)
         return np.asarray(cast(list[float], listen_report["rendered_audio"]), dtype=np.float32)
@@ -101,8 +104,9 @@ def _listen_window_audio(
     except Exception as exc:
         raise RuntimeError("sounddevice is required for live capture") from exc
 
-    sample_count = max(1, int(round(SR * listen_window_s)))
-    recorded = sd.rec(sample_count, samplerate=SR, channels=1, device=input_device, dtype="float32")
+    sample_rate = int(model_config.get("sr", SR)) if model_config else SR
+    sample_count = max(1, int(round(sample_rate * listen_window_s)))
+    recorded = sd.rec(sample_count, samplerate=sample_rate, channels=1, device=input_device, dtype="float32")
     sd.wait()
     return np.asarray(recorded, dtype=np.float32).reshape(-1)
 
@@ -112,15 +116,18 @@ def _synthesize_imitation(
     *,
     duration_scale: float = 1.0,
     noise_seed: int = 7,
+    model_config: dict | None = None,
 ) -> tuple[np.ndarray, list[dict[str, object]]]:
     """Synthesize a consonant-vowel imitation."""
     tokens = CONSONANT_FAMILIES.get(family, CONSONANT_FAMILIES["cv_simple"])
     duration_s = FAMILY_DURATIONS_S.get(family, 0.8) * duration_scale
+    sr = int(model_config.get("sr", SR)) if model_config else SR
+    frame_size = int(model_config.get("frame", FRAME_SIZE)) if model_config else FRAME_SIZE
     return _synthesize_consonant_sequence(
         tokens,
         duration_s=duration_s,
-        sr=SR,
-        frame_size=FRAME_SIZE,
+        sr=sr,
+        frame_size=frame_size,
         noise_seed=noise_seed,
     )
 
@@ -143,6 +150,7 @@ def _load_m10_model(model_path: Path | None = None):
         "frame": int(config.get("frame", 480)),
         "n_mels": int(config.get("n_mels", 32)),
         "fmax": int(config.get("fmax", 7600)),
+        "center_mel": bool(config.get("center_mel", False)),
     }
 
 
@@ -195,25 +203,20 @@ def _decode_and_report(
         model_frame = m10_model["frame"]
         n_mels = m10_model["n_mels"]
         fmax = m10_model["fmax"]
-        
-        # Resample audio to model's sample rate if needed
-        actual_sr = 16000  # Default input rate
-        if len(audio) > 0:
-            # Detect actual rate from audio length heuristic
-            pass
-        
+        center_mel = m10_model.get("center_mel", False)
+
         # Build matching mel filterbank
         mel_fb, n_fft = _build_model_mel_fb(n_mels, fmax, model_sr)
-        
+
         # HP filter at model rate
         hp = butter(4, 100, btype='high', fs=model_sr, output='sos')
         audio_filt = np.asarray(sosfilt(hp, np.asarray(audio, dtype=np.float32).reshape(-1)), dtype=np.float32)
-        
+
         n_frames = len(audio_filt) // model_frame
-        
+
         ALL_NAMES = m10_model["config"].get("class_names", VOWEL_NAMES + CONSONANT_NAMES)
-        
-        labels = []
+
+        raw_mels = []
         for i in range(n_frames):
             frame = audio_filt[i * model_frame : (i + 1) * model_frame]
             if len(frame) < model_frame:
@@ -221,13 +224,26 @@ def _decode_and_report(
                 frame[:len(audio_filt[i * model_frame:])] = audio_filt[i * model_frame:]
             rms = float(np.sqrt(np.mean(frame**2)))
             if rms < silence_threshold:
+                raw_mels.append(None)
+                continue
+            mel = _mel_feat_model(frame, mel_fb, n_fft)
+            raw_mels.append(mel)
+
+        if center_mel and raw_mels:
+            present = [m for m in raw_mels if m is not None]
+            if present:
+                mel_mean = np.mean(present, axis=0, keepdims=True).astype(np.float32)
+                raw_mels = [None if m is None else (m - mel_mean[0]).astype(np.float32) for m in raw_mels]
+
+        labels = []
+        for i, mel in enumerate(raw_mels):
+            if mel is None:
                 labels.append("_")
-            else:
-                mel = _mel_feat_model(frame, mel_fb, n_fft)
-                h = np.maximum(mel @ W1 + b1, 0)
-                logits = h @ W2 + b2
-                pred_idx = int(np.argmax(logits))
-                labels.append(ALL_NAMES[pred_idx] if pred_idx < len(ALL_NAMES) else "_")
+                continue
+            h = np.maximum(mel @ W1 + b1, 0)
+            logits = h @ W2 + b2
+            pred_idx = int(np.argmax(logits))
+            labels.append(ALL_NAMES[pred_idx] if pred_idx < len(ALL_NAMES) else "_")
     else:
         # Fallback: use vowel centroid decoder
         decode = decode_vowel_transition_audio(
@@ -296,7 +312,8 @@ def main() -> None:
     # Load M10 model if available
     m10_model = _load_m10_model()
     if m10_model is not None:
-        print("  Model:             m10_v1 (13 classes)")
+        cfg = m10_model.get("config", {})
+        print(f"  Model:             m10_v1 ({len(cfg.get('class_names', ALL_NAMES))} classes, {m10_model.get('sr', SR)} Hz)")
     else:
         print("  Model:             vowel-centroid fallback (5 classes)")
 
@@ -324,11 +341,13 @@ def main() -> None:
                 listen_window_s=args.listen_window_s,
                 dry_run=args.dry_run,
                 listen_family=args.listen_family,
+                model_config=m10_model.get("config", {}) if m10_model else None,
             )
             heard, listen_rms, speech_frames = _detect_speech(
                 listen_audio,
                 threshold=args.trigger_threshold,
                 min_speech_frames=args.min_speech_frames,
+                frame_size=int(m10_model.get("frame", FRAME_SIZE)) if m10_model else FRAME_SIZE,
             )
             if not heard:
                 print(f"[listen] no trigger (rms={listen_rms:.4f}, speech_frames={speech_frames})")
@@ -355,6 +374,7 @@ def main() -> None:
                 family,
                 duration_scale=args.duration_scale,
                 noise_seed=7 + trigger_count,
+                model_config=m10_model.get("config", {}) if m10_model else None,
             )
 
             # Save artifacts
@@ -363,8 +383,9 @@ def main() -> None:
 
             heard_wav = iteration_dir / "heard.wav"
             imitation_wav = iteration_dir / "imitation.wav"
-            write_pcm16_wav(heard_wav, listen_audio, sr=SR)
-            write_pcm16_wav(imitation_wav, imitation_audio, sr=SR)
+            write_sr = int(m10_model.get("sr", SR)) if m10_model else SR
+            write_pcm16_wav(heard_wav, listen_audio, sr=write_sr)
+            write_pcm16_wav(imitation_wav, imitation_audio, sr=write_sr)
 
             # Decode the imitation
             imitation_report = _decode_and_report(
