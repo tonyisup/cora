@@ -12,3 +12,7 @@ data/
 results/
 
 scripts/scratch.py
+.arbor/
+.autoresearch/
+.coordinator/
+cache_old_*/
