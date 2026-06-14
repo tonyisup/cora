@@ -8,7 +8,7 @@ Usage:
     ./.venv/bin/python scripts/m10_record_human.py --speaker juicebox
 """
 
-import sys, json, time, uuid, wave, argparse
+import sys, json, time, uuid, wave, argparse, random
 import numpy as np
 from pathlib import Path
 from datetime import datetime, timezone
@@ -62,6 +62,158 @@ PROMPTS = [
     {"text": "lara", "label": "l", "category": "liquid"},
 ]
 
+TARGET_PROMPTS: dict[str, list[dict[str, str]]] = {
+    "b": [
+        {"text": "ba", "label": "b", "category": "stop"},
+        {"text": "bi", "label": "b", "category": "stop"},
+        {"text": "bu", "label": "b", "category": "stop"},
+        {"text": "aba", "label": "b", "category": "stop"},
+    ],
+    "d": [
+        {"text": "da", "label": "d", "category": "stop"},
+        {"text": "di", "label": "d", "category": "stop"},
+        {"text": "du", "label": "d", "category": "stop"},
+        {"text": "ada", "label": "d", "category": "stop"},
+    ],
+    "g": [
+        {"text": "ga", "label": "g", "category": "stop"},
+        {"text": "gi", "label": "g", "category": "stop"},
+        {"text": "gu", "label": "g", "category": "stop"},
+        {"text": "aga", "label": "g", "category": "stop"},
+    ],
+    "th": [
+        {"text": "tha", "label": "th", "category": "fricative"},
+        {"text": "thi", "label": "th", "category": "fricative"},
+        {"text": "thu", "label": "th", "category": "fricative"},
+        {"text": "atha", "label": "th", "category": "fricative"},
+    ],
+    "v": [
+        {"text": "va", "label": "v", "category": "fricative"},
+        {"text": "vi", "label": "v", "category": "fricative"},
+        {"text": "vu", "label": "v", "category": "fricative"},
+        {"text": "ava", "label": "v", "category": "fricative"},
+    ],
+    "z": [
+        {"text": "za", "label": "z", "category": "fricative"},
+        {"text": "zi", "label": "z", "category": "fricative"},
+        {"text": "zu", "label": "z", "category": "fricative"},
+        {"text": "aza", "label": "z", "category": "fricative"},
+    ],
+    "l": [
+        {"text": "la", "label": "l", "category": "liquid"},
+        {"text": "li", "label": "l", "category": "liquid"},
+        {"text": "lu", "label": "l", "category": "liquid"},
+        {"text": "ala", "label": "l", "category": "liquid"},
+    ],
+    "r": [
+        {"text": "ra", "label": "r", "category": "liquid"},
+        {"text": "ri", "label": "r", "category": "liquid"},
+        {"text": "ru", "label": "r", "category": "liquid"},
+        {"text": "ara", "label": "r", "category": "liquid"},
+    ],
+    "w": [
+        {"text": "wa", "label": "w", "category": "glide"},
+        {"text": "wi", "label": "w", "category": "glide"},
+        {"text": "wu", "label": "w", "category": "glide"},
+        {"text": "awa", "label": "w", "category": "glide"},
+    ],
+    "y": [
+        {"text": "ya", "label": "y", "category": "glide"},
+        {"text": "yi", "label": "y", "category": "glide"},
+        {"text": "yu", "label": "y", "category": "glide"},
+        {"text": "aya", "label": "y", "category": "glide"},
+    ],
+    "p": [
+        {"text": "pa", "label": "p", "category": "stop"},
+        {"text": "pi", "label": "p", "category": "stop"},
+        {"text": "pu", "label": "p", "category": "stop"},
+        {"text": "apa", "label": "p", "category": "stop"},
+        {"text": "pata", "label": "p", "category": "stop"},
+    ],
+    "t": [
+        {"text": "ta", "label": "t", "category": "stop"},
+        {"text": "ti", "label": "t", "category": "stop"},
+        {"text": "tu", "label": "t", "category": "stop"},
+        {"text": "ata", "label": "t", "category": "stop"},
+        {"text": "tata", "label": "t", "category": "stop"},
+    ],
+    "k": [
+        {"text": "ka", "label": "k", "category": "stop"},
+        {"text": "ki", "label": "k", "category": "stop"},
+        {"text": "ku", "label": "k", "category": "stop"},
+        {"text": "aka", "label": "k", "category": "stop"},
+        {"text": "kaka", "label": "k", "category": "stop"},
+    ],
+    "s": [
+        {"text": "sa", "label": "s", "category": "fricative"},
+        {"text": "si", "label": "s", "category": "fricative"},
+        {"text": "su", "label": "s", "category": "fricative"},
+        {"text": "asa", "label": "s", "category": "fricative"},
+        {"text": "sasa", "label": "s", "category": "fricative"},
+    ],
+    "f": [
+        {"text": "fa", "label": "f", "category": "fricative"},
+        {"text": "fi", "label": "f", "category": "fricative"},
+        {"text": "fu", "label": "f", "category": "fricative"},
+        {"text": "afa", "label": "f", "category": "fricative"},
+        {"text": "fafa", "label": "f", "category": "fricative"},
+    ],
+    "sh": [
+        {"text": "sha", "label": "sh", "category": "fricative"},
+        {"text": "shi", "label": "sh", "category": "fricative"},
+        {"text": "shu", "label": "sh", "category": "fricative"},
+        {"text": "asha", "label": "sh", "category": "fricative"},
+        {"text": "shasha", "label": "sh", "category": "fricative"},
+    ],
+    "m": [
+        {"text": "ma", "label": "m", "category": "nasal"},
+        {"text": "mi", "label": "m", "category": "nasal"},
+        {"text": "mu", "label": "m", "category": "nasal"},
+        {"text": "ama", "label": "m", "category": "nasal"},
+        {"text": "mama", "label": "m", "category": "nasal"},
+    ],
+    "n": [
+        {"text": "na", "label": "n", "category": "nasal"},
+        {"text": "ni", "label": "n", "category": "nasal"},
+        {"text": "nu", "label": "n", "category": "nasal"},
+        {"text": "ana", "label": "n", "category": "nasal"},
+        {"text": "nana", "label": "n", "category": "nasal"},
+    ],
+}
+
+
+def _parse_labels(text: str | None) -> list[str] | None:
+    if not text:
+        return None
+    labels = [item.strip() for item in text.split(",") if item.strip()]
+    if not labels:
+        return None
+    return labels
+
+
+def _build_session_prompts(labels: list[str] | None, reps: int, shuffle: bool) -> list[dict[str, str]]:
+    known_labels = {p["label"] for p in PROMPTS}
+    if labels is None:
+        prompts = list(PROMPTS)
+    else:
+        unknown = [label for label in labels if label not in known_labels]
+        if unknown:
+            raise ValueError(f"Unknown labels: {', '.join(unknown)}")
+        prompts = []
+        for label in labels:
+            prompts.extend(TARGET_PROMPTS.get(label) or [p for p in PROMPTS if p["label"] == label])
+        prompts = prompts * max(1, reps)
+    if shuffle:
+        random.shuffle(prompts)
+    return prompts
+
+
+def _print_prompts(prompts: list[dict[str, str]], *, title: str) -> None:
+    print(title)
+    for idx, p in enumerate(prompts, start=1):
+        print(f"  {idx:3d}. {p['text']:8s}  label={p['label']:4s}  category={p['category']}")
+
+
 def play_tone(freq=440, duration=0.15, sr=DEFAULT_SR, output_device=3):
     """Play a short beep as recording cue."""
     t = np.arange(int(sr * duration), dtype=np.float32) / sr
@@ -77,6 +229,10 @@ def main():
     parser.add_argument("--rate", type=int, default=DEFAULT_SR)
     parser.add_argument("--duration", type=float, default=1.2)
     parser.add_argument("--countdown", type=float, default=1.5)
+    parser.add_argument("--labels", type=str, default=None, help="Comma-separated labels for targeted collection")
+    parser.add_argument("--reps", type=int, default=1, help="Repeats per label in targeted mode")
+    parser.add_argument("--shuffle", action="store_true", help="Shuffle targeted prompts")
+    parser.add_argument("--dry-run", action="store_true", help="Print prompts without recording")
     args = parser.parse_args()
 
     session_id = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
@@ -85,10 +241,18 @@ def main():
     manifest_path = Path("data/m10/manifests") / "captures.jsonl"
     manifest_path.parent.mkdir(parents=True, exist_ok=True)
 
-    total = len(PROMPTS)
+    labels = _parse_labels(args.labels)
+    prompts = _build_session_prompts(labels, args.reps, args.shuffle)
+    targeted = labels is not None
+
+    total = len(prompts)
     print("=" * 78)
     print("M10 Consonant Capture — Human Speech")
     print("=" * 78)
+    print(f"  Mode:       {'targeted' if targeted else 'full inventory'}")
+    if targeted:
+        print(f"  Targets:    {', '.join(labels)}")
+        print(f"  Reps:       {args.reps}")
     print(f"  Prompts:    {total}")
     print(f"  Speaker:    {args.speaker}")
     print(f"  Rate:       {args.rate} Hz")
@@ -101,9 +265,13 @@ def main():
     print("  Press Ctrl+C to stop at any time.")
     print()
 
+    if args.dry_run:
+        _print_prompts(prompts, title="Dry-run prompts:")
+        return
+
     rows = []
     try:
-        for idx, p in enumerate(PROMPTS):
+        for idx, p in enumerate(prompts):
             prompt_text = p["text"]
             label = p["label"]
             category = p["category"]
@@ -154,6 +322,8 @@ def main():
                 "peak": peak,
                 "source": "human",
                 "model_version": "m10_48k",
+                "collection_type": "targeted" if targeted else "full_inventory",
+                "target_labels": labels,
                 "created_at": datetime.now(timezone.utc).isoformat(),
             }
             rows.append(row)
