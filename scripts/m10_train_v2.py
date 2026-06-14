@@ -246,15 +246,128 @@ def _adam_step(param, grad, m, v, beta1, beta2, eps, t, lr):
     param -= lr * m / (1 - beta1**t) / (np.sqrt(v / (1 - beta2**t)) + eps)
 
 
+def load_checkpoint(path):
+    path = Path(path)
+    if not path.exists():
+        return None
+    ckpt = json.loads(path.read_text())
+    weights_only = ["W1", "b1", "W2", "b2"]
+    if not all(k in ckpt for k in weights_only):
+        raise ValueError(f"checkpoint {path} is missing required weight fields")
+    # Backward-compatible: older exports only stored weights.
+    if not all(k in ckpt for k in ["mW1", "vW1", "mb1", "vb1", "mW2", "vW2", "mb2", "vb2"]):
+        ckpt.update({
+            "mW1": [[0.0] * len(ckpt["W1"][0]) for _ in ckpt["W1"]],
+            "vW1": [[0.0] * len(ckpt["W1"][0]) for _ in ckpt["W1"]],
+            "mb1": [0.0] * len(ckpt["b1"]),
+            "vb1": [0.0] * len(ckpt["b1"]),
+            "mW2": [[0.0] * len(ckpt["W2"][0]) for _ in ckpt["W2"]],
+            "vW2": [[0.0] * len(ckpt["W2"][0]) for _ in ckpt["W2"]],
+            "mb2": [0.0] * len(ckpt["b2"]),
+            "vb2": [0.0] * len(ckpt["b2"]),
+            "adam_step": int(ckpt.get("adam_step", 0)),
+        })
+    return ckpt
+
+
+def save_checkpoint(path, *, W1, b1, W2, b2, mW1, vW1, mb1, vb1, mW2, vW2, mb2, vb2, adam_step,
+                    seed, lr, n_synth_vowels, n_synth_consonants, real_weight, consonant_weight):
+    data = {
+        'W1': W1.tolist(), 'b1': b1.tolist(), 'W2': W2.tolist(), 'b2': b2.tolist(),
+        'mW1': mW1.tolist(), 'vW1': vW1.tolist(), 'mb1': mb1.tolist(), 'vb1': vb1.tolist(),
+        'mW2': mW2.tolist(), 'vW2': vW2.tolist(), 'mb2': mb2.tolist(), 'vb2': vb2.tolist(),
+        'adam_step': int(adam_step),
+        'seed': int(seed),
+        'lr': float(lr),
+        'n_synth_vowels': int(n_synth_vowels),
+        'n_synth_consonants': int(n_synth_consonants),
+        'real_weight': float(real_weight),
+        'consonant_weight': float(consonant_weight),
+        'hidden_dim': HIDDEN_DIM,
+        'n_mels': N_MELS,
+        'sr': SR,
+        'frame': FRAME,
+    }
+    Path(path).parent.mkdir(parents=True, exist_ok=True)
+    Path(path).write_text(json.dumps(data))
+    print(f"Saved checkpoint: {path}")
+
+
+def summarize_eval(y_true, y_pred):
+    y_true = np.asarray(y_true, dtype=np.int32)
+    y_pred = np.asarray(y_pred, dtype=np.int32)
+    overall = float(np.mean(y_true == y_pred)) if len(y_true) else 0.0
+    per_label = {}
+    for i, name in enumerate(ALL_NAMES):
+        mask = y_true == i
+        if mask.sum() > 0:
+            per_label[name] = {
+                'n': int(mask.sum()),
+                'acc': float(np.mean(y_pred[mask] == i)),
+            }
+    macro = float(np.mean([v['acc'] for v in per_label.values()])) if per_label else 0.0
+    hard_labels = [name for name in ['k', 'sh', 'th', 'f', 's'] if name in per_label]
+    hard_avg = float(np.mean([per_label[name]['acc'] for name in hard_labels])) if hard_labels else 0.0
+    worst_label = None
+    worst_acc = None
+    if per_label:
+        worst_label, worst_acc = min(((name, stats['acc']) for name, stats in per_label.items()), key=lambda x: x[1])
+    on_track = overall >= 0.60 and hard_avg >= 0.45
+    return {
+        'overall': overall,
+        'macro': macro,
+        'hard_labels': hard_labels,
+        'hard_avg': hard_avg,
+        'worst_label': worst_label,
+        'worst_acc': worst_acc,
+        'per_label': per_label,
+        'status': 'ON_TRACK' if on_track else 'REVIEW',
+    }
+
+
 def train(epochs=300, lr=0.01, n_synth_vowels=300, n_synth_consonants=50, seed=42,
-          real_weight=2.0, consonant_weight=1.5):
-    """Train with real-data focus and class weighting."""
+          real_weight=2.0, consonant_weight=1.5, resume_from=None,
+          checkpoint_path='data/m10_v1.ckpt.json'):
+    """Train with real-data focus and class weighting.
+
+    If resume_from points to an existing checkpoint, continue from that state;
+    otherwise initialize from scratch.
+    """
     rng = np.random.RandomState(seed)
 
-    W1 = rng.randn(N_MELS, HIDDEN_DIM).astype(np.float32) * np.sqrt(2.0 / N_MELS)
-    b1 = np.zeros(HIDDEN_DIM, dtype=np.float32)
-    W2 = rng.randn(HIDDEN_DIM, N_CLASSES).astype(np.float32) * np.sqrt(2.0 / HIDDEN_DIM)
-    b2 = np.zeros(N_CLASSES, dtype=np.float32)
+    ckpt = None
+    if resume_from and str(resume_from).strip().lower() not in {'', 'none', 'false', '0'}:
+        try:
+            ckpt = load_checkpoint(resume_from)
+        except Exception as exc:
+            print(f"Warning: could not load checkpoint {resume_from}: {exc}")
+            ckpt = None
+
+    if ckpt is not None:
+        W1 = np.array(ckpt['W1'], dtype=np.float32)
+        b1 = np.array(ckpt['b1'], dtype=np.float32)
+        W2 = np.array(ckpt['W2'], dtype=np.float32)
+        b2 = np.array(ckpt['b2'], dtype=np.float32)
+        mW1 = np.array(ckpt['mW1'], dtype=np.float32)
+        vW1 = np.array(ckpt['vW1'], dtype=np.float32)
+        mb1 = np.array(ckpt['mb1'], dtype=np.float32)
+        vb1 = np.array(ckpt['vb1'], dtype=np.float32)
+        mW2 = np.array(ckpt['mW2'], dtype=np.float32)
+        vW2 = np.array(ckpt['vW2'], dtype=np.float32)
+        mb2 = np.array(ckpt['mb2'], dtype=np.float32)
+        vb2 = np.array(ckpt['vb2'], dtype=np.float32)
+        adam_step = int(ckpt.get('adam_step', 0))
+        print(f"Resuming from checkpoint: {resume_from} (adam_step={adam_step})")
+    else:
+        W1 = rng.randn(N_MELS, HIDDEN_DIM).astype(np.float32) * np.sqrt(2.0 / N_MELS)
+        b1 = np.zeros(HIDDEN_DIM, dtype=np.float32)
+        W2 = rng.randn(HIDDEN_DIM, N_CLASSES).astype(np.float32) * np.sqrt(2.0 / HIDDEN_DIM)
+        b2 = np.zeros(N_CLASSES, dtype=np.float32)
+        mW1, vW1 = np.zeros_like(W1), np.zeros_like(W1)
+        mb1, vb1 = np.zeros_like(b1), np.zeros_like(b1)
+        mW2, vW2 = np.zeros_like(W2), np.zeros_like(W2)
+        mb2, vb2 = np.zeros_like(b2), np.zeros_like(b2)
+        adam_step = 0
 
     # Load data
     real_v = load_real_vowel_captures(split="train")
@@ -286,10 +399,6 @@ def train(epochs=300, lr=0.01, n_synth_vowels=300, n_synth_consonants=50, seed=4
     print()
 
     beta1, beta2, eps = 0.9, 0.999, 1e-8
-    mW1, vW1 = np.zeros_like(W1), np.zeros_like(W1)
-    mb1, vb1 = np.zeros_like(b1), np.zeros_like(b1)
-    mW2, vW2 = np.zeros_like(W2), np.zeros_like(W2)
-    mb2, vb2 = np.zeros_like(b2), np.zeros_like(b2)
 
     bs = min(256, len(X))
     nb = max(1, len(X) // bs)
@@ -331,7 +440,8 @@ def train(epochs=300, lr=0.01, n_synth_vowels=300, n_synth_consonants=50, seed=4
             dW1 = bx.T @ dh
             db1 = np.sum(dh, axis=0)
 
-            t = ep * nb + bi + 1
+            t = adam_step + 1
+            adam_step = t
             _adam_step(W1, dW1, mW1, vW1, beta1, beta2, eps, t, lr)
             _adam_step(b1, db1, mb1, vb1, beta1, beta2, eps, t, lr)
             _adam_step(W2, dW2, mW2, vW2, beta1, beta2, eps, t, lr)
@@ -349,12 +459,31 @@ def train(epochs=300, lr=0.01, n_synth_vowels=300, n_synth_consonants=50, seed=4
         logits = h @ W2 + b2
         preds = np.argmax(logits, axis=1)
         eval_acc = float(np.mean(preds == ye))
+        summary = summarize_eval(ye, preds)
         print(f"\nEval accuracy: {eval_acc:.1%} ({int(np.sum(preds==ye))}/{len(ye)})")
+        print(f"Macro accuracy: {summary['macro']:.1%}")
+        print(f"Hard-label avg (k/sh/th/f/s): {summary['hard_avg']:.1%}")
+        if summary['worst_label'] is not None:
+            print(f"Weakest label: {summary['worst_label']} ({summary['worst_acc']:.1%})")
+        print(f"Training readout: {summary['status']}")
         for i, name in enumerate(ALL_NAMES):
             mask = ye == i
             if mask.sum() > 0:
                 ca = float(np.mean(preds[mask] == i))
                 print(f"  {name:4s}: {ca:.1%} (n={mask.sum()})")
+
+    save_checkpoint(
+        checkpoint_path,
+        W1=W1, b1=b1, W2=W2, b2=b2,
+        mW1=mW1, vW1=vW1, mb1=mb1, vb1=vb1,
+        mW2=mW2, vW2=vW2, mb2=mb2, vb2=vb2,
+        adam_step=adam_step,
+        seed=seed, lr=lr,
+        n_synth_vowels=n_synth_vowels,
+        n_synth_consonants=n_synth_consonants,
+        real_weight=real_weight,
+        consonant_weight=consonant_weight,
+    )
 
     return {'W1': W1, 'b1': b1, 'W2': W2, 'b2': b2}
 
@@ -367,11 +496,14 @@ def main():
     p.add_argument('--n-synth-consonants', type=int, default=50)
     p.add_argument('--real-weight', type=float, default=2.0)
     p.add_argument('--consonant-weight', type=float, default=1.5)
+    p.add_argument('--resume-from', type=str, default='data/m10_v1.ckpt.json')
+    p.add_argument('--checkpoint-out', type=str, default='data/m10_v1.ckpt.json')
     a = p.parse_args()
 
     params = train(epochs=a.epochs, lr=a.lr,
                    n_synth_vowels=a.n_synth_vowels, n_synth_consonants=a.n_synth_consonants,
-                   real_weight=a.real_weight, consonant_weight=a.consonant_weight)
+                   real_weight=a.real_weight, consonant_weight=a.consonant_weight,
+                   resume_from=a.resume_from, checkpoint_path=a.checkpoint_out)
 
     out = Path('data/m10_v1.json')
     with open(out, 'w') as f:
