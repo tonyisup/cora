@@ -6,6 +6,7 @@ from .config import CoraInfansConfig
 from .io.mic_array import SyntheticMicArray
 from .pipeline import CoraInfansPipeline
 from .predictive import PredictiveCoder
+from .scenario import builtin_scenario_definition, lower_scenario_definition
 
 
 @dataclass(frozen=True)
@@ -52,128 +53,8 @@ def _capture_frame(params: SimulationParams, mic_array: SyntheticMicArray):
 
 
 def _builtin_sequence_family(family: str) -> list[SimulationParams]:
-    geometry = (
-        "front_left",
-        "front_right",
-        "rear_right",
-        "rear_left",
-    )
-    families = {
-        "sweep": [
-            SimulationParams(
-                timestamp_ms=100,
-                channel_energies=[0.9, 0.2, 0.1, 0.1],
-                mic_channel_geometry=geometry,
-            ),
-            SimulationParams(
-                timestamp_ms=200,
-                channel_energies=[0.2, 0.8, 0.2, 0.1],
-                mic_channel_geometry=geometry,
-            ),
-            SimulationParams(
-                timestamp_ms=300,
-                channel_energies=[0.2, 0.2, 0.85, 0.1],
-                mic_channel_geometry=geometry,
-            ),
-        ],
-        "zigzag": [
-            SimulationParams(
-                timestamp_ms=100,
-                channel_energies=[0.9, 0.2, 0.1, 0.1],
-                mic_channel_geometry=geometry,
-            ),
-            SimulationParams(
-                timestamp_ms=175,
-                channel_energies=[0.2, 0.2, 0.85, 0.1],
-                mic_channel_geometry=geometry,
-            ),
-            SimulationParams(
-                timestamp_ms=250,
-                channel_energies=[0.2, 0.8, 0.2, 0.1],
-                mic_channel_geometry=geometry,
-            ),
-            SimulationParams(
-                timestamp_ms=325,
-                channel_energies=[0.1, 0.2, 0.1, 0.9],
-                mic_channel_geometry=geometry,
-            ),
-        ],
-        "gap": [
-            SimulationParams(
-                timestamp_ms=100,
-                channel_energies=[0.9, 0.2, 0.1, 0.1],
-                mic_channel_geometry=geometry,
-            ),
-            SimulationParams(
-                timestamp_ms=175,
-                channel_energies=[0.2, 0.2, 0.2, 0.2],
-                mic_channel_geometry=geometry,
-            ),
-            SimulationParams(
-                timestamp_ms=250,
-                channel_energies=[0.2, 0.2, 0.85, 0.1],
-                mic_channel_geometry=geometry,
-            ),
-        ],
-        "multi_gap": [
-            SimulationParams(
-                timestamp_ms=100,
-                channel_energies=[0.9, 0.2, 0.1, 0.1],
-                mic_channel_geometry=geometry,
-            ),
-            SimulationParams(
-                timestamp_ms=150,
-                channel_energies=[0.2, 0.2, 0.2, 0.2],
-                mic_channel_geometry=geometry,
-            ),
-            SimulationParams(
-                timestamp_ms=200,
-                channel_energies=[0.2, 0.85, 0.2, 0.1],
-                mic_channel_geometry=geometry,
-            ),
-            SimulationParams(
-                timestamp_ms=250,
-                channel_energies=[0.2, 0.2, 0.2, 0.2],
-                mic_channel_geometry=geometry,
-            ),
-            SimulationParams(
-                timestamp_ms=300,
-                channel_energies=[0.2, 0.2, 0.85, 0.1],
-                mic_channel_geometry=geometry,
-            ),
-        ],
-        "delayed_recovery": [
-            SimulationParams(
-                timestamp_ms=100,
-                channel_energies=[0.9, 0.2, 0.1, 0.1],
-                mic_channel_geometry=geometry,
-            ),
-            SimulationParams(
-                timestamp_ms=150,
-                channel_energies=[0.2, 0.2, 0.2, 0.2],
-                mic_channel_geometry=geometry,
-            ),
-            SimulationParams(
-                timestamp_ms=200,
-                channel_energies=[0.2, 0.2, 0.2, 0.2],
-                mic_channel_geometry=geometry,
-            ),
-            SimulationParams(
-                timestamp_ms=250,
-                channel_energies=[0.2, 0.2, 0.2, 0.2],
-                mic_channel_geometry=geometry,
-            ),
-            SimulationParams(
-                timestamp_ms=300,
-                channel_energies=[0.2, 0.2, 0.85, 0.1],
-                mic_channel_geometry=geometry,
-            ),
-        ],
-    }
-    try:
-        return families[family]
-    except KeyError as exc:
-        raise ValueError(f"unknown sequence family: {family}") from exc
+    scenario = builtin_scenario_definition(family)
+    return lower_scenario_definition(scenario)
 
 
 
