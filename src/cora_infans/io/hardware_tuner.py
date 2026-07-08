@@ -63,6 +63,8 @@ PARAMETERS: dict[str, ParamSpec] = {
     "CLEAR_CONFIGURATION": ParamSpec("CLEAR_CONFIGURATION", 48, 10, 1, "uint8", "wo"),
     "AEC_HPFONOFF": ParamSpec("AEC_HPFONOFF", 33, 1, 1, "int32", "rw"),
     "AEC_FIXEDBEAMSONOFF": ParamSpec("AEC_FIXEDBEAMSONOFF", 33, 37, 1, "int32", "rw"),
+    "AEC_AZIMUTH_VALUES": ParamSpec("AEC_AZIMUTH_VALUES", 33, 75, 4, "radians", "ro"),
+    "AEC_SPENERGY_VALUES": ParamSpec("AEC_SPENERGY_VALUES", 33, 80, 4, "float", "ro"),
     "AEC_FIXEDBEAMSAZIMUTH_VALUES": ParamSpec(
         "AEC_FIXEDBEAMSAZIMUTH_VALUES", 33, 81, 2, "radians", "rw"
     ),
@@ -97,6 +99,21 @@ class DoAReading:
 
     azimuth_deg: float
     speech_detected: bool
+
+
+@dataclass
+class BeamAzimuth:
+    """Raw AEC beam azimuth from AEC_AZIMUTH_VALUES.
+
+    The four entries are focused beam 1, focused beam 2, free-running beam, and
+    auto-select beam. These are raw beam directions, not the post-processed
+    single-speaker DoA; pair with AEC_SPENERGY_VALUES or
+    AUDIO_MGR_SELECTED_AZIMUTHS for speech/source interpretation.
+    """
+
+    name: str
+    azimuth_rad: float
+    azimuth_deg: float
 
 
 def _resolve_backend() -> Any:
@@ -284,10 +301,46 @@ class HardwareTuner:
             "PP_MIN_NS",
             "PP_MIN_NN",
             "AEC_FIXEDBEAMSONOFF",
+            "AEC_AZIMUTH_VALUES",
+            "AEC_SPENERGY_VALUES",
             "AEC_FIXEDBEAMSAZIMUTH_VALUES",
             "AEC_HPFONOFF",
         ]
         return {k: self.read(k) for k in keys}
+
+    def read_beam_azimuths(self) -> list[BeamAzimuth]:
+        """Raw beam azimuths from AEC_AZIMUTH_VALUES.
+
+        Returns the four beam directions documented by XMOS: focused beam 1,
+        focused beam 2, free-running beam, and auto-select beam. Values are
+        reported in both radians and degrees for audit readability.
+        """
+        names = [
+            "focused_beam_1",
+            "focused_beam_2",
+            "free_running_beam",
+            "auto_select_beam",
+        ]
+        vals = self.read("AEC_AZIMUTH_VALUES")
+        return [
+            BeamAzimuth(
+                name=name,
+                azimuth_rad=float(rad),
+                azimuth_deg=(math.degrees(float(rad)) % 360 + 360) % 360,
+            )
+            for name, rad in zip(names, vals)
+        ]
+
+    def read_beam_speech_energies(self) -> dict[str, float]:
+        """Speech-energy estimate per raw beam from AEC_SPENERGY_VALUES."""
+        names = [
+            "focused_beam_1",
+            "focused_beam_2",
+            "free_running_beam",
+            "auto_select_beam",
+        ]
+        vals = self.read("AEC_SPENERGY_VALUES")
+        return {name: float(value) for name, value in zip(names, vals)}
 
     def read_doa(self) -> "DoAReading":
         """Read the firmware's DOA_VALUE register.

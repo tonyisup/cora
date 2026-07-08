@@ -2,7 +2,7 @@
 
 _Snapshot started on 2026-07-08 and extended by same-day addenda. The README and
 `docs/architecture/*` remain the living spec. Current audit baseline: commit
-`84b91a2` plus speech-source-DoA live-attention wiring, `pytest tests -q` → 95 passed._
+`fd85c15` plus raw beam-azimuth inspection helpers, `pytest tests -q` → 96 passed._
 
 ## 0. What this project is
 
@@ -20,12 +20,13 @@ Stack: Python 3, `pytest`, `pydantic`, `pyyaml`, `numpy`, `pyusb`, and
 
 ## 1. Runtime state (verified)
 
-- Branch `main`, current checked HEAD before this addendum: `84b91a2` (ahead of
-  `origin/main` by the speech-source-DoA probe commit).
-- `pytest tests -q` → **95 passed** (current validation after active-attention,
+- Branch `main`, current checked HEAD before this addendum: `fd85c15` (ahead of
+  `origin/main` by speech-source-DoA probe/wiring commits).
+- `pytest tests -q` → **96 passed** (current validation after active-attention,
   hardware-tuner, calibration, DoA-geometry, speech-source-DoA, and live
-  source-DoA attention wiring tests).
+  source-DoA attention wiring/raw beam azimuth tests).
 - Latest relevant commits:
+  - `fd85c15` Wire speech source DoA into live active attention
   - `84b91a2` Add speech-classified source-DoA probe for XVF3800
   - `0f56139` Audit project status and correct DoA verdict surfaces
   - `8d22964` DoA geometry test: correct the 'true DoA' claim (beam-azimuth echo, not source)
@@ -376,3 +377,40 @@ with_stimulus=True, with_attention=True)`):**
 
 **Tests:** +2 integration tests: finite processed source-DoA overrides derived
 L/R; NAN processed source-DoA falls back to derived L/R. Suite 93 -> 95.
+
+## Addendum 7 — XMOS raw beam azimuth data inspected
+
+Inspected XMOS XVF3800 v3.2.1 host-application documentation, specifically
+"Beam forming subsystem and Direction of Arrival indicator". The useful missing
+distinction is:
+- `AEC_AZIMUTH_VALUES`: four raw beam azimuths in radians — focused beam 1,
+  focused beam 2, free-running beam, auto-select beam.
+- `AEC_SPENERGY_VALUES`: speech-energy values for the same four beams. Non-zero
+  means that beam probably contains speech.
+- `AUDIO_MGR_SELECTED_AZIMUTHS`: two processed azimuths — index 0 is the
+  post-processed speaker/source azimuth or NAN when no speech is selected; index
+  1 is the current auto-select beam azimuth.
+
+Added read-only `HardwareTuner` helpers:
+- `read_beam_azimuths()` returns named raw beam azimuths in radians and degrees.
+- `read_beam_speech_energies()` returns named beam speech-energy values.
+- `snapshot()` now includes `AEC_AZIMUTH_VALUES` and `AEC_SPENERGY_VALUES`.
+
+**Real board read (quiet / no active speech stimulus):**
+- raw beam azimuths were finite:
+  - focused beam 1: ~184.37 deg
+  - focused beam 2: ~146.55 deg
+  - free-running beam: ~163.48 deg
+  - auto-select beam: ~163.48 deg
+- raw beam speech energies were all `0.0`.
+- `AUDIO_MGR_SELECTED_AZIMUTHS[0]` was NAN, while index 1 / auto-select beam was
+  ~163.73 deg.
+
+**Verdict refinement:** raw beam azimuths are always useful telemetry, but not by
+themselves a single-speaker source verdict. For attention targeting, the correct
+hierarchy remains: use finite `AUDIO_MGR_SELECTED_AZIMUTHS[0]`; otherwise fall
+back to capture-derived L/R. Use `AEC_AZIMUTH_VALUES` + `AEC_SPENERGY_VALUES` for
+debugging why the processed source did or did not become finite.
+
+**Tests:** +1 hardware-tuner mock test for raw beam azimuths and speech energies.
+Suite 95 -> 96.

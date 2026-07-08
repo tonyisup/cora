@@ -110,6 +110,11 @@ Current module responsibilities
     logs `read_doa()` as beam-azimuth *state* only, uses finite processed
     source-DoA as `explicit_target_deg`, and falls back to capture-derived L/R
     when the processed source-DoA is NAN.
+    XMOS also documents raw per-beam azimuths in `AEC_AZIMUTH_VALUES` plus
+    per-beam speech energies in `AEC_SPENERGY_VALUES`; `HardwareTuner` exposes
+    these as read-only audit helpers so experiments can inspect focused beam 1,
+    focused beam 2, free-running beam, and auto-select beam separately from the
+    processed single-speaker source-DoA.
   - `src/cora_infans/io/doa_experiment.py` — research measurement harness: plays
     a tone or macOS TTS speech stimulus on one earcup of the External Headphones
     (pan=-1/+1/0) and samples firmware DoA/source-DoA registers during playback.

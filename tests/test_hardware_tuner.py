@@ -21,6 +21,8 @@ class _MockDevice:
         self.store[(17, 21)] = [0.0]        # PP_MIN_NS = 0.0
         self.store[(17, 22)] = [0.0]        # PP_MIN_NN = 0.0
         self.store[(33, 37)] = [0]          # AEC_FIXEDBEAMSONOFF = 0
+        self.store[(33, 75)] = [0.1, 1.2, 2.3, 3.4]  # AEC_AZIMUTH_VALUES
+        self.store[(33, 80)] = [0.0, 0.4, 1.5, 0.2]  # AEC_SPENERGY_VALUES
         self.store[(33, 81)] = [0.0, 0.0]   # AEC_FIXEDBEAMSAZIMUTH_VALUES
         self.store[(33, 83)] = [0]          # AEC_FIXEDBEAMSGATING = 0
         self.store[(33, 1)] = [0]           # AEC_HPFONOFF = 0
@@ -137,6 +139,29 @@ def test_read_doa_decodes_true_bearing_and_speech_flag() -> None:
     assert isinstance(doa, DoAReading)
     assert doa.azimuth_deg == pytest.approx(315.0, abs=0.01)
     assert doa.speech_detected is True
+
+
+
+def test_read_beam_azimuths_and_speech_energies() -> None:
+    t = _tuner()
+
+    beams = t.read_beam_azimuths()
+    assert [b.name for b in beams] == [
+        "focused_beam_1",
+        "focused_beam_2",
+        "free_running_beam",
+        "auto_select_beam",
+    ]
+    assert beams[0].azimuth_rad == pytest.approx(0.1)
+    assert beams[1].azimuth_deg == pytest.approx(68.7549, abs=0.001)
+
+    energies = t.read_beam_speech_energies()
+    assert energies == {
+        "focused_beam_1": 0.0,
+        "focused_beam_2": 0.4,
+        "free_running_beam": 1.5,
+        "auto_select_beam": 0.2,
+    }
 
 
 def test_unknown_and_readonly_params_rejected() -> None:
