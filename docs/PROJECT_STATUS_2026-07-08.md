@@ -2,7 +2,7 @@
 
 _Snapshot started on 2026-07-08 and extended by same-day addenda. The README and
 `docs/architecture/*` remain the living spec. Current audit baseline: commit
-`fd85c15` plus raw beam-azimuth inspection helpers, `pytest tests -q` → 96 passed._
+`7650b84` plus the offline corpus-evaluation harness, `pytest tests -q` → 102 passed._
 
 ## 0. What this project is
 
@@ -414,3 +414,37 @@ debugging why the processed source did or did not become finite.
 
 **Tests:** +1 hardware-tuner mock test for raw beam azimuths and speech energies.
 Suite 95 -> 96.
+
+## Addendum 8 — Offline corpus + evaluation harness
+
+Added a deterministic, hardware-free validation path so the scaffold can score
+recorded (or simulated) audio against human/Audacity-compatible label CSVs
+without touching the XVF3800.
+
+- `src/cora_infans/io/offline_eval.py`
+  - `CorpusLoader.load_labels(csv)` — reads an Audacity-style manifest
+    (`clip_id,start_s,end_s,label`; rows aggregate by `clip_id` into one
+    `CorpusClip` with all its `Annotation`s). Skips clips whose `<id>.wav` is
+    missing (no fabricated audio).
+  - `OfflineEvalHarness` — scores frame-level saliency against labeled
+    intervals. Label semantics: a labeled interval is a ground-truth acoustic
+    EVENT; unlabeled regions are ground-truth silence. It is a saliency/event-
+    presence scorer, not a label classifier, so the scoreboard is independent
+    of label vocabulary.
+  - `ClipReport` dataclass carries per-clip counts + `accuracy`.
+- `src/cora_infans/io/synthetic_stream.py` — `build_synthetic_corpus_frames()`
+  deterministic frame provider (one ON + one quiet frame per labeled interval)
+  so the harness runs end-to-end without real WAV decoding. Real audio decoding
+  is explicitly left to the separate recording project.
+- CLI `python3 -m cora_infans --eval-corpus --root DIR --label-csv FILE
+  [--saliency-threshold F] [--frame-ms N]` returns an aggregate report.
+- `describe()` now lists `offline_corpus_evaluation` under implemented
+  subsystems.
+
+**Validation:** `pytest tests -q` → 102 passed (was 96; +5 offline-eval unit
+tests +1 CLI smoke). CLI smoke on a 2-interval stub corpus returned a coherent
+aggregate report (`clip_count=1`, `total_frames=4`, event-matched scoring).
+
+**Honesty note:** this is a scoreboard scaffold, not yet wired to real decoded
+audio. The `frames_for` seam is the integration point for the recording
+project's WAV→frame extraction.

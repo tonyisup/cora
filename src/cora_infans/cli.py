@@ -6,6 +6,7 @@ from typing import Any
 
 from .io.live_listener import LiveListener
 from .io.live_mic import DEFAULT_DEVICE, LiveMicArray, LiveMicError
+from .io.offline_eval import CorpusLoader, OfflineEvalHarness
 from .simulation import (
     SimulationParams,
     build_builtin_sequence_report,
@@ -14,6 +15,7 @@ from .simulation import (
     build_sequence_report_with_scheduling,
     build_simulation_report,
 )
+from .io.synthetic_stream import build_synthetic_corpus_frames
 
 
 OutputMode = str
@@ -33,8 +35,9 @@ def describe() -> dict[str, object]:
             "theta_gamma_scheduler",
             "xvf3800_hardware_tuner",
             "commanded_active_attention",
-            "speech_source_doa_guided_attention",
+            "offline_corpus_evaluation",
         ],
+
         "planned_subsystems": [
             "analysis_by_synthesis",
             "non_speech_source_localization",
@@ -239,6 +242,58 @@ def listen_live(args: list[str] | None = None) -> dict[str, object]:
     )
 
 
+def eval_corpus(args: list[str] | None = None) -> dict[str, object]:
+    """Run the offline evaluation harness over a labeled corpus.
+
+    Usage: --eval-corpus --root DIR --label-csv FILE [--saliency-threshold F]
+           [--frame-ms N]
+
+    The harness scores a deterministic synthetic frame stream derived from each
+    clip's labeled intervals; no hardware or real WAV decoding is required.
+    """
+    parsed = args or ["--eval-corpus"]
+    root = "."
+    label_csv: str | None = None
+    saliency_threshold = 0.7
+    frame_ms = 250
+    i = 1
+    while i < len(parsed):
+        option = parsed[i]
+        if i + 1 >= len(parsed):
+            raise ValueError(f"missing value for {option}")
+        value = parsed[i + 1]
+        if option == "--root":
+            root = value
+        elif option == "--label-csv":
+            label_csv = value
+        elif option == "--saliency-threshold":
+            try:
+                saliency_threshold = float(value)
+            except ValueError as exc:
+                raise ValueError("invalid saliency threshold") from exc
+        elif option == "--frame-ms":
+            try:
+                frame_ms = int(value)
+            except ValueError as exc:
+                raise ValueError("invalid frame ms") from exc
+        else:
+            raise ValueError(f"unknown option: {option}")
+        i += 2
+
+    if label_csv is None:
+        raise ValueError("--label-csv is required")
+
+    loader = CorpusLoader(root=root)
+    clips = loader.load_labels(label_csv)
+    harness = OfflineEvalHarness(
+        saliency_threshold=saliency_threshold, frame_ms=frame_ms
+    )
+    report = harness.evaluate_corpus(clips, build_synthetic_corpus_frames)
+    report["label_csv"] = label_csv
+    report["clip_loaded"] = len(clips)
+    return report
+
+
 def main(argv: list[str] | None = None) -> int:
     args = argv if argv is not None else sys.argv[1:]
     if args == ["--describe"]:
@@ -273,6 +328,13 @@ def main(argv: list[str] | None = None) -> int:
             print(json.dumps(listen_live(args)))
             return 0
         except (ValueError, LiveMicError) as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
+    if args and args[0] == "--eval-corpus":
+        try:
+            print(json.dumps(eval_corpus(args)))
+            return 0
+        except ValueError as exc:
             print(str(exc), file=sys.stderr)
             return 2
     if args and args[0] in ("--snapshot-firmware", "--tune-raw-linear"):

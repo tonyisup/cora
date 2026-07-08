@@ -22,7 +22,8 @@ def test_describe_command_prints_json_summary() -> None:
     assert payload["project"] == "cora-infans"
     assert payload["implemented_slice"] == "saliency_workspace_live_attention"
     assert "predictive_hierarchy" in payload["implemented_subsystems"]
-    assert "speech_source_doa_guided_attention" in payload["implemented_subsystems"]
+    assert "commanded_active_attention" in payload["implemented_subsystems"]
+    assert "offline_corpus_evaluation" in payload["implemented_subsystems"]
     assert "analysis_by_synthesis" in payload["planned_subsystems"]
     assert "non_speech_source_localization" in payload["planned_subsystems"]
     assert (
@@ -378,3 +379,39 @@ def test_simulate_sequence_command_accepts_delayed_recovery_family_override() ->
     assert payload["emitted_event_count"] == 2
     assert payload["focus_path"] == ["front_left", "rear_right"]
     assert payload["focus_transitions"] == ["front_left->rear_right"]
+
+
+def test_eval_corpus_command_runs_offline_smoke(tmp_path) -> None:
+    env = os.environ.copy()
+    env["PYTHONPATH"] = "src"
+
+    (tmp_path / "clip01.wav").write_bytes(b"RIFF")
+    label_csv = tmp_path / "labels.csv"
+    label_csv.write_text(
+        "clip_id,start_s,end_s,label\n"
+        "clip01,0.0,1.0,salient_speech\n"
+        "clip01,1.0,2.0,non_speech\n"
+    )
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "cora_infans",
+            "--eval-corpus",
+            "--root",
+            str(tmp_path),
+            "--label-csv",
+            str(label_csv),
+        ],
+        capture_output=True,
+        check=True,
+        text=True,
+        env=env,
+    )
+
+    payload = json.loads(result.stdout)
+    assert payload["clip_loaded"] == 1
+    assert payload["clip_count"] == 1
+    assert payload["total_frames"] == 4  # two intervals * (on + quiet) frames
+    assert payload["per_clip"][0]["clip_id"] == "clip01"
