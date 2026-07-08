@@ -254,6 +254,20 @@ def main(argv: list[str] | None = None) -> int:
         except (ValueError, LiveMicError) as exc:
             print(str(exc), file=sys.stderr)
             return 2
+    if args and args[0] in ("--snapshot-firmware", "--tune-raw-linear"):
+        from .io.hardware_tuner import HardwareTuner, HardwareTunerError
+
+        try:
+            tuner = HardwareTuner()
+            if args[0] == "--tune-raw-linear":
+                result = {"applied": tuner.apply_raw_linear(), "snapshot": tuner.snapshot()}
+            else:
+                result = {"snapshot": tuner.snapshot()}
+            print(json.dumps(result))
+            return 0
+        except (HardwareTunerError, Exception) as exc:  # noqa: BLE001
+            print(str(exc), file=sys.stderr)
+            return 2
 
     print(
         "usage: python -m cora_infans --describe | --simulate-frame | --simulate-sequence "

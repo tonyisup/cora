@@ -22,6 +22,8 @@ Implemented today
 - `python3 -m cora_infans --simulate-sequence --family multi_gap`
 - `python3 -m cora_infans --capture-live [--device :0] [--duration-ms N]`
 - `python3 -m cora_infans --simulate-sequence --family sweep --with-scheduling`
+- `python3 -m cora_infans --snapshot-firmware`
+- `python3 -m cora_infans --tune-raw-linear` (volatile: AGC off + NS floors 0)
 - `python3 -m cora_infans --listen-live --duration-ms N --frame-ms N --with-stimulus --with-scheduling`
 - parameterized single-frame simulation CLI with structured report output
 - reusable simulation helpers for future training/eval scripts
@@ -35,10 +37,12 @@ Implemented today
 - live XVF3800 hardware front end (`src/cora_infans/io/live_mic.py`): captures real frames via ffmpeg/avfoundation, lowers to AudioFrame, runs through the same pipeline; no synthetic fallback
 - continuous live listener (`src/cora_infans/io/live_listener.py`): accumulates focus-path / dropout / recovery tracking over a real-time window; optional parentese stimulus plays to External Headphones (audiotoolbox device 2) so the mic has a controlled acoustic target
 - theta-gamma workspace scheduling (`src/cora_infans/theta_gamma.py`): deterministic nested theta-cycle / gamma-subwindow temporal-binding layer over the event stream (5 Hz theta windows, 40 Hz gamma bins, bounded residency); models VISION.md's multiplexing claim without inventing neurophysics
+- XVF3800 hardware tuner (`src/cora_infans/io/hardware_tuner.py`): real on-chip DSP control over USB vendor control transfers (pyusb/libusb) — asserts AGC off, drives noise-suppression floors to 0 for linear capture, and enables manual beam steering (the "acoustic laser") by writing fixed-beam azimuths; every write verified by read-back; volatile only (no reboot/save)
+- linearity calibration probe (`src/cora_infans/io/calibration.py`): measures captured RMS across graded stimulus levels factory-vs-raw-linear to verify the tuning yields a more linear channel-energy <-> acoustic-pressure relationship
 
 Not implemented yet
-- live ReSpeaker XMOS XVF3800 hardware integration (first slice landed: real capture + saliency gate; no beamforming/multi-mic fusion yet)
-- real multi-mic fusion / beamforming
+- live ReSpeaker XMOS XVF3800 hardware integration (real capture, saliency gate, stimulus loop, AND on-chip DSP tuning all landed)
+- real multi-mic fusion / beamforming beyond the single fixed-beam steer (board fuses 4 mics -> 2 USB channels; manual steer of the one fixed beam is supported, true per-mic array beamforming is not)
 - deeper predictive-coding hierarchy beyond one frequency residual + one focus-trajectory level
 - theta-gamma workspace scheduling (deterministic scheduler implemented; not yet the default report path for all runs)
 - motor-plan / speech synthesis loop

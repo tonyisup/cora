@@ -144,3 +144,47 @@ python -m cora_infans --simulate-sequence --family multi_gap --with-scheduling
 python -m cora_infans --listen-live --duration-ms 2500 --frame-ms 250 \
     --with-stimulus --with-scheduling   # requires XVF3800 + External Headphones
 ```
+
+---
+
+## Addendum — XVF3800 hardware tuner (same session, later)
+
+The user pointed to the Seeed Python SDK wiki, which revealed the control interface
+is a **USB vendor control transfer** (VID 0x2886, PID 0x001A; `pyusb` + `libusb`),
+NOT the CDC serial port (which does not expose a console on this firmware — confirmed
+by probing all standard bauds, zero response).
+
+**Verified parameter surface** (enumerated via `xvf_host.py --list`, firmware 2.0.6):
+- `PP_AGCONOFF` — Automatic Gain Control (0 off / 1 on).
+- `PP_MIN_NS` — stationary noise-suppression gain floor [0..1].
+- `PP_MIN_NN` — non-stationary noise-suppression gain floor [0..1].
+- `AEC_FIXEDBEAMSONOFF` — fixed-beam (manual steer) mode enable.
+- `AEC_FIXEDBEAMSAZIMUTH_VALUES` — beam azimuths in radians (the "acoustic laser").
+
+**Real measured factory state:** `PP_AGCONOFF=[0]` (AGC already off), `PP_MIN_NS=[0.15]`,
+`PP_MIN_NN=[0.51]` (non-stationary NS aggressively suppressing transients — exactly the
+"conference speakerphone" behavior the brief warned about), `AEC_HPFONOFF=[2]` (HPF on).
+
+**What was built & verified on hardware:**
+- `src/cora_infans/io/hardware_tuner.py` — `HardwareTuner` reads/writes the verified
+  param table; every write is verified by immediate read-back; rejects unknown/read-only/
+  protected (REBOOT/SAVE) params; volatile only (reverts on reboot, never persists).
+- `apply_raw_linear()` drove `PP_MIN_NS: 0.15→0.0`, `PP_MIN_NN: 0.51→0.0` (verified).
+- `steer_to(90°)` → azimuth read-back `[1.571, 0.0]`, `AEC_FIXEDBEAMSONOFF=[1]` (verified);
+  `release_beam()` → `[0]` (verified). The top-down "acoustic laser" loop is real.
+- `src/cora_infans/io/calibration.py` — `calibrate_linearity()` sweeps graded stimulus
+  levels and records captured RMS factory-vs-raw-linear. **Result:** factory NS compresses
+  the top of the range (levels 0.7 and 1.0 both → ~0.66 RMS); raw-linear removes that
+  firmware compression (0.4 stimulus jumps from 0.41→0.69). Residual flattening at
+  0.7→1.0 is the mic's analog front-end saturating (~0.67 RMS ceiling) — a HARDWARE
+  limit, honestly reported, not a firmware fix.
+
+**Honesty notes:**
+- The board's CDC serial port (`/dev/cu.usbmodem101`) is NOT a control console; all
+  tuning goes through USB vendor requests. No serial "tuner" was fabricated.
+- We only ever write params the firmware exposes; the SDK's full table was the source of
+  truth. No invented param names.
+- Tuning is volatile; board was restored to factory NS floors after the calibration run.
+
+**Tests:** `tests/test_hardware_tuner.py` (7, mock-backend) + `tests/test_calibration.py`
+(hardware-gated). Full suite after this work: **73 passed**.

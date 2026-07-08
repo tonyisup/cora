@@ -55,8 +55,24 @@ Current module responsibilities
     FFT peak -> dominant_frequency_hz)
   - reports the device's true channel count (2 fused channels at the macOS layer,
     not 4 labeled mics); never fabricates phantom channels
-  - raises `LiveMicError` if ffmpeg is missing or the device cannot be opened --
-    no silent synthetic fallback
+- `src/cora_infans/io/hardware_tuner.py` — XVF3800 on-chip DSP control
+  - `HardwareTuner` talks to the board over **USB vendor control transfers**
+    (VID 0x2886, PID 0x001A; pyusb + libusb), NOT the CDC serial port (which is not a
+    console on this firmware). The verified param table was enumerated from Seeed's
+    `xvf_host.py --list`.
+  - `apply_raw_linear()` asserts AGC off and drives noise-suppression floors
+    (`PP_MIN_NS`, `PP_MIN_NN`) to 0 so channel energies stay linear with acoustic
+    pressure; `steer_to(deg)` enables fixed-beam mode and points the beam at a top-down
+    selected azimuth (the "acoustic laser").
+  - every write is verified by immediate read-back; unknown/read-only/protected
+    (REBOOT/SAVE_CONFIGURATION) params are rejected; all writes are VOLATILE (revert on
+    reboot) so tuning experiments cannot persistently mutate or brick the board
+- `src/cora_infans/io/calibration.py` — linearity calibration probe
+  - `calibrate_linearity()` plays graded stimulus tones (via External Headphones) and
+    records captured RMS factory-vs-raw-linear to verify the tuning yields a more linear
+    channel-energy <-> acoustic-pressure relationship (real hardware measurement)
+  - `LiveMicArray` raises `LiveMicError` if ffmpeg is missing or the device cannot be
+    opened -- no silent synthetic fallback
   - `build_live_frame_report` is the single integration point with the pipeline,
     so a live capture and a synthetic frame exercise identical runtime code
 
