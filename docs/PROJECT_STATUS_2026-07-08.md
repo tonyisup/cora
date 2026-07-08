@@ -471,3 +471,48 @@ just when `--with-scheduling` is passed.
 `build_sequence_report` includes `theta_gamma` by default and can still omit it
 via `with_scheduling=False`; the CLI sequence smoke asserts `theta_gamma` is
 present. No regressions in the 102 prior tests.
+
+## Addendum 10 — Option C: motor-plan / analysis-by-synthesis loop
+
+Implemented the perception→production bridge VISION.md calls "Analysis by
+Synthesis": a heard vowel is mapped into internal motor coordinates and
+re-synthesized. Per the project's honesty rule, this is a *mechanism* with a
+fixed, documented formant map — NOT a learned or biologically-faithful vocal
+tract.
+
+- `src/cora_infans/io/motor_plan.py`
+  - `VOWEL_FORMANTS_HZ` / `ANALYSIS_BY_SYNTHESIS_TABLE` — fixed adult-speaker
+    formant targets (F1/F2/F3, Hillenbrand et al. 1995). Production and
+    perception share this one coordinate system (the "motor coordinate
+    trajectory").
+  - `VowelArticulation` / `FormantTarget` — the internal motor-coordinate
+    representation of a vowel; `from_vowel()` is an exact table lookup.
+  - `synthesize_vowel()` — parallel-formant source-filter toy synthesizer: a
+    band-limited glottal pulse drives three resonators (F1/F2/F3) in parallel,
+    followed by a lip-radiation high-pass. Returns a float32 mono WAV. Explicitly
+    a plausible vowel generator for the loop, not a claim of vocal-tract fidelity.
+  - `analyze_vowel()` — real LPC spectral-envelope formant estimator over the
+    waveform; maps the estimated formants to the nearest vowel via the table.
+    F1 is the reliably-resolved feature; F2/F3 enter only as a small tie-breaker.
+  - `MotorPlanner` — the DIVA-style closure: `plan_from_analysis()` maps a
+    perceived vowel to its table-anchored motor plan; `plan_wav()` re-synthesizes
+    that target. `write_wav()` dumps float32 → 16-bit PCM.
+- CLI `python3 -m cora_infans --synthesize-vowel a --out /tmp/a.wav
+  [--duration-ms N] [--sample-rate N] [--f0-hz F] [--analyze]`. With `--analyze`
+  it reads the written WAV back, runs perception, and re-derives the motor plan,
+  closing the loop in one command.
+- `io/__init__.py` now exports the motor-plan surface; `describe()` lists
+  `motor_plan_synthesis` under implemented subsystems.
+
+**Validation:** `pytest tests -q` → 114 passed (was 104; +9 `test_motor_plan.py`
+unit tests +1 CLI smoke). End-to-end CLI run produced `/tmp/cora_vowel_a.wav`
+(4800 samples @ 16 kHz), wrote the formant target, read it back, and re-derived a
+motor plan — the analysis-by-synthesis loop executes without hardware.
+
+**Honest boundary (do not overclaim):** the toy source-filter synthesizer
+resolves F1 robustly, but its LPC envelope does not separate F2/F3 cleanly, so
+perfect 5-vowel acoustic recovery is NOT claimed. The loop is *demonstrated*
+(end-to-end synthesis→perception→re-plan), and the table-anchored inverse map is
+genuinely correct; the acoustic fidelity ceiling is documented in the module
+docstring and tests. This matches the VISION.md directive: build the mechanism,
+don't fake biological depth.

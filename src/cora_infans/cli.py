@@ -17,6 +17,14 @@ from .simulation import (
     build_simulation_report,
 )
 from .io.synthetic_stream import build_synthetic_corpus_frames
+from .io.motor_plan import (  # noqa: E402
+    ANALYSIS_BY_SYNTHESIS_TABLE,
+    VOWEL_FORMANTS_HZ,
+    MotorPlanner,
+    analyze_vowel,
+    synthesize_vowel,
+    write_wav,
+)
 
 
 OutputMode = str
@@ -37,10 +45,10 @@ def describe() -> dict[str, object]:
             "xvf3800_hardware_tuner",
             "commanded_active_attention",
             "offline_corpus_evaluation",
+            "motor_plan_synthesis",
         ],
 
         "planned_subsystems": [
-            "analysis_by_synthesis",
             "non_speech_source_localization",
             "training_and_evaluation_harnesses",
             "general_user_authored_sequences",
@@ -299,6 +307,102 @@ def eval_corpus(args: list[str] | None = None) -> dict[str, object]:
     return report
 
 
+def synthesize_vowel_cli(args: list[str] | None = None) -> dict[str, object]:
+    """Option C CLI: synthesize a vowel (motor-plan production) to a WAV file.
+
+    Usage: --synthesize-vowel a --out /tmp/a.wav [--duration-ms N]
+           [--sample-rate N] [--f0-hz F] [--analyze]
+
+    If ``--analyze`` is given, the written WAV is read back and analyzed
+    (perception) so the analysis-by-synthesis loop is closed in one command.
+    """
+    parsed = args or ["--synthesize-vowel", "a"]
+    vowel: str | None = None
+    out_path: str | None = None
+    duration_ms = 250
+    sample_rate = 16000
+    f0_hz = 110.0
+    analyze = False
+    i = 0
+    while i < len(parsed):
+        option = parsed[i]
+        if option == "--analyze":
+            analyze = True
+            i += 1
+            continue
+        if i + 1 >= len(parsed):
+            raise ValueError(f"missing value for {option}")
+        value = parsed[i + 1]
+        if option == "--synthesize-vowel":
+            vowel = value
+        elif option == "--out":
+            out_path = value
+        elif option == "--duration-ms":
+            try:
+                duration_ms = int(value)
+            except ValueError as exc:
+                raise ValueError("invalid duration") from exc
+        elif option == "--sample-rate":
+            try:
+                sample_rate = int(value)
+            except ValueError as exc:
+                raise ValueError("invalid sample rate") from exc
+        elif option == "--f0-hz":
+            try:
+                f0_hz = float(value)
+            except ValueError as exc:
+                raise ValueError("invalid f0") from exc
+        else:
+            raise ValueError(f"unknown option: {option}")
+        i += 2
+
+    if vowel is None:
+        raise ValueError("--synthesize-vowel is required")
+    if vowel not in VOWEL_FORMANTS_HZ:
+        raise ValueError(f"unknown vowel: {vowel!r}")
+    if out_path is None:
+        raise ValueError("--out WAV path is required")
+
+    wav = synthesize_vowel(
+        vowel,  # type: ignore[arg-type]
+        duration_ms=duration_ms,
+        sample_rate=sample_rate,
+        f0_hz=f0_hz,
+    )
+    write_wav(out_path, wav, sample_rate)
+
+    report: dict[str, object] = {
+        "vowel": vowel,
+        "out": out_path,
+        "samples": len(wav),
+        "sample_rate": sample_rate,
+        "formant_target_hz": list(VOWEL_FORMANTS_HZ[vowel]),  # type: ignore[index]
+        "motor_plan": ANALYSIS_BY_SYNTHESIS_TABLE[vowel],  # type: ignore[index]
+    }
+    if analyze:
+        import wave
+
+        with wave.open(out_path, "rb") as w:
+            frames = w.readframes(w.getnframes())
+            import numpy as np
+
+            pcm = (
+                np.frombuffer(frames, dtype="<i2").astype(np.float32) / 32767.0
+            )
+        feat = analyze_vowel(pcm, sample_rate=sample_rate)
+        report["perceived_formants_hz"] = list(feat.formant_hz)
+        report["perceived_nearest_vowel"] = feat.nearest_vowel
+        planner = MotorPlanner()
+        plan = planner.plan_from_analysis(feat)
+        report["motor_plan_from_perception"] = {
+            "vowel": plan.vowel,
+            "f1_hz": plan.f1_hz,
+            "f2_hz": plan.f2_hz,
+            "f3_hz": plan.f3_hz,
+        }
+    return report
+
+
 def main(argv: list[str] | None = None) -> int:
     args = argv if argv is not None else sys.argv[1:]
     if args == ["--describe"]:
@@ -342,6 +446,13 @@ def main(argv: list[str] | None = None) -> int:
         except ValueError as exc:
             print(str(exc), file=sys.stderr)
             return 2
+    if args and args[0] == "--synthesize-vowel":
+        try:
+            print(json.dumps(synthesize_vowel_cli(args)))
+            return 0
+        except ValueError as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
     if args and args[0] in ("--snapshot-firmware", "--tune-raw-linear"):
         from .io.hardware_tuner import HardwareTuner, HardwareTunerError
 
@@ -362,7 +473,9 @@ def main(argv: list[str] | None = None) -> int:
         "[--timestamp-ms N --dominant-frequency-hz F --channel-energies a,b,c,d --initial-prediction-hz F --mic-geometry l0,l1,l2,l3 --saliency-threshold F --output json|pretty] "
         "[--family sweep|zigzag|gap|multi_gap|delayed_recovery] [--with-scheduling] "
         "[--capture-live [--device :0] [--duration-ms N]] "
-        "[--listen-live [--duration-ms N] [--frame-ms N] [--with-stimulus] [--with-attention] [--with-scheduling]]",
+        "[--listen-live [--duration-ms N] [--frame-ms N] [--with-stimulus] [--with-attention] [--with-scheduling]] "
+        "[--eval-corpus --root DIR --label-csv FILE [--saliency-threshold F] [--frame-ms N]] "
+        "[--synthesize-vowel a|e|i|o|u --out PATH.wav [--duration-ms N] [--sample-rate N] [--f0-hz F] [--analyze]]",
         file=sys.stderr,
     )
     return 2

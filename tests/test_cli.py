@@ -24,7 +24,7 @@ def test_describe_command_prints_json_summary() -> None:
     assert "predictive_hierarchy" in payload["implemented_subsystems"]
     assert "commanded_active_attention" in payload["implemented_subsystems"]
     assert "offline_corpus_evaluation" in payload["implemented_subsystems"]
-    assert "analysis_by_synthesis" in payload["planned_subsystems"]
+    assert "motor_plan_synthesis" in payload["implemented_subsystems"]
     assert "non_speech_source_localization" in payload["planned_subsystems"]
     assert (
         payload["verdicts"]["source_localization"]
@@ -418,3 +418,38 @@ def test_eval_corpus_command_runs_offline_smoke(tmp_path) -> None:
     assert payload["clip_count"] == 1
     assert payload["total_frames"] == 4  # two intervals * (on + quiet) frames
     assert payload["per_clip"][0]["clip_id"] == "clip01"
+
+
+def test_synthesize_vowel_command_writes_wav_and_closes_loop(tmp_path) -> None:
+    env = os.environ.copy()
+    env["PYTHONPATH"] = "src"
+
+    out = tmp_path / "v.wav"
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "cora_infans",
+            "--synthesize-vowel",
+            "a",
+            "--out",
+            str(out),
+            "--duration-ms",
+            "200",
+            "--analyze",
+        ],
+        capture_output=True,
+        check=True,
+        text=True,
+        env=env,
+    )
+
+    payload = json.loads(result.stdout)
+    assert payload["vowel"] == "a"
+    assert payload["out"] == str(out)
+    assert out.exists()
+    # --analyze closes the loop: perception + motor-plan re-derivation present.
+    assert "perceived_formants_hz" in payload
+    assert payload["perceived_nearest_vowel"] in ("a", "e", "i", "o", "u")
+    assert payload["motor_plan_from_perception"]["vowel"] == payload["perceived_nearest_vowel"]
+

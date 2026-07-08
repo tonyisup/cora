@@ -46,7 +46,7 @@ Not implemented yet
 - real multi-mic fusion / beamforming beyond the single fixed-beam steer (board fuses 4 mics -> 2 USB channels; manual steer of the one fixed beam is supported, true per-mic array beamforming is not)
 - deeper predictive-coding hierarchy beyond one frequency residual + one focus-trajectory level
 - theta-gamma workspace scheduling (deterministic scheduler implemented; now the default report path for all runs, opt-out via `with_scheduling=False`)
-- motor-plan / speech synthesis loop
+- motor-plan / speech synthesis loop (`src/cora_infans/io/motor_plan.py`): Option C — the analysis-by-synthesis bridge. Vowels map to a fixed 3-D formant (F1/F2/F3) articulatory target table (Hillenbrand et al. 1995); `synthesize_vowel()` is a parallel-formant source-filter toy synthesizer (glottal pulse + F1/F2/F3 resonators, not a biological-vocal-tract claim); `analyze_vowel()` is a real LPC formant estimator over the waveform; `MotorPlanner` closes the loop by mapping a perceived vowel back to its table-anchored motor-coordinate plan and re-synthesizing it. CLI: `python3 -m cora_infans --synthesize-vowel a --out /tmp/a.wav [--analyze]`. Honest limit: the toy synthesizer resolves F1 robustly and F2/F3 are at the edge of its envelope resolution, so full 5-vowel acoustic recovery is not claimed — the loop is demonstrated, not fabricated.
 - training and evaluation harnesses over real audio corpora
 - general user-authored sequence format
 
