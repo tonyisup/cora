@@ -67,6 +67,10 @@ PARAMETERS: dict[str, ParamSpec] = {
         "AEC_FIXEDBEAMSAZIMUTH_VALUES", 33, 81, 2, "radians", "rw"
     ),
     "AEC_FIXEDBEAMSGATING": ParamSpec("AEC_FIXEDBEAMSGATING", 33, 83, 1, "uint8", "rw"),
+    "DOA_VALUE": ParamSpec("DOA_VALUE", 20, 18, 2, "float", "ro"),
+    "AUDIO_MGR_SELECTED_AZIMUTHS": ParamSpec(
+        "AUDIO_MGR_SELECTED_AZIMUTHS", 35, 11, 2, "radians", "ro"
+    ),
     "PP_AGCONOFF": ParamSpec("PP_AGCONOFF", 17, 10, 1, "int32", "rw"),
     "PP_AGCMAXGAIN": ParamSpec("PP_AGCMAXGAIN", 17, 11, 1, "float", "rw"),
     "PP_AGCDESIREDLEVEL": ParamSpec("PP_AGCDESIREDLEVEL", 17, 12, 1, "float", "rw"),
@@ -80,6 +84,14 @@ _PROTECTED = {"REBOOT", "SAVE_CONFIGURATION", "CLEAR_CONFIGURATION"}
 
 class HardwareTunerError(Exception):
     """Raised on any unsupported, read-only, or unverified tuner operation."""
+
+
+@dataclass
+class DoAReading:
+    """Firmware Direction-of-Arrival reading (true 360 deg localization)."""
+
+    azimuth_deg: float
+    speech_detected: bool
 
 
 def _resolve_backend() -> Any:
@@ -154,6 +166,8 @@ class HardwareTuner:
         spec = self._spec(name, allow_write=False)
         if spec.type in ("uint8", "char"):
             size = spec.length + 1
+        elif spec.type == "uint16":
+            size = spec.length * 2 + 1
         else:
             size = spec.length * 4 + 1
         resp = self._dev.ctrl_transfer(
@@ -168,6 +182,11 @@ class HardwareTuner:
         )
         raw = bytes(resp)
         # Status-byte retry loop (mirrors Seeed xvf_host.py ground truth).
+        # Status 64 = SERVICER_COMMAND_RETRY -> re-read. Status 66 is the
+        # firmware's normal "data present" code for the localization params
+        # (DOA_VALUE / selected azimuths) on 2.0.6; the Seeed SDK ignores the
+        # status byte entirely and decodes the payload, so we accept 0 AND 66
+        # as valid data. Other non-zero statuses are treated as errors.
         attempts = 0
         while raw[0] == 64 and attempts < 100:  # SERVICER_COMMAND_RETRY
             attempts += 1
@@ -186,7 +205,7 @@ class HardwareTuner:
                     2000,
                 )
             )
-        if raw[0] != 0:
+        if raw[0] not in (0, 66):
             raise HardwareTunerError(
                 f"read {name} returned status {raw[0]} (not success)"
             )
@@ -264,3 +283,33 @@ class HardwareTuner:
             "AEC_HPFONOFF",
         ]
         return {k: self.read(k) for k in keys}
+
+    def read_doa(self) -> "DoAReading":
+        """Read the firmware's native Direction-of-Arrival (true 360 deg).
+
+        The XVF3800 localizes using all 4 of its mics internally; this is the
+        board's REAL bearing estimate (0..359 deg), independent of the 2 fused
+        USB channels our capture stream sees. `speech_detected` is the firmware's
+        own voice-activity flag -- the DoA is only meaningful when it is True.
+
+        NOTE on the firmware wire format (firmware 2.0.6): DOA_VALUE is served
+        as a 2-float payload [azimuth_rad, flag] with status byte 66 (NOT 0).
+        The Seeed SDK decodes the payload ignoring status; we mirror that. So
+        raw[0] = azimuth in RADIANS (convert to degrees), raw[1] = speech flag
+        (non-zero => detected).
+        """
+        raw = self.read("DOA_VALUE")  # [azimuth_rad, flag]
+        azimuth_rad = float(raw[0]) if len(raw) > 0 else 0.0
+        speech = bool(raw[1]) if len(raw) > 1 else False
+        azimuth_deg = (math.degrees(azimuth_rad) % 360 + 360) % 360
+        return DoAReading(azimuth_deg=azimuth_deg, speech_detected=speech)
+
+    def read_selected_azimuths(self) -> tuple[float, float]:
+        """Processed azimuths in radians: [processed_DoA, auto_select_beam].
+
+        Returns NAN for a component if neither fixed beam contains speech
+        (per firmware semantics). Useful as a richer localization signal.
+        """
+        vals = self.read("AUDIO_MGR_SELECTED_AZIMUTHS")
+        return (float(vals[0]), float(vals[1]))
+

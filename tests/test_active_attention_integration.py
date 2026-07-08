@@ -62,6 +62,28 @@ def test_closed_loop_disabled_by_default_leaves_no_attention_block():
     assert report["active_attention"] is None
 
 
+def test_closed_loop_uses_firmware_doa_when_available():
+    # _NullTuner.read_doa() returns a deterministic 45deg bearing with speech
+    # detected, so the loop should steer toward 45 (the true DoA), not the
+    # coarse derived L/R estimate.
+    frames = [_frame(0.05, 0.30), _frame(0.04, 0.28)]
+    tuner = _NullTuner()
+    listener = LiveListener(array=_FakeArray(frames), tuner=tuner)
+    report = listener.listen(duration_ms=500, frame_ms=250, with_attention=True)
+    att = report["active_attention"]
+    log = att["attention_log"]
+    assert log
+    # At least one entry should show a DoA reading and steer toward it.
+    doa_entries = [e for e in log if e["doa_azimuth_deg"] is not None]
+    assert doa_entries, "expected DoA readings in the attention log"
+    for e in doa_entries:
+        # Bearing is used even though the (fake) VAD flag is False.
+        assert e["doa_speech_detected"] is False
+        assert e["doa_azimuth_deg"] == 45.0
+        # The beam was steered toward the DoA bearing, not the derived L/R.
+        assert e["steered_to_azimuth_deg"] == 45.0
+
+
 class _RadiansTuner:
     """Mimics HardwareTuner.steer_to: returns firmware azimuth in RADIANS."""
 

@@ -43,7 +43,7 @@ from .active_attention import (
     AttentionConfig,
     derive_target_azimuth,
 )
-from .hardware_tuner import HardwareTuner, HardwareTunerError
+from .hardware_tuner import HardwareTuner, HardwareTunerError, DoAReading
 
 # External Headphones output device index (audiotoolbox), per host enumeration.
 STIMULUS_OUTPUT_DEVICE_INDEX = 2
@@ -74,6 +74,12 @@ class _NullTuner:
     def release_beam(self) -> list[float]:
         self.released = True
         return [0]
+
+    def read_doa(self) -> "DoAReading":
+        # Bus-free stand-in: report a deterministic bearing (front-right) with
+        # speech NOT detected, to prove the loop uses the firmware bearing even
+        # when the VAD flag is False (the real 2.0.6 firmware behaves this way).
+        return DoAReading(azimuth_deg=45.0, speech_detected=False)
 
     @property
     def is_real_hardware(self) -> bool:
@@ -278,7 +284,30 @@ class LiveListener:
                     # 270=left, so fold the signed estimate into that range.
                     target = derive_target_azimuth(frame.channel_energies)
                     steer_azimuth = (target + 360.0) % 360.0
-                    decision = self.governor.propose(steer_azimuth, saliency_score, now_ms)
+                    # Prefer the firmware's native DoA when it yields a real
+                    # bearing (true 360 deg from all 4 mics), falling back to
+                    # the coarse L/R derived estimate otherwise. We do NOT gate
+                    # on the firmware's `speech_detected` flag here: on 2.0.6 it
+                    # stays False for our synthetic stimulus (the VAD doesn't
+                    # classify a tone as speech), but the bearing itself tracks
+                    # the real source. Our own saliency gate already confirms a
+                    # genuine signal, so we use the bearing whenever it is finite.
+                    explicit_doa: float | None = None
+                    doa_speech = False
+                    if hasattr(tuner, "read_doa"):
+                        try:
+                            doa = tuner.read_doa()
+                            doa_speech = doa.speech_detected
+                            az = doa.azimuth_deg
+                            if az == az and 0.0 <= az < 360.0:  # finite + in range
+                                explicit_doa = az
+                        except Exception:
+                            # Non-fatal: fall back to derived target.
+                            explicit_doa = None
+                    decision = self.governor.propose(
+                        steer_azimuth, saliency_score, now_ms,
+                        explicit_target_deg=explicit_doa,
+                    )
                     if decision.acted:
                         # HardwareTuner.steer_to returns the firmware's
                         # azimuth read-back in RADIANS; the governor's world is
@@ -294,7 +323,12 @@ class LiveListener:
                             "frame": i,
                             "now_ms": now_ms,
                             "target_azimuth_deg": round(target, 2),
-                            "steer_azimuth_deg": round(steer_azimuth, 2),
+                            "derived_steer_azimuth_deg": round(steer_azimuth, 2),
+                            "doa_azimuth_deg": (
+                                round(explicit_doa, 2) if explicit_doa is not None else None
+                            ),
+                            "doa_speech_detected": doa_speech,
+                            "steered_to_azimuth_deg": round(decision.proposed_azimuth_deg, 2),
                             "saliency_score": round(saliency_score, 4),
                             "acted": decision.acted,
                             "reason": decision.reason,

@@ -112,8 +112,19 @@ class ActiveAttentionGovernor:
         azimuth_deg: float,
         saliency_score: float,
         now_ms: float,
+        explicit_target_deg: float | None = None,
     ) -> SteerDecision:
-        """Evaluate a candidate target; return whether to act (and why)."""
+        """Evaluate a candidate target; return whether to act (and why).
+
+        `azimuth_deg` is the target used for the gate/deadband/slew math. When
+        the caller has a higher-fidelity bearing (e.g. the firmware's native
+        DoA via `HardwareTuner.read_doa()`), pass it as `explicit_target_deg`;
+        the governor will STEER toward that explicit bearing while still
+        reporting `azimuth_deg` as the fallback estimate. This lets the closed
+        loop chase the board's true 360 deg localization when available, and
+        gracefully fall back to the coarse L/R derived estimate otherwise.
+        """
+        target = explicit_target_deg if explicit_target_deg is not None else azimuth_deg
         elapsed = (
             (now_ms - self._last_steer_ms)
             if self._last_steer_ms is not None
@@ -125,7 +136,7 @@ class ActiveAttentionGovernor:
             decision = SteerDecision(
                 acted=False,
                 reason="below_saliency_gate",
-                proposed_azimuth_deg=azimuth_deg,
+                proposed_azimuth_deg=target,
                 current_azimuth_deg=self.current_azimuth_deg,
                 gaze_error_deg=self.gaze_error_deg,
                 elapsed_since_last_steer_ms=elapsed,
@@ -134,12 +145,12 @@ class ActiveAttentionGovernor:
             return decision
 
         # 2. Spatial deadband.
-        delta = _angular_delta(azimuth_deg, self.current_azimuth_deg)
+        delta = _angular_delta(target, self.current_azimuth_deg)
         if delta < self.config.deadband_deg:
             decision = SteerDecision(
                 acted=False,
                 reason="within_deadband",
-                proposed_azimuth_deg=azimuth_deg,
+                proposed_azimuth_deg=target,
                 current_azimuth_deg=self.current_azimuth_deg,
                 gaze_error_deg=delta,
                 elapsed_since_last_steer_ms=elapsed,
@@ -154,7 +165,7 @@ class ActiveAttentionGovernor:
                 decision = SteerDecision(
                     acted=False,
                     reason="slew_limited",
-                    proposed_azimuth_deg=azimuth_deg,
+                    proposed_azimuth_deg=target,
                     current_azimuth_deg=self.current_azimuth_deg,
                     gaze_error_deg=delta,
                     elapsed_since_last_steer_ms=elapsed,
@@ -163,12 +174,12 @@ class ActiveAttentionGovernor:
                 return decision
 
         # Passed all gates: this is a real, justified saccade.
-        self.target_azimuth_deg = azimuth_deg
+        self.target_azimuth_deg = target
         self.gaze_error_deg = delta
         decision = SteerDecision(
             acted=True,
             reason="steer",
-            proposed_azimuth_deg=azimuth_deg,
+            proposed_azimuth_deg=target,
             current_azimuth_deg=self.current_azimuth_deg,
             gaze_error_deg=delta,
             elapsed_since_last_steer_ms=elapsed,

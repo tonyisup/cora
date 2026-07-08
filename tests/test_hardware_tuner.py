@@ -1,5 +1,7 @@
 """Tests for the XVF3800 hardware tuner (mock USB backend, no hardware)."""
 
+import pytest
+
 from cora_infans.io.hardware_tuner import (
     HardwareTuner,
     HardwareTunerError,
@@ -23,6 +25,9 @@ class _MockDevice:
         self.store[(33, 83)] = [0]          # AEC_FIXEDBEAMSGATING = 0
         self.store[(33, 1)] = [0]           # AEC_HPFONOFF = 0
         self.store[(48, 0)] = [2, 0, 6]     # VERSION
+        # DOA_VALUE length 2 float: [azimuth_rad, speech_flag]
+        import math
+        self.store[(20, 18)] = [math.radians(315.0), 1.0]  # DoA=315deg, speech detected
 
     def ctrl_transfer(self, bm_request_type, b_request, w_value, w_index, data_or_length, timeout=None):
         import struct
@@ -122,6 +127,16 @@ def test_protected_commands_rejected() -> None:
             assert False, f"expected rejection of {name}"
         except HardwareTunerError:
             pass
+
+
+def test_read_doa_decodes_true_bearing_and_speech_flag() -> None:
+    from cora_infans.io.hardware_tuner import DoAReading
+
+    t = _tuner()
+    doa = t.read_doa()
+    assert isinstance(doa, DoAReading)
+    assert doa.azimuth_deg == pytest.approx(315.0, abs=0.01)
+    assert doa.speech_detected is True
 
 
 def test_unknown_and_readonly_params_rejected() -> None:

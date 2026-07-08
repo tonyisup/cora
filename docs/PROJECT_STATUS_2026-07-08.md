@@ -227,3 +227,39 @@ by probing all standard bauds, zero response).
 +**Tests:** `tests/test_active_attention.py` (7, pure) + `tests/test_active_attention_
 +integration.py` (2, fake array + radians fake). Full suite after this work:
 +**83 passed**.
++
++## Addendum 3 — True Direction-of-Arrival (firmware 4-mic localization)
++
++Upgraded the gaze loop from coarse 2-channel L/R to the XVF3800's NATIVE DoA.
++The SDK exposes `DOA_VALUE` (RESID 20, CMDID 18) and `AUDIO_MGR_SELECTED_AZIMUTHS`
++(RESID 35, CMDID 11): the firmware localizes using all 4 mics internally and
++serves a true 0..359 deg bearing -- independent of the 2 fused USB channels our
++capture stream sees. Added both to the tuner table; `read_doa()` returns a
++`DoAReading(azimuth_deg, speech_detected)`. The governor's `propose()` gained an
++`explicit_target_deg` arg; `LiveListener` now reads `tuner.read_doa()` each salient
++frame and steers toward the firmware bearing (overriding the derived L/R).
++
++**Real hardware verification:** `--listen-live --with-stimulus --with-attention`
++read `doa: 29.22` and steered the beam there, overriding the derived L/R estimate
++(~321 deg). The acoustic laser now chases the board's own 4-mic localization.
++
++**Three honesty bugs found and fixed during this work (the live run, again,
++caught what the fake tests masked):**
++1. `DOA_VALUE` size formula was wrong for uint16 (requested 17 bytes). Fixed to
++   `length*2+1`.
++2. `DOA_VALUE` is actually a 2-float payload [azimuth_rad, flag] served with
++   status byte **66** -- NOT uint16 and NOT status 0. The Seeed SDK decodes the
++   payload ignoring status; we now accept status 0 AND 66 as "data present"
++   (retry only on 64). Decoding as uint16 produced garbage; corrected to float.
++3. The firmware's `speech_detected` flag stays False on our synthetic stimulus
++   (its VAD doesn't classify a tone as speech). We therefore use the DoA bearing
++   whenever it is finite, NOT gated on the speech flag -- our own saliency gate
++   already confirms a real signal. The flag is logged for transparency only.
++
++**Honest status of DoA:** the bearing (0..359 deg) is real and tracked the source
++correctly; the firmware VAD speech flag is unavailable for synthetic stimuli but
++is redundant with our saliency gate, so it does not limit the loop.
++
++**Tests:** +2 tuner (mock DoA decode) + 2 governor (explicit-target override +
++fallback) + 1 integration (DoA preferred even when VAD flag False). Full suite:
++**87 passed**.
