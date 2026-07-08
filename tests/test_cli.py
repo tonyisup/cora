@@ -420,6 +420,40 @@ def test_eval_corpus_command_runs_offline_smoke(tmp_path) -> None:
     assert payload["per_clip"][0]["clip_id"] == "clip01"
 
 
+def test_self_suppression_command_reports_svsr_without_live_playback() -> None:
+    env = os.environ.copy()
+    env["PYTHONPATH"] = "src"
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "cora_infans",
+            "--simulate-self-suppression",
+            "--vowel",
+            "a",
+            "--world-vowel",
+            "o",
+            "--world-gain",
+            "0.25",
+        ],
+        capture_output=True,
+        check=True,
+        text=True,
+        env=env,
+    )
+
+    payload = json.loads(result.stdout)
+    assert payload["mode"] == "simulation_only_signal_self_suppression"
+    assert payload["live_playback"] is False
+    assert payload["vowel"] == "a"
+    assert payload["world_vowel"] == "o"
+    assert payload["svsr_db"] > 3.0
+    assert payload["residual_rms"] < payload["observed_rms"]
+    assert payload["verdict"] in ("self_suppressed", "partial_suppression")
+
+
+
 def test_synthesize_vowel_command_writes_wav_and_closes_loop(tmp_path) -> None:
     env = os.environ.copy()
     env["PYTHONPATH"] = "src"

@@ -12,6 +12,14 @@ from .motor_plan import (
     synthesize_vowel,
     write_wav,
 )
+from .self_suppression import (
+    SelfSuppressionParams,
+    compute_svsr_db,
+    mix_observed,
+    predict_self_pcm,
+    run_self_suppression_trial,
+    spectral_subtract,
+)
 
 __all__ = [
     "LiveMicArray",
@@ -25,4 +33,10 @@ __all__ = [
     "analyze_vowel",
     "VOWEL_FORMANTS_HZ",
     "ANALYSIS_BY_SYNTHESIS_TABLE",
+    "SelfSuppressionParams",
+    "predict_self_pcm",
+    "mix_observed",
+    "spectral_subtract",
+    "compute_svsr_db",
+    "run_self_suppression_trial",
 ]

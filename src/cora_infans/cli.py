@@ -25,6 +25,7 @@ from .io.motor_plan import (  # noqa: E402
     synthesize_vowel,
     write_wav,
 )
+from .io.self_suppression import SelfSuppressionParams, run_self_suppression_trial
 
 
 OutputMode = str
@@ -47,6 +48,7 @@ def describe() -> dict[str, object]:
             "offline_corpus_evaluation",
             "motor_plan_synthesis",
             "theta_gamma_motor_subwindow",
+            "simulation_only_signal_self_suppression",
         ],
 
         "planned_subsystems": [
@@ -410,6 +412,64 @@ def synthesize_vowel_cli(args: list[str] | None = None) -> dict[str, object]:
     return report
 
 
+def simulate_self_suppression_cli(args: list[str]) -> dict[str, object]:
+    vowel = "a"
+    world_vowel: str | None = None
+    sample_rate = 16000
+    duration_ms = 300
+    world_gain = 0.0
+    svsr_pass_db = 20.0
+    i = 1
+    while i < len(args):
+        option = args[i]
+        if i + 1 >= len(args):
+            raise ValueError(f"missing value for {option}")
+        value = args[i + 1]
+        if option == "--vowel":
+            if value not in VOWEL_FORMANTS_HZ:
+                raise ValueError(f"unknown vowel: {value!r}")
+            vowel = value
+        elif option == "--world-vowel":
+            if value not in VOWEL_FORMANTS_HZ:
+                raise ValueError(f"unknown world vowel: {value!r}")
+            world_vowel = value
+        elif option == "--sample-rate":
+            try:
+                sample_rate = int(value)
+            except ValueError as exc:
+                raise ValueError("invalid sample rate") from exc
+        elif option == "--duration-ms":
+            try:
+                duration_ms = int(value)
+            except ValueError as exc:
+                raise ValueError("invalid duration") from exc
+        elif option == "--world-gain":
+            try:
+                world_gain = float(value)
+            except ValueError as exc:
+                raise ValueError("invalid world gain") from exc
+        elif option == "--svsr-pass-db":
+            try:
+                svsr_pass_db = float(value)
+            except ValueError as exc:
+                raise ValueError("invalid SVSR threshold") from exc
+        else:
+            raise ValueError(f"unknown option: {option}")
+        i += 2
+    params = SelfSuppressionParams(
+        sample_rate=sample_rate,
+        duration_ms=duration_ms,
+        world_gain=world_gain,
+        svsr_pass_db=svsr_pass_db,
+    )
+    return run_self_suppression_trial(
+        vowel=vowel,  # type: ignore[arg-type]
+        world_vowel=world_vowel,  # type: ignore[arg-type]
+        params=params,
+    )
+
+
+
 def main(argv: list[str] | None = None) -> int:
     args = argv if argv is not None else sys.argv[1:]
     if args == ["--describe"]:
@@ -460,6 +520,13 @@ def main(argv: list[str] | None = None) -> int:
         except ValueError as exc:
             print(str(exc), file=sys.stderr)
             return 2
+    if args and args[0] == "--simulate-self-suppression":
+        try:
+            print(json.dumps(simulate_self_suppression_cli(args)))
+            return 0
+        except ValueError as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
     if args and args[0] in ("--snapshot-firmware", "--tune-raw-linear"):
         from .io.hardware_tuner import HardwareTuner, HardwareTunerError
 
@@ -482,7 +549,8 @@ def main(argv: list[str] | None = None) -> int:
         "[--capture-live [--device :0] [--duration-ms N]] "
         "[--listen-live [--duration-ms N] [--frame-ms N] [--with-stimulus] [--with-attention] [--with-scheduling] [--with-motor-imitation]] "
         "[--eval-corpus --root DIR --label-csv FILE [--saliency-threshold F] [--frame-ms N]] "
-        "[--synthesize-vowel a|e|i|o|u --out PATH.wav [--duration-ms N] [--sample-rate N] [--f0-hz F] [--analyze]]",
+        "[--synthesize-vowel a|e|i|o|u --out PATH.wav [--duration-ms N] [--sample-rate N] [--f0-hz F] [--analyze]] "
+        "[--simulate-self-suppression [--vowel a|e|i|o|u] [--world-vowel a|e|i|o|u] [--world-gain F] [--duration-ms N] [--sample-rate N]]",
         file=sys.stderr,
     )
     return 2

@@ -660,3 +660,39 @@ corollary-discharge suppression, no-suppression-when-bins-differ, and an
 end-to-end listener test under scheduling). All three user-approved steps
 (Step 1 live loop closure, Step 2 acoustic fidelity, Step 3 theta-gamma
 vocalization) are now implemented and committed.
+
+## Addendum 14 — Simulation-only signal-level self-suppression harness
+
+**Decision:** after cross-checking og-cora's mature corollary-discharge stack,
+we agreed to add the missing signal-level *simulation* bridge now, while
+postponing live playback. This gives cora-infans a real efference→prediction→
+residual→SVSR path without introducing speaker/mic feedback or og-cora's full
+runtime dependency surface.
+
+**What was added:**
+- `src/cora_infans/io/self_suppression.py`: deterministic, numpy-only harness:
+  `predict_self_pcm()` (delay + attenuation + echo room-coloring),
+  `mix_observed()`, `spectral_subtract()` (PCM-domain predicted-self
+  subtraction; intentionally not mel/librosa), `compute_svsr_db()`, and
+  `run_self_suppression_trial()`.
+- CLI: `python -m cora_infans --simulate-self-suppression [--vowel a|e|i|o|u]
+  [--world-vowel a|e|i|o|u] [--world-gain F] ...` emits JSON with
+  `mode=simulation_only_signal_self_suppression`, `live_playback=false`, RMS
+  values, SVSR dB, and verdict (`self_suppressed`, `partial_suppression`, or
+  `not_suppressed`).
+- `io.__init__` exports the self-suppression helpers; `describe()` lists
+  `simulation_only_signal_self_suppression` as implemented.
+
+**Honesty boundary:** this is now signal-level suppression, but still
+simulation-only. It does not play audio and does not listen to the room. The
+forward model is deterministic toy room-coloring, not learned cerebellum
+adaptation; subtraction is PCM-domain rather than og-cora's mel-domain
+Thalamus gate. It is the correct intermediate tier before any live playback
+milestone.
+
+**Validation:** new focused tests assert (1) deterministic room-colored
+prediction from efference PCM, (2) self residual energy drops and SVSR exceeds
+20 dB for self-only simulation, (3) world-only signal is preserved when the
+prediction is empty, (4) mixed self+world leaves a world-correlated residual,
+and (5) the CLI reports SVSR without live playback. Full suite: `pytest tests
+-q` → 131 passed.
