@@ -28,7 +28,7 @@ import tempfile
 import numpy as np
 
 from ..config import CoraInfansConfig
-from ..pipeline import AudioFrame, CoraInfansPipeline
+from ..pipeline import AudioFrame, CoraInfansPipeline, WorkspaceEvent
 from .live_mic import (
     DEFAULT_DEVICE,
     DEFAULT_LIVE_SALIENCY_THRESHOLD,
@@ -461,6 +461,28 @@ class LiveListener:
                         )
                         if trial is not None:
                             motor_imitation_log.append(trial)
+                            # --- Step 3: phase-lock the motor intention into
+                            # the reserved theta-gamma motor sub-window. The
+                            # scheduler models corollary discharge: an external
+                            # salient event landing in the same gamma bin of the
+                            # same cycle is flagged self_suppressed.
+                            if scheduler is not None:
+                                motor_ts = scheduler.reserve_motor_timestamp(now_ms)
+                                motor_event = WorkspaceEvent(
+                                    kind="motor_intention",
+                                    saliency_score=float(
+                                        trial.get("resynth_samples", 0)
+                                    )
+                                    / 1000.0,
+                                    workspace_state={
+                                        "timestamp_ms": motor_ts,
+                                        "perceived_vowel": str(trial.get("perceived_vowel", "")),
+                                        "motor_target_vowel": str(trial.get("motor_target_vowel", "")),
+                                        "source_azimuth_deg": round(float(source_azimuth), 2),
+                                        "frame": i,
+                                    },
+                                )
+                                scheduler.push(motor_event)
 
         if stim_proc is not None:
             try:

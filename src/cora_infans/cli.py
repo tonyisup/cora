@@ -46,6 +46,7 @@ def describe() -> dict[str, object]:
             "commanded_active_attention",
             "offline_corpus_evaluation",
             "motor_plan_synthesis",
+            "theta_gamma_motor_subwindow",
         ],
 
         "planned_subsystems": [

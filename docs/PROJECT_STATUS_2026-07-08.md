@@ -613,3 +613,40 @@ would also enable a cleaner LPC-root formant estimator.
 
 **Validation:** `pytest tests -q` → 119 passed (Step-2 edits did not change
 the count; the motor-plan tests were updated to assert the honest capability).
+
+## Addendum 13 — Step 3: Vocalizations into Theta-Gamma Scheduler
+
+**Goal (user):** integrate the Step-1 motor-plan trial (internal vocalization
+intention) into a dedicated "motor assembly" sub-window within the 5 Hz theta
+frame, modeling corollary discharge / sensory suppression.
+
+**What was changed:**
+- `theta_gamma.py`: added `motor_bin_of()` + `MOTOR_SUBWINDOW_BIN` and a
+  reserved last-gamma-bin sub-window per theta cycle. Scheduler gains
+  `motor_subwindow_bin()`, `reserve_motor_timestamp(now_ms)` (places a token in
+  the motor bin of the current cycle), and corollary-discharge bookkeeping in
+  `push()`: a `motor_intention` event in a gamma bin flags any concurrent
+  `salient_audio` event in the SAME bin of the SAME cycle as
+  `self_suppressed=True` (and vice-versa). The summary reports
+  `motor_subwindow_bin`, `motor_intentions`, `self_suppressed_events`.
+- `live_listener.py`: when a Step-1 speech-frame motor trial fires AND
+  scheduling is on, it pushes a `WorkspaceEvent(kind="motor_intention", ...)`
+  into the scheduler at the reserved motor-bin timestamp, carrying the perceived
+  vowel, motor-target vowel, and source azimuth. No live playback (feedback
+  rule preserved from Step 1).
+- `describe()` lists `theta_gamma_motor_subwindow` as implemented.
+
+**Honesty:** this is faithful scheduling + bookkeeping, NOT invented
+neurophysics. The "corollary discharge" is a deterministic flag on event state
+— the agent marks external audio that coincides with its own vocalization
+intention in the same gamma bin as self-generated and therefore not to be
+re-processed. The mechanism (phase-locked self-generated motor token within a
+theta cycle) is real and testable; the biological claim is explicitly scoped as
+a scheduling interpretation, consistent with the theta_gamma.py module doc.
+
+**Validation:** `pytest tests -q` → 125 passed (was 119; +6
+`test_motor_subwindow.py`: motor bin index, timestamp placement, phase-lock,
+corollary-discharge suppression, no-suppression-when-bins-differ, and an
+end-to-end listener test under scheduling). All three user-approved steps
+(Step 1 live loop closure, Step 2 acoustic fidelity, Step 3 theta-gamma
+vocalization) are now implemented and committed.

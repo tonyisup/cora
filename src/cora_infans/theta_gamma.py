@@ -34,6 +34,19 @@ DEFAULT_THETA_MS = 200
 DEFAULT_GAMMA_MS = 25
 DEFAULT_CAPACITY_CYCLES = 4
 
+# Reserved gamma sub-window for self-generated motor intentions (vocalization
+# trials). It is the LAST gamma bin of each theta cycle, so external salient
+# events (which arrive at their own capture timestamps) and internal motor
+# intentions (placed here deliberately) are cleanly separable within a cycle.
+MOTOR_SUBWINDOW_BIN = -1  # resolved to (theta_ms // gamma_ms) - 1 at runtime
+
+
+def motor_bin_of(theta_ms: int, gamma_ms: int) -> int:
+    """Index of the reserved motor-assembly gamma sub-window in a theta cycle."""
+    if gamma_ms <= 0:
+        raise ValueError("gamma_ms must be positive")
+    return max(0, (theta_ms // gamma_ms) - 1)
+
 
 @dataclass
 class ThetaCycle:
@@ -99,6 +112,21 @@ class ThetaGammaScheduler:
     def _cycle_of(self, timestamp_ms: int) -> int:
         return int(timestamp_ms) // self.theta_ms
 
+    def motor_subwindow_bin(self) -> int:
+        """Reserved gamma-bin index for motor intentions in any theta cycle."""
+        return motor_bin_of(self.theta_ms, self.gamma_ms)
+
+    def reserve_motor_timestamp(self, now_ms: int) -> int:
+        """Return a timestamp placed inside the motor sub-window of the cycle
+        containing ``now_ms`` (used to phase-lock a vocalization trial)."""
+        cycle_idx = self._cycle_of(now_ms)
+        bin_idx = self.motor_subwindow_bin()
+        return cycle_idx * self.theta_ms + bin_idx * self.gamma_ms + (self.gamma_ms // 2)
+
+    def _gamma_bin(self, event: "WorkspaceEvent") -> int:
+        ts = int(event.workspace_state["timestamp_ms"])
+        return (ts % self.theta_ms) // self.gamma_ms
+
     def push(self, event: "WorkspaceEvent") -> None:
         ts = int(event.workspace_state["timestamp_ms"])
         cycle_idx = self._cycle_of(ts)
@@ -106,6 +134,35 @@ class ThetaGammaScheduler:
             self._consolidate_active()
             self._active = ThetaCycle(index=cycle_idx)
         self._active.events.append(event)
+        # Corollary discharge / sensory suppression: a self-generated motor
+        # intention in a gamma bin suppresses any concurrent external
+        # salient-audio event in the SAME bin of the SAME cycle (the agent does
+        # not re-process its own vocalization). Deterministic, no invented
+        # neurophysics -- it is a bookkeeping flag on the event state.
+        self._apply_corollary_discharge(event)
+
+    def _apply_corollary_discharge(self, event: "WorkspaceEvent") -> None:
+        if self._active is None:
+            return
+        new_bin = self._gamma_bin(event)
+        if event.kind == "motor_intention":
+            # Suppress external audio already in this bin.
+            for ev in self._active.events:
+                if (
+                    ev is not event
+                    and ev.kind == "salient_audio"
+                    and self._gamma_bin(ev) == new_bin
+                ):
+                    ev.workspace_state["self_suppressed"] = True
+        elif event.kind == "salient_audio":
+            # If a motor intention already occupies this bin, suppress self.
+            for ev in self._active.events:
+                if (
+                    ev is not event
+                    and ev.kind == "motor_intention"
+                    and self._gamma_bin(ev) == new_bin
+                ):
+                    event.workspace_state["self_suppressed"] = True
 
     def _consolidate_active(self) -> None:
         if self._active is None:
@@ -166,13 +223,29 @@ class ThetaGammaScheduler:
                 stable += 1
         stable_fraction = (stable / (len(dominants) - 1)) if len(dominants) > 1 else 0.0
 
+        motor_intentions = sum(
+            1
+            for c in self._consolidated + ([self._active] if self._active else [])
+            for ev in c.events
+            if ev.kind == "motor_intention"
+        )
+        suppressed = sum(
+            1
+            for c in self._consolidated + ([self._active] if self._active else [])
+            for ev in c.events
+            if ev.workspace_state.get("self_suppressed") is True
+        )
+
         return {
             "theta_ms": self.theta_ms,
             "gamma_ms": self.gamma_ms,
             "capacity_cycles": self.capacity_cycles,
+            "motor_subwindow_bin": self.motor_subwindow_bin(),
             "resident_cycle_count": len(self._consolidated) + (1 if self._active else 0),
             "active_cycle": self.current_cycle_index,
             "active_assembly": self.active_assembly(),
             "binding_stability_fraction": stable_fraction,
+            "motor_intentions": motor_intentions,
+            "self_suppressed_events": suppressed,
             "cycles": cycles_view,
         }
