@@ -4,9 +4,11 @@ import json
 import sys
 from typing import Any
 
+from .io.live_mic import LiveMicError
 from .simulation import (
     SimulationParams,
     build_builtin_sequence_report,
+    build_live_frame_report,
     build_sequence_report,
     build_simulation_report,
 )
@@ -138,6 +140,33 @@ def simulate_sequence(args: list[str] | None = None) -> dict[str, object]:
     return build_builtin_sequence_report(family)
 
 
+def capture_live(args: list[str] | None = None) -> dict[str, object]:
+    from .io.live_mic import DEFAULT_DEVICE, LiveMicArray
+
+    parsed = args or ["--capture-live"]
+    device = DEFAULT_DEVICE
+    duration_ms: int | None = None
+    i = 1
+    while i < len(parsed):
+        option = parsed[i]
+        if i + 1 >= len(parsed):
+            raise ValueError(f"missing value for {option}")
+        value = parsed[i + 1]
+        if option == "--device":
+            device = value
+        elif option == "--duration-ms":
+            try:
+                duration_ms = int(value)
+            except ValueError as exc:
+                raise ValueError("invalid duration") from exc
+        else:
+            raise ValueError(f"unknown option: {option}")
+        i += 2
+
+    array = LiveMicArray(device=device)
+    return build_live_frame_report(array, duration_ms=duration_ms)
+
+
 def main(argv: list[str] | None = None) -> int:
     args = argv if argv is not None else sys.argv[1:]
     if args == ["--describe"]:
@@ -158,6 +187,13 @@ def main(argv: list[str] | None = None) -> int:
             print(json.dumps(simulate_sequence(args)))
             return 0
         except ValueError as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
+    if args and args[0] == "--capture-live":
+        try:
+            print(json.dumps(capture_live(args)))
+            return 0
+        except (ValueError, LiveMicError) as exc:
             print(str(exc), file=sys.stderr)
             return 2
 

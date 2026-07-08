@@ -20,7 +20,7 @@ Implemented today
 - `python3 -m cora_infans --simulate-sequence --family zigzag`
 - `python3 -m cora_infans --simulate-sequence --family gap`
 - `python3 -m cora_infans --simulate-sequence --family multi_gap`
-- `python3 -m cora_infans --simulate-sequence --family delayed_recovery`
+- `python3 -m cora_infans --capture-live [--device :0] [--duration-ms N]`
 - parameterized single-frame simulation CLI with structured report output
 - reusable simulation helpers for future training/eval scripts
 - configurable 4-channel topology labels
@@ -30,9 +30,10 @@ Implemented today
 - sequence-level dropout and recovery summary metadata
 - declarative scenario compiler (`src/cora_infans/scenario.py`) that authors the built-in sequence families and lowers them deterministically into the runtime frame path
 - two-level predictive-coding hierarchy (`PredictiveHierarchy`: frequency residual + focus-trajectory prediction), wired into the pipeline and simulation defaults
+- live XVF3800 hardware front end (`src/cora_infans/io/live_mic.py`): captures real frames via ffmpeg/avfoundation, lowers to AudioFrame, runs through the same pipeline; no synthetic fallback
 
 Not implemented yet
-- live ReSpeaker XMOS XVF3800 hardware integration
+- live ReSpeaker XMOS XVF3800 hardware integration (first slice landed: real capture + saliency gate; no beamforming/multi-mic fusion yet)
 - real multi-mic fusion / beamforming
 - deeper predictive-coding hierarchy beyond one frequency residual + one focus-trajectory level
 - theta-gamma workspace scheduling
@@ -117,6 +118,7 @@ Example sequence report fields
 Current code structure
 - `src/cora_infans/config.py` — runtime config, including channel topology labels
 - `src/cora_infans/io/mic_array.py` — synthetic 4-channel input adapter
+- `src/cora_infans/io/live_mic.py` — live ReSpeaker XVF3800 adapter (ffmpeg/avfoundation), lowers real PCM into the AudioFrame contract; fails loudly if the device/ffmpeg is missing (no synthetic fallback)
 - `src/cora_infans/predictive.py` — minimal predictive residual update
 - `src/cora_infans/saliency.py` — deterministic acoustic saliency reward helper
 - `src/cora_infans/spatial.py` — label-based focus resolution over configured topology

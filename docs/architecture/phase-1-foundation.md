@@ -25,6 +25,18 @@ Current module responsibilities
   - represents the 4-mic array contract without requiring real hardware
   - validates channel count before constructing an `AudioFrame`
 
+- `src/cora_infans/io/live_mic.py`
+  - the real hardware front end for the reSpeaker XMOS XVF3800
+  - pulls a short capture through ffmpeg (avfoundation device `:0`) and lowers
+    real PCM into the `AudioFrame` contract (per-channel RMS -> channel_energies,
+    FFT peak -> dominant_frequency_hz)
+  - reports the device's true channel count (2 fused channels at the macOS layer,
+    not 4 labeled mics); never fabricates phantom channels
+  - raises `LiveMicError` if ffmpeg is missing or the device cannot be opened --
+    no silent synthetic fallback
+  - `build_live_frame_report` is the single integration point with the pipeline,
+    so a live capture and a synthetic frame exercise identical runtime code
+
 - `src/cora_infans/saliency.py`
   - owns the deterministic acoustic saliency reward primitive
   - current behavior: peak channel energy minus mean channel energy, floored at zero

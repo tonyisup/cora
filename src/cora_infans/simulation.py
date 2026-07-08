@@ -8,6 +8,7 @@ from .pipeline import CoraInfansPipeline
 from .predictive import PredictiveCoder
 from .scenario import builtin_scenario_definition, lower_scenario_definition
 from .predictive import FocusTrajectoryCoder, PredictiveCoder, PredictiveHierarchy
+from .io.live_mic import DEFAULT_LIVE_SALIENCY_THRESHOLD, LiveMicArray, LiveMicError
 
 
 @dataclass(frozen=True)
@@ -145,3 +146,65 @@ def build_builtin_sequence_report(family: str = "sweep") -> dict[str, object]:
     report = build_sequence_report(_builtin_sequence_family(family))
     report["family"] = family
     return report
+
+
+
+def build_live_frame_report(
+    array: object,
+    *,
+    duration_ms: int | None = None,
+    saliency_threshold: float = DEFAULT_LIVE_SALIENCY_THRESHOLD,
+    initial_prediction_hz: float = 1000.0,
+    mic_channel_geometry: tuple[str, ...] | None = None,
+    workspace_window_ms: int = 250,
+) -> dict[str, object]:
+    """Capture one real frame from `array` and run it through the pipeline.
+
+    `array` must expose `.channel_count` and `.capture_frame(...)`. This is the
+    single integration point between the live hardware front end and the
+    deterministic saliency -> workspace -> predictive hierarchy spine, so a
+    live XVF3800 capture and a synthetic frame exercise the exact same code.
+    """
+    from .config import CoraInfansConfig
+    from .io.live_mic import (
+        DEFAULT_LIVE_SALIENCY_THRESHOLD,
+        LiveMicArray,
+        LiveMicError,
+    )
+    from .pipeline import CoraInfansPipeline
+
+    if not isinstance(array, LiveMicArray):
+        # Only the real adapter is accepted; no silent synthetic substitution.
+        raise TypeError("build_live_frame_report requires a LiveMicArray instance")
+
+    channel_count = array.channel_count
+    geometry = mic_channel_geometry or tuple(f"ch{i}" for i in range(channel_count))
+    config = CoraInfansConfig(
+        mic_channel_count=channel_count,
+        mic_channel_geometry=geometry,
+        saliency_threshold=saliency_threshold,
+        workspace_window_ms=workspace_window_ms,
+    )
+    pipeline = _build_pipeline(config, _live_params_placeholder(channel_count, initial_prediction_hz))
+    frame = array.capture_frame(duration_ms=duration_ms)
+    event = pipeline.process_frame(frame)
+    workspace_snapshot = [asdict(item) for item in pipeline.workspace.snapshot()]
+    return {
+        "status": "salient" if event is not None else "non_salient",
+        "source": "live_xvf3800",
+        "focus_path": pipeline.workspace.focus_path(),
+        "resolved_config": asdict(config),
+        "frame": asdict(frame),
+        "event": asdict(event) if event is not None else None,
+        "workspace_snapshot": workspace_snapshot,
+    }
+
+
+def _live_params_placeholder(channel_count: int, initial_prediction_hz: float) -> SimulationParams:
+    # The live path only needs geometry + thresholds from SimulationParams to
+    # build the pipeline; channel energies come from the real capture.
+    return SimulationParams(
+        channel_energies=[0.0] * channel_count,
+        initial_prediction_hz=initial_prediction_hz,
+        mic_channel_geometry=tuple(f"ch{i}" for i in range(channel_count)),
+    )
