@@ -186,5 +186,44 @@ by probing all standard bauds, zero response).
   truth. No invented param names.
 - Tuning is volatile; board was restored to factory NS floors after the calibration run.
 
-**Tests:** `tests/test_hardware_tuner.py` (7, mock-backend) + `tests/test_calibration.py`
-(hardware-gated). Full suite after this work: **73 passed**.
++**Tests:** `tests/test_hardware_tuner.py` (7, mock-backend) + `tests/test_calibration.py`
++(hardware-gated). Full suite after this work: **73 passed**.
++
++## Addendum 2 — Active top-down auditory oculomotor gaze (closed loop)
++
++Built the "Active Attention Governor" (`src/cora_infans/io/active_attention.py`)
++that closes the loop between the software saliency map and the XVF3800 beam --
++the superior-colliculus analogue the user outlined. `LiveListener.listen()` gained
++`with_attention=True`; each salient frame derives a target azimuth (coarse L/R
++from the 2 fused channels via `derive_target_azimuth`) and the governor gates the
++steer on three honest constraints: (1) saliency >= verified 0.02 baseline,
++(2) spatial deadband > 5 deg (no echo jitter), (3) velocity slew <= 180 deg/s
++(no un-biological sweep). On `acted`, it calls `HardwareTuner.steer_to()`.
++
++**Real hardware verification:** running `--listen-live --with-stimulus
++--with-attention` against the actual board produced `is_real_hardware: true`,
++`steer_count: 2`, with the beam steered to front-left (338.9 deg then 344.4 deg,
++matching the left-dominant stimulus) and read-back confirming the beam moved.
++
++**Two honesty bugs caught by the live run (not by the fake-array tests):**
++1. `derive_target_azimuth()` returns a SIGNED [-90,+90] angle, but `steer_to()`
++   requires [0,360). Fixed by folding: `steer_azimuth = (target + 360) % 360`.
++2. `HardwareTuner.steer_to()` returns the firmware azimuth in RADIANS, but the
++   governor's world is degrees. The fake tuner returned degrees and masked this;
++   the real run reported `current_azimuth_deg: 5.97` (actually radians). Fixed by
++   converting `actual[0] * 180/pi` before `register_steer`. Added a radians-
++   returning fake tuner test to lock the boundary.
++
++**Design guard (per blueprint):** real pyusb control transfers fire ONLY under
++`--listen-live` with real silicon present; synthetic/test runs resolve a bus-free
++`_NullTuner` so the entire decision path (gate -> deadband -> slew -> steer) is
++exercised under pytest without ever touching the USB bus. Board left in default
++(released) beam mode after the run.
++
++**Honest spatial-resolution caveat:** with 2 fused channels the target estimate is
++L/R only (front hemisphere). The hardware beam itself can point 0..359 deg, but
++DERIVING a finer bearing would be inventing localization we do not have.
++
++**Tests:** `tests/test_active_attention.py` (7, pure) + `tests/test_active_attention_
++integration.py` (2, fake array + radians fake). Full suite after this work:
++**83 passed**.

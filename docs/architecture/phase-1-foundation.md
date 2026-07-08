@@ -84,7 +84,24 @@ Current module responsibilities
   - resolves focus labels from configured channel topology
   - current representation is label-only topology, not physical angles or coordinates
 
-- `predictive.py`
+- `src/cora_infans/io/active_attention.py` — Active Attention Governor (closed loop)
+  - the superior-colliculus analogue: mediates between the software saliency
+    map and the hardware beam. PURE logic (no USB import), fully unit-testable.
+  - `derive_target_azimuth()` maps the 2 fused channels to a coarse front
+    hemisphere angle (left negative, right positive, +/-90 deg) -- honest about
+    the 2-channel resolution; it does NOT claim 360 deg localization.
+  - `ActiveAttentionGovernor.propose()` gates a steer on three constraints:
+    (1) saliency >= 0.02 gate, (2) spatial deadband > 5 deg (no jitter),
+    (3) velocity slew <= 180 deg/s (no un-biological sweep). Only then does it
+    return `acted=True`; the owner issues the bus write and calls
+    `register_steer()` to advance state and accumulate saliency reward.
+  - `LiveListener.listen(with_attention=True)` drives the loop: each salient
+    frame -> derive target -> governor.propose -> `HardwareTuner.steer_to()`
+    (real pyusb only when silicon is present) -> `register_steer`. A bus-free
+    `_NullTuner` is used in synthetic/test runs so the loop is exercised under
+    pytest without touching the XVF3800.
+  - honest unit handling: `HardwareTuner.steer_to()` returns the firmware's
+    azimuth in RADIANS; the listener converts to degrees before recording.
   - owns the minimal predictive-coding primitives
   - `PredictiveCoder`: residual against prior frequency prediction plus updated prediction state (lower level)
   - `FocusTrajectoryCoder`: predicts the next focus label from the recent trajectory; reports a hit/miss residual (higher level)

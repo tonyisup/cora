@@ -126,6 +126,11 @@ def _encode(values: list[float], typ: str) -> bytes:
 class HardwareTuner:
     """Thin, honest wrapper over the XVF3800 USB control interface."""
 
+    # Distinguishes a real USB-backed tuner from the bus-free _NullTuner used in
+    # synthetic/test runs. The LiveListener reports this so a JSON run can state
+    # honestly whether the gaze loop touched real silicon.
+    is_real_hardware = True
+
     def __init__(self, dev: Any = None) -> None:
         if dev is not None:
             self._dev = dev

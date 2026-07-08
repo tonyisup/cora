@@ -179,6 +179,7 @@ def listen_live(args: list[str] | None = None) -> dict[str, object]:
     frame_ms = 250
     with_stimulus = False
     with_scheduling = False
+    with_attention = False
     i = 1
     while i < len(parsed):
         option = parsed[i]
@@ -188,6 +189,10 @@ def listen_live(args: list[str] | None = None) -> dict[str, object]:
             continue
         if option == "--with-scheduling":
             with_scheduling = True
+            i += 1
+            continue
+        if option == "--with-attention":
+            with_attention = True
             i += 1
             continue
         if i + 1 >= len(parsed):
@@ -215,6 +220,7 @@ def listen_live(args: list[str] | None = None) -> dict[str, object]:
         frame_ms=frame_ms,
         with_stimulus=with_stimulus,
         with_scheduling=with_scheduling,
+        with_attention=with_attention,
     )
 
 
@@ -274,7 +280,7 @@ def main(argv: list[str] | None = None) -> int:
         "[--timestamp-ms N --dominant-frequency-hz F --channel-energies a,b,c,d --initial-prediction-hz F --mic-geometry l0,l1,l2,l3 --saliency-threshold F --output json|pretty] "
         "[--family sweep|zigzag|gap|multi_gap|delayed_recovery] [--with-scheduling] "
         "[--capture-live [--device :0] [--duration-ms N]] "
-        "[--listen-live [--duration-ms N] [--frame-ms N] [--with-stimulus]]",
+        "[--listen-live [--duration-ms N] [--frame-ms N] [--with-stimulus] [--with-attention] [--with-scheduling]]",
         file=sys.stderr,
     )
     return 2

@@ -24,7 +24,7 @@ Implemented today
 - `python3 -m cora_infans --simulate-sequence --family sweep --with-scheduling`
 - `python3 -m cora_infans --snapshot-firmware`
 - `python3 -m cora_infans --tune-raw-linear` (volatile: AGC off + NS floors 0)
-- `python3 -m cora_infans --listen-live --duration-ms N --frame-ms N --with-stimulus --with-scheduling`
+- `python3 -m cora_infans --listen-live --duration-ms N --frame-ms N --with-stimulus --with-attention --with-scheduling`
 - parameterized single-frame simulation CLI with structured report output
 - reusable simulation helpers for future training/eval scripts
 - configurable 4-channel topology labels
@@ -39,6 +39,7 @@ Implemented today
 - theta-gamma workspace scheduling (`src/cora_infans/theta_gamma.py`): deterministic nested theta-cycle / gamma-subwindow temporal-binding layer over the event stream (5 Hz theta windows, 40 Hz gamma bins, bounded residency); models VISION.md's multiplexing claim without inventing neurophysics
 - XVF3800 hardware tuner (`src/cora_infans/io/hardware_tuner.py`): real on-chip DSP control over USB vendor control transfers (pyusb/libusb) — asserts AGC off, drives noise-suppression floors to 0 for linear capture, and enables manual beam steering (the "acoustic laser") by writing fixed-beam azimuths; every write verified by read-back; volatile only (no reboot/save)
 - linearity calibration probe (`src/cora_infans/io/calibration.py`): measures captured RMS across graded stimulus levels factory-vs-raw-linear to verify the tuning yields a more linear channel-energy <-> acoustic-pressure relationship
+- active auditory oculomotor gaze (`src/cora_infans/io/active_attention.py` + `LiveListener.with_attention`): the "Active Attention Governor" closes the loop between the saliency map and the hardware beam. Each salient frame derives a target azimuth (coarse L/R from the 2 fused channels), then the governor gates the steer on (1) saliency > 0.02, (2) spatial deadband > 5 deg, (3) velocity slew <= 180 deg/s, and calls `HardwareTuner.steer_to()`. Real pyusb writes fire only under `--listen-live` with real silicon; synthetic/test runs use a bus-free `_NullTuner` so the loop is fully exercised without touching the board
 
 Not implemented yet
 - live ReSpeaker XMOS XVF3800 hardware integration (real capture, saliency gate, stimulus loop, AND on-chip DSP tuning all landed)

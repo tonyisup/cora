@@ -21,6 +21,7 @@ Honesty boundary (per VISION.md / README.md):
 
 from __future__ import annotations
 
+import math
 import subprocess
 import tempfile
 
@@ -37,10 +38,46 @@ from .live_mic import (
     _require_ffmpeg,
 )
 from ..predictive import FocusTrajectoryCoder, PredictiveCoder, PredictiveHierarchy
+from .active_attention import (
+    ActiveAttentionGovernor,
+    AttentionConfig,
+    derive_target_azimuth,
+)
+from .hardware_tuner import HardwareTuner, HardwareTunerError
 
 # External Headphones output device index (audiotoolbox), per host enumeration.
 STIMULUS_OUTPUT_DEVICE_INDEX = 2
 DEFAULT_STIMULUS_SAMPLE_RATE = 48000
+
+
+class _NullTuner:
+    """Bus-free stand-in for HardwareTuner in synthetic / test / no-silicon runs.
+
+    Records every steer it is asked to perform so the governor's decisions are
+    still observable in reports, but never issues a USB control transfer. This
+    is how the closed loop stays fully exercised under `pytest` without touching
+    the XVF3800.
+    """
+
+    def __init__(self) -> None:
+        self.steer_history: list[float] = []
+        self.released = False
+
+    def steer_to(self, azimuth_deg: float) -> list[float]:
+        # Validate the same range the real HardwareTuner enforces, so the
+        # closed loop is exercised honestly under tests too.
+        if not 0 <= azimuth_deg < 360:
+            raise ValueError(f"_NullTuner: azimuth out of range: {azimuth_deg}")
+        self.steer_history.append(azimuth_deg)
+        return [azimuth_deg, 0.0]
+
+    def release_beam(self) -> list[float]:
+        self.released = True
+        return [0]
+
+    @property
+    def is_real_hardware(self) -> bool:
+        return False
 
 
 class ParenteseStimulus:
@@ -125,6 +162,8 @@ class LiveListener:
         initial_prediction_hz: float = 1000.0,
         workspace_window_ms: int = 250,
         stimulus: ParenteseStimulus | None = None,
+        governor: ActiveAttentionGovernor | None = None,
+        tuner: HardwareTuner | _NullTuner | None = None,
     ) -> None:
         self.array = array or LiveMicArray(device=DEFAULT_DEVICE)
         self.saliency_threshold = saliency_threshold
@@ -132,6 +171,22 @@ class LiveListener:
         self.workspace_window_ms = workspace_window_ms
         self.stimulus = stimulus or ParenteseStimulus()
         self._pipeline: CoraInfansPipeline | None = None
+        # The ActiveAttentionGovernor mediates between software saliency state
+        # and hardware execution. If no tuner is supplied we resolve one lazily
+        # at listen() time: real silicon only when actually live, else a
+        # bus-free _NullTuner so tests never touch the USB bus.
+        self.governor = governor or ActiveAttentionGovernor()
+        self._tuner = tuner  # None => resolve in listen()
+
+    def _resolve_tuner(self) -> HardwareTuner | _NullTuner:
+        if self._tuner is not None:
+            return self._tuner
+        try:
+            self._tuner = HardwareTuner()
+        except HardwareTunerError:
+            # No XVF3800 on the bus (e.g. CI, synthetic runs). Use the no-op.
+            self._tuner = _NullTuner()
+        return self._tuner
 
     def _build_pipeline(self) -> CoraInfansPipeline:
         ch = self.array.channel_count
@@ -157,6 +212,7 @@ class LiveListener:
         frame_ms: int = 250,
         with_stimulus: bool = False,
         with_scheduling: bool = False,
+        with_attention: bool = False,
         theta_ms: int = 200,
         gamma_ms: int = 25,
         capacity_cycles: int = 4,
@@ -167,6 +223,13 @@ class LiveListener:
         recovery, focus_path, focus_transitions) plus a per-frame log tagged
         with `stimulus_active`. When `with_scheduling` is set, salient events
         are also fed into a theta-gamma scheduler and its summary is attached.
+
+        When `with_attention` is set, each salient frame drives the
+        ActiveAttentionGovernor, which may issue a hardware steer_to() toward
+        the saliency-derived target azimuth (subject to the saliency gate,
+        spatial deadband, and velocity slew limit). The tuner is real silicon
+        only when the XVF3800 is actually present; otherwise a bus-free no-op
+        tuner keeps the loop fully exercised under tests.
         """
         from ..theta_gamma import ThetaGammaScheduler
 
@@ -179,6 +242,7 @@ class LiveListener:
             if with_scheduling
             else None
         )
+        tuner = self._resolve_tuner() if with_attention else None
 
         stim_proc = None
         stim_path = None
@@ -190,8 +254,10 @@ class LiveListener:
         frames: list[dict[str, object]] = []
         events: list[dict[str, object]] = []
         frame_is_salient: list[bool] = []
+        attention_log: list[dict[str, object]] = []
         target_frames = max(1, duration_ms // frame_ms)
-        for _ in range(target_frames):
+        for i in range(target_frames):
+            now_ms = i * frame_ms
             frame = self.array.capture_frame(duration_ms=frame_ms)
             event = pipeline.process_frame(frame)
             is_salient = event is not None
@@ -203,6 +269,37 @@ class LiveListener:
                 events.append(asdict_public(event))
                 if scheduler is not None:
                     scheduler.push(event)
+                # --- closed-loop active attention -------------------------
+                if tuner is not None:
+                    saliency_score = float(event.saliency_score)
+                    # derive_target_azimuth returns a SIGNED front-hemisphere
+                    # angle [-90, +90] (left negative, right positive). The
+                    # hardware beam expects [0, 360) with 0=front,90=right,
+                    # 270=left, so fold the signed estimate into that range.
+                    target = derive_target_azimuth(frame.channel_energies)
+                    steer_azimuth = (target + 360.0) % 360.0
+                    decision = self.governor.propose(steer_azimuth, saliency_score, now_ms)
+                    if decision.acted:
+                        # HardwareTuner.steer_to returns the firmware's
+                        # azimuth read-back in RADIANS; the governor's world is
+                        # degrees, so convert before recording execution.
+                        actual = tuner.steer_to(decision.proposed_azimuth_deg)
+                        self.governor.register_steer(
+                            actual[0] * 180.0 / math.pi, now_ms
+                        )
+                    if saliency_score >= self.governor.config.saliency_gate:
+                        self.governor.reward(saliency_score)
+                    attention_log.append(
+                        {
+                            "frame": i,
+                            "now_ms": now_ms,
+                            "target_azimuth_deg": round(target, 2),
+                            "steer_azimuth_deg": round(steer_azimuth, 2),
+                            "saliency_score": round(saliency_score, 4),
+                            "acted": decision.acted,
+                            "reason": decision.reason,
+                        }
+                    )
 
         if stim_proc is not None:
             try:
@@ -246,6 +343,18 @@ class LiveListener:
                 asdict_public(ev) for ev in pipeline.workspace.snapshot()
             ],
             "theta_gamma": scheduler.summary() if scheduler is not None else None,
+            "active_attention": (
+                {
+                    "enabled": with_attention,
+                    "is_real_hardware": getattr(tuner, "is_real_hardware", False)
+                    if tuner is not None
+                    else False,
+                    "governor": self.governor.summary(),
+                    "attention_log": attention_log,
+                }
+                if with_attention
+                else None
+            ),
         }
 
 
