@@ -448,3 +448,26 @@ aggregate report (`clip_count=1`, `total_frames=4`, event-matched scoring).
 **Honesty note:** this is a scoreboard scaffold, not yet wired to real decoded
 audio. The `frames_for` seam is the integration point for the recording
 project's WAV→frame extraction.
+
+## Addendum 9 — Theta-gamma promoted to default report path
+
+Theta-gamma scheduling (deterministic nested theta-cycle / gamma-subwindow
+temporal binding) is now part of the default report path for every run, not
+just when `--with-scheduling` is passed.
+
+- `build_sequence_report(..., with_scheduling=True)` now always feeds salient
+  events into a `ThetaGammaScheduler` and attaches `theta_gamma` to the report.
+  `with_scheduling=False` restores the bare flat-workspace view.
+- `build_sequence_report_with_scheduling` is retained as a thin alias (band
+  params now ignored; the default scheduler is used).
+- `LiveListener.listen(..., with_scheduling=True)` — default flipped from False
+  to True; the live report's `theta_gamma` summary is populated unless a caller
+  explicitly opts out.
+- CLI `--simulate-sequence` now emits `theta_gamma` by default; the
+  `--with-scheduling` flag is kept for explicitness but is no longer required.
+- README / architecture doc updated: the "not yet default" caveat is removed.
+
+**Validation:** `pytest tests -q` → green. Added assertions that
+`build_sequence_report` includes `theta_gamma` by default and can still omit it
+via `with_scheduling=False`; the CLI sequence smoke asserts `theta_gamma` is
+present. No regressions in the 102 prior tests.

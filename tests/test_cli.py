@@ -247,6 +247,9 @@ def test_simulate_sequence_command_prints_focus_transition_report() -> None:
         "front_left->front_right",
         "front_right->rear_right",
     ]
+    # theta-gamma is now part of the default sequence report path.
+    assert "theta_gamma" in payload
+    assert payload["theta_gamma"]["theta_ms"] == 200
 
 
 

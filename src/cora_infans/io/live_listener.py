@@ -247,7 +247,7 @@ class LiveListener:
         duration_ms: int = 2000,
         frame_ms: int = 250,
         with_stimulus: bool = False,
-        with_scheduling: bool = False,
+        with_scheduling: bool = True,
         with_attention: bool = False,
         theta_ms: int = 200,
         gamma_ms: int = 25,
@@ -257,8 +257,10 @@ class LiveListener:
 
         Returns an accumulated report (salient/non-salient counts, dropout,
         recovery, focus_path, focus_transitions) plus a per-frame log tagged
-        with `stimulus_active`. When `with_scheduling` is set, salient events
-        are also fed into a theta-gamma scheduler and its summary is attached.
+        with `stimulus_active`. Theta-gamma scheduling is ON by default;
+        salient events are fed into a theta-gamma scheduler and its summary is
+        attached under `theta_gamma`. Pass `with_scheduling=False` for the bare
+        flat-workspace view.
 
         When `with_attention` is set, each salient frame drives the
         ActiveAttentionGovernor, which may issue a hardware steer_to() toward

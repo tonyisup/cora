@@ -85,9 +85,20 @@ def build_simulation_report(params: SimulationParams) -> dict[str, object]:
 
 
 
-def build_sequence_report(sequence: list[SimulationParams]) -> dict[str, object]:
+def build_sequence_report(
+    sequence: list[SimulationParams],
+    *,
+    with_scheduling: bool = True,
+) -> dict[str, object]:
+    """Run a sequence through the pipeline.
+
+    When ``with_scheduling`` is True (the default), salient events are also fed
+    into a theta-gamma scheduler and its summary is attached under
+    ``theta_gamma``. Scheduling is now part of the default report path; pass
+    ``with_scheduling=False`` only for the bare flat-workspace view.
+    """
     if not sequence:
-        return {
+        report: dict[str, object] = {
             "frame_count": 0,
             "salient_frame_count": 0,
             "non_salient_frame_count": 0,
@@ -98,6 +109,9 @@ def build_sequence_report(sequence: list[SimulationParams]) -> dict[str, object]
             "focus_transitions": [],
             "workspace_snapshot": [],
         }
+        if with_scheduling:
+            report["theta_gamma"] = ThetaGammaScheduler().summary()
+        return report
 
     config = _build_config(sequence[0])
     mic_array = SyntheticMicArray(channel_count=config.mic_channel_count)
@@ -106,6 +120,7 @@ def build_sequence_report(sequence: list[SimulationParams]) -> dict[str, object]
     frames: list[dict[str, object]] = []
     events: list[dict[str, object]] = []
     frame_is_salient: list[bool] = []
+    scheduler = ThetaGammaScheduler() if with_scheduling else None
     for params in sequence:
         frame = _capture_frame(params, mic_array)
         event = pipeline.process_frame(frame)
@@ -114,6 +129,8 @@ def build_sequence_report(sequence: list[SimulationParams]) -> dict[str, object]
         frames.append(asdict(frame))
         if is_salient:
             events.append(asdict(event))
+            if scheduler is not None:
+                scheduler.push(event)
 
     focus_path = pipeline.workspace.focus_path()
     salient_frame_count = len(events)
@@ -124,7 +141,7 @@ def build_sequence_report(sequence: list[SimulationParams]) -> dict[str, object]
         for previous_is_salient, current_is_salient in zip(frame_is_salient, frame_is_salient[1:])
         if (not previous_is_salient) and current_is_salient
     )
-    return {
+    report = {
         "frame_count": len(sequence),
         "salient_frame_count": salient_frame_count,
         "non_salient_frame_count": non_salient_frame_count,
@@ -140,6 +157,9 @@ def build_sequence_report(sequence: list[SimulationParams]) -> dict[str, object]
         "events": events,
         "workspace_snapshot": [asdict(item) for item in pipeline.workspace.snapshot()],
     }
+    if scheduler is not None:
+        report["theta_gamma"] = scheduler.summary()
+    return report
 
 
 
@@ -218,28 +238,13 @@ def build_sequence_report_with_scheduling(
     gamma_ms: int = 25,
     capacity_cycles: int = 4,
 ) -> dict[str, object]:
-    """Run a built-in family through the pipeline AND a theta-gamma scheduler.
+    """Run a built-in family through the pipeline with theta-gamma scheduling.
 
-    Returns the familiar sequence report plus a `theta_gamma` scheduling
-    summary. The scheduler is an interpretation layer above the flat workspace;
-    this is the single composed entrypoint so sequence runs can report nested
-    temporal binding without changing the base pipeline.
+    Kept as a thin alias now that ``build_sequence_report`` attaches the
+    ``theta_gamma`` summary by default. The band parameters are ignored here
+    (the default scheduler is used); this entrypoint remains for callers that
+    explicitly requested scheduling.
     """
-    sequence = _builtin_sequence_family(family)
-    report = build_sequence_report(sequence)
+    report = build_sequence_report(_builtin_sequence_family(family))
     report["family"] = family
-
-    scheduler = ThetaGammaScheduler(
-        theta_ms=theta_ms, gamma_ms=gamma_ms, capacity_cycles=capacity_cycles
-    )
-    for params in sequence:
-        config = _build_config(params)
-        pipeline = _build_pipeline(config, params)
-        mic_array = SyntheticMicArray(channel_count=config.mic_channel_count)
-        frame = _capture_frame(params, mic_array)
-        event = pipeline.process_frame(frame)
-        if event is not None:
-            scheduler.push(event)
-
-    report["theta_gamma"] = scheduler.summary()
     return report

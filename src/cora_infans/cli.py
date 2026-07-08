@@ -9,6 +9,7 @@ from .io.live_mic import DEFAULT_DEVICE, LiveMicArray, LiveMicError
 from .io.offline_eval import CorpusLoader, OfflineEvalHarness
 from .simulation import (
     SimulationParams,
+    _builtin_sequence_family,
     build_builtin_sequence_report,
     build_live_frame_report,
     build_sequence_report,
@@ -68,7 +69,7 @@ def _parse_mic_geometry(raw: str) -> tuple[str, ...]:
 
 def parse_sequence_cli_args(args: list[str]) -> tuple[str, bool]:
     family = "sweep"
-    with_scheduling = False
+    with_scheduling = True  # now the default report path
     i = 1
     while i < len(args):
         option = args[i]
@@ -160,9 +161,13 @@ def simulate_frame(args: list[str] | None = None) -> dict[str, object]:
 
 def simulate_sequence(args: list[str] | None = None) -> dict[str, object]:
     family, with_scheduling = parse_sequence_cli_args(args or ["--simulate-sequence"])
-    if with_scheduling:
-        return build_sequence_report_with_scheduling(family)
-    return build_builtin_sequence_report(family)
+    # Scheduling is part of the default report path; the flag can still request
+    # the bare flat-workspace view when explicitly set False via code path.
+    report = build_sequence_report(
+        _builtin_sequence_family(family), with_scheduling=with_scheduling
+    )
+    report["family"] = family
+    return report
 
 
 def capture_live(args: list[str] | None = None) -> dict[str, object]:

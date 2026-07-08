@@ -193,8 +193,6 @@ What is explicitly not proven yet
 - beamforming or physical spatial localization beyond commanded fixed-beam steer
 - raw 4-mic access (the OS-visible stream is 2 fused channels)
 - stacked predictive layers
-- theta-gamma scheduling as the default report path for every run (it is
-  implemented and opt-in, not yet default everywhere)
 - motor-plan synthesis
 - training over real recorded data
 - arbitrary user-authored temporal trajectories

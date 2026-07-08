@@ -21,7 +21,7 @@ Implemented today
 - `python3 -m cora_infans --simulate-sequence --family gap`
 - `python3 -m cora_infans --simulate-sequence --family multi_gap`
 - `python3 -m cora_infans --capture-live [--device :0] [--duration-ms N]`
-- `python3 -m cora_infans --simulate-sequence --family sweep --with-scheduling`
+- `python3 -m cora_infans --simulate-sequence --family sweep --with-scheduling` (scheduling is also ON by default on every run)
 - `python3 -m cora_infans --snapshot-firmware`
 - `python3 -m cora_infans --tune-raw-linear` (volatile: AGC off + NS floors 0)
 - `python3 -m cora_infans --listen-live --duration-ms N --frame-ms N --with-stimulus --with-attention --with-scheduling`
@@ -45,7 +45,7 @@ Implemented today
 Not implemented yet
 - real multi-mic fusion / beamforming beyond the single fixed-beam steer (board fuses 4 mics -> 2 USB channels; manual steer of the one fixed beam is supported, true per-mic array beamforming is not)
 - deeper predictive-coding hierarchy beyond one frequency residual + one focus-trajectory level
-- theta-gamma workspace scheduling (deterministic scheduler implemented; not yet the default report path for all runs)
+- theta-gamma workspace scheduling (deterministic scheduler implemented; now the default report path for all runs, opt-out via `with_scheduling=False`)
 - motor-plan / speech synthesis loop
 - training and evaluation harnesses over real audio corpora
 - general user-authored sequence format

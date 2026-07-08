@@ -159,3 +159,39 @@ def test_build_builtin_sequence_report_supports_delayed_recovery_family() -> Non
     assert report["emitted_event_count"] == 2
     assert report["focus_path"] == ["front_left", "rear_right"]
     assert report["focus_transitions"] == ["front_left->rear_right"]
+
+
+def test_build_sequence_report_includes_theta_gamma_by_default() -> None:
+    # Scheduling is now part of the default report path.
+    report = build_sequence_report(
+        [
+            SimulationParams(
+                timestamp_ms=100,
+                channel_energies=[0.9, 0.2, 0.1, 0.1],
+                mic_channel_geometry=("front_left", "front_right", "rear_right", "rear_left"),
+            ),
+            SimulationParams(
+                timestamp_ms=200,
+                channel_energies=[0.2, 0.8, 0.2, 0.1],
+                mic_channel_geometry=("front_left", "front_right", "rear_right", "rear_left"),
+            ),
+        ]
+    )
+    assert "theta_gamma" in report
+    assert report["theta_gamma"]["theta_ms"] == 200
+    assert report["theta_gamma"]["gamma_ms"] == 25
+    assert report["theta_gamma"]["resident_cycle_count"] >= 1
+
+
+def test_build_sequence_report_can_omit_scheduling() -> None:
+    report = build_sequence_report(
+        [
+            SimulationParams(
+                timestamp_ms=100,
+                channel_energies=[0.9, 0.2, 0.1, 0.1],
+                mic_channel_geometry=("front_left", "front_right", "rear_right", "rear_left"),
+            ),
+        ],
+        with_scheduling=False,
+    )
+    assert "theta_gamma" not in report
