@@ -463,9 +463,11 @@ class LiveListener:
                             motor_imitation_log.append(trial)
                             # --- Step 3: phase-lock the motor intention into
                             # the reserved theta-gamma motor sub-window. The
-                            # scheduler models corollary discharge: an external
-                            # salient event landing in the same gamma bin of the
-                            # same cycle is flagged self_suppressed.
+                            # scheduler applies a SCHEDULING-LEVEL corollary
+                            # discharge: an external salient event landing in the
+                            # same gamma bin of the same cycle is flagged
+                            # self_suppressed (bookkeeping flag, not signal-level
+                            # spectral subtraction -- see theta_gamma.py docstring).
                             if scheduler is not None:
                                 motor_ts = scheduler.reserve_motor_timestamp(now_ms)
                                 motor_event = WorkspaceEvent(

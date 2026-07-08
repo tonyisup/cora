@@ -644,6 +644,16 @@ re-processed. The mechanism (phase-locked self-generated motor token within a
 theta cycle) is real and testable; the biological claim is explicitly scoped as
 a scheduling interpretation, consistent with the theta_gamma.py module doc.
 
+**Tier distinction vs og-cora (cross-check, 2026-07-08):** the sibling
+`og-cora` project implements corollary discharge as a *signal-level* mechanism —
+Broca PCM efference tap → Cerebellum forward model (`predict_pcm`/`predict_mel`,
+room-colored) → Thalamus `spectral_subtraction(observed, predicted)` reporting a
+measured Self-Voice Suppression Ratio (SVSR, dB; M0 target ≥ 20 dB). Our
+Step 3 is a *scheduling-level* proxy by deliberate design: cora-infans has no
+live TTS playback path (Step 1 avoids acoustic feedback during capture), so
+there is no efference PCM to subtract. The flag-based proxy is the correct tier
+for this scaffold and must not be described as signal-level attenuation.
+
 **Validation:** `pytest tests -q` → 125 passed (was 119; +6
 `test_motor_subwindow.py`: motor bin index, timestamp placement, phase-lock,
 corollary-discharge suppression, no-suppression-when-bins-differ, and an

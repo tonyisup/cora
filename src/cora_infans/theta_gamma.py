@@ -20,6 +20,18 @@ The scheduler consumes `WorkspaceEvent`s (the exact objects the pipeline
 emits) and never replaces the flat `EventWorkspace`; it is an interpretation
 layer above it. The pipeline and existing reports are unchanged unless a caller
 explicitly requests theta-gamma scheduling.
+
+Corollary-discharge scope (honesty boundary, see README cross-check): the
+self-suppression modeled here is a *scheduling-level* proxy — a deterministic
+bookkeeping flag (`self_suppressed`) on events that share a gamma bin / theta
+cycle with a self-generated `motor_intention`. It is deliberately distinct from
+the *signal-level* corollary-discharge gate in the sibling `og-cora` project
+(`packages/thalamus/gate.py`), which performs real spectral subtraction of a
+cerebellar forward-model prediction of the agent's own PCM and reports a
+measured Self-Voice Suppression Ratio (SVSR, dB). cora-infans has no live TTS
+playback path (Step 1 avoids acoustic feedback during capture), so there is no
+efference PCM to subtract; the scheduling proxy is the correct tier for this
+scaffold and is documented as such, not as signal-level attenuation.
 """
 
 from __future__ import annotations
@@ -134,11 +146,12 @@ class ThetaGammaScheduler:
             self._consolidate_active()
             self._active = ThetaCycle(index=cycle_idx)
         self._active.events.append(event)
-        # Corollary discharge / sensory suppression: a self-generated motor
-        # intention in a gamma bin suppresses any concurrent external
-        # salient-audio event in the SAME bin of the SAME cycle (the agent does
-        # not re-process its own vocalization). Deterministic, no invented
-        # neurophysics -- it is a bookkeeping flag on the event state.
+        # Corollary discharge / sensory suppression (SCHEDULING-LEVEL PROXY): a
+        # self-generated motor intention in a gamma bin suppresses any concurrent
+        # external salient-audio event in the SAME bin of the SAME cycle (the
+        # agent does not re-process its own vocalization). This is a deterministic
+        # bookkeeping flag on event state -- NOT signal-level spectral subtraction
+        # (see module docstring for the distinction vs og-cora's Thalamus gate).
         self._apply_corollary_discharge(event)
 
     def _apply_corollary_discharge(self, event: "WorkspaceEvent") -> None:
