@@ -6,6 +6,8 @@ USB transfer. This is the test-suite guard the blueprint called for: the real
 pyusb writes only fire under --listen-live with real silicon present.
 """
 
+import math
+
 from cora_infans.io.active_attention import ActiveAttentionGovernor, AttentionConfig
 from cora_infans.io.live_listener import LiveListener, _NullTuner
 from cora_infans.pipeline import AudioFrame
@@ -129,3 +131,49 @@ def test_closed_loop_converts_radians_readback_to_degrees():
     assert gov["current_azimuth_deg"] > 0
     assert gov["current_azimuth_deg"] < 90  # right-front, not a radian value
     assert tuner.steer_history  # steers happened
+
+
+
+class _SourceDoATuner(_RadiansTuner):
+    def __init__(self, source_deg):
+        super().__init__()
+        self.source_deg = source_deg
+
+    def read_doa(self):
+        from cora_infans.io.hardware_tuner import DoAReading
+
+        return DoAReading(azimuth_deg=45.0, speech_detected=True)
+
+    def read_selected_azimuths(self):
+        return [math.radians(self.source_deg), 0.0]
+
+
+def test_closed_loop_uses_finite_processed_source_doa_as_target():
+    # Right channel is louder, so the coarse L/R fallback would be ~64deg.
+    # A finite processed source-DoA from AUDIO_MGR_SELECTED_AZIMUTHS[0] should
+    # override that fallback and become the actual steer target.
+    frames = [_frame(0.05, 0.30)]
+    tuner = _SourceDoATuner(source_deg=200.0)
+    listener = LiveListener(array=_FakeArray(frames), tuner=tuner)
+
+    report = listener.listen(duration_ms=250, frame_ms=250, with_attention=True)
+
+    log = report["active_attention"]["attention_log"]
+    assert log[0]["source_azimuth_deg"] == 200.0
+    assert log[0]["selected_source_used"] is True
+    assert log[0]["derived_steer_azimuth_deg"] != 200.0
+    assert tuner.steer_history == [200.0]
+
+
+def test_closed_loop_falls_back_to_derived_lr_when_processed_source_doa_is_nan():
+    frames = [_frame(0.05, 0.30)]
+    tuner = _SourceDoATuner(source_deg=math.nan)
+    listener = LiveListener(array=_FakeArray(frames), tuner=tuner)
+
+    report = listener.listen(duration_ms=250, frame_ms=250, with_attention=True)
+
+    log = report["active_attention"]["attention_log"]
+    assert log[0]["source_azimuth_deg"] is None
+    assert log[0]["selected_source_used"] is False
+    assert tuner.steer_history
+    assert round(tuner.steer_history[0], 2) == log[0]["derived_steer_azimuth_deg"]

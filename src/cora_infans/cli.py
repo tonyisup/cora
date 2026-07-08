@@ -33,10 +33,11 @@ def describe() -> dict[str, object]:
             "theta_gamma_scheduler",
             "xvf3800_hardware_tuner",
             "commanded_active_attention",
+            "speech_source_doa_guided_attention",
         ],
         "planned_subsystems": [
             "analysis_by_synthesis",
-            "automatic_source_localization",
+            "non_speech_source_localization",
             "training_and_evaluation_harnesses",
             "general_user_authored_sequences",
         ],

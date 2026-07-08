@@ -22,7 +22,9 @@ def test_describe_command_prints_json_summary() -> None:
     assert payload["project"] == "cora-infans"
     assert payload["implemented_slice"] == "saliency_workspace_live_attention"
     assert "predictive_hierarchy" in payload["implemented_subsystems"]
+    assert "speech_source_doa_guided_attention" in payload["implemented_subsystems"]
     assert "analysis_by_synthesis" in payload["planned_subsystems"]
+    assert "non_speech_source_localization" in payload["planned_subsystems"]
     assert (
         payload["verdicts"]["source_localization"]
         == "speech_stimulus_recoverable_non_speech_negative"

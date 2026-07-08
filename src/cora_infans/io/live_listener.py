@@ -81,6 +81,11 @@ class _NullTuner:
         # target (the real 2.0.6 firmware echoes the beam azimuth here).
         return DoAReading(azimuth_deg=45.0, speech_detected=False)
 
+    def read_selected_azimuths(self) -> list[float]:
+        # Bus-free stand-in for AUDIO_MGR_SELECTED_AZIMUTHS: no processed
+        # source-DoA unless a fake/real tuner explicitly supplies one.
+        return [math.nan, math.nan]
+
     @property
     def is_real_hardware(self) -> bool:
         return False
@@ -309,24 +314,46 @@ class LiveListener:
                     # 270=left, so fold the signed estimate into that range.
                     target = derive_target_azimuth(frame.channel_energies)
                     steer_azimuth = (target + 360.0) % 360.0
-                    # HONEST NOTE (verified by the DoA geometry test): on
-                    # firmware 2.0.6, DOA_VALUE echoes the beam's OWN steered
-                    # azimuth (not the acoustic source bearing), and the
-                    # firmware's real source-DoA (AUDIO_MGR_SELECTED_AZIMUTHS)
-                    # stays NAN without speech detection. So we do NOT feed
-                    # read_doa() back as a steer target -- that would be a
-                    # self-referential no-op. We log the beam azimuth for
-                    # transparency only, and steer on the capture-derived L/R
-                    # estimate (the only source-driven signal we have, coarse
-                    # as it may be at close range). A caller with an external
-                    # ground-truth source bearing should pass it explicitly.
+                    # HONEST NOTE (verified by DoA geometry tests): on firmware
+                    # 2.0.6, DOA_VALUE echoes the beam's OWN steered azimuth,
+                    # not the acoustic source bearing. Log it as beam state.
+                    # The real processed source-DoA lives at
+                    # AUDIO_MGR_SELECTED_AZIMUTHS[0]: finite only when firmware
+                    # VAD/classification fires, NAN for tone/non-speech. Use it
+                    # as an explicit target when finite; otherwise fall back to
+                    # the coarse capture-derived L/R estimate.
                     beam_azimuth = None
+                    doa_speech_detected = None
                     if hasattr(tuner, "read_doa"):
                         try:
-                            beam_azimuth = tuner.read_doa().azimuth_deg
+                            doa = tuner.read_doa()
+                            beam_azimuth = doa.azimuth_deg
+                            doa_speech_detected = doa.speech_detected
                         except Exception:
                             beam_azimuth = None
-                    decision = self.governor.propose(steer_azimuth, saliency_score, now_ms)
+                            doa_speech_detected = None
+                    source_azimuth = None
+                    selected_beam_azimuth = None
+                    if hasattr(tuner, "read_selected_azimuths"):
+                        try:
+                            selected = tuner.read_selected_azimuths()
+                            if len(selected) >= 1:
+                                source_candidate = math.degrees(float(selected[0])) % 360.0
+                                if math.isfinite(source_candidate):
+                                    source_azimuth = source_candidate
+                            if len(selected) >= 2:
+                                beam_candidate = math.degrees(float(selected[1])) % 360.0
+                                if math.isfinite(beam_candidate):
+                                    selected_beam_azimuth = beam_candidate
+                        except Exception:
+                            source_azimuth = None
+                            selected_beam_azimuth = None
+                    decision = self.governor.propose(
+                        steer_azimuth,
+                        saliency_score,
+                        now_ms,
+                        explicit_target_deg=source_azimuth,
+                    )
                     if decision.acted:
                         # HardwareTuner.steer_to returns the firmware's
                         # azimuth read-back in RADIANS; the governor's world is
@@ -346,7 +373,16 @@ class LiveListener:
                             "beam_azimuth_deg": (
                                 round(beam_azimuth, 2) if beam_azimuth is not None else None
                             ),
-                            "doa_speech_detected": None,
+                            "source_azimuth_deg": (
+                                round(source_azimuth, 2) if source_azimuth is not None else None
+                            ),
+                            "selected_beam_azimuth_deg": (
+                                round(selected_beam_azimuth, 2)
+                                if selected_beam_azimuth is not None
+                                else None
+                            ),
+                            "selected_source_used": source_azimuth is not None,
+                            "doa_speech_detected": doa_speech_detected,
                             "saliency_score": round(saliency_score, 4),
                             "acted": decision.acted,
                             "reason": decision.reason,

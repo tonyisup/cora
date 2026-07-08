@@ -2,7 +2,7 @@
 
 _Snapshot started on 2026-07-08 and extended by same-day addenda. The README and
 `docs/architecture/*` remain the living spec. Current audit baseline: commit
-`0f56139` plus the speech-source-DoA probe, `pytest tests -q` → 93 passed._
+`84b91a2` plus speech-source-DoA live-attention wiring, `pytest tests -q` → 95 passed._
 
 ## 0. What this project is
 
@@ -20,11 +20,13 @@ Stack: Python 3, `pytest`, `pydantic`, `pyyaml`, `numpy`, `pyusb`, and
 
 ## 1. Runtime state (verified)
 
-- Branch `main`, current checked HEAD before this addendum: `0f56139` (ahead of
-  `origin/main` by the DoA-geometry and status-audit correction commits).
-- `pytest tests -q` → **93 passed** (current validation after active-attention,
-  hardware-tuner, calibration, DoA-geometry, and speech-source-DoA tests).
+- Branch `main`, current checked HEAD before this addendum: `84b91a2` (ahead of
+  `origin/main` by the speech-source-DoA probe commit).
+- `pytest tests -q` → **95 passed** (current validation after active-attention,
+  hardware-tuner, calibration, DoA-geometry, speech-source-DoA, and live
+  source-DoA attention wiring tests).
 - Latest relevant commits:
+  - `84b91a2` Add speech-classified source-DoA probe for XVF3800
   - `0f56139` Audit project status and correct DoA verdict surfaces
   - `8d22964` DoA geometry test: correct the 'true DoA' claim (beam-azimuth echo, not source)
   - `0d7bfd1` Add true Direction-of-Arrival to the gaze loop (firmware 4-mic localization) — **retracted by 8d22964**
@@ -343,11 +345,34 @@ this silicon when the stimulus is speech-classified by the firmware VAD, via
 `AUDIO_MGR_SELECTED_AZIMUTHS[0]`. The left/right separation (~80 deg in means,
 with stable plateaus around ~133 deg and ~225 deg) is a real geometry signal.
 
-**Important boundary:** the live attention loop does NOT yet consume this
-processed source-DoA as its target. It still logs `read_doa()` as beam state and
-steers on the capture-derived L/R. Next implementation step is to feed finite
-`read_selected_azimuths()[0]` into `governor.propose(explicit_target_deg=...)`
-under `--listen-live --with-attention`.
+**Important boundary at this point:** the live attention loop did not yet consume
+this processed source-DoA as its target; that wiring is added in Addendum 6.
 
 **Tests:** +3 DoA experiment tests (speech stimulus command construction,
 right-pan filter, processed source-DoA reporting). Suite 90 -> 93.
+
+## Addendum 6 — Speech-source DoA is now wired into active attention
+
+Wired the live listener's attention loop to consume finite processed source-DoA:
+- `DOA_VALUE` / `read_doa()` remains beam-azimuth state only and is logged as
+  `beam_azimuth_deg`.
+- `AUDIO_MGR_SELECTED_AZIMUTHS[0]` / `read_selected_azimuths()[0]` is converted
+  from radians to degrees; if finite, it is passed to
+  `governor.propose(explicit_target_deg=...)` and logged as `source_azimuth_deg`.
+- If the processed source-DoA is NAN/unavailable, the listener falls back to the
+  coarse capture-derived L/R azimuth.
+
+**Real hardware smoke (`LiveListener(stimulus=SpeechStimulus()).listen(...,
+with_stimulus=True, with_attention=True)`):**
+- `frame_count=12`, `salient_frame_count=6`.
+- `is_real_hardware=True`.
+- `selected_source_used_count=6`.
+- source azimuths: `[185.17, 184.41, 184.41, 184.41, 184.41, 184.41]`.
+- derived fallback azimuths in the same run were around `[342.47, 331.0, ...]`,
+  proving the actual target came from speech source-DoA rather than fused-channel
+  L/R fallback.
+- `steer_count=1`; subsequent source samples were within the 5 deg deadband.
+- Beam was explicitly released after the run: `release_beam [0]`.
+
+**Tests:** +2 integration tests: finite processed source-DoA overrides derived
+L/R; NAN processed source-DoA falls back to derived L/R. Suite 93 -> 95.

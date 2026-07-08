@@ -107,10 +107,9 @@ Current module responsibilities
     azimuth -- it is NOT an acoustic source bearing. The real source-DoA path is
     `AUDIO_MGR_SELECTED_AZIMUTHS[0]`: it stays NAN for tone/non-speech stimuli,
     but becomes finite when speech fires the firmware VAD. Current listener code
-    logs `read_doa()` as beam-azimuth *state* only and still steers on the
-    capture-derived L/R; future source-following should consume the processed
-    source-DoA when finite, or accept an external ground-truth bearing via
-    `governor.propose(explicit_target_deg=...)`.
+    logs `read_doa()` as beam-azimuth *state* only, uses finite processed
+    source-DoA as `explicit_target_deg`, and falls back to capture-derived L/R
+    when the processed source-DoA is NAN.
   - `src/cora_infans/io/doa_experiment.py` — research measurement harness: plays
     a tone or macOS TTS speech stimulus on one earcup of the External Headphones
     (pan=-1/+1/0) and samples firmware DoA/source-DoA registers during playback.
@@ -184,8 +183,8 @@ What is proven today
 - sequence reports now expose dropout and recovery counters for direct family-to-family comparison
 
 What is explicitly not proven yet
-- automatic acoustic-source-following in the live listener (speech-classified
-  source-DoA is now recoverable, but not yet wired as the attention target)
+- non-speech acoustic-source localization/following (speech-classified
+  source-DoA is wired; tone/non-speech remains negative)
 - beamforming or physical spatial localization beyond commanded fixed-beam steer
 - raw 4-mic access (the OS-visible stream is 2 fused channels)
 - stacked predictive layers
