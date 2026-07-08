@@ -4,7 +4,8 @@ import json
 import sys
 from typing import Any
 
-from .io.live_mic import LiveMicError
+from .io.live_listener import LiveListener
+from .io.live_mic import DEFAULT_DEVICE, LiveMicArray, LiveMicError
 from .simulation import (
     SimulationParams,
     build_builtin_sequence_report,
@@ -141,8 +142,6 @@ def simulate_sequence(args: list[str] | None = None) -> dict[str, object]:
 
 
 def capture_live(args: list[str] | None = None) -> dict[str, object]:
-    from .io.live_mic import DEFAULT_DEVICE, LiveMicArray
-
     parsed = args or ["--capture-live"]
     device = DEFAULT_DEVICE
     duration_ms: int | None = None
@@ -165,6 +164,44 @@ def capture_live(args: list[str] | None = None) -> dict[str, object]:
 
     array = LiveMicArray(device=device)
     return build_live_frame_report(array, duration_ms=duration_ms)
+
+
+def listen_live(args: list[str] | None = None) -> dict[str, object]:
+    parsed = args or ["--listen-live"]
+    device = DEFAULT_DEVICE
+    duration_ms = 2000
+    frame_ms = 250
+    with_stimulus = False
+    i = 1
+    while i < len(parsed):
+        option = parsed[i]
+        if option == "--with-stimulus":
+            with_stimulus = True
+            i += 1
+            continue
+        if i + 1 >= len(parsed):
+            raise ValueError(f"missing value for {option}")
+        value = parsed[i + 1]
+        if option == "--device":
+            device = value
+        elif option == "--duration-ms":
+            try:
+                duration_ms = int(value)
+            except ValueError as exc:
+                raise ValueError("invalid duration") from exc
+        elif option == "--frame-ms":
+            try:
+                frame_ms = int(value)
+            except ValueError as exc:
+                raise ValueError("invalid frame ms") from exc
+        else:
+            raise ValueError(f"unknown option: {option}")
+        i += 2
+
+    listener = LiveListener(LiveMicArray(device=device))
+    return listener.listen(
+        duration_ms=duration_ms, frame_ms=frame_ms, with_stimulus=with_stimulus
+    )
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -192,6 +229,13 @@ def main(argv: list[str] | None = None) -> int:
     if args and args[0] == "--capture-live":
         try:
             print(json.dumps(capture_live(args)))
+            return 0
+        except (ValueError, LiveMicError) as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
+    if args and args[0] == "--listen-live":
+        try:
+            print(json.dumps(listen_live(args)))
             return 0
         except (ValueError, LiveMicError) as exc:
             print(str(exc), file=sys.stderr)

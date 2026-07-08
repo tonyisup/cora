@@ -25,6 +25,15 @@ Current module responsibilities
   - represents the 4-mic array contract without requiring real hardware
   - validates channel count before constructing an `AudioFrame`
 
+- `src/cora_infans/io/live_listener.py` — continuous live listener + parentese stimulus
+  - `LiveListener.listen()` captures a time window of real frames, runs each through
+    the pipeline, and accumulates focus_path / dropout / recovery tracking (the
+    same sequence-report shape as the built-in families, fed by live audio)
+  - `ParenteseStimulus` synthesizes a simple rising/falling pitch contour and plays
+    it to the External Headphones output device (audiotoolbox index 2) so the mic
+    has a repeatable acoustic target; playback is non-blocking so capture overlaps it
+  - every captured frame is tagged `stimulus_active` so stimulated vs quiet-room input
+    is separable downstream; no frame is ever fabricated
 - `src/cora_infans/io/live_mic.py`
   - the real hardware front end for the reSpeaker XMOS XVF3800
   - pulls a short capture through ffmpeg (avfoundation device `:0`) and lowers

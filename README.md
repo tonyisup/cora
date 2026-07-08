@@ -21,6 +21,7 @@ Implemented today
 - `python3 -m cora_infans --simulate-sequence --family gap`
 - `python3 -m cora_infans --simulate-sequence --family multi_gap`
 - `python3 -m cora_infans --capture-live [--device :0] [--duration-ms N]`
+- `python3 -m cora_infans --listen-live [--duration-ms N] [--frame-ms N] [--with-stimulus]`
 - parameterized single-frame simulation CLI with structured report output
 - reusable simulation helpers for future training/eval scripts
 - configurable 4-channel topology labels
@@ -31,6 +32,7 @@ Implemented today
 - declarative scenario compiler (`src/cora_infans/scenario.py`) that authors the built-in sequence families and lowers them deterministically into the runtime frame path
 - two-level predictive-coding hierarchy (`PredictiveHierarchy`: frequency residual + focus-trajectory prediction), wired into the pipeline and simulation defaults
 - live XVF3800 hardware front end (`src/cora_infans/io/live_mic.py`): captures real frames via ffmpeg/avfoundation, lowers to AudioFrame, runs through the same pipeline; no synthetic fallback
+- continuous live listener (`src/cora_infans/io/live_listener.py`): accumulates focus-path / dropout / recovery tracking over a real-time window; optional parentese stimulus plays to External Headphones (audiotoolbox device 2) so the mic has a controlled acoustic target
 
 Not implemented yet
 - live ReSpeaker XMOS XVF3800 hardware integration (first slice landed: real capture + saliency gate; no beamforming/multi-mic fusion yet)
