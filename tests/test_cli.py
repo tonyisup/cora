@@ -453,6 +453,44 @@ def test_self_suppression_command_reports_svsr_without_live_playback() -> None:
     assert payload["verdict"] in ("self_suppressed", "partial_suppression")
 
 
+def test_learn_self_forward_model_command_reports_prediction_error_improvement() -> None:
+    env = os.environ.copy()
+    env["PYTHONPATH"] = "src"
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "cora_infans",
+            "--learn-self-forward-model",
+            "--vowel",
+            "a",
+            "--observed-delay-ms",
+            "18",
+            "--observed-attenuation",
+            "0.55",
+            "--observed-echo-decay",
+            "0.22",
+            "--world-vowel",
+            "o",
+            "--world-gain",
+            "0.25",
+        ],
+        capture_output=True,
+        check=True,
+        text=True,
+        env=env,
+    )
+
+    payload = json.loads(result.stdout)
+    assert payload["mode"] == "simulation_only_forward_model_learning"
+    assert payload["live_playback"] is False
+    assert payload["learned_svsr_db"] > payload["initial_svsr_db"]
+    assert payload["svsr_improvement_db"] > 3.0
+    assert payload["learned_params"]["delay_ms"] == 18.0
+    assert payload["world_residual_correlation"] > 0.2
+
+
 
 def test_synthesize_vowel_command_writes_wav_and_closes_loop(tmp_path) -> None:
     env = os.environ.copy()

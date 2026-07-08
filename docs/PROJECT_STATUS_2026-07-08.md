@@ -696,3 +696,43 @@ prediction from efference PCM, (2) self residual energy drops and SVSR exceeds
 prediction is empty, (4) mixed self+world leaves a world-correlated residual,
 and (5) the CLI reports SVSR without live playback. Full suite: `pytest tests
 -q` → 131 passed.
+
+## Addendum 15 — Simulation-only forward-model learning from prediction error
+
+**Decision:** before any live playback milestone, add the cognitive learning
+step: the agent should reduce sensory prediction error by fitting a forward
+model from efference PCM to observed self audio. This keeps the learning rule
+clean and deterministic before speaker/mic latency, room drift, and acoustic
+feedback enter the loop.
+
+**What was added (`src/cora_infans/io/self_suppression.py`):**
+- `evaluate_forward_model(efference, observed, delay_ms, attenuation,
+  echo_decay, ...)`: predicts self PCM, subtracts it from observed PCM, and
+  reports residual RMS + SVSR dB (+ world-residual correlation when a world
+  reference is supplied).
+- `fit_forward_model(...)`: deterministic grid search over delay / attenuation /
+  echo-decay parameters. It selects the model that minimizes residual RMS
+  (tie-breaks by SVSR) and returns `learned_params` plus a learning verdict.
+- `run_forward_model_learning_trial(...)`: creates a hidden simulated room
+  (`observed_delay_ms`, `observed_attenuation`, `observed_echo_decay`), scores a
+  bad initial model, fits the forward model, and reports before/after SVSR,
+  residual RMS, learned parameters, and world preservation.
+
+**CLI:**
+`python -m cora_infans --learn-self-forward-model --vowel a --observed-delay-ms
+18 --observed-attenuation 0.55 --observed-echo-decay 0.22 [--world-vowel o
+--world-gain 0.25]` emits `mode=simulation_only_forward_model_learning`,
+`live_playback=false`, `initial_svsr_db`, `learned_svsr_db`,
+`svsr_improvement_db`, `true_params`, `learned_params`, and optional
+`world_residual_correlation`.
+
+**Honesty boundary:** this is cognitive learning of a toy forward model, not a
+learned neural cerebellum and not live room calibration. The learned variables
+are interpretable physical proxies (delay, attenuation, echo decay). It proves
+that residual prediction error can drive a better internal self-audio model in
+simulation. Live playback remains a separate milestone.
+
+**Validation:** tests assert hidden room-coloring parameter recovery, SVSR
+improvement over a bad initial guess, wrong-efference negative control (cannot
+fake good learning with the wrong vowel), mixed self+world residual preservation,
+and CLI JSON output. Full suite: `pytest tests -q` → 136 passed.

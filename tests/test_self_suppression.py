@@ -13,8 +13,11 @@ from cora_infans.io.motor_plan import synthesize_vowel
 from cora_infans.io.self_suppression import (
     SelfSuppressionParams,
     compute_svsr_db,
+    evaluate_forward_model,
+    fit_forward_model,
     mix_observed,
     predict_self_pcm,
+    run_forward_model_learning_trial,
     run_self_suppression_trial,
     spectral_subtract,
 )
@@ -94,3 +97,106 @@ def test_run_self_suppression_trial_reports_signal_level_metric() -> None:
     assert report["svsr_db"] > 3.0
     assert report["residual_rms"] < report["observed_rms"]
     assert report["verdict"] in ("self_suppressed", "partial_suppression")
+
+
+def test_fit_forward_model_recovers_hidden_room_coloring_params() -> None:
+    efference = synthesize_vowel("a", duration_ms=300, sample_rate=16000)
+    observed = predict_self_pcm(
+        efference,
+        sample_rate=16000,
+        delay_ms=18.0,
+        attenuation=0.55,
+        echo_decay=0.22,
+    )
+
+    fit = fit_forward_model(
+        efference,
+        observed,
+        sample_rate=16000,
+        delay_grid_ms=(8.0, 14.0, 18.0, 24.0),
+        attenuation_grid=(0.35, 0.55, 0.75),
+        echo_decay_grid=(0.08, 0.22, 0.35),
+    )
+
+    learned = fit["learned_params"]
+    assert learned["delay_ms"] == 18.0
+    assert learned["attenuation"] == 0.55
+    assert learned["echo_decay"] == 0.22
+    assert fit["svsr_db"] > 30.0
+
+
+def test_forward_model_learning_improves_svsr_over_bad_initial_guess() -> None:
+    efference = synthesize_vowel("a", duration_ms=300, sample_rate=16000)
+    observed = predict_self_pcm(
+        efference,
+        sample_rate=16000,
+        delay_ms=18.0,
+        attenuation=0.55,
+        echo_decay=0.22,
+    )
+    initial = evaluate_forward_model(
+        efference,
+        observed,
+        sample_rate=16000,
+        delay_ms=4.0,
+        attenuation=0.2,
+        echo_decay=0.05,
+    )
+    fit = fit_forward_model(
+        efference,
+        observed,
+        sample_rate=16000,
+        delay_grid_ms=(4.0, 10.0, 18.0),
+        attenuation_grid=(0.2, 0.55),
+        echo_decay_grid=(0.05, 0.22),
+    )
+
+    assert fit["svsr_db"] > initial["svsr_db"] + 15.0
+    assert fit["residual_rms"] < initial["residual_rms"] * 0.2
+
+
+def test_wrong_efference_does_not_fake_good_forward_model_learning() -> None:
+    observed_self = predict_self_pcm(
+        synthesize_vowel("a", duration_ms=300, sample_rate=16000),
+        sample_rate=16000,
+        delay_ms=18.0,
+        attenuation=0.55,
+        echo_decay=0.22,
+    )
+    correct_fit = fit_forward_model(
+        synthesize_vowel("a", duration_ms=300, sample_rate=16000),
+        observed_self,
+        sample_rate=16000,
+        delay_grid_ms=(10.0, 18.0),
+        attenuation_grid=(0.35, 0.55),
+        echo_decay_grid=(0.08, 0.22),
+    )
+    wrong_fit = fit_forward_model(
+        synthesize_vowel("i", duration_ms=300, sample_rate=16000),
+        observed_self,
+        sample_rate=16000,
+        delay_grid_ms=(10.0, 18.0),
+        attenuation_grid=(0.35, 0.55),
+        echo_decay_grid=(0.08, 0.22),
+    )
+
+    assert correct_fit["svsr_db"] > wrong_fit["svsr_db"] + 10.0
+    assert wrong_fit["verdict"] != "learned_forward_model"
+
+
+def test_forward_model_learning_reports_world_preservation_metric() -> None:
+    report = run_forward_model_learning_trial(
+        vowel="a",
+        world_vowel="o",
+        observed_delay_ms=18.0,
+        observed_attenuation=0.55,
+        observed_echo_decay=0.22,
+        world_gain=0.25,
+    )
+
+    assert report["mode"] == "simulation_only_forward_model_learning"
+    assert report["live_playback"] is False
+    assert report["learned_svsr_db"] > report["initial_svsr_db"]
+    assert report["svsr_improvement_db"] > 3.0
+    assert report["world_residual_correlation"] > 0.2
+    assert report["verdict"] in ("learned_forward_model", "partial_learning")
