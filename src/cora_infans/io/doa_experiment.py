@@ -2,16 +2,15 @@
 
 This is a research measurement, not a product feature: it drives a single
 physical earcup of the External Headphones (Core Audio device 2) with a tone,
-samples the firmware's native DOA_VALUE while the tone plays, and reports the
-mean bearing. By running it for the LEFT channel, RIGHT channel, and BOTH, we
-can verify (a) whether device-2 channel 0 maps to left or right (we do NOT
-assume it), and (b) whether the reported bearing tracks the physical speaker
-angle (~+/-45 deg from front in the user's current setup).
+samples the firmware's DOA_VALUE register while the tone plays, and reports the
+mean readback. By running it for the LEFT channel, RIGHT channel, and BOTH, we
+test whether the register tracks the physical speaker angle (~+/-45 deg from
+front in the user's current setup) or merely reflects firmware beam state.
 
-Everything is real: real USB DoA reads, real audiotoolbox playback, real mic
-capture is not even required (DoA comes from the firmware's own 4-mic DSP). All
-firmware writes are volatile; the beam is left in whatever state the reads
-leave it (reads do not mutate state).
+Everything is real: real USB reads and real audiotoolbox playback. The current
+verdict from this experiment is negative for source localization on firmware
+2.0.6: DOA_VALUE echoes the beam azimuth, and the processed source-DoA stays NAN
+for tone stimuli. Reads do not mutate firmware state.
 
 Usage:
     python -m cora_infans.io.doa_experiment --side left
@@ -38,10 +37,10 @@ def run_geometry_test(
     sweeps: int = 4,
     sweep_ms: int = 400,
 ) -> dict[str, object]:
-    """Play a one-sided tone and sample the firmware DoA while it plays.
+    """Play a one-sided tone and sample DOA_VALUE while it plays.
 
     `side` is "left" (-1 pan), "right" (+1 pan), or "both" (0 pan).
-    Returns mean/std/min/max/n bearing plus the raw samples for audit.
+    Returns mean/std/min/max/n readback plus the raw samples for audit.
     """
     if side not in ("left", "right", "both"):
         raise ValueError(f"side must be left|right|both, got {side!r}")

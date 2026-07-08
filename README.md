@@ -43,7 +43,6 @@ Implemented today
   - **Honest limitation (verified by the DoA geometry test):** on firmware 2.0.6, the firmware's `DOA_VALUE` echoes the beam's OWN steered azimuth (not the acoustic source bearing), and its real source-DoA (`AUDIO_MGR_SELECTED_AZIMUTHS`) stays NAN without speech detection. The captured L/R energy split is also source-blind at close range. So the beam is **commanded top-down attention** (it points where told), NOT automatic source-following. `read_doa()` is logged as beam-azimuth state only; the steer target is the capture-derived L/R. A caller with an external ground-truth source bearing passes it via `governor.propose(explicit_target_deg=...)`. See `doa_experiment.py` and the status doc Addendum 4.
 
 Not implemented yet
-- live ReSpeaker XMOS XVF3800 hardware integration (real capture, saliency gate, stimulus loop, AND on-chip DSP tuning all landed)
 - real multi-mic fusion / beamforming beyond the single fixed-beam steer (board fuses 4 mics -> 2 USB channels; manual steer of the one fixed beam is supported, true per-mic array beamforming is not)
 - deeper predictive-coding hierarchy beyond one frequency residual + one focus-trajectory level
 - theta-gamma workspace scheduling (deterministic scheduler implemented; not yet the default report path for all runs)

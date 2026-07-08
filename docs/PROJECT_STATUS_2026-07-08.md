@@ -1,8 +1,8 @@
 # Project Cora-Infans — Progress & Status
 
-_Snapshot as of 2026-07-08. This is a point-in-time status doc; the README and
-`docs/architecture/*` remain the living spec. Test counts below were verified
-at commit `5412eff` (`pytest` → 65 passed, tree clean)._
+_Snapshot started on 2026-07-08 and extended by same-day addenda. The README and
+`docs/architecture/*` remain the living spec. Current audit baseline: commit
+`8d22964` plus this doc cleanup, `pytest tests -q` → 90 passed._
 
 ## 0. What this project is
 
@@ -14,21 +14,23 @@ biological depth or unsupported spatial physics.** Every layer is either
 synthetic-but-honest or backed by real captured audio — no invented neuro-
 physics, no silent fallbacks to mock modes.
 
-Stack: Python 3, `pytest`, `pydantic`, `pyyaml`, `numpy`. Live capture uses
-`ffmpeg` (avfoundation) — no `sounddevice`/`pyaudio` installed.
+Stack: Python 3, `pytest`, `pydantic`, `pyyaml`, `numpy`, `pyusb`, and
+`libusb-package`. Live capture uses `ffmpeg` (avfoundation) — no
+`sounddevice`/`pyaudio` installed.
 
 ## 1. Runtime state (verified)
 
-- Branch `main`, tree clean, HEAD `5412eff`.
-- `pytest tests` → **65 passed** (44 baseline + 5 predictive-hierarchy + 5 live
-  mic + 4 live-listener + 7 theta-gamma).
-- Latest commits:
-  - `5412eff` Add theta-gamma workspace scheduling (vision: theta-gamma multiplexing)
-  - `0d6c912` Add continuous live listener with parentese stimulus (option A)
-  - `efdf2a4` Add live XVF3800 hardware front end (vision: ReSpeaker integration)
-  - `f9d1d98` Add two-level predictive-coding hierarchy (vision: predictive coding)
-  - `fc2db84` Sync docs to scenario compiler; declare PyYAML dependency
-  - `aab77f6` Add constrained internal scenario compiler
+- Branch `main`, current checked HEAD before this cleanup: `8d22964` (ahead of
+  `origin/main` by the DoA-geometry correction commit).
+- `pytest tests -q` → **90 passed** (current validation after active-attention,
+  hardware-tuner, calibration, and DoA-geometry tests).
+- Latest relevant commits:
+  - `8d22964` DoA geometry test: correct the 'true DoA' claim (beam-azimuth echo, not source)
+  - `0d7bfd1` Add true Direction-of-Arrival to the gaze loop (firmware 4-mic localization) — **retracted by 8d22964**
+  - `d5f3aa8` Add active top-down auditory oculomotor gaze (closed loop)
+  - `8156692` Add XVF3800 hardware tuner + linearity calibration (real USB control)
+  - `54e6cb2` Add standalone project status/progress doc (2026-07-08)
+  - `5412eff` Add theta-gamma workspace scheduling
 
 ## 2. Implementation spine — what actually exists
 
@@ -77,7 +79,7 @@ Stack: Python 3, `pytest`, `pydantic`, `pyyaml`, `numpy`. Live capture uses
 - `--simulate-frame [--channel-energies ...] [--mic-geometry ...] [--output json|pretty]`
 - `--simulate-sequence --family <name> [--with-scheduling]`
 - `--capture-live [--device :0] [--duration-ms N]`
-- `--listen-live [--duration-ms N] [--frame-ms N] [--with-stimulus] [--with-scheduling]`
+- `--listen-live [--duration-ms N] [--frame-ms N] [--with-stimulus] [--with-scheduling] [--with-attention]`
 
 ## 3. Hardware validation (real, not stubbed)
 
@@ -138,7 +140,7 @@ the live path uses `DEFAULT_LIVE_SALIENCY_THRESHOLD = 0.02`.
 
 ```bash
 cd /Users/juicebox/Projects/cora
-pytest tests -q                         # expect 65 passed
+pytest tests -q                         # expect 90 passed
 python -m cora_infans --describe        # capability map
 python -m cora_infans --simulate-sequence --family multi_gap --with-scheduling
 python -m cora_infans --listen-live --duration-ms 2500 --frame-ms 250 \
@@ -186,137 +188,128 @@ by probing all standard bauds, zero response).
   truth. No invented param names.
 - Tuning is volatile; board was restored to factory NS floors after the calibration run.
 
-+**Tests:** `tests/test_hardware_tuner.py` (7, mock-backend) + `tests/test_calibration.py`
-+(hardware-gated). Full suite after this work: **73 passed**.
-+
-+## Addendum 2 — Active top-down auditory oculomotor gaze (closed loop)
-+
-+Built the "Active Attention Governor" (`src/cora_infans/io/active_attention.py`)
-+that closes the loop between the software saliency map and the XVF3800 beam --
-+the superior-colliculus analogue the user outlined. `LiveListener.listen()` gained
-+`with_attention=True`; each salient frame derives a target azimuth (coarse L/R
-+from the 2 fused channels via `derive_target_azimuth`) and the governor gates the
-+steer on three honest constraints: (1) saliency >= verified 0.02 baseline,
-+(2) spatial deadband > 5 deg (no echo jitter), (3) velocity slew <= 180 deg/s
-+(no un-biological sweep). On `acted`, it calls `HardwareTuner.steer_to()`.
-+
-+**Real hardware verification:** running `--listen-live --with-stimulus
-+--with-attention` against the actual board produced `is_real_hardware: true`,
-+`steer_count: 2`, with the beam steered to front-left (338.9 deg then 344.4 deg,
-+matching the left-dominant stimulus) and read-back confirming the beam moved.
-+
-+**Two honesty bugs caught by the live run (not by the fake-array tests):**
-+1. `derive_target_azimuth()` returns a SIGNED [-90,+90] angle, but `steer_to()`
-+   requires [0,360). Fixed by folding: `steer_azimuth = (target + 360) % 360`.
-+2. `HardwareTuner.steer_to()` returns the firmware azimuth in RADIANS, but the
-+   governor's world is degrees. The fake tuner returned degrees and masked this;
-+   the real run reported `current_azimuth_deg: 5.97` (actually radians). Fixed by
-+   converting `actual[0] * 180/pi` before `register_steer`. Added a radians-
-+   returning fake tuner test to lock the boundary.
-+
-+**Design guard (per blueprint):** real pyusb control transfers fire ONLY under
-+`--listen-live` with real silicon present; synthetic/test runs resolve a bus-free
-+`_NullTuner` so the entire decision path (gate -> deadband -> slew -> steer) is
-+exercised under pytest without ever touching the USB bus. Board left in default
-+(released) beam mode after the run.
-+
-+**Honest spatial-resolution caveat:** with 2 fused channels the target estimate is
-+L/R only (front hemisphere). The hardware beam itself can point 0..359 deg, but
-+DERIVING a finer bearing would be inventing localization we do not have.
-+
-+**Tests:** `tests/test_active_attention.py` (7, pure) + `tests/test_active_attention_
-+integration.py` (2, fake array + radians fake). Full suite after this work:
-+**83 passed**.
-+
-+## Addendum 3 — True Direction-of-Arrival (firmware 4-mic localization)
-+
-+Upgraded the gaze loop from coarse 2-channel L/R to the XVF3800's NATIVE DoA.
-+The SDK exposes `DOA_VALUE` (RESID 20, CMDID 18) and `AUDIO_MGR_SELECTED_AZIMUTHS`
-+(RESID 35, CMDID 11): the firmware localizes using all 4 mics internally and
-+serves a true 0..359 deg bearing -- independent of the 2 fused USB channels our
-+capture stream sees. Added both to the tuner table; `read_doa()` returns a
-+`DoAReading(azimuth_deg, speech_detected)`. The governor's `propose()` gained an
-+`explicit_target_deg` arg; `LiveListener` now reads `tuner.read_doa()` each salient
-+frame and steers toward the firmware bearing (overriding the derived L/R).
-+
-+**Real hardware verification:** `--listen-live --with-stimulus --with-attention`
-+read `doa: 29.22` and steered the beam there, overriding the derived L/R estimate
-+(~321 deg). The acoustic laser now chases the board's own 4-mic localization.
-+
-+**Three honesty bugs found and fixed during this work (the live run, again,
-+caught what the fake tests masked):**
-+1. `DOA_VALUE` size formula was wrong for uint16 (requested 17 bytes). Fixed to
-+   `length*2+1`.
-+2. `DOA_VALUE` is actually a 2-float payload [azimuth_rad, flag] served with
-+   status byte **66** -- NOT uint16 and NOT status 0. The Seeed SDK decodes the
-+   payload ignoring status; we now accept status 0 AND 66 as "data present"
-+   (retry only on 64). Decoding as uint16 produced garbage; corrected to float.
-+3. The firmware's `speech_detected` flag stays False on our synthetic stimulus
-+   (its VAD doesn't classify a tone as speech). We therefore use the DoA bearing
-+   whenever it is finite, NOT gated on the speech flag -- our own saliency gate
-+   already confirms a real signal. The flag is logged for transparency only.
-+
-+**Correction (DoA geometry test — see Addendum 4):** the claim above that the
-+bearing "tracked the source correctly" was WRONG and the geometry test exposed
-+it. `DOA_VALUE` on 2.0.6 echoes the beam's OWN steered azimuth (it returned
-+exactly the angle we last steered, 29.22 deg, and 0 when released). It is NOT
-+an acoustic-source bearing. The real source-DoA (`AUDIO_MGR_SELECTED_AZIMUTHS`)
-+stays NAN without the firmware's speech flag, and the captured L/R energy split
-+is source-blind at close range. The loop was therefore self-referential. The
-+code, tests, and this doc were corrected (see Addendum 4).
-+
-+**Tests (as originally added):** +2 tuner (mock DoA decode) + 2 governor
-+(explicit-target override + fallback) + 1 integration (DoA preferred even when
-+VAD flag False). Full suite at that point: **87 passed** (subsequently amended
-+to 90 by the Addendum-4 correction).
-+
-+## Addendum 4 — DoA geometry test: "true DoA" was a phantom (honest retraction)
-+
-+The user moved the External Headphones' L/R earcups to +/-45 deg from front and
-+asked for a geometry test. Built `src/cora_infans/io/doa_experiment.py`: plays a
-+tone on one earcup (pan=-1/+1/0 -> true stereo WAV, verified ch0/ch1 routing in
-+tests) and samples the firmware DoA during playback. The result is the most
-+important finding of the session:
-+
-+1. LEFT, RIGHT, and BOTH earcups ALL report `DOA_VALUE = 29.22 deg` with zero
-+   variance. The bearing does not respond to which speaker plays.
-+2. A direct probe showed `DOA_VALUE` equals the **beam's own steered angle**:
-+   released -> 0.00, `steer_to(350)` -> 350, `steer_to(100)` -> 100. It is a
-+   beam-azimuth readback, NOT a source localization.
-+3. `AUDIO_MGR_SELECTED_AZIMUTHS[0]` (the real processed source-DoA) is ALWAYS
-+   NAN -- the firmware needs its speech flag set, which never fires on a tone.
-+4. The captured L/R energy split is source-blind: LEFT vs RIGHT earcup give
-+   identical channel energies (ch0~0.6, ch1~0.3). `derive_target_azimuth` is
-+   not actually localizing either.
-+
-+**Conclusion:** there is NO working acoustic-source localization signal from
-+this hardware/firmware for a non-speech stimulus. The "acoustic laser tracking
-+the source" is not achievable here. What IS real and useful: the beam points
-+exactly where commanded (steer 350 -> DoA 350, verified), so it is a genuine
-+**commanded top-down attention** actuator. The governor's `propose()` retains
-+an `explicit_target_deg` arg for an external ground-truth source bearing (e.g.
-+a known speaker position) when one exists.
-+
-+**What to change to get real localization (future options):**
-+- Drive a SPEECH-classified stimulus so `AUDIO_MGR_SELECTED_AZIMUTHS[0]` yields
-+  a non-NAN bearing (firmware VAD requirement).
-+- Wider speaker separation / greater distance so the inter-channel level
-+  difference is measurable by the captured 2 fused channels.
-+- Raw 4-mic access -- blocked by firmware (only 2 fused channels reach the OS).
-+
-+**Code corrections made:**
-+- `live_listener.py`: `read_doa()` is no longer fed back as a steer target
-+  (that was a self-referential no-op). It is logged as `beam_azimuth_deg`
-+  (state) only; the steer target is the capture-derived L/R. Honest comment
-+  added at the decision site.
-+- `tests`: replaced the misleading "uses firmware DoA" integration test with
-+  `test_closed_loop_logs_beam_azimuth_but_steers_on_derived_lr` + added
-+  `test_governor_accepts_external_ground_truth_target`. Added
-+  `tests/test_doa_experiment.py` (2 tests: stereo pan routing).
-+- README + phase-1-foundation updated to state the limitation plainly.
-+
-+**Honesty note:** this is exactly the "looks like it works but doesn't" trap
-+VISION.md warns against. The geometry test (user's suggestion) is what caught
-+it. The earlier "true DoA-guided gaze" commit message/claim is retracted here.
-+
-+**Tests:** suite 87 -> 90 (+2 doa_experiment routing + 1 corrected integration).
+**Tests:** `tests/test_hardware_tuner.py` (7, mock-backend) + `tests/test_calibration.py`
+(hardware-gated). Full suite after this work: **73 passed**.
+
+## Addendum 2 — Active top-down auditory oculomotor gaze (closed loop)
+
+Built the "Active Attention Governor" (`src/cora_infans/io/active_attention.py`)
+that closes the loop between the software saliency map and the XVF3800 beam --
+the superior-colliculus analogue the user outlined. `LiveListener.listen()` gained
+`with_attention=True`; each salient frame derives a target azimuth (coarse L/R
+from the 2 fused channels via `derive_target_azimuth`) and the governor gates the
+steer on three honest constraints: (1) saliency >= verified 0.02 baseline,
+(2) spatial deadband > 5 deg (no echo jitter), (3) velocity slew <= 180 deg/s
+(no un-biological sweep). On `acted`, it calls `HardwareTuner.steer_to()`.
+
+**Real hardware verification:** running `--listen-live --with-stimulus
+--with-attention` against the actual board produced `is_real_hardware: true`,
+`steer_count: 2`, with the beam steered to front-left (338.9 deg then 344.4 deg,
+matching the left-dominant stimulus) and read-back confirming the beam moved.
+
+**Two honesty bugs caught by the live run (not by the fake-array tests):**
+1. `derive_target_azimuth()` returns a SIGNED [-90,+90] angle, but `steer_to()`
+   requires [0,360). Fixed by folding: `steer_azimuth = (target + 360) % 360`.
+2. `HardwareTuner.steer_to()` returns the firmware azimuth in RADIANS, but the
+   governor's world is degrees. The fake tuner returned degrees and masked this;
+   the real run reported `current_azimuth_deg: 5.97` (actually radians). Fixed by
+   converting `actual[0] * 180/pi` before `register_steer`. Added a radians-
+   returning fake tuner test to lock the boundary.
+
+**Design guard (per blueprint):** real pyusb control transfers fire ONLY under
+`--listen-live` with real silicon present; synthetic/test runs resolve a bus-free
+`_NullTuner` so the entire decision path (gate -> deadband -> slew -> steer) is
+exercised under pytest without ever touching the USB bus. Board left in default
+(released) beam mode after the run.
+
+**Honest spatial-resolution caveat:** with 2 fused channels the target estimate is
+L/R only (front hemisphere). The hardware beam itself can point 0..359 deg, but
+DERIVING a finer bearing would be inventing localization we do not have.
+
+**Tests:** `tests/test_active_attention.py` (7, pure) + `tests/test_active_attention_
+integration.py` (2, fake array + radians fake). Full suite after this work:
+**83 passed**.
+
+## Addendum 3 — Attempted firmware DoA integration (later retracted)
+
+This addendum records an intermediate interpretation that was useful but ultimately
+wrong: after decoding `DOA_VALUE` as a 2-float payload served with status byte 66,
+the loop briefly treated that value as a firmware-provided acoustic source bearing.
+That conclusion was later falsified by the geometry test in Addendum 4.
+
+What remains useful from this work:
+- the wire-format discovery is real: `DOA_VALUE` is a 2-float payload
+  `[azimuth_rad, flag]` on firmware 2.0.6, not uint16.
+- status byte 66 can carry data; status 64 is retry.
+- `ActiveAttentionGovernor.propose(explicit_target_deg=...)` remains useful for an
+  **external** ground-truth target bearing.
+
+What was retracted:
+- `DOA_VALUE` is NOT accepted as acoustic-source localization evidence. It echoes
+  beam azimuth state (proved in Addendum 4).
+- `LiveListener` no longer feeds `read_doa()` back as a steer target.
+
+**Correction (DoA geometry test — see Addendum 4):** the claim above that the
+bearing "tracked the source correctly" was WRONG and the geometry test exposed
+it. `DOA_VALUE` on 2.0.6 echoes the beam's OWN steered azimuth (it returned
+exactly the angle we last steered, 29.22 deg, and 0 when released). It is NOT
+an acoustic-source bearing. The real source-DoA (`AUDIO_MGR_SELECTED_AZIMUTHS`)
+stays NAN without the firmware's speech flag, and the captured L/R energy split
+is source-blind at close range. The loop was therefore self-referential. The
+code, tests, and this doc were corrected (see Addendum 4).
+
+**Tests (as originally added):** +2 tuner (mock DoA decode) + 2 governor
+(explicit-target override + fallback) + 1 integration (DoA preferred even when
+VAD flag False). Full suite at that point: **87 passed** (subsequently amended
+to 90 by the Addendum-4 correction).
+
+## Addendum 4 — DoA geometry test: "true DoA" was a phantom (honest retraction)
+
+The user moved the External Headphones' L/R earcups to +/-45 deg from front and
+asked for a geometry test. Built `src/cora_infans/io/doa_experiment.py`: plays a
+tone on one earcup (pan=-1/+1/0 -> true stereo WAV, verified ch0/ch1 routing in
+tests) and samples the firmware DoA during playback. The result is the most
+important finding of the session:
+
+1. LEFT, RIGHT, and BOTH earcups ALL report `DOA_VALUE = 29.22 deg` with zero
+   variance. The bearing does not respond to which speaker plays.
+2. A direct probe showed `DOA_VALUE` equals the **beam's own steered angle**:
+   released -> 0.00, `steer_to(350)` -> 350, `steer_to(100)` -> 100. It is a
+   beam-azimuth readback, NOT a source localization.
+3. `AUDIO_MGR_SELECTED_AZIMUTHS[0]` (the real processed source-DoA) is ALWAYS
+   NAN -- the firmware needs its speech flag set, which never fires on a tone.
+4. The captured L/R energy split is source-blind: LEFT vs RIGHT earcup give
+   identical channel energies (ch0~0.6, ch1~0.3). `derive_target_azimuth` is
+   not actually localizing either.
+
+**Conclusion:** there is NO working acoustic-source localization signal from
+this hardware/firmware for a non-speech stimulus. The "acoustic laser tracking
+the source" is not achievable here. What IS real and useful: the beam points
+exactly where commanded (steer 350 -> DoA 350, verified), so it is a genuine
+**commanded top-down attention** actuator. The governor's `propose()` retains
+an `explicit_target_deg` arg for an external ground-truth source bearing (e.g.
+a known speaker position) when one exists.
+
+**What to change to get real localization (future options):**
+- Drive a SPEECH-classified stimulus so `AUDIO_MGR_SELECTED_AZIMUTHS[0]` yields
+  a non-NAN bearing (firmware VAD requirement).
+- Wider speaker separation / greater distance so the inter-channel level
+  difference is measurable by the captured 2 fused channels.
+- Raw 4-mic access -- blocked by firmware (only 2 fused channels reach the OS).
+
+**Code corrections made:**
+- `live_listener.py`: `read_doa()` is no longer fed back as a steer target
+  (that was a self-referential no-op). It is logged as `beam_azimuth_deg`
+  (state) only; the steer target is the capture-derived L/R. Honest comment
+  added at the decision site.
+- `tests`: replaced the misleading "uses firmware DoA" integration test with
+  `test_closed_loop_logs_beam_azimuth_but_steers_on_derived_lr` + added
+  `test_governor_accepts_external_ground_truth_target`. Added
+  `tests/test_doa_experiment.py` (2 tests: stereo pan routing).
+- README + phase-1-foundation updated to state the limitation plainly.
+
+**Honesty note:** this is exactly the "looks like it works but doesn't" trap
+VISION.md warns against. The geometry test (user's suggestion) is what caught
+it. The earlier "true DoA-guided gaze" commit message/claim is retracted here.
+
+**Tests:** suite 87 -> 90 (+2 doa_experiment routing + 1 corrected integration).

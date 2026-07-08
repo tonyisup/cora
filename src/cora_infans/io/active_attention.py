@@ -117,12 +117,12 @@ class ActiveAttentionGovernor:
         """Evaluate a candidate target; return whether to act (and why).
 
         `azimuth_deg` is the target used for the gate/deadband/slew math. When
-        the caller has a higher-fidelity bearing (e.g. the firmware's native
-        DoA via `HardwareTuner.read_doa()`), pass it as `explicit_target_deg`;
+        the caller has an external higher-fidelity bearing (for example a known
+        speaker position from an experiment), pass it as `explicit_target_deg`;
         the governor will STEER toward that explicit bearing while still
-        reporting `azimuth_deg` as the fallback estimate. This lets the closed
-        loop chase the board's true 360 deg localization when available, and
-        gracefully fall back to the coarse L/R derived estimate otherwise.
+        allowing `azimuth_deg` to be the fallback estimate. Do NOT feed the
+        XVF3800 `DOA_VALUE` register back here on firmware 2.0.6: the geometry
+        test showed it echoes the beam's own azimuth, not the acoustic source.
         """
         target = explicit_target_deg if explicit_target_deg is not None else azimuth_deg
         elapsed = (

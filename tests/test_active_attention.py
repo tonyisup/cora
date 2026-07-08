@@ -91,14 +91,14 @@ def test_summary_reports_state():
     assert len(s["history"]) == 1
 
 
-def test_explicit_doa_target_overrides_derived_estimate():
-    # When the firmware provides a true 360 deg DoA, the governor steers toward
-    # THAT, not the coarse derived L/R estimate. Use a realistic interval so the
-    # 90 deg saccade stays under the 180 deg/s slew cap (>= 500 ms).
+def test_explicit_external_target_overrides_derived_estimate():
+    # When an external source of truth supplies a bearing, the governor steers
+    # toward THAT, not the coarse derived L/R estimate. Use a realistic interval
+    # so the 90 deg saccade stays under the 180 deg/s slew cap (>= 500 ms).
     g = _governor(deadband=5.0)
     g.propose(0.0, 0.05, now_ms=0)  # first steer (derived est = 0)
     g.register_steer(0.0, now_ms=0)
-    # Firmware DoA says the speaker is at 270 (left); derived L/R says ~10.
+    # External geometry says the speaker is at 270 (left); derived L/R says ~10.
     d = g.propose(10.0, 0.05, now_ms=600, explicit_target_deg=270.0)
     assert d.acted is True
     assert d.proposed_azimuth_deg == 270.0  # explicit bearing wins
@@ -106,7 +106,7 @@ def test_explicit_doa_target_overrides_derived_estimate():
     assert g.current_azimuth_deg == 270.0
 
 
-def test_explicit_doa_none_falls_back_to_derived():
+def test_explicit_external_target_none_falls_back_to_derived():
     g = _governor(deadband=5.0)
     d = g.propose(40.0, 0.05, now_ms=0, explicit_target_deg=None)
     assert d.acted is True

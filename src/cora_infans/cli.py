@@ -23,13 +23,27 @@ SequenceArgs = tuple[str, bool]
 def describe() -> dict[str, object]:
     return {
         "project": "cora-infans",
-        "implemented_slice": "saliency_gate_to_workspace",
-        "planned_subsystems": [
-            "mic_array_front_end",
+        "implemented_slice": "saliency_workspace_live_attention",
+        "implemented_subsystems": [
+            "synthetic_mic_array_front_end",
+            "live_xvf3800_front_end",
+            "acoustic_saliency_gate",
             "predictive_hierarchy",
             "stateful_event_workspace",
-            "analysis_by_synthesis",
+            "theta_gamma_scheduler",
+            "xvf3800_hardware_tuner",
+            "commanded_active_attention",
         ],
+        "planned_subsystems": [
+            "analysis_by_synthesis",
+            "automatic_source_localization",
+            "training_and_evaluation_harnesses",
+            "general_user_authored_sequences",
+        ],
+        "verdicts": {
+            "source_localization": "not_proven_non_speech_doa_geometry_negative",
+            "beam_steering": "verified_commanded_top_down_actuator",
+        },
     }
 
 

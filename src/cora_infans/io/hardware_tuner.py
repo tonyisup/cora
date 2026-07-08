@@ -88,7 +88,12 @@ class HardwareTunerError(Exception):
 
 @dataclass
 class DoAReading:
-    """Firmware Direction-of-Arrival reading (true 360 deg localization)."""
+    """Firmware DOA_VALUE register readback.
+
+    On XVF3800 firmware 2.0.6 this behaves as beam-azimuth state, not a proven
+    acoustic-source bearing. Keep the name for the firmware register, but do not
+    interpret it as source localization without a separate geometry proof.
+    """
 
     azimuth_deg: float
     speech_detected: bool
@@ -285,12 +290,14 @@ class HardwareTuner:
         return {k: self.read(k) for k in keys}
 
     def read_doa(self) -> "DoAReading":
-        """Read the firmware's native Direction-of-Arrival (true 360 deg).
+        """Read the firmware's DOA_VALUE register.
 
-        The XVF3800 localizes using all 4 of its mics internally; this is the
-        board's REAL bearing estimate (0..359 deg), independent of the 2 fused
-        USB channels our capture stream sees. `speech_detected` is the firmware's
-        own voice-activity flag -- the DoA is only meaningful when it is True.
+        Geometry testing showed that on firmware 2.0.6 this register echoes the
+        beam's own steered azimuth (released -> 0, steer 350 -> 350, steer 100
+        -> 100). It is useful as beam-state readback, but it is NOT evidence of
+        acoustic-source localization. The real processed source-DoA appears to
+        be `AUDIO_MGR_SELECTED_AZIMUTHS[0]`, which stayed NAN for tone stimuli
+        because the firmware speech flag did not fire.
 
         NOTE on the firmware wire format (firmware 2.0.6): DOA_VALUE is served
         as a 2-float payload [azimuth_rad, flag] with status byte 66 (NOT 0).

@@ -76,9 +76,9 @@ class _NullTuner:
         return [0]
 
     def read_doa(self) -> "DoAReading":
-        # Bus-free stand-in: report a deterministic bearing (front-right) with
-        # speech NOT detected, to prove the loop uses the firmware bearing even
-        # when the VAD flag is False (the real 2.0.6 firmware behaves this way).
+        # Bus-free stand-in: report a deterministic beam-azimuth readback. This
+        # value is logged as state only; it must not be fed back as a source
+        # target (the real 2.0.6 firmware echoes the beam azimuth here).
         return DoAReading(azimuth_deg=45.0, speech_detected=False)
 
     @property

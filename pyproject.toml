@@ -9,8 +9,11 @@ description = "Infant-inspired auditory and cognitive architecture research scaf
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "numpy>=2,<3",
     "pydantic>=2,<3",
+    "pyusb>=1,<2",
     "pyyaml>=6,<7",
+    "libusb-package>=1,<2",
 ]
 
 [project.scripts]

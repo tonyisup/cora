@@ -183,11 +183,13 @@ What is proven today
 - sequence reports now expose dropout and recovery counters for direct family-to-family comparison
 
 What is explicitly not proven yet
-- live microphone capture
-- beamforming or physical spatial localization
-- actual ReSpeaker channel semantics
+- automatic acoustic-source localization (DoA geometry test showed no working
+  non-speech localization signal on firmware 2.0.6)
+- beamforming or physical spatial localization beyond commanded fixed-beam steer
+- raw 4-mic access (the OS-visible stream is 2 fused channels)
 - stacked predictive layers
-- oscillatory workspace scheduling
+- theta-gamma scheduling as the default report path for every run (it is
+  implemented and opt-in, not yet default everywhere)
 - motor-plan synthesis
 - training over real recorded data
 - arbitrary user-authored temporal trajectories

@@ -20,8 +20,13 @@ def test_describe_command_prints_json_summary() -> None:
     payload = json.loads(result.stdout)
 
     assert payload["project"] == "cora-infans"
-    assert payload["implemented_slice"] == "saliency_gate_to_workspace"
-    assert "predictive_hierarchy" in payload["planned_subsystems"]
+    assert payload["implemented_slice"] == "saliency_workspace_live_attention"
+    assert "predictive_hierarchy" in payload["implemented_subsystems"]
+    assert "analysis_by_synthesis" in payload["planned_subsystems"]
+    assert (
+        payload["verdicts"]["source_localization"]
+        == "not_proven_non_speech_doa_geometry_negative"
+    )
 
 
 
