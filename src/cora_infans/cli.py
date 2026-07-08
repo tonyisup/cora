@@ -41,7 +41,7 @@ def describe() -> dict[str, object]:
             "general_user_authored_sequences",
         ],
         "verdicts": {
-            "source_localization": "not_proven_non_speech_doa_geometry_negative",
+            "source_localization": "speech_stimulus_recoverable_non_speech_negative",
             "beam_steering": "verified_commanded_top_down_actuator",
         },
     }

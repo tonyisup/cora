@@ -295,9 +295,9 @@ class HardwareTuner:
         Geometry testing showed that on firmware 2.0.6 this register echoes the
         beam's own steered azimuth (released -> 0, steer 350 -> 350, steer 100
         -> 100). It is useful as beam-state readback, but it is NOT evidence of
-        acoustic-source localization. The real processed source-DoA appears to
-        be `AUDIO_MGR_SELECTED_AZIMUTHS[0]`, which stayed NAN for tone stimuli
-        because the firmware speech flag did not fire.
+        acoustic-source localization. The real processed source-DoA is exposed
+        at `AUDIO_MGR_SELECTED_AZIMUTHS[0]`; it stayed NAN for tone stimuli but
+        became finite when a macOS TTS speech stimulus fired the firmware VAD.
 
         NOTE on the firmware wire format (firmware 2.0.6): DOA_VALUE is served
         as a 2-float payload [azimuth_rad, flag] with status byte 66 (NOT 0).

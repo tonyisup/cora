@@ -25,7 +25,7 @@ def test_describe_command_prints_json_summary() -> None:
     assert "analysis_by_synthesis" in payload["planned_subsystems"]
     assert (
         payload["verdicts"]["source_localization"]
-        == "not_proven_non_speech_doa_geometry_negative"
+        == "speech_stimulus_recoverable_non_speech_negative"
     )
 
 

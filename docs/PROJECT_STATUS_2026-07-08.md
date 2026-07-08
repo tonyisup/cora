@@ -2,7 +2,7 @@
 
 _Snapshot started on 2026-07-08 and extended by same-day addenda. The README and
 `docs/architecture/*` remain the living spec. Current audit baseline: commit
-`8d22964` plus this doc cleanup, `pytest tests -q` → 90 passed._
+`0f56139` plus the speech-source-DoA probe, `pytest tests -q` → 93 passed._
 
 ## 0. What this project is
 
@@ -20,11 +20,12 @@ Stack: Python 3, `pytest`, `pydantic`, `pyyaml`, `numpy`, `pyusb`, and
 
 ## 1. Runtime state (verified)
 
-- Branch `main`, current checked HEAD before this cleanup: `8d22964` (ahead of
-  `origin/main` by the DoA-geometry correction commit).
-- `pytest tests -q` → **90 passed** (current validation after active-attention,
-  hardware-tuner, calibration, and DoA-geometry tests).
+- Branch `main`, current checked HEAD before this addendum: `0f56139` (ahead of
+  `origin/main` by the DoA-geometry and status-audit correction commits).
+- `pytest tests -q` → **93 passed** (current validation after active-attention,
+  hardware-tuner, calibration, DoA-geometry, and speech-source-DoA tests).
 - Latest relevant commits:
+  - `0f56139` Audit project status and correct DoA verdict surfaces
   - `8d22964` DoA geometry test: correct the 'true DoA' claim (beam-azimuth echo, not source)
   - `0d7bfd1` Add true Direction-of-Arrival to the gaze loop (firmware 4-mic localization) — **retracted by 8d22964**
   - `d5f3aa8` Add active top-down auditory oculomotor gaze (closed loop)
@@ -313,3 +314,40 @@ VISION.md warns against. The geometry test (user's suggestion) is what caught
 it. The earlier "true DoA-guided gaze" commit message/claim is retracted here.
 
 **Tests:** suite 87 -> 90 (+2 doa_experiment routing + 1 corrected integration).
+
+## Addendum 5 — Speech-classified source-DoA is recoverable
+
+After Addendum 4 showed that tone/non-speech localization was negative, the next
+experiment tested the firmware's likely real source-DoA path with a speech-like
+stimulus. Built a `SpeechStimulus` in `src/cora_infans/io/doa_experiment.py`:
+macOS `/usr/bin/say` synthesizes TTS speech, `ffmpeg` converts/pans it into a
+stereo WAV, then the existing audiotoolbox output path plays it to one earcup.
+The probe now records both:
+- `DOA_VALUE` / `read_doa()` — beam-azimuth state readback.
+- `AUDIO_MGR_SELECTED_AZIMUTHS[0]` / `read_selected_azimuths()` — processed
+  source-DoA candidate in radians.
+
+**Real hardware result (External Headphones still placed about +/-45 deg from
+the previous center):**
+- LEFT speech: firmware VAD fired (`speech_hits=45`), selected source samples=41,
+  `selected_source_mean_deg=133.39`.
+- RIGHT speech: firmware VAD fired (`speech_hits=45`), selected source samples=40,
+  `selected_source_mean_deg=213.54`.
+- BOTH speech: firmware VAD fired (`speech_hits=45`), selected source samples=41,
+  `selected_source_mean_deg=169.70` with mixed/transitioning readings.
+
+**Verdict update:** the Addendum-4 negative result is still true for tones and
+non-speech: `DOA_VALUE` is not source localization and processed source-DoA stays
+NAN without firmware speech detection. But source localization IS recoverable on
+this silicon when the stimulus is speech-classified by the firmware VAD, via
+`AUDIO_MGR_SELECTED_AZIMUTHS[0]`. The left/right separation (~80 deg in means,
+with stable plateaus around ~133 deg and ~225 deg) is a real geometry signal.
+
+**Important boundary:** the live attention loop does NOT yet consume this
+processed source-DoA as its target. It still logs `read_doa()` as beam state and
+steers on the capture-derived L/R. Next implementation step is to feed finite
+`read_selected_azimuths()[0]` into `governor.propose(explicit_target_deg=...)`
+under `--listen-live --with-attention`.
+
+**Tests:** +3 DoA experiment tests (speech stimulus command construction,
+right-pan filter, processed source-DoA reporting). Suite 90 -> 93.
