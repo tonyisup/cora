@@ -256,10 +256,67 @@ by probing all standard bauds, zero response).
 +   whenever it is finite, NOT gated on the speech flag -- our own saliency gate
 +   already confirms a real signal. The flag is logged for transparency only.
 +
-+**Honest status of DoA:** the bearing (0..359 deg) is real and tracked the source
-+correctly; the firmware VAD speech flag is unavailable for synthetic stimuli but
-+is redundant with our saliency gate, so it does not limit the loop.
++**Correction (DoA geometry test — see Addendum 4):** the claim above that the
++bearing "tracked the source correctly" was WRONG and the geometry test exposed
++it. `DOA_VALUE` on 2.0.6 echoes the beam's OWN steered azimuth (it returned
++exactly the angle we last steered, 29.22 deg, and 0 when released). It is NOT
++an acoustic-source bearing. The real source-DoA (`AUDIO_MGR_SELECTED_AZIMUTHS`)
++stays NAN without the firmware's speech flag, and the captured L/R energy split
++is source-blind at close range. The loop was therefore self-referential. The
++code, tests, and this doc were corrected (see Addendum 4).
 +
-+**Tests:** +2 tuner (mock DoA decode) + 2 governor (explicit-target override +
-+fallback) + 1 integration (DoA preferred even when VAD flag False). Full suite:
-+**87 passed**.
++**Tests (as originally added):** +2 tuner (mock DoA decode) + 2 governor
++(explicit-target override + fallback) + 1 integration (DoA preferred even when
++VAD flag False). Full suite at that point: **87 passed** (subsequently amended
++to 90 by the Addendum-4 correction).
++
++## Addendum 4 — DoA geometry test: "true DoA" was a phantom (honest retraction)
++
++The user moved the External Headphones' L/R earcups to +/-45 deg from front and
++asked for a geometry test. Built `src/cora_infans/io/doa_experiment.py`: plays a
++tone on one earcup (pan=-1/+1/0 -> true stereo WAV, verified ch0/ch1 routing in
++tests) and samples the firmware DoA during playback. The result is the most
++important finding of the session:
++
++1. LEFT, RIGHT, and BOTH earcups ALL report `DOA_VALUE = 29.22 deg` with zero
++   variance. The bearing does not respond to which speaker plays.
++2. A direct probe showed `DOA_VALUE` equals the **beam's own steered angle**:
++   released -> 0.00, `steer_to(350)` -> 350, `steer_to(100)` -> 100. It is a
++   beam-azimuth readback, NOT a source localization.
++3. `AUDIO_MGR_SELECTED_AZIMUTHS[0]` (the real processed source-DoA) is ALWAYS
++   NAN -- the firmware needs its speech flag set, which never fires on a tone.
++4. The captured L/R energy split is source-blind: LEFT vs RIGHT earcup give
++   identical channel energies (ch0~0.6, ch1~0.3). `derive_target_azimuth` is
++   not actually localizing either.
++
++**Conclusion:** there is NO working acoustic-source localization signal from
++this hardware/firmware for a non-speech stimulus. The "acoustic laser tracking
++the source" is not achievable here. What IS real and useful: the beam points
++exactly where commanded (steer 350 -> DoA 350, verified), so it is a genuine
++**commanded top-down attention** actuator. The governor's `propose()` retains
++an `explicit_target_deg` arg for an external ground-truth source bearing (e.g.
++a known speaker position) when one exists.
++
++**What to change to get real localization (future options):**
++- Drive a SPEECH-classified stimulus so `AUDIO_MGR_SELECTED_AZIMUTHS[0]` yields
++  a non-NAN bearing (firmware VAD requirement).
++- Wider speaker separation / greater distance so the inter-channel level
++  difference is measurable by the captured 2 fused channels.
++- Raw 4-mic access -- blocked by firmware (only 2 fused channels reach the OS).
++
++**Code corrections made:**
++- `live_listener.py`: `read_doa()` is no longer fed back as a steer target
++  (that was a self-referential no-op). It is logged as `beam_azimuth_deg`
++  (state) only; the steer target is the capture-derived L/R. Honest comment
++  added at the decision site.
++- `tests`: replaced the misleading "uses firmware DoA" integration test with
++  `test_closed_loop_logs_beam_azimuth_but_steers_on_derived_lr` + added
++  `test_governor_accepts_external_ground_truth_target`. Added
++  `tests/test_doa_experiment.py` (2 tests: stereo pan routing).
++- README + phase-1-foundation updated to state the limitation plainly.
++
++**Honesty note:** this is exactly the "looks like it works but doesn't" trap
++VISION.md warns against. The geometry test (user's suggestion) is what caught
++it. The earlier "true DoA-guided gaze" commit message/claim is retracted here.
++
++**Tests:** suite 87 -> 90 (+2 doa_experiment routing + 1 corrected integration).

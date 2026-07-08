@@ -103,8 +103,23 @@ class ParenteseStimulus:
         self.output_device_index = output_device_index
         self.sample_rate = sample_rate
 
-    def synthesize_wav(self, path: str, *, sweeps: int = 3, sweep_ms: int = 400) -> None:
-        """Write a parentese-like stimulus (pitch sweeps) to `path`."""
+    def synthesize_wav(
+        self,
+        path: str,
+        *,
+        sweeps: int = 3,
+        sweep_ms: int = 400,
+        pan: float = 0.0,
+        channels: int = 2,
+    ) -> None:
+        """Write a parentese-like stimulus (pitch sweeps) to `path`.
+
+        `pan` routes the tone: -1 = left channel only, 0 = both, +1 = right
+        only. `channels` is the output channel count (default 2 = stereo, so a
+        single-earcup can be driven for Direction-of-Arrival geometry tests).
+        The default `pan=0, channels=2` preserves the original both-speakers
+        behavior; callers wanting a one-sided source pass pan=-1/+1.
+        """
         sr = self.sample_rate
         total = int(sweeps * sweep_ms / 1000.0 * sr)
         t = np.arange(total) / sr
@@ -127,14 +142,24 @@ class ParenteseStimulus:
         ramp = int(0.05 * sr)
         env[:ramp] = np.linspace(0.0, 1.0, ramp)
         env[-ramp:] = np.linspace(1.0, 0.0, ramp)
-        pcm = (tone * env * 32767.0).astype("<i2")
+        mono = (tone * env * 32767.0).astype("<i2")
+
+        # Build the requested channel layout from the mono signal.
+        left_gain = 1.0 if pan <= 0 else 0.0
+        right_gain = 1.0 if pan >= 0 else 0.0
+        frames: list[np.ndarray] = []
+        for ch in range(channels):
+            gain = left_gain if ch == 0 else right_gain
+            frames.append((mono.astype(np.float32) * gain).astype("<i2"))
+        interleaved = np.column_stack(frames) if channels > 1 else frames[0]
+
         import wave
 
         with wave.open(path, "wb") as w:
-            w.setnchannels(1)
+            w.setnchannels(channels)
             w.setsampwidth(2)
             w.setframerate(sr)
-            w.writeframes(pcm.tobytes())
+            w.writeframes(interleaved.tobytes())
 
     def play(self, path: str) -> subprocess.Popen[bytes]:
         """Play `path` to the stimulus output device (non-blocking).
@@ -284,30 +309,24 @@ class LiveListener:
                     # 270=left, so fold the signed estimate into that range.
                     target = derive_target_azimuth(frame.channel_energies)
                     steer_azimuth = (target + 360.0) % 360.0
-                    # Prefer the firmware's native DoA when it yields a real
-                    # bearing (true 360 deg from all 4 mics), falling back to
-                    # the coarse L/R derived estimate otherwise. We do NOT gate
-                    # on the firmware's `speech_detected` flag here: on 2.0.6 it
-                    # stays False for our synthetic stimulus (the VAD doesn't
-                    # classify a tone as speech), but the bearing itself tracks
-                    # the real source. Our own saliency gate already confirms a
-                    # genuine signal, so we use the bearing whenever it is finite.
-                    explicit_doa: float | None = None
-                    doa_speech = False
+                    # HONEST NOTE (verified by the DoA geometry test): on
+                    # firmware 2.0.6, DOA_VALUE echoes the beam's OWN steered
+                    # azimuth (not the acoustic source bearing), and the
+                    # firmware's real source-DoA (AUDIO_MGR_SELECTED_AZIMUTHS)
+                    # stays NAN without speech detection. So we do NOT feed
+                    # read_doa() back as a steer target -- that would be a
+                    # self-referential no-op. We log the beam azimuth for
+                    # transparency only, and steer on the capture-derived L/R
+                    # estimate (the only source-driven signal we have, coarse
+                    # as it may be at close range). A caller with an external
+                    # ground-truth source bearing should pass it explicitly.
+                    beam_azimuth = None
                     if hasattr(tuner, "read_doa"):
                         try:
-                            doa = tuner.read_doa()
-                            doa_speech = doa.speech_detected
-                            az = doa.azimuth_deg
-                            if az == az and 0.0 <= az < 360.0:  # finite + in range
-                                explicit_doa = az
+                            beam_azimuth = tuner.read_doa().azimuth_deg
                         except Exception:
-                            # Non-fatal: fall back to derived target.
-                            explicit_doa = None
-                    decision = self.governor.propose(
-                        steer_azimuth, saliency_score, now_ms,
-                        explicit_target_deg=explicit_doa,
-                    )
+                            beam_azimuth = None
+                    decision = self.governor.propose(steer_azimuth, saliency_score, now_ms)
                     if decision.acted:
                         # HardwareTuner.steer_to returns the firmware's
                         # azimuth read-back in RADIANS; the governor's world is
@@ -324,11 +343,10 @@ class LiveListener:
                             "now_ms": now_ms,
                             "target_azimuth_deg": round(target, 2),
                             "derived_steer_azimuth_deg": round(steer_azimuth, 2),
-                            "doa_azimuth_deg": (
-                                round(explicit_doa, 2) if explicit_doa is not None else None
+                            "beam_azimuth_deg": (
+                                round(beam_azimuth, 2) if beam_azimuth is not None else None
                             ),
-                            "doa_speech_detected": doa_speech,
-                            "steered_to_azimuth_deg": round(decision.proposed_azimuth_deg, 2),
+                            "doa_speech_detected": None,
                             "saliency_score": round(saliency_score, 4),
                             "acted": decision.acted,
                             "reason": decision.reason,

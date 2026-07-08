@@ -62,10 +62,11 @@ def test_closed_loop_disabled_by_default_leaves_no_attention_block():
     assert report["active_attention"] is None
 
 
-def test_closed_loop_uses_firmware_doa_when_available():
-    # _NullTuner.read_doa() returns a deterministic 45deg bearing with speech
-    # detected, so the loop should steer toward 45 (the true DoA), not the
-    # coarse derived L/R estimate.
+def test_closed_loop_logs_beam_azimuth_but_steers_on_derived_lr():
+    # After the DoA geometry test we learned DOA_VALUE echoes the beam's own
+    # azimuth (not the source), so the loop must NOT feed it back as a steer
+    # target. Instead it logs the beam azimuth for transparency and steers on
+    # the capture-derived L/R estimate. _NullTuner.read_doa() returns 45deg.
     frames = [_frame(0.05, 0.30), _frame(0.04, 0.28)]
     tuner = _NullTuner()
     listener = LiveListener(array=_FakeArray(frames), tuner=tuner)
@@ -73,15 +74,31 @@ def test_closed_loop_uses_firmware_doa_when_available():
     att = report["active_attention"]
     log = att["attention_log"]
     assert log
-    # At least one entry should show a DoA reading and steer toward it.
-    doa_entries = [e for e in log if e["doa_azimuth_deg"] is not None]
-    assert doa_entries, "expected DoA readings in the attention log"
-    for e in doa_entries:
-        # Bearing is used even though the (fake) VAD flag is False.
-        assert e["doa_speech_detected"] is False
-        assert e["doa_azimuth_deg"] == 45.0
-        # The beam was steered toward the DoA bearing, not the derived L/R.
-        assert e["steered_to_azimuth_deg"] == 45.0
+    # Beam azimuth is logged (from read_doa), not used as the steer target.
+    beam_entries = [e for e in log if e["beam_azimuth_deg"] is not None]
+    assert beam_entries, "expected beam azimuth in the attention log"
+    for e in beam_entries:
+        assert e["beam_azimuth_deg"] == 45.0
+        # The actual steer target is the derived L/R (right louder -> ~64deg),
+        # NOT the beam azimuth echo.
+        assert e["derived_steer_azimuth_deg"] != 45.0
+
+
+def test_governor_accepts_external_ground_truth_target():
+    # The governor still supports an explicit target (e.g. a known speaker
+    # position supplied by an external source of truth), distinct from the
+    # self-referential firmware DoA.
+    from cora_infans.io.active_attention import ActiveAttentionGovernor
+
+    g = ActiveAttentionGovernor()
+    g.propose(0.0, 0.05, now_ms=0)
+    g.register_steer(0.0, now_ms=0)
+    # 160 deg move at 180 deg/s cap needs >= ~889 ms; use 1000 ms.
+    d = g.propose(10.0, 0.05, now_ms=1000, explicit_target_deg=200.0)
+    assert d.acted is True
+    assert d.proposed_azimuth_deg == 200.0
+    g.register_steer(200.0, now_ms=1000)
+    assert g.current_azimuth_deg == 200.0
 
 
 class _RadiansTuner:
