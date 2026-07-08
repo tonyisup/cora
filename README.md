@@ -134,6 +134,7 @@ Current code structure
 
 Architecture note
 - `docs/architecture/phase-1-foundation.md`
+- `docs/PROJECT_STATUS_2026-07-08.md` — point-in-time progress/status snapshot (verified test counts + hardware validation)
 
 Implementation plan
 - `docs/plans/2026-07-07-cora-infans-kickoff.md`
