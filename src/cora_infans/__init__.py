@@ -23,7 +23,7 @@ from .simulation import (
     build_sequence_report,
     build_simulation_report,
 )
-from .spatial import resolve_focus_label
+from .theta_gamma import ThetaGammaScheduler
 from .workspace import EventWorkspace
 
 __all__ = [
@@ -49,6 +49,7 @@ __all__ = [
     "compute_saliency_reward",
     "load_scenario_definition_yaml",
     "lower_scenario_definition",
+    "ThetaGammaScheduler",
     "resolve_focus_label",
 ]
 __version__ = "0.1.0"

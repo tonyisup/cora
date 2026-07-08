@@ -11,12 +11,13 @@ from .simulation import (
     build_builtin_sequence_report,
     build_live_frame_report,
     build_sequence_report,
+    build_sequence_report_with_scheduling,
     build_simulation_report,
 )
 
 
 OutputMode = str
-SequenceFamily = str
+SequenceArgs = tuple[str, bool]
 
 
 def describe() -> dict[str, object]:
@@ -47,20 +48,23 @@ def _parse_mic_geometry(raw: str) -> tuple[str, ...]:
     return geometry
 
 
-def parse_sequence_cli_args(args: list[str]) -> SequenceFamily:
+def parse_sequence_cli_args(args: list[str]) -> tuple[str, bool]:
     family = "sweep"
+    with_scheduling = False
     i = 1
     while i < len(args):
         option = args[i]
-        if i + 1 >= len(args):
-            raise ValueError(f"missing value for {option}")
-        value = args[i + 1]
         if option == "--family":
-            family = value
+            if i + 1 >= len(args):
+                raise ValueError("missing value for --family")
+            family = args[i + 1]
+            i += 2
+        elif option == "--with-scheduling":
+            with_scheduling = True
+            i += 1
         else:
             raise ValueError(f"unknown option: {option}")
-        i += 2
-    return family
+    return family, with_scheduling
 
 
 
@@ -137,7 +141,9 @@ def simulate_frame(args: list[str] | None = None) -> dict[str, object]:
 
 
 def simulate_sequence(args: list[str] | None = None) -> dict[str, object]:
-    family = parse_sequence_cli_args(args or ["--simulate-sequence"])
+    family, with_scheduling = parse_sequence_cli_args(args or ["--simulate-sequence"])
+    if with_scheduling:
+        return build_sequence_report_with_scheduling(family)
     return build_builtin_sequence_report(family)
 
 
@@ -172,11 +178,16 @@ def listen_live(args: list[str] | None = None) -> dict[str, object]:
     duration_ms = 2000
     frame_ms = 250
     with_stimulus = False
+    with_scheduling = False
     i = 1
     while i < len(parsed):
         option = parsed[i]
         if option == "--with-stimulus":
             with_stimulus = True
+            i += 1
+            continue
+        if option == "--with-scheduling":
+            with_scheduling = True
             i += 1
             continue
         if i + 1 >= len(parsed):
@@ -200,7 +211,10 @@ def listen_live(args: list[str] | None = None) -> dict[str, object]:
 
     listener = LiveListener(LiveMicArray(device=device))
     return listener.listen(
-        duration_ms=duration_ms, frame_ms=frame_ms, with_stimulus=with_stimulus
+        duration_ms=duration_ms,
+        frame_ms=frame_ms,
+        with_stimulus=with_stimulus,
+        with_scheduling=with_scheduling,
     )
 
 
@@ -244,7 +258,9 @@ def main(argv: list[str] | None = None) -> int:
     print(
         "usage: python -m cora_infans --describe | --simulate-frame | --simulate-sequence "
         "[--timestamp-ms N --dominant-frequency-hz F --channel-energies a,b,c,d --initial-prediction-hz F --mic-geometry l0,l1,l2,l3 --saliency-threshold F --output json|pretty] "
-        "[--family sweep|zigzag|gap|multi_gap|delayed_recovery]",
+        "[--family sweep|zigzag|gap|multi_gap|delayed_recovery] [--with-scheduling] "
+        "[--capture-live [--device :0] [--duration-ms N]] "
+        "[--listen-live [--duration-ms N] [--frame-ms N] [--with-stimulus]]",
         file=sys.stderr,
     )
     return 2

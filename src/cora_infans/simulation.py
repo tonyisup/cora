@@ -8,6 +8,7 @@ from .pipeline import CoraInfansPipeline
 from .predictive import PredictiveCoder
 from .scenario import builtin_scenario_definition, lower_scenario_definition
 from .predictive import FocusTrajectoryCoder, PredictiveCoder, PredictiveHierarchy
+from .theta_gamma import ThetaGammaScheduler
 from .io.live_mic import DEFAULT_LIVE_SALIENCY_THRESHOLD, LiveMicArray, LiveMicError
 
 
@@ -208,3 +209,37 @@ def _live_params_placeholder(channel_count: int, initial_prediction_hz: float) -
         initial_prediction_hz=initial_prediction_hz,
         mic_channel_geometry=tuple(f"ch{i}" for i in range(channel_count)),
     )
+
+
+def build_sequence_report_with_scheduling(
+    family: str = "sweep",
+    *,
+    theta_ms: int = 200,
+    gamma_ms: int = 25,
+    capacity_cycles: int = 4,
+) -> dict[str, object]:
+    """Run a built-in family through the pipeline AND a theta-gamma scheduler.
+
+    Returns the familiar sequence report plus a `theta_gamma` scheduling
+    summary. The scheduler is an interpretation layer above the flat workspace;
+    this is the single composed entrypoint so sequence runs can report nested
+    temporal binding without changing the base pipeline.
+    """
+    sequence = _builtin_sequence_family(family)
+    report = build_sequence_report(sequence)
+    report["family"] = family
+
+    scheduler = ThetaGammaScheduler(
+        theta_ms=theta_ms, gamma_ms=gamma_ms, capacity_cycles=capacity_cycles
+    )
+    for params in sequence:
+        config = _build_config(params)
+        pipeline = _build_pipeline(config, params)
+        mic_array = SyntheticMicArray(channel_count=config.mic_channel_count)
+        frame = _capture_frame(params, mic_array)
+        event = pipeline.process_frame(frame)
+        if event is not None:
+            scheduler.push(event)
+
+    report["theta_gamma"] = scheduler.summary()
+    return report

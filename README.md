@@ -21,7 +21,8 @@ Implemented today
 - `python3 -m cora_infans --simulate-sequence --family gap`
 - `python3 -m cora_infans --simulate-sequence --family multi_gap`
 - `python3 -m cora_infans --capture-live [--device :0] [--duration-ms N]`
-- `python3 -m cora_infans --listen-live [--duration-ms N] [--frame-ms N] [--with-stimulus]`
+- `python3 -m cora_infans --simulate-sequence --family sweep --with-scheduling`
+- `python3 -m cora_infans --listen-live --duration-ms N --frame-ms N --with-stimulus --with-scheduling`
 - parameterized single-frame simulation CLI with structured report output
 - reusable simulation helpers for future training/eval scripts
 - configurable 4-channel topology labels
@@ -33,12 +34,13 @@ Implemented today
 - two-level predictive-coding hierarchy (`PredictiveHierarchy`: frequency residual + focus-trajectory prediction), wired into the pipeline and simulation defaults
 - live XVF3800 hardware front end (`src/cora_infans/io/live_mic.py`): captures real frames via ffmpeg/avfoundation, lowers to AudioFrame, runs through the same pipeline; no synthetic fallback
 - continuous live listener (`src/cora_infans/io/live_listener.py`): accumulates focus-path / dropout / recovery tracking over a real-time window; optional parentese stimulus plays to External Headphones (audiotoolbox device 2) so the mic has a controlled acoustic target
+- theta-gamma workspace scheduling (`src/cora_infans/theta_gamma.py`): deterministic nested theta-cycle / gamma-subwindow temporal-binding layer over the event stream (5 Hz theta windows, 40 Hz gamma bins, bounded residency); models VISION.md's multiplexing claim without inventing neurophysics
 
 Not implemented yet
 - live ReSpeaker XMOS XVF3800 hardware integration (first slice landed: real capture + saliency gate; no beamforming/multi-mic fusion yet)
 - real multi-mic fusion / beamforming
 - deeper predictive-coding hierarchy beyond one frequency residual + one focus-trajectory level
-- theta-gamma workspace scheduling
+- theta-gamma workspace scheduling (deterministic scheduler implemented; not yet the default report path for all runs)
 - motor-plan / speech synthesis loop
 - training and evaluation harnesses over real audio corpora
 - general user-authored sequence format

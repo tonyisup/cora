@@ -25,6 +25,20 @@ Current module responsibilities
   - represents the 4-mic array contract without requiring real hardware
   - validates channel count before constructing an `AudioFrame`
 
+- `src/cora_infans/theta_gamma.py` — theta-gamma workspace scheduler
+  - deterministic nested temporal-binding layer over the event stream: slow
+    theta cycles (default 200 ms ~ 5 Hz) define volatile workspace windows;
+    each is subdivided into fast gamma sub-windows (default 25 ms ~ 40 Hz)
+    that phase-lock active focus labels into per-cycle assemblies
+  - at a theta-cycle boundary the active cycle consolidates (frozen) and a
+    fresh volatile cycle opens; only the current cycle is mutable
+  - a bounded capacity keeps only the most recent N cycles resident (working
+    memory limit); cross-talk is structurally impossible (a cycle binds only
+    events whose timestamp falls inside it)
+  - exposes a structured `summary()` (resident cycles, per-cycle gamma bins,
+    bound focus labels, dominant label, binding-stability fraction) for
+    analysis; it is an interpretation layer above the flat EventWorkspace, not
+    a replacement for it
 - `src/cora_infans/io/live_listener.py` — continuous live listener + parentese stimulus
   - `LiveListener.listen()` captures a time window of real frames, runs each through
     the pipeline, and accumulates focus_path / dropout / recovery tracking (the

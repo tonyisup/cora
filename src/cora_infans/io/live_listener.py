@@ -78,7 +78,7 @@ class ParenteseStimulus:
             amp = (np.sin(phase) * 0.5 + 0.5) * 250.0  # 0..250 Hz swing
             freq[s:e] = center + amp
         phase = np.cumsum(2 * np.pi * freq / sr)
-        tone = 0.6 * np.sin(phase)
+        tone = 0.95 * np.sin(phase)
         # Soft amplitude envelope so each sweep has a gentle attack/decay.
         env = np.ones(total)
         ramp = int(0.05 * sr)
@@ -104,6 +104,7 @@ class ParenteseStimulus:
         cmd = [
             ffmpeg, "-hide_banner", "-loglevel", "error", "-y",
             "-i", path,
+            "-af", "volume=12dB",
             "-f", "audiotoolbox", "-audio_device_index", str(self.output_device_index),
             sink,
         ]
@@ -155,27 +156,36 @@ class LiveListener:
         duration_ms: int = 2000,
         frame_ms: int = 250,
         with_stimulus: bool = False,
+        with_scheduling: bool = False,
+        theta_ms: int = 200,
+        gamma_ms: int = 25,
+        capacity_cycles: int = 4,
     ) -> dict[str, object]:
         """Capture `duration_ms` of live audio in `frame_ms` steps.
 
         Returns an accumulated report (salient/non-salient counts, dropout,
         recovery, focus_path, focus_transitions) plus a per-frame log tagged
-        with `stimulus_active`.
+        with `stimulus_active`. When `with_scheduling` is set, salient events
+        are also fed into a theta-gamma scheduler and its summary is attached.
         """
+        from ..theta_gamma import ThetaGammaScheduler
+
         pipeline = self._build_pipeline()
         self._pipeline = pipeline
+        scheduler = (
+            ThetaGammaScheduler(
+                theta_ms=theta_ms, gamma_ms=gamma_ms, capacity_cycles=capacity_cycles
+            )
+            if with_scheduling
+            else None
+        )
 
         stim_proc = None
+        stim_path = None
         if with_stimulus:
             stim_path = tempfile.mktemp(suffix=".wav")
             self.stimulus.synthesize_wav(stim_path)
             stim_proc = self.stimulus.play(stim_path)
-            import os
-
-            try:
-                os.unlink(stim_path)
-            except OSError:
-                pass
 
         frames: list[dict[str, object]] = []
         events: list[dict[str, object]] = []
@@ -191,12 +201,22 @@ class LiveListener:
             frames.append(frame_view)
             if is_salient and event is not None:
                 events.append(asdict_public(event))
+                if scheduler is not None:
+                    scheduler.push(event)
 
         if stim_proc is not None:
             try:
                 stim_proc.wait(timeout=max(1, int(duration_ms / 1000) + 2))
             except Exception:
                 stim_proc.kill()
+            # Unlink only after playback has finished reading the file.
+            if stim_path is not None:
+                import os
+
+                try:
+                    os.unlink(stim_path)
+                except OSError:
+                    pass
 
         salient = len(events)
         non_salient = len(frames) - salient
@@ -225,6 +245,7 @@ class LiveListener:
             "workspace_snapshot": [
                 asdict_public(ev) for ev in pipeline.workspace.snapshot()
             ],
+            "theta_gamma": scheduler.summary() if scheduler is not None else None,
         }
 
 
