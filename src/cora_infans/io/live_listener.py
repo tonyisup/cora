@@ -44,6 +44,7 @@ from .active_attention import (
     derive_target_azimuth,
 )
 from .hardware_tuner import HardwareTuner, HardwareTunerError, DoAReading
+from .motor_plan import MotorPlanner, analyze_vowel, synthesize_vowel
 
 # External Headphones output device index (audiotoolbox), per host enumeration.
 STIMULUS_OUTPUT_DEVICE_INDEX = 2
@@ -200,6 +201,7 @@ class LiveListener:
         stimulus: ParenteseStimulus | None = None,
         governor: ActiveAttentionGovernor | None = None,
         tuner: HardwareTuner | _NullTuner | None = None,
+        enable_motor_imitation: bool = False,
     ) -> None:
         self.array = array or LiveMicArray(device=DEFAULT_DEVICE)
         self.saliency_threshold = saliency_threshold
@@ -213,6 +215,11 @@ class LiveListener:
         # bus-free _NullTuner so tests never touch the USB bus.
         self.governor = governor or ActiveAttentionGovernor()
         self._tuner = tuner  # None => resolve in listen()
+        # Step 1: perception->production bridge. Off by default; enabled per-run
+        # via listen(with_motor_imitation=True). No live playback happens here
+        # (to avoid acoustic feedback); matches are logged as internal trials.
+        self._enable_motor_imitation = enable_motor_imitation
+        self._planner = MotorPlanner()
 
     def _resolve_tuner(self) -> HardwareTuner | _NullTuner:
         if self._tuner is not None:
@@ -223,6 +230,51 @@ class LiveListener:
             # No XVF3800 on the bus (e.g. CI, synthetic runs). Use the no-op.
             self._tuner = _NullTuner()
         return self._tuner
+
+    def _motor_imitation_trial(
+        self,
+        pcm: "np.ndarray | None",
+        source_azimuth_deg: float,
+        now_ms: int,
+        frame_idx: int,
+    ) -> "dict[str, object] | None":
+        """Run one perception->production trial on a captured speech frame.
+
+        Returns a trial record, or None if there is no analyzable waveform.
+        """
+        if pcm is None or len(pcm) < 1600:  # need >= 100 ms @ 16 kHz
+            return None
+        try:
+            feat = analyze_vowel(pcm, sample_rate=16000)
+        except ValueError:
+            return None
+        # The perceived vowel selects the table-anchored motor target; the
+        # planner re-synthesizes that target (the "internal vocalization").
+        plan = self._planner.plan_from_analysis(feat)
+        resynth = self._planner.plan_wav(
+            plan.vowel, duration_ms=200, sample_rate=16000
+        )
+        return {
+            "frame": frame_idx,
+            "now_ms": now_ms,
+            "source_azimuth_deg": round(source_azimuth_deg, 2),
+            "perceived_formants_hz": [round(f, 2) for f in feat.formant_hz],
+            "perceived_nearest_vowel": feat.nearest_vowel,
+            "motor_plan_vowel": plan.vowel,
+            "motor_plan_f1_hz": plan.f1_hz,
+            "resynth_samples": len(resynth),
+        }
+
+    def _build_motor_imitation_report(
+        self, log: list[dict[str, object]], enabled: bool
+    ) -> "dict[str, object] | None":
+        if not enabled:
+            return None
+        return {
+            "enabled": True,
+            "trial_count": len(log),
+            "trials": log,
+        }
 
     def _build_pipeline(self) -> CoraInfansPipeline:
         ch = self.array.channel_count
@@ -249,6 +301,7 @@ class LiveListener:
         with_stimulus: bool = False,
         with_scheduling: bool = True,
         with_attention: bool = False,
+        with_motor_imitation: bool = False,
         theta_ms: int = 200,
         gamma_ms: int = 25,
         capacity_cycles: int = 4,
@@ -293,6 +346,7 @@ class LiveListener:
         events: list[dict[str, object]] = []
         frame_is_salient: list[bool] = []
         attention_log: list[dict[str, object]] = []
+        motor_imitation_log: list[dict[str, object]] = []
         target_frames = max(1, duration_ms // frame_ms)
         for i in range(target_frames):
             now_ms = i * frame_ms
@@ -391,6 +445,23 @@ class LiveListener:
                         }
                     )
 
+                    # --- Step 1: adaptive motor-imitation loop ------------
+                    # When a salient frame is classified as speech by the
+                    # firmware VAD (finite processed source-DoA), run it through
+                    # the perception->production bridge: analyze the captured
+                    # waveform, map the perceived vowel to its motor target via
+                    # the MotorPlanner, and re-synthesize the motor plan. This
+                    # is logged as an internal vocalization trial (echolalia /
+                    # babbling model). No live playback occurs here, to avoid
+                    # acoustic feedback contamination of the capture.
+                    if with_motor_imitation and source_azimuth is not None:
+                        pcm = getattr(self.array, "last_pcm", None)
+                        trial = self._motor_imitation_trial(
+                            pcm, source_azimuth, now_ms, i
+                        )
+                        if trial is not None:
+                            motor_imitation_log.append(trial)
+
         if stim_proc is not None:
             try:
                 stim_proc.wait(timeout=max(1, int(duration_ms / 1000) + 2))
@@ -444,6 +515,9 @@ class LiveListener:
                 }
                 if with_attention
                 else None
+            ),
+            "motor_imitation": self._build_motor_imitation_report(
+                motor_imitation_log, with_motor_imitation and with_attention
             ),
         }
 

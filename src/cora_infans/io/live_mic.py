@@ -71,6 +71,10 @@ class LiveMicArray:
         self.sample_rate = sample_rate
         self.capture_seconds = capture_seconds
         self._channel_count: int | None = None
+        # Retained raw PCM of the most recent capture, so downstream consumers
+        # (e.g. the motor-imitation loop's analyze_vowel) have a waveform to
+        # analyze. None until the first capture.
+        self.last_pcm: np.ndarray | None = None
 
     @property
     def channel_count(self) -> int:
@@ -144,6 +148,9 @@ class LiveMicArray:
 
         data = np.frombuffer(raw, dtype=np.int16).reshape(-1, nch).astype(np.float32)
         data /= 32768.0
+
+        # Retain the raw PCM (mono mix) for downstream waveform analysis.
+        self.last_pcm = data.sum(axis=1).astype(np.float32)
 
         channel_energies = [
             float(np.sqrt(np.mean(col**2))) for col in data.T

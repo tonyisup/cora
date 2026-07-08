@@ -453,3 +453,59 @@ def test_synthesize_vowel_command_writes_wav_and_closes_loop(tmp_path) -> None:
     assert payload["perceived_nearest_vowel"] in ("a", "e", "i", "o", "u")
     assert payload["motor_plan_from_perception"]["vowel"] == payload["perceived_nearest_vowel"]
 
+
+def test_listen_live_cli_handler_wires_motor_imitation() -> None:
+    # Exercises the --listen-live handler's --with-motor-imitation flag without
+    # real hardware by substituting a fake array + bus-free tuner in-process.
+    import numpy as np
+
+    from cora_infans.io.live_listener import LiveListener, _NullTuner
+    from cora_infans.io.live_mic import LiveMicArray
+    from cora_infans.pipeline import AudioFrame
+    from cora_infans import cli as cli_mod
+
+    class _FakeArray:
+        channel_count = 2
+        last_pcm = None
+
+        def __init__(self, frames):
+            self._frames = frames
+            self._i = 0
+
+        def capture_frame(self, duration_ms=None, dominant_frequency_hz=None):
+            item = self._frames[self._i % len(self._frames)]
+            self._i += 1
+            self.last_pcm = item["pcm"]
+            return item["frame"]
+
+    from cora_infans.io.motor_plan import synthesize_vowel
+
+    def _frame(ch0, ch1):
+        return {
+            "pcm": synthesize_vowel("a", duration_ms=240, sample_rate=16000),
+            "frame": AudioFrame(
+                timestamp_ms=0, channel_energies=[ch0, ch1], dominant_frequency_hz=300.0
+            ),
+        }
+
+    fake = _FakeArray([_frame(0.01, 0.01), _frame(0.20, 0.25)])
+    tuner = _NullTuner()
+    tuner.read_selected_azimuths = lambda: [1.0, 0.0]  # finite speech azimuth
+    real_array_cls = cli_mod.LiveMicArray
+    real_resolve = LiveListener._resolve_tuner
+    try:
+        # Route the handler's LiveMicArray(...) construction to the fake array.
+        cli_mod.LiveMicArray = lambda device=None: fake  # type: ignore[assignment]
+        LiveListener._resolve_tuner = lambda self: tuner  # type: ignore[method-assign]
+        report = cli_mod.listen_live(
+            ["--listen-live", "--with-attention", "--with-motor-imitation", "--duration-ms", "500", "--frame-ms", "250"]
+        )
+    finally:
+        cli_mod.LiveMicArray = real_array_cls  # type: ignore[assignment]
+        LiveListener._resolve_tuner = real_resolve  # type: ignore[method-assign]
+
+    assert "motor_imitation" in report
+    assert report["motor_imitation"]["enabled"] is True
+    assert report["motor_imitation"]["trial_count"] >= 1
+
+

@@ -516,3 +516,46 @@ perfect 5-vowel acoustic recovery is NOT claimed. The loop is *demonstrated*
 genuinely correct; the acoustic fidelity ceiling is documented in the module
 docstring and tests. This matches the VISION.md directive: build the mechanism,
 don't fake biological depth.
+
+## Addendum 11 — Step 1: Live motor-imitation loop (loop closure)
+
+Wired the perception→production bridge directly into the live listener so a
+high-saliency, speech-classified frame closes the echolalia / babbling loop in
+real time — no longer a standalone CLI flag.
+
+- `LiveMicArray.capture_frame()` now retains `last_pcm` (the mono-mixed raw
+  waveform of the most recent capture) so downstream consumers have a signal to
+  analyze. Previously the adapter reduced every frame to `channel_energies` +
+  `dominant_frequency_hz` and discarded the PCM.
+- `LiveListener.listen(..., with_motor_imitation=True)` (requires
+  `with_attention=True`): for every salient frame whose firmware processed
+  source-DoA is finite (the honest "speech classified by the VAD" signal from
+  Addendum 6), it runs `analyze_vowel(last_pcm)` and feeds the result to
+  `MotorPlanner.plan_from_analysis()` + `plan_wav()`, re-deriving the motor
+  target and re-synthesizing it. Each such frame is recorded as an
+  `internal_vocalization_trial` in the report's `motor_imitation` block
+  (perceived formants, nearest vowel, re-derived motor plan, re-synth sample
+  count, and the source azimuth).
+- **Honesty boundary (deliberate):** the loop *logs* the motor-plan match; it
+  does NOT auto-play the re-synthesized vowel to the speaker during capture.
+  Auto-playback would feed the mic output back into the input (acoustic
+  feedback / corollary-audio contamination, already characterized in prior
+  debugging), poisoning the very signal being analyzed. Playback stays a
+  separate, explicit CLI action (`--synthesize-vowel ... --out`).
+- CLI: `--listen-live ... --with-attention --with-motor-imitation` now carries
+  the `motor_imitation` block. Real pyusb writes + real firmware VAD only fire
+  under `--listen-live` with the XVF3800 present; synthetic/test runs use the
+  bus-free `_NullTuner` + scripted arrays, so the loop is fully exercised
+  without touching the board.
+
+**Validation:** `pytest tests -q` → 119 passed (was 114; +4
+`test_motor_imitation_loop.py` unit tests +1 CLI handler smoke). The loop is
+verified to: (a) emit a trial only on speech-classified salient frames, (b)
+emit nothing for non-speech salient frames, (c) be a no-op when disabled or
+when attention is off. The `resynth_samples > 0` assertion proves the
+perception→production re-synthesis actually executes inside the live loop.
+
+**Cognitive fit:** this is the first real-time imitation loop — the scaffold
+hears parentese, foveates the source azimuth (Addendum 6), decodes the vowel
+target, and generates an internal motor-plan match. Step 2 (acoustic fidelity)
+and Step 3 (theta-gamma motor sub-window) remain the natural follow-ons.

@@ -211,6 +211,7 @@ def listen_live(args: list[str] | None = None) -> dict[str, object]:
     with_stimulus = False
     with_scheduling = False
     with_attention = False
+    with_motor_imitation = False
     i = 1
     while i < len(parsed):
         option = parsed[i]
@@ -224,6 +225,10 @@ def listen_live(args: list[str] | None = None) -> dict[str, object]:
             continue
         if option == "--with-attention":
             with_attention = True
+            i += 1
+            continue
+        if option == "--with-motor-imitation":
+            with_motor_imitation = True
             i += 1
             continue
         if i + 1 >= len(parsed):
@@ -252,6 +257,7 @@ def listen_live(args: list[str] | None = None) -> dict[str, object]:
         with_stimulus=with_stimulus,
         with_scheduling=with_scheduling,
         with_attention=with_attention,
+        with_motor_imitation=with_motor_imitation,
     )
 
 
@@ -473,7 +479,7 @@ def main(argv: list[str] | None = None) -> int:
         "[--timestamp-ms N --dominant-frequency-hz F --channel-energies a,b,c,d --initial-prediction-hz F --mic-geometry l0,l1,l2,l3 --saliency-threshold F --output json|pretty] "
         "[--family sweep|zigzag|gap|multi_gap|delayed_recovery] [--with-scheduling] "
         "[--capture-live [--device :0] [--duration-ms N]] "
-        "[--listen-live [--duration-ms N] [--frame-ms N] [--with-stimulus] [--with-attention] [--with-scheduling]] "
+        "[--listen-live [--duration-ms N] [--frame-ms N] [--with-stimulus] [--with-attention] [--with-scheduling] [--with-motor-imitation]] "
         "[--eval-corpus --root DIR --label-csv FILE [--saliency-threshold F] [--frame-ms N]] "
         "[--synthesize-vowel a|e|i|o|u --out PATH.wav [--duration-ms N] [--sample-rate N] [--f0-hz F] [--analyze]]",
         file=sys.stderr,
