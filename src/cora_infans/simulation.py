@@ -7,6 +7,7 @@ from .io.mic_array import SyntheticMicArray
 from .pipeline import CoraInfansPipeline
 from .predictive import PredictiveCoder
 from .scenario import builtin_scenario_definition, lower_scenario_definition
+from .predictive import FocusTrajectoryCoder, PredictiveCoder, PredictiveHierarchy
 
 
 @dataclass(frozen=True)
@@ -35,11 +36,16 @@ def _build_config(params: SimulationParams) -> CoraInfansConfig:
 
 
 def _build_pipeline(config: CoraInfansConfig, params: SimulationParams) -> CoraInfansPipeline:
-    predictive_coder = PredictiveCoder(
-        initial_prediction_hz=params.initial_prediction_hz,
-        learning_rate=0.5,
+    predictive_hierarchy = PredictiveHierarchy(
+        frequency_coder=PredictiveCoder(
+            initial_prediction_hz=params.initial_prediction_hz,
+            learning_rate=0.5,
+        ),
+        focus_coder=FocusTrajectoryCoder(
+            channels=config.mic_channel_geometry,
+        ),
     )
-    return CoraInfansPipeline(config=config, predictive_coder=predictive_coder)
+    return CoraInfansPipeline(config=config, predictive_hierarchy=predictive_hierarchy)
 
 
 

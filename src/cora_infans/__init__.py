@@ -1,6 +1,11 @@
 from .config import CoraInfansConfig
 from .pipeline import AudioFrame, CoraInfansPipeline, WorkspaceEvent
-from .predictive import PredictionUpdate, PredictiveCoder
+from .predictive import (
+    FocusTrajectoryCoder,
+    PredictionUpdate,
+    PredictiveCoder,
+    PredictiveHierarchy,
+)
 from .saliency import compute_saliency_reward
 from .scenario import (
     ChannelLabel,
@@ -30,6 +35,8 @@ __all__ = [
     "EventWorkspace",
     "ForegroundKind",
     "PredictiveCoder",
+    "PredictiveHierarchy",
+    "FocusTrajectoryCoder",
     "PredictionUpdate",
     "ScenarioDefinition",
     "ScenarioSegment",

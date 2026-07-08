@@ -33,9 +33,11 @@ Current module responsibilities
   - resolves focus labels from configured channel topology
   - current representation is label-only topology, not physical angles or coordinates
 
-- `src/cora_infans/predictive.py`
-  - owns the minimal predictive-coding primitive
-  - current behavior: residual against prior frequency prediction plus updated prediction state
+- `predictive.py`
+  - owns the minimal predictive-coding primitives
+  - `PredictiveCoder`: residual against prior frequency prediction plus updated prediction state (lower level)
+  - `FocusTrajectoryCoder`: predicts the next focus label from the recent trajectory; reports a hit/miss residual (higher level)
+  - `PredictiveHierarchy`: two-level local error minimizer bundled for the pipeline
 
 - `src/cora_infans/workspace.py`
   - owns bounded short-term event storage

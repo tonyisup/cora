@@ -29,11 +29,12 @@ Implemented today
 - sequence-level salient vs non-salient frame summary metadata
 - sequence-level dropout and recovery summary metadata
 - declarative scenario compiler (`src/cora_infans/scenario.py`) that authors the built-in sequence families and lowers them deterministically into the runtime frame path
+- two-level predictive-coding hierarchy (`PredictiveHierarchy`: frequency residual + focus-trajectory prediction), wired into the pipeline and simulation defaults
 
 Not implemented yet
 - live ReSpeaker XMOS XVF3800 hardware integration
 - real multi-mic fusion / beamforming
-- deeper predictive-coding hierarchy beyond one residual update stream
+- deeper predictive-coding hierarchy beyond one frequency residual + one focus-trajectory level
 - theta-gamma workspace scheduling
 - motor-plan / speech synthesis loop
 - training and evaluation harnesses over real audio corpora
