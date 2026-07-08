@@ -61,6 +61,15 @@ Current module responsibilities
   - computes sequence-level dropout and recovery counters from the actual frame pattern
   - this is the preferred entrypoint for future non-CLI experiments
 
+- `src/cora_infans/scenario.py`
+  - owns the declarative scenario compiler (internal, not a public CLI surface)
+  - defines a Pydantic v2 `ScenarioDefinition` / `ScenarioSegment` schema with hard biological invariants
+  - loads authored YAML into that schema via `load_scenario_definition_yaml`
+  - exposes built-in family definitions through `builtin_scenario_definition`
+  - lowers a scenario into `list[SimulationParams]` via `lower_scenario_definition`, which is the only thing the runtime executes
+  - enforces v0.1 constraints: segment duration must divide cleanly by `frame_step_ms`, envelopes are compiler-owned (flat / linear fade), silence segments lower to uniform low-energy fields
+  - `simulation.py` re-expresses every built-in `--family` through this lowering path, so families are now data, not separate hardcoded branches
+
 - `src/cora_infans/cli.py`
   - owns CLI parsing, validation, and output formatting only
   - should stay thin and delegate execution to `simulation.py`
@@ -86,6 +95,7 @@ What is proven today
 - interrupted tracking can be modeled through a non-salient dropout followed by resumed focus
 - repeated-dropout recovery can be modeled across more than one interruption in the same sequence
 - delayed recovery can be modeled across several consecutive non-salient frames before attention resumes
+- the built-in sequence families are authored through a declarative scenario compiler and deterministically lowered into the runtime frame path (no separate hardcoded family branches)
 - sequence reports explicitly distinguish total frames, salient frames, and non-salient frames
 - sequence reports now expose dropout and recovery counters for direct family-to-family comparison
 

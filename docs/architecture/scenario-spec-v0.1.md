@@ -3,9 +3,9 @@
 This document defines the first declarative scenario format for Project Cora-Infans.
 
 Status
-- internal architecture spec only
-- not implemented yet
-- not a public CLI/product surface
+- internal architecture spec + implemented in `src/cora_infans/scenario.py`
+- backs the built-in `--family` sequence families through `builtin_scenario_definition` + `lower_scenario_definition`
+- not a public CLI/product surface (no YAML ingestion CLI; YAML loading is internal/test-only)
 
 Goal
 - introduce a minimal declarative experiment format without turning the project into a generic simulation engine

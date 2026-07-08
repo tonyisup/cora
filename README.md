@@ -28,6 +28,7 @@ Implemented today
 - selectable built-in deterministic sequence families
 - sequence-level salient vs non-salient frame summary metadata
 - sequence-level dropout and recovery summary metadata
+- declarative scenario compiler (`src/cora_infans/scenario.py`) that authors the built-in sequence families and lowers them deterministically into the runtime frame path
 
 Not implemented yet
 - live ReSpeaker XMOS XVF3800 hardware integration
@@ -121,6 +122,7 @@ Current code structure
 - `src/cora_infans/workspace.py` — bounded event workspace plus focus-path tracking
 - `src/cora_infans/pipeline.py` — saliency gate + reward + predictive/workspace wiring
 - `src/cora_infans/simulation.py` — reusable frame/sequence simulation helpers and report builders
+- `src/cora_infans/scenario.py` — declarative scenario compiler (Pydantic schema + YAML loader + deterministic lowering into the runtime frame path); authors the built-in sequence families
 - `src/cora_infans/cli.py` — CLI parsing and presentation layer
 
 Architecture note
