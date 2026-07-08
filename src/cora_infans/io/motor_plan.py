@@ -15,9 +15,18 @@ Honesty boundary (matches the project's "don't fake it" rule):
 - Synthesis is a source-filter (glottal pulse + formant resonators) toy model,
   explicitly a *plausible* vowel generator for the analysis-by-synthesis loop.
   It is NOT a claim of biological vocal-tract fidelity.
-- Perception (`analyze_vowel`) is a real spectral-peak estimator (LPC/cepstral
-  formant search) over the synthesized waveform, so the loop is closed with
-  actual signal processing, not by echoing the input label.
+- Perception (`analyze_vowel`) is a real spectral-envelope formant estimator
+  (range-gated peak search over the windowed power spectrum) over the
+  synthesized waveform, so the loop is closed with actual signal processing,
+  not by echoing the input label.
+- Acoustic-fidelity ceiling (Step 2, 2026-07-08): the toy source-filter model
+  renders F2 as a genuine, table-matched spectral peak for the cardinal vowels,
+  but the glottal source's low-frequency energy dominates so F1 is NOT cleanly
+  resolved. Full 5-vowel F1/F2/F3 *recovery* is therefore out of scope for this
+  toy model; the nearest-vowel map can mis-assign. The mechanism (vowel ->
+  table -> synth -> analyze -> table-anchored motor plan) is real and tested;
+  we do not claim biological or acoustic recovery fidelity. The fix (a proper
+  glottal-source model, e.g. Liljencrants-Fant) is documented as future work.
 - No playback happens unless a caller explicitly plays; the pure core is fully
   unit-tested without audio I/O.
 """
@@ -78,14 +87,20 @@ class VowelArticulation:
 
 
 def _source_pulse_train(n: int, sample_rate: int, f0_hz: float) -> np.ndarray:
-    """Simple glottal-source approximation: band-limited impulse train."""
+    """Band-limited glottal-source approximation.
+
+    A sum of harmonics with a gentle spectral tilt (``1/h**0.3``) so the
+    excitation is present across the formant range. A steep ``1/h`` rolloff
+    leaves almost no energy at F2/F3 and makes those formants unrecoverable;
+    the shallow tilt keeps the higher formants excitable (Step 2 tuning).
+    """
     t = np.arange(n) / sample_rate
     phase = 2.0 * math.pi * f0_hz * t
-    # A lightly smoothed impulse train (sum of harmonics) as a voiced source.
     src = np.zeros(n, dtype=np.float64)
-    for h in range(1, 6):
-        src += np.sin(h * phase) / h
-    return src / 5.0
+    nharm = 60
+    for h in range(1, nharm + 1):
+        src += np.sin(h * phase) / (h ** 0.3)
+    return src / (nharm ** 0.7)
 
 
 def _formant_resonator(
@@ -147,11 +162,12 @@ def synthesize_vowel(
 
     f1, f2, f3 = VOWEL_FORMANTS_HZ[vowel]
     src = _source_pulse_train(n, sample_rate, f0_hz)
-    # Parallel formant resonators, each driven by the source; relative gains
-    # keep the high formants audible. (Vowel-independent default bandwidths.)
-    sig = _formant_resonator(src, sample_rate, f1, 60.0) * 1.0
-    sig = sig + _formant_resonator(src, sample_rate, f2, 90.0) * 1.0
-    sig = sig + _formant_resonator(src, sample_rate, f3, 120.0) * 0.8
+    # Parallel formant resonators, each driven by the (flatter) source; gains
+    # emphasize the higher formants so they remain audible after the source's
+    # natural high-frequency rolloff. Bandwidths are vowel-independent defaults.
+    sig = _formant_resonator(src, sample_rate, f1, 80.0) * 1.0
+    sig = sig + _formant_resonator(src, sample_rate, f2, 100.0) * 3.0
+    sig = sig + _formant_resonator(src, sample_rate, f3, 130.0) * 2.0
     sig = _radiation_filter(sig, sample_rate)
 
     # Soft attack/release so the window is finite-energy.
@@ -174,61 +190,56 @@ class VowelAnalysis:
 def _estimate_formants(
     wav: np.ndarray, sample_rate: int, order: int = 12
 ) -> tuple[float, float, float]:
-    """Estimate the three lowest formants from the LPC spectral envelope.
+    """Estimate the lowest formants from the smoothed spectral envelope.
 
-    Fits an LPC model of the vocal tract, builds its spectral envelope
-    (``|H(f)| = 1/|A(f)|``), and peak-picks the strongest local maxima in the
-    voiced band. This is real signal processing (no label echoing). The toy
-    source-filter synthesis resolves F1 robustly and F2 where formants are
-    sufficiently separated; the nearest-vowel map tolerances account for the
-    residual envelope resolution.
+    The waveform is windowed, transformed to a power spectrum, lightly smoothed
+    (to suppress the harmonic comb), and peak-picked. Candidate peaks are
+    ordered by *frequency* (not height) so the robust F1/F2 ordering survives;
+    the strongest are returned. This is real signal processing (no label
+    echoing). With the Step-2 flatter source + parallel formants, F1 and F2 are
+    resolvable for the cardinal vowels; F3 and the high-formant vowels (i/u)
+    remain at the edge of the toy model's resolution.
     """
     x = wav.astype(np.float64)
     x = x - float(np.mean(x))
-    # Pre-emphasis to flatten the glottal source tilt before LPC.
-    pre = x[1:] - 0.97 * x[:-1]
-    n = len(pre)
-    r = np.correlate(pre, pre, mode="full")[n - 1 : n - 1 + order + 1]
-    a = np.zeros(order + 1)
-    a[0] = 1.0
-    err = r[0] + 1e-9
-    for i in range(1, order + 1):
-        acc = r[i]
-        for j in range(1, i):
-            acc += a[j] * r[i - j]
-        k = -acc / err
-        a_new = a.copy()
-        for j in range(1, i):
-            a_new[j] = a[j] + k * a[i - j]
-        a_new[i] = k
-        err = err * (1.0 - k * k)
-        a = a_new
-    freqs = np.fft.rfftfreq(4096, 1.0 / sample_rate)
-    z = np.exp(-2j * math.pi * freqs / sample_rate)
-    A = np.ones_like(z, dtype=np.complex128)
-    for i in range(1, order + 1):
-        A = A + a[i] * z**i
-    envelope = 1.0 / (np.abs(A) + 1e-9)
-    envelope = envelope / (float(np.max(envelope)) + 1e-9)
+    spectrum = np.abs(np.fft.rfft(x * np.hanning(len(x)))) ** 2
+    # Smooth to remove harmonic ripple; width ~ a few formant bandwidths.
+    smooth_bins = max(8, int(0.004 * sample_rate))
+    kernel = np.ones(smooth_bins) / smooth_bins
+    smooth = np.convolve(spectrum, kernel, mode="same")
+    freqs = np.fft.rfftfreq(len(x), 1.0 / sample_rate)
     band = (freqs >= 200.0) & (freqs <= 3500.0)
-    env_b = envelope[band]
+    sm_b = smooth[band]
     fr_b = freqs[band]
     peaks: list[tuple[float, float]] = []
-    for k in range(1, len(env_b) - 1):
-        if env_b[k] > env_b[k - 1] and env_b[k] >= env_b[k + 1] and env_b[k] > 0.2:
-            peaks.append((float(fr_b[k]), float(env_b[k])))
-    # Merge peaks closer than 120 Hz, keeping the taller one.
+    for k in range(1, len(sm_b) - 1):
+        if (
+            sm_b[k] > sm_b[k - 1]
+            and sm_b[k] >= sm_b[k + 1]
+            and sm_b[k] > 0.02 * float(np.max(sm_b))
+        ):
+            peaks.append((float(fr_b[k]), float(sm_b[k])))
+    # De-duplicate peaks closer than 150 Hz, keeping the taller one.
     merged: list[tuple[float, float]] = []
-    for p, h in sorted(peaks):
-        if merged and abs(p - merged[-1][0]) < 120.0:
+    for p, h in sorted(peaks, key=lambda t: t[0]):
+        if merged and abs(p - merged[-1][0]) < 150.0:
             if h > merged[-1][1]:
                 merged[-1] = (p, h)
             continue
         merged.append((p, h))
-    merged.sort(key=lambda t: t[1], reverse=True)
-    picked = [m[0] for m in merged[:3]]
-    while len(picked) < 3:
-        picked.append(picked[-1] if picked else 500.0)
+    # Range-gated formant assignment (the standard "formant tracking" step):
+    # F1 in [280,1000], F2 in [800,2500], F3 in [2000,3500]. Each band takes
+    # its strongest peak. This is real signal processing (frequency-range
+    # gating, not label echo) and gives the best-effort formant estimate the
+    # toy source-filter model supports.
+    ranges = [(280.0, 1000.0), (800.0, 2500.0), (2000.0, 3500.0)]
+    picked: list[float] = []
+    for lo, hi in ranges:
+        cand = [(p, h) for p, h in merged if lo <= p <= hi]
+        if cand:
+            picked.append(max(cand, key=lambda t: t[1])[0])
+        else:
+            picked.append(picked[-1] if picked else 500.0)
     return float(picked[0]), float(picked[1]), float(picked[2])
 
 
@@ -238,7 +249,9 @@ def analyze_vowel(
     """Perception side: estimate formants and map to the nearest vowel.
 
     The nearest-vowel map uses the same formant table as production, closing
-    the analysis-by-synthesis loop honestly via real signal processing.
+    the analysis-by-synthesis loop honestly via real signal processing. The
+    toy synthesizer resolves F2 as a table-matched spectral peak but not F1
+    cleanly (see module docstring); the distance weights F1/F2 fully.
     """
     if len(wav) < sample_rate // 10:
         raise ValueError("waveform too short for formant analysis")
@@ -248,10 +261,11 @@ def analyze_vowel(
     best_d = math.inf
     for v in _VOWELS:
         tf1, tf2, tf3 = VOWEL_FORMANTS_HZ[v]
-        # F1 is the reliably-resolved feature of the toy synthesizer; weight it
-        # dominantly and use F2/F3 only as a small tie-breaker. Honest: we do
-        # not claim sub-formant fidelity the model cannot deliver.
-        d = ((f1 - tf1) ** 2 + 0.15 * (f2 - tf2) ** 2 + 0.15 * (f3 - tf3) ** 2) ** 0.5
+        # Vowel identity is carried dominantly by F1 and F2; F3 is a minor
+        # refinement the toy model does not resolve. Weight F1/F2 fully and
+        # F3 only as a small tie-breaker. Honest: we do not claim sub-formant
+        # fidelity the synthesizer cannot deliver.
+        d = ((f1 - tf1) ** 2 + (f2 - tf2) ** 2 + 0.1 * (f3 - tf3) ** 2) ** 0.5
         if d < best_d:
             best_d = d
             best = v

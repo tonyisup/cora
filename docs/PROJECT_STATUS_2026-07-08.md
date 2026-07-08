@@ -559,3 +559,57 @@ perception→production re-synthesis actually executes inside the live loop.
 hears parentese, foveates the source azimuth (Addendum 6), decodes the vowel
 target, and generates an internal motor-plan match. Step 2 (acoustic fidelity)
 and Step 3 (theta-gamma motor sub-window) remain the natural follow-ons.
+
+## Addendum 12 — Step 2: Tighten Synthetic Acoustic Fidelity (honest scope)
+
+**Goal (user):** "Tighten synthetic acoustic fidelity so the error residual
+passed up the predictive hierarchy is driven by genuine acoustic variation,
+not processing artifacts" — ideally making full 5-vowel F1/F2/F3 recovery
+mathematically stable.
+
+**What was changed (`src/cora_infans/io/motor_plan.py`):**
+- Glottal source flattened from a 5-harmonic `1/h` impulse train to a
+  60-harmonic `1/h**0.3` sum, so excitation exists across the formant range
+  (a steep `1/h` rolloff left F2/F3 with no energy to shape).
+- Parallel formant resonators re-weighted (F1×1.0, F2×3.0, F3×2.0) with wider
+  bandwidths (80/100/130 Hz) so the higher formants remain audible after the
+  source tilt.
+- Perception estimator replaced the (non-convergent) LPC-root search with a
+  windowed power-spectrum peak-picker + range-gated formant assignment
+  (F1∈[280,1000], F2∈[800,2500], F3∈[2000,3500]) — standard formant-tracking.
+
+**What was genuinely achieved:** the target F2 now appears as a real,
+table-matched spectral peak for the cardinal vowels — verified by direct
+spectrum inspection (a≈1090, e≈1840, o≈840, u≈870 Hz, all within a few % of
+the Hillenbrand table). F2 is no longer absent in the signal, as it was before
+Step 2. The analysis-by-synthesis loop still closes end-to-end.
+
+**Honest ceiling (NOT faked):** full 5-vowel F1/F2/F3 recovery is **not**
+achieved. The toy source-filter model cannot resolve F1 cleanly — the glottal
+source's low-frequency energy (the `1/h**0.3` tilt is still low-frequency
+dominated) produces a broad spectral bump ~430-530 Hz that the estimator picks
+up as F1 for every vowel, swamping the true formant. F1 is therefore
+systematically underestimated and the nearest-vowel map mis-assigns (e.g. 'a'
+→ 'u'). I ran ~10 targeted DSP experiments (parallel vs cascade, LPC roots,
+cepstral liftering, smoothed-envelope peak-pick, gain sweeps, source-tilt
+sweeps); the F1 contamination is a structural limitation of a pure-numpy toy
+resonator model, not a tuning miss.
+
+**Why I stopped (per project rule — honest assessment over endless tuning):**
+the user's standing directive is to stop after a few failed attempts and
+reassess rather than iterate endlessly, and to trust the ear. I reassessed:
+the Step-2 *mechanism* improvement (F2 now acoustically realized, honest
+perception estimator) is real and committed; the *5-vowel recovery* goal needs
+a proper glottal-source model (e.g. Liljencrants-Fant), which is out of scope
+for the toy and would be fakeable-easy to overclaim. Tests now assert the
+genuinely-measurable facts (non-silent audio; plausible F1/F2/F3 ranges; loop
+closure) rather than overclaiming recovery.
+
+**Recommended future work for true 5-vowel recovery:** replace `_source_pulse_train`
+with an LF (Liljencrants-Fant) glottal-flow model (proper -12 dB/octave source
+spectrum with a spectral zero), then a cascade-of-resonators vocal tract; this
+is the standard path and would make F1/F2/F3 separable. scipy (absent here)
+would also enable a cleaner LPC-root formant estimator.
+
+**Validation:** `pytest tests -q` → 119 passed (Step-2 edits did not change
+the count; the motor-plan tests were updated to assert the honest capability).
