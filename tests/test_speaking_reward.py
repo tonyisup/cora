@@ -66,3 +66,28 @@ def test_stalled_conversation_penalty_scales_after_three_seconds() -> None:
 
     assert reward["terms"]["stalled_conversation"] == -0.5
     assert reward["total"] == -0.5
+
+
+def test_speaking_into_an_unrepaired_collision_is_penalized() -> None:
+    # Collision flagged without the agent having spoken/deferred output:
+    # speaking straight into it must not be rewarded as a smooth turn.
+    reward = score_speaking_action(
+        action="speak",
+        features=ConversationFeatures(was_collided=True, was_interrupted=True, queued_output=True, silence_ms=2200),
+    )
+
+    assert reward["terms"]["missed_repair"] == -1.5
+    assert "smooth_turn_transition" not in reward["terms"]
+    assert reward["total"] == -1.5
+
+
+def test_smooth_turn_transition_at_policy_speak_threshold() -> None:
+    # The policy default speaks at >=2000ms silence; the bonus must cover that
+    # normal turn handoff rather than being capped below the speak threshold.
+    reward = score_speaking_action(
+        action="speak",
+        features=ConversationFeatures(queued_output=True, silence_ms=2000),
+    )
+
+    assert reward["terms"]["smooth_turn_transition"] == 0.5
+    assert reward["total"] == 0.5

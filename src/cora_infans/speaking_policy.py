@@ -61,10 +61,16 @@ class HeuristicSpeakingPolicy:
     def decide(self, features: ConversationFeatures) -> SpeakingAction:
         if features.is_user_speaking:
             return "wait"
-        if features.is_agent_speaking and features.was_collided:
-            return "yield"
-        if features.was_interrupted and features.has_deferred_output:
-            return "repair"
+        # Collision / interruption safety: never speak into an unresolved overlap.
+        # This blocks the leak where `overlap_detected` is set without a prior
+        # `agent_speech_start`, which left `is_agent_speaking` and
+        # `has_deferred_output` both false and fell through to `speak`.
+        if features.was_interrupted or features.was_collided:
+            if features.is_agent_speaking and features.was_collided:
+                return "yield"
+            if features.has_deferred_output:
+                return "repair"
+            return "wait"
         if features.needs_clarification:
             return "clarify"
         if features.queued_output and features.silence_ms >= self.min_silence_before_speak_ms:

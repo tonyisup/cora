@@ -27,7 +27,11 @@ def score_speaking_action(
         _add(terms, "successful_yield", 1.0)
     elif action == "repair" and needs_repair:
         _add(terms, "successful_repair", 1.5)
-    elif action != "repair" and needs_repair and features.has_deferred_output:
+    elif action != "repair" and needs_repair:
+        # Any non-repair action while a collision/interrupt is unresolved is a
+        # missed repair. The prior code gated this on `has_deferred_output`, which
+        # let a `speak` straight into a collision (overlap without prior agent
+        # speech) go unpenalized.
         _add(terms, "missed_repair", -1.5)
 
     if action == "clarify" and features.needs_clarification:
@@ -35,7 +39,7 @@ def score_speaking_action(
     elif action == "clarify" and not features.needs_clarification:
         _add(terms, "unnecessary_clarify", -0.5)
 
-    if action == "speak" and features.queued_output and 0 < features.silence_ms <= 1500:
+    if action == "speak" and features.queued_output and 0 < features.silence_ms <= 2000:
         _add(terms, "smooth_turn_transition", 0.5)
 
     if action != "speak" and features.queued_output and features.silence_ms > 3000:

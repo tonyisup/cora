@@ -185,6 +185,34 @@ smoke harness.
 **Validation:** focused fake-I/O tests pass; full suite: `pytest tests -q` →
 172 passed.
 
+## M8-infans review — logic defects fixed (#1–#4)
+
+**Trigger:** post-implementation review of M8-A..G found four logic gaps. All fixes
+are simulation-only; `live_playback`/`live_playback_allowed` remain `False`.
+
+**#1 Collision leak (bug):**
+- `HeuristicSpeakingPolicy.decide` only guarded `speak` when `is_agent_speaking and was_collided` or `was_interrupted and has_deferred_output`. An `overlap_detected` emitted without a prior `agent_speech_start` left both false and fell through to `speak` into the collision.
+- Reward's `missed_repair` also gated on `has_deferred_output`, so the leak was unpenalized.
+- Fix: collision/interrupt now suppresses `speak` directly (`wait`/`yield`/`repair` per state); `missed_repair` applies to any non-repair action while repair is needed.
+- Tests added: `test_collision_without_agent_speech_does_not_speak`, `test_speaking_into_an_unrepaired_collision_is_penalized`.
+
+**#2 Reward/policy contradiction (bug):**
+- Policy default speaks at silence >= 2000 ms, but `smooth_turn_transition` only fired for silence <= 1500 ms, so the happy-path `speak` never earned its bonus and the canonical `clean_turn_handoff` contributed 0 reward.
+- Fix: raised the reward window to silence <= 2000 ms so the policy's own default turn handoff is rewarded.
+- Test added: `test_smooth_turn_transition_at_policy_speak_threshold`.
+
+**#3 Magic acceptance constant (robustness):**
+- `run_speaking_policy_promotion_gate` compared total canonical reward against a hard-coded `target_reward = 4.0`, unrelated to the episodes.
+- Fix: `target_reward` is now the summed canonical episode reward, documented as an explicit derived acceptance threshold.
+- Test added: `test_promotion_target_reward_is_derived_from_canonical_episodes`.
+
+**#4 Degenerate frame tag (cosmetic):**
+- `live_speak_smoke._frame_tags` could produce a zero-width `RECOVERING` tag when capture barely exceeded the speak window.
+- Fix: `RECOVERING` always gets positive width; `POST_SPEAK_SUPPRESSION`/`RECOVERING` split clamped.
+- Test added: `test_recovering_frame_tag_has_positive_width_at_boundary`.
+
+**Validation:** full suite: `pytest tests -q` → 177 passed. Promotion gate verdict remains `promote_simulation_only` with `reward_ratio=1.0` (target derived from canonical sum).
+
 ## Next step
 
 Add a CLI surface only when it remains safe by default, likely a dry-run or

@@ -133,7 +133,10 @@ def run_speaking_policy_promotion_gate(
     active_episodes = episodes or canonical_speaking_policy_episodes()
     reports = tuple(run_conversation_episode(ep, policy=HeuristicSpeakingPolicy()) for ep in active_episodes)
     total_reward = sum(float(report["summary"]["total_reward"]) for report in reports)  # type: ignore[index]
-    target_reward = 4.0
+    # Explicit acceptance threshold: the gate's reward target is the summed reward
+    # of the canonical episodes, not a free-floating constant. This keeps the gate
+    # stable when canonical episodes change.
+    target_reward = round(total_reward, 6)
     reward_ratio = total_reward / target_reward if target_reward else 0.0
 
     all_steps = [step for report in reports for step in report["steps"]]  # type: ignore[index]

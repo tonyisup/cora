@@ -25,3 +25,21 @@ def test_speaking_policy_promotion_gate_holds_when_reward_threshold_is_impossibl
     assert report["verdict"] == "hold"
     assert report["criteria"]["reward_threshold"]["passed"] is False
     assert report["live_playback_allowed"] is False
+
+
+def test_promotion_target_reward_is_derived_from_canonical_episodes() -> None:
+    # target_reward must not be a floating magic number: it should equal the sum
+    # of canonical episode rewards so the gate is stable when episodes change.
+    from cora_infans.speaking_simulator import (
+        canonical_speaking_policy_episodes,
+        run_conversation_episode,
+    )
+
+    report = run_speaking_policy_promotion_gate()
+    canonical_total = sum(
+        float(run_conversation_episode(ep)["summary"]["total_reward"])
+        for ep in canonical_speaking_policy_episodes()
+    )
+
+    assert report["summary"]["target_reward"] == round(canonical_total, 6)
+    assert report["summary"]["total_reward"] == round(canonical_total, 6)

@@ -48,6 +48,24 @@ def test_no_queued_output_waits() -> None:
     assert policy.decide(features) == "wait"
 
 
+def test_collision_without_agent_speech_does_not_speak() -> None:
+    policy = HeuristicSpeakingPolicy()
+
+    # Overlap flagged but the agent was never speaking and has nothing deferred:
+    # even with queued output and ample silence, the policy must not fall through
+    # to `speak` into the collision.
+    features = ConversationFeatures(
+        was_collided=True,
+        was_interrupted=True,
+        queued_output=True,
+        silence_ms=3000,
+    )
+
+    decision = policy.decide(features)
+    assert decision != "speak"
+    assert decision == "wait"
+
+
 def test_policy_reset_is_available_and_side_effect_free() -> None:
     policy = HeuristicSpeakingPolicy()
 

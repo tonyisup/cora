@@ -64,3 +64,20 @@ def test_live_speak_smoke_requires_injected_io_by_default(tmp_path) -> None:
     assert report["live_playback_allowed"] is False
     assert Path(report["artifacts"]["efference_wav"]).exists()
     assert report["artifacts"]["captured_wav"] is None
+
+
+def test_recovering_frame_tag_has_positive_width_at_boundary(tmp_path) -> None:
+    # At the boundary where capture does not exceed the speak+tail window,
+    # RECOVERING must still occupy a real (positive-width) interval, not collapse
+    # to zero length.
+    report = run_live_speak_smoke_trial(
+        vowel="a",
+        out_dir=str(tmp_path),
+        duration_ms=100,
+        max_capture_ms=120,
+    )
+
+    tags = report["frame_tags"]
+    recovering = [t for t in tags if t["speak_state"] == "RECOVERING"]
+    assert recovering, "RECOVERING tag must be present"
+    assert recovering[0]["end_ms"] > recovering[0]["start_ms"]

@@ -30,11 +30,17 @@ def _frame_tags(
     max_capture_ms: int,
     latency_aligned_ms: float | None,
 ) -> list[dict[str, object]]:
+    # Always give RECOVERING a positive-width interval so frame tagging never
+    # collapses to a zero-length tag, even when capture barely exceeds the
+    # speak window.
+    post_end = max(duration_ms, min(max_capture_ms, duration_ms + 150))
+    recovering_start = post_end
+    recovering_end = max(recovering_start + 1, max_capture_ms)
     windows = [
         ("READY_TO_SPEAK", 0, 0, False),
         ("SPEAKING", 0, duration_ms, True),
-        ("POST_SPEAK_SUPPRESSION", duration_ms, min(max_capture_ms, duration_ms + 150), True),
-        ("RECOVERING", min(max_capture_ms, duration_ms + 150), max_capture_ms, False),
+        ("POST_SPEAK_SUPPRESSION", duration_ms, post_end, True),
+        ("RECOVERING", recovering_start, recovering_end, False),
     ]
     tags: list[dict[str, object]] = []
     for state, start, end, expected_self in windows:
