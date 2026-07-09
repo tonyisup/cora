@@ -184,6 +184,81 @@ def test_corollary_frame_tags_anchor_self_vs_world() -> None:
     assert all(t["source"] == "corollary_feedback" for t in tags)
 
 
+def test_listen_live_motor_imitation_loop_closes_end_to_end(tmp_path) -> None:
+    # Full loop without hardware: heard frame -> perception -> motor plan ->
+    # gated playback -> corollary capture -> frame tags -> imitation quality.
+    import numpy as np
+
+    from cora_infans.io.live_listener import LiveListener
+    from cora_infans.pipeline import AudioFrame
+
+    # Speech-like frame: a 200ms @ 16kHz tone the analyzer can resolve, with a
+    # channels signal + a captured PCM attached via last_pcm.
+    pcm = (np.sin(np.arange(3200) * 0.05) * 30000).astype("<i2")
+
+    class _FakeArray:
+        channel_count = 2
+
+        def capture_frame(self, *, duration_ms=None, dominant_frequency_hz=None):
+            return AudioFrame(
+                timestamp_ms=0, channel_energies=[0.05, 0.01], dominant_frequency_hz=1000.0
+            )
+
+    # last_pcm is read by the motor loop to analyze the heard waveform.
+    _FakeArray.last_pcm = pcm  # type: ignore[attr-defined]
+
+    class _FakeTuner:
+        is_real_hardware = False
+
+        def read_selected_azimuths(self):
+            return [0.0, 90.0]
+
+        def read_doa(self):
+            class _D:
+                azimuth_deg = 0.0
+                speech_detected = True
+
+            return _D()
+
+    played_paths = []
+    captured_paths = []
+
+    def fake_play(path, *, device_index, sample_rate, volume_db):
+        played_paths.append(path)
+        return {"backend": "fake", "completed": True}
+
+    def fake_capture(path, *, device, sample_rate, duration_ms):
+        captured_paths.append(path)
+        return {"backend": "fake", "completed": True}
+
+    listener = LiveListener(_FakeArray(), tuner=_FakeTuner())
+    report = listener.listen(
+        duration_ms=200,
+        frame_ms=200,
+        with_attention=True,
+        with_motor_imitation=True,
+        motor_imitation_gate_fn=lambda: {"verdict": "promote_simulation_only"},
+        motor_imitation_playback_fn=fake_play,
+        motor_imitation_out_dir=str(tmp_path),
+        motor_imitation_volume_db=12.0,
+        latency_anchor_ms=0.8,
+    )
+
+    mi = report["motor_imitation"]
+    assert mi is not None
+    assert mi["enabled"] is True
+    assert mi["trial_count"] == 1
+    trial = mi["trials"][0]
+    # Loop closed: perceived -> played -> measured against played sound.
+    assert trial["played"] is True
+    assert trial["played_formants_hz"] is not None
+    assert trial["imitation_prediction_error_hz"] is not None
+    assert played_paths == [trial["efference_wav"]]
+    # Latency anchor flows into the frame tags for the corollary window.
+    tags = listener.corollary_frame_tags(latency_ms=0.8)
+    assert any(t["speak_state"] == "SPEAKING" and t["latency_aligned_ms"] == 0.8 for t in tags)
+
+
 def test_listener_accumulates_salient_and_dropout_counts() -> None:
     # Script: salient, salient, dropout, salient -> 1 dropout, 1 recovery.
     frames = [
