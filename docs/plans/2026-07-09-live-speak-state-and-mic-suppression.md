@@ -211,6 +211,110 @@ When implementation is approved, the first slice should still avoid policy-drive
 
 ---
 
+## Real-I/O implementation plan (the `--real-io` slice)
+
+> **Status:** implemented (2026-07-09). Gated, bounded, `tag_only`. Default
+> `--speak-live-smoke` (no flag) stays blocked/fake-I/O. `--real-io` runs only
+> when `run_speaking_readiness_gate()` is promoted; otherwise it aborts before
+> any I/O. Red→green TDD; unit tests use injected fakes (no hardware in CI).
+> Items 1–5 of "First implementation slice" above are already implemented as M8-G
+> (fake-I/O smoke helper) and M8-H (safe-by-default CLI). This section specifies the
+> next, gated step: wiring the *real* CoreAudio output + XVF3800 capture behind an
+> explicit flag, reusing existing primitives rather than inventing new ones.
+
+### Reused existing primitives (no new dependencies)
+
+- Capture: `LiveMicArray` (`src/cora_infans/io/live_mic.py`) — ffmpeg avfoundation
+  device `:0`, 2 fused channels, fails loud via `LiveMicError`, retains `last_pcm`.
+- Playback: `ParenteseStimulus.play(path)` (`src/cora_infans/io/live_listener.py`) —
+  ffmpeg `audiotoolbox` sink to `STIMULUS_OUTPUT_DEVICE_INDEX = 2`, non-blocking
+  `Popen`, raises `LiveMicError` on failure. We will add a thin `play_wav_to_device`
+  wrapper that takes an arbitrary WAV (the generated efference) plus a device index,
+  so we do not depend on the parentese synth.
+- Latency: `estimate_playback_latency_ms` (`src/cora_infans/live_speak_smoke.py`) —
+  deterministic numpy XCORR stub, already implemented, not yet called by any live path.
+- Gates: `run_speaking_readiness_gate(...)` — already implemented; returns
+  `simulated_speak_authorized` and `live_playback_allowed: false`.
+
+### CLI shape
+
+Extend the existing `--speak-live-smoke` command with a real-I/O mode:
+
+```bash
+PYTHONPATH=src python3 -m cora_infans --speak-live-smoke \
+  --vowel a \
+  --out-dir /tmp/cora_speak_smoke \
+  --real-io \
+  --input-device :0 \
+  --output-device-index 2 \
+  --duration-ms 300 \
+  --max-capture-ms 1500
+```
+
+Behavior:
+
+- Without `--real-io`: unchanged. Efference WAV only, `blocked_missing_injected_io`,
+  no hardware touched.
+- With `--real-io`:
+  1. Run `run_speaking_readiness_gate()`. If verdict != `promote_simulation_only`
+     (or any required sub-gate failed), abort before any I/O with
+     `verdict=blocked_gates_not_promoted`, `real_hardware=false`. No speakers/mic.
+  2. Synthesize efference WAV (as today), retain PCM + `efference_id`.
+  3. Start capture (`LiveMicArray.capture_frame` or a bounded capture-to-WAV) on the
+     input device **before/around** playback.
+  4. Play the efference WAV to the output device via the `play_wav_to_device` wrapper.
+  5. Stop capture after `max_capture_ms`; write `captured_wav`.
+  6. Call `estimate_playback_latency_ms(efference_pcm=..., captured_pcm=..., sample_rate=...)`
+     and record `latency_aligned_ms`.
+  7. Emit `frame_tags` (READY → SPEAKING → POST_SPEAK_SUPPRESSION → RECOVERING) with
+     `contamination_policy=tag_only`, `real_hardware=true`, and
+     `live_playback_allowed` taken from the gate result (still `false` in slice 1;
+     the field documents that free/looped playback is not authorized).
+  8. Any playback/capture error sets `verdict=failed`, includes the error text, and
+     marks the trial `usable=False`. Playback Popen is awaited/terminated; capture
+     ends even on playback error.
+
+### Safety gates baked in
+
+- Default stays safe (no `--real-io` ⇒ no hardware).
+- `--real-io` refuses to run unless the readiness gate promoted.
+- Bounded: fixed `duration_ms`, fixed `max_capture_ms`, no loop, low amplitude default
+  (reuse the volume ceiling already in `ParenteseStimulus.play`, or clamp amplitude).
+- No simultaneous free speaking; this is a bounded smoke, not conversational TTS.
+- Honest channel reporting: capture stays 2 fused channels, no 4-mic fabrication.
+- `contamination_policy=tag_only` in the first real slice; no signal-level subtraction
+  claim until latency is repeatable across trials.
+
+### TDD sequence (what I will do once approved)
+
+1. RED: extend `tests/test_live_speak_smoke.py` with a test that passes
+   `--real-io` to the CLI but expects it to **refuse before I/O** when the gate is
+   mocked to fail (we can't easily mock the gate from CLI; instead test the helper
+   `run_real_io_speak_trial(...)` directly: if `readiness_gate` returns non-promote,
+   it raises/`verdict=blocked_gates_not_promoted` and never calls playback/capture fns).
+2. GREEN: implement `run_real_io_speak_trial(...)` in `live_speak_smoke.py` that takes
+   `playback_fn`/`capture_fn` callables (so unit tests inject fakes) plus a
+   `readiness_gate` callable; wires the real functions only when invoked from CLI.
+3. Add `play_wav_to_device(path, device_index, sample_rate)` thin wrapper reusing
+   ffmpeg audiotoolbox (mirror `ParenteseStimulus.play`).
+4. Wire `--real-io` + `--input-device` + `--output-device-index` into
+   `speak_live_smoke_cli` and `main` dispatch.
+5. Unit tests with injected fake real-I/O fns assert report shape, `real_hardware=true`,
+   `latency_aligned_ms` populated, tags present, gate-refusal path.
+6. Full suite green (no real hardware exercised in CI).
+7. Only after approval + green tests, run ONE real hardware smoke on request.
+
+### Acceptance before the first real run
+
+- Unit tests cover: gate-refusal (no I/O), happy real-I/O path with injected fakes,
+  latency estimate finite, frame tags present, error path marks trial unusable.
+- CLI `--real-io` without gate promotion fails loudly and touches no hardware.
+- Report records input/output device, sample rate, efference + captured WAV paths,
+  latency estimate, tagging window, `contamination_policy`, `real_hardware`,
+  `live_playback_allowed`.
+
+---
+
 ## Strategic recommendation
 
 Proceed in this order:

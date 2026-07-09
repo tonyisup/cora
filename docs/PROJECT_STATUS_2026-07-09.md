@@ -286,3 +286,46 @@ opened; `live_playback_allowed` stays `False` everywhere.
 
 **Validation:** full suite: `pytest tests -q` → 183 passed. Promotion gate still
 `promote_simulation_only` (6 episodes, `reward_ratio=1.0`, `collision_safety=1.0`).
+
+## M8-infans real-I/O slice — gated `--real-io` SPEAK smoke
+
+**Decision (user-approved 2026-07-09):** implement the real-hardware opt-in path
+from the M8-F plan, gated behind the speaking-readiness gate. The user explicitly
+confirmed readiness for actual audio playback.
+
+**What was added:**
+- `run_real_io_speak_trial(...)` in `src/cora_infans/live_speak_smoke.py`: a bounded,
+  gated real-hardware SPEAK smoke. It consults `run_speaking_readiness_gate()` and
+  aborts with `verdict=blocked_gates_not_promoted` (no I/O) unless promoted. With a
+  promoted gate it runs injected `playback_fn`/`capture_fn`, reads the captured PCM
+  back, and estimates roundtrip latency via `estimate_playback_latency_ms`.
+- Real primitives: `play_wav_to_device` (ffmpeg audiotoolbox to an explicit device
+  index) and `capture_to_wav` (ffmpeg avfoundation, 2 fused channels, bounded
+  duration). Both fail loud (no silent fallback). `play_wav_to_device` returns a
+  Popen the caller awaits.
+- CLI: `--speak-live-smoke` gains `--real-io`, `--input-device` (default `:0`),
+  `--output-device-index` (default `2`). `--real-io` and `--fake-io` are mutually
+  exclusive. Default (no flag) is unchanged: blocked / fake-I/O only.
+- Shared efference prep (`_prepare_efference`) refactors the existing helper so the
+  fake and real paths synthesize identical output.
+
+**Safety contract honored:**
+- No `--real-io` ⇒ no hardware. Existing blocked/fake behavior untouched.
+- `--real-io` without a promoted readiness gate refuses before any speaker/mic use.
+- Bounded: fixed `duration_ms` (default 300) and `max_capture_ms` (default 1500),
+  no loop, `tag_only` contamination policy (no signal-level subtraction claim).
+- Honest channel reporting: capture pinned to 2 fused channels (no 4-mic fabrication).
+- `live_playback_allowed` stays `False` in the report — free/looped playback is NOT
+  authorized; only this bounded tag-only smoke runs.
+
+**Tests (TDD):** red tests for gate-refusal (no I/O) and promoted-path with injected
+fakes (real_hardware=true, finite latency, ordered frame tags); both green. No real
+hardware is exercised in CI.
+
+**Honesty boundary:** the real slice is a bounded validation harness, not conversational
+TTS. It demonstrates the engineered efference→playback→capture→latency-tag mechanism
+step by step; it does not claim biological equivalence or room-calibrated suppression.
+
+**Validation:** full suite: `pytest tests -q` → 185 passed. CLI `--fake-io` path still
+passes; usage documents `--real-io`. A single real-hardware run is deferred to an
+explicit user request (step 7 of the plan).

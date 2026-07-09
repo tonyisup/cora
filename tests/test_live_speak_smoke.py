@@ -106,3 +106,82 @@ def test_latency_cross_correlation_recovers_known_delay() -> None:
 
     assert latency_ms is not None
     assert abs(latency_ms - (delay_samples / sample_rate * 1000.0)) <= 2.0
+
+
+def test_real_io_refuses_without_promoted_readiness_gate(tmp_path) -> None:
+    # Without a promoted readiness gate, the real-I/O trial must abort BEFORE any
+    # playback/capture, touching no hardware.
+    from cora_infans.live_speak_smoke import run_real_io_speak_trial
+
+    calls: list[str] = []
+
+    def _play(path: str) -> dict[str, object]:
+        calls.append("play")
+        return {"backend": "fake", "completed": True}
+
+    def _capture(path: str, *, sample_rate: int, duration_ms: int) -> dict[str, object]:
+        calls.append("capture")
+        return {"backend": "fake", "completed": True}
+
+    def _gate() -> dict[str, object]:
+        return {"verdict": "hold", "live_playback_allowed": False}
+
+    report = run_real_io_speak_trial(
+        vowel="a",
+        out_dir=str(tmp_path),
+        playback_fn=_play,
+        capture_fn=_capture,
+        readiness_gate_fn=_gate,
+    )
+
+    assert report["verdict"] == "blocked_gates_not_promoted"
+    assert report["real_hardware"] is False
+    assert report["live_playback"] is False
+    assert calls == []  # no I/O happened
+
+
+def test_real_io_runs_with_promoted_gate_using_injected_fakes(tmp_path) -> None:
+    # With a promoted gate, the helper performs the wired playback/capture (here
+    # injected fakes) and reports real_hardware=true with a finite latency.
+    import numpy as np
+
+    from cora_infans.live_speak_smoke import run_real_io_speak_trial
+
+    def _gate() -> dict[str, object]:
+        return {"verdict": "promote_simulation_only", "live_playback_allowed": False}
+
+    def _play(path: str) -> dict[str, object]:
+        return {"backend": "fake", "device_index": 2, "completed": True}
+
+    def _capture(path: str, *, sample_rate: int, duration_ms: int) -> dict[str, object]:
+        import wave
+
+        samples = int(sample_rate * duration_ms / 1000)
+        pcm = np.zeros(samples, dtype="<i2")
+        with wave.open(path, "wb") as w:
+            w.setnchannels(1)
+            w.setsampwidth(2)
+            w.setframerate(sample_rate)
+            w.writeframes(pcm.tobytes())
+        return {"backend": "fake", "device": ":0", "frames": samples, "completed": True}
+
+    report = run_real_io_speak_trial(
+        vowel="a",
+        out_dir=str(tmp_path),
+        playback_fn=_play,
+        capture_fn=_capture,
+        readiness_gate_fn=_gate,
+        sample_rate=16000,
+    )
+
+    assert report["verdict"] == "real_io_complete"
+    assert report["real_hardware"] is True
+    assert report["live_playback"] is True
+    assert report["live_playback_allowed"] is False
+    assert report["artifacts"]["captured_wav"] is not None
+    assert report["latency_aligned_ms"] is not None
+    assert isinstance(report["latency_aligned_ms"], (int, float))
+    # Frame tags present and ordered.
+    states = [t["speak_state"] for t in report["frame_tags"]]
+    assert states[0] == "READY_TO_SPEAK"
+    assert "SPEAKING" in states

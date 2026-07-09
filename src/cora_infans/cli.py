@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import subprocess
 import sys
 from typing import Any
 
@@ -36,7 +37,12 @@ from .speaking_simulator import (
     run_speaking_policy_promotion_gate,
     run_speaking_readiness_gate,
 )
-from .live_speak_smoke import run_live_speak_smoke_trial
+from .live_speak_smoke import (
+    capture_to_wav,
+    play_wav_to_device,
+    run_live_speak_smoke_trial,
+    run_real_io_speak_trial,
+)
 
 
 OutputMode = str
@@ -818,11 +824,18 @@ def speak_live_smoke_cli(args: list[str]) -> dict[str, object]:
     duration_ms = 300
     max_capture_ms = 1500
     use_fake_io = False
+    use_real_io = False
+    input_device = ":0"
+    output_device_index = 2
     i = 1
     while i < len(args):
         option = args[i]
         if option == "--fake-io":
             use_fake_io = True
+            i += 1
+            continue
+        if option == "--real-io":
+            use_real_io = True
             i += 1
             continue
         if i + 1 >= len(args):
@@ -836,11 +849,47 @@ def speak_live_smoke_cli(args: list[str]) -> dict[str, object]:
             duration_ms = int(value)
         elif option == "--max-capture-ms":
             max_capture_ms = int(value)
+        elif option == "--input-device":
+            input_device = value
+        elif option == "--output-device-index":
+            output_device_index = int(value)
         else:
             raise ValueError(f"unknown option: {option}")
         i += 2
     if out_dir is None:
         raise ValueError("--out-dir is required")
+    if use_fake_io and use_real_io:
+        raise ValueError("--fake-io and --real-io are mutually exclusive")
+
+    if use_real_io:
+        # Real hardware path: bounded, gated, tag_only. The readiness gate is
+        # consulted inside run_real_io_speak_trial and aborts before any I/O if
+        # not promoted. Plays the generated efference to the output device and
+        # captures the mic; the playback Popen is awaited so the trial blocks
+        # until output finishes.
+        def _real_playback(path: str) -> dict[str, object]:
+            result = play_wav_to_device(
+                path, device_index=output_device_index, sample_rate=48000
+            )
+            proc = result.get("process")
+            if isinstance(proc, subprocess.Popen):
+                proc.wait()
+            return result
+
+        def _real_capture(path: str, *, sample_rate: int, duration_ms: int) -> dict[str, object]:
+            return capture_to_wav(
+                path, device=input_device, sample_rate=sample_rate, duration_ms=duration_ms
+            )
+
+        return run_real_io_speak_trial(
+            vowel=vowel,  # type: ignore[arg-type]
+            out_dir=out_dir,
+            playback_fn=_real_playback,
+            capture_fn=_real_capture,
+            sample_rate=48000,
+            duration_ms=duration_ms,
+            max_capture_ms=max_capture_ms,
+        )
 
     if use_fake_io:
         # In-process fakes: write a real efference WAV, capture silent frames.
@@ -1005,7 +1054,7 @@ def main(argv: list[str] | None = None) -> int:
         "[--promote-self-forward-model [--vowel a|e|i|o|u] [--world-vowel a|e|i|o|u] [--world-gain F] [--min-world-correlation F]] "
         "[--promote-speaking-policy [--min-reward-ratio F]] "
         "[--promote-speaking-readiness [--min-speaking-reward-ratio F] [--min-self-world-correlation F]] "
-        "[--speak-live-smoke --out-dir DIR [--vowel a|e|i|o|u] [--duration-ms N] [--max-capture-ms N] [--fake-io]]",
+        "[--speak-live-smoke --out-dir DIR [--vowel a|e|i|o|u] [--duration-ms N] [--max-capture-ms N] [--fake-io] [--real-io [--input-device :0] [--output-device-index 2]]]",
         file=sys.stderr,
     )
     return 2
