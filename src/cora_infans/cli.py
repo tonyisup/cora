@@ -321,11 +321,11 @@ def listen_live(args: list[str] | None = None) -> dict[str, object]:
         )
 
         gate_fn = run_speaking_readiness_gate
-        playback_fn = lambda path: play_wav_to_device(  # type: ignore[misc]
+        playback_fn = lambda path, **kw: play_wav_to_device(  # type: ignore[misc]
             path, device_index=output_device_index, sample_rate=48000, volume_db=volume_db
         )
-        capture_fn = lambda path, *, duration_ms: capture_to_wav(  # type: ignore[misc]
-            path, device=device, sample_rate=48000, duration_ms=duration_ms
+        capture_fn = lambda path, **kw: capture_to_wav(  # type: ignore[misc]
+            path, device=device, sample_rate=48000, duration_ms=kw.get("duration_ms", 400)
         )
 
     out_dir = None

@@ -555,3 +555,45 @@ is a first-class anchor the future imitation loop / self-subtraction can read �
 only ever for a genuine, repeatable latency.
 
 **Validation:** full suite: `pytest tests -q` → 192 passed.
+
+## Phase 1 live motor-imitation loop (perception → production → gated playback → capture → measure)
+
+**Decision (2026-07-09, user-approved after "plan it out"):** close the vertical
+loop where Cora *hears a human sound and plays its own re-synthesized imitation*,
+bounded + gated, measurement-only (no signal subtraction). Target = human speech.
+Volume 12 dB for phase 1. `calibration.json` is the latency anchor source.
+
+**What changed (8 tasks, all TDD, committed):**
+1. `LiveListener.play_efference_if_authorized()` — gated playback helper; refuses
+   unless readiness gate verdict == `promote_simulation_only`. Same discipline as
+   the SPEAK smoke. Never looped/free playback.
+2. `_motor_imitation_trial()` now plays the re-synthesized efference when a playback
+   fn + gate are supplied (was analysis-only before, explicitly "no live playback").
+3. `capture_corollary_window()` — captures the corollary-feedback window after
+   playback, recording the measured `latency_aligned_ms` anchor. No subtraction yet.
+4. `corollary_frame_tags()` — tags the captured corollary window via the canonical
+   `canonical_frame_tags` schema (READY_TO_SPEAK/SPEAKING/POST_SPEAK_SUPPRESSION/
+   RECOVERING), `expected_self_audio=True` on SPEAKING, anchored at the latency.
+5. Imitation quality vs the **PLAYED** sound: the efference WAV is read back and
+   re-analyzed; `played_formants_hz` / `played_nearest_vowel` / `imitation_prediction_error_hz`
+   (abs F1/F2/F3 delta vs perceived vowel) are recorded. Target = what left the speaker.
+6. CLI `--listen-live --with-motor-imitation --real-io [--volume-db F] [--latency-anchor PATH]`
+   wires gate + real playback/capture fns. Without `--real-io` the loop stays
+   analysis-only.
+7. End-to-end integration test (`test_listen_live_motor_imitation_loop_closes_end_to_end`)
+   drives the full loop with injected fakes — no hardware.
+8. **Real-hardware smoke (user-confirmed):** re-verified speaker live post-mute,
+   re-persisted a stable anchor (`cw=2`, mean −0.24 ms, std 0.94 ms → `latency.json`),
+   then ran `--listen-live --with-motor-imitation --with-attention --with-stimulus --real-io`
+   → 2 salient frames → 2 trials with `played=True`, `pv=u`, prediction error recorded.
+   A real-bug was caught and fixed here: the `--real-io` playback/capture lambdas
+   rejected the kwargs `play_efference_if_authorized` forwards → `TypeError`. Fixed
+   (lambdas now `**kw`) and guarded by `test_listen_live_cli_real_io_path_invokes_playback_fn`.
+
+**Honesty boundary (unchanged):** `tag_only`; no signal subtraction. The
+`self_suppression.py` forward-model stack remains simulation-only; real self-subtraction
+is a separate, later milestone (reuse it with the *measured* latency instead of the
+toy 10 ms). The phase-1 imitation is crude (toy vowel synth, near-field mic) — that is
+the expected floor, not a fidelity ceiling. Mechanism is closed and honest.
+
+**Validation:** full suite: `pytest tests -q` → 199 passed.

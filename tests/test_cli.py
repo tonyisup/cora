@@ -732,44 +732,109 @@ def test_speak_live_smoke_cli_runs_fake_io_when_requested() -> None:
         assert Path(payload["artifacts"]["captured_wav"]).exists()
 
 
-def test_listen_live_cli_parses_motor_imitation_flags() -> None:
-    # Unit-level: monkeypatch the hardware array so no real capture runs, and
-    # verify --with-motor-imitation + --real-io flags parse and route into a
-    # report with the motor_imitation block enabled (analysis-only unless the
-    # gate+playback fns are supplied, which real --real-io does).
+def test_listen_live_cli_real_io_path_invokes_playback_fn() -> None:
+    # Regression: the --real-io playback/capture lambdas must accept the kwargs
+    # play_efference_if_authorized forwards (device_index/sample_rate/volume_db).
+    # A prior bug had the lambda reject them -> TypeError on hardware. We inject
+    # no-op fakes (no real audio) but drive the full CLI wiring through.
     import cora_infans.cli as cli
     import cora_infans.io.live_listener as ll
+    import cora_infans.live_speak_smoke as sm
+    import numpy as np
+    from cora_infans.pipeline import AudioFrame
+
+    pcm = (np.sin(np.arange(3200) * 0.05) * 30000).astype("<i2")
 
     class _FakeArray:
         channel_count = 2
+        last_pcm = pcm  # type: ignore[assignment]
 
         def capture_frame(self, *, duration_ms=None, dominant_frequency_hz=None):
-            from cora_infans.pipeline import AudioFrame
-
             return AudioFrame(
                 timestamp_ms=0, channel_energies=[0.05, 0.01], dominant_frequency_hz=1000.0
             )
 
-    orig = cli.LiveMicArray
+    class _FakeTuner:
+        is_real_hardware = False
+
+        def read_selected_azimuths(self):
+            return [0.0, 90.0]
+
+        def read_doa(self):
+            class _D:
+                azimuth_deg = 0.0
+                speech_detected = True
+
+            return _D()
+
+    played = []
+    captured = []
+    orig_array = cli.LiveMicArray
+    orig_gate = sm.run_speaking_readiness_gate
+    orig_play = sm.play_wav_to_device
+    orig_cap = sm.capture_to_wav
+    orig_hw = ll.HardwareTuner
+    orig_null = ll._NullTuner
     cli.LiveMicArray = lambda device: _FakeArray()  # type: ignore[assignment]
+    # Force the listener to use our fake tuner (finite source azimuth) instead
+    # of probing real hardware, so the motor-imitation branch fires.
+    ll.HardwareTuner = lambda *a, **k: (_ for _ in ()).throw(  # type: ignore[assignment]
+        __import__("cora_infans.io.hardware_tuner", fromlist=["HardwareTunerError"]).HardwareTunerError("forced fake")
+    )
+    ll._NullTuner = _FakeTuner  # type: ignore[assignment]
+    sm.run_speaking_readiness_gate = lambda: {"verdict": "promote_simulation_only"}  # type: ignore[assignment]
+    sm.play_wav_to_device = lambda path, **kw: played.append(kw) or {"backend": "fake"}  # type: ignore[assignment]
+    sm.capture_to_wav = lambda path, **kw: captured.append(kw) or {"backend": "fake"}  # type: ignore[assignment]
     try:
         report = cli.listen_live(
             [
                 "--listen-live",
                 "--with-motor-imitation",
                 "--with-attention",
+                "--real-io",
                 "--duration-ms",
                 "200",
                 "--frame-ms",
                 "200",
+                "--latency-anchor",
+                "/tmp/none.json",  # missing file is fine: anchor stays None
+            ]
+        )
+    except FileNotFoundError:
+        # latency-anchor file absent -> the CLI raises; acceptable, we only care
+        # the playback lambda shape is correct up to that point. Provide one.
+        import tempfile
+
+        with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as fh:
+            fh.write('{"latency_ms": 0.0}')
+            anchor = fh.name
+        report = cli.listen_live(
+            [
+                "--listen-live",
+                "--with-motor-imitation",
+                "--with-attention",
+                "--real-io",
+                "--duration-ms",
+                "200",
+                "--frame-ms",
+                "200",
+                "--latency-anchor",
+                anchor,
             ]
         )
     finally:
-        ll.LiveMicArray = orig  # type: ignore[assignment]
+        cli.LiveMicArray = orig_array  # type: ignore[assignment]
+        sm.run_speaking_readiness_gate = orig_gate  # type: ignore[assignment]
+        sm.play_wav_to_device = orig_play  # type: ignore[assignment]
+        sm.capture_to_wav = orig_cap  # type: ignore[assignment]
+        ll.HardwareTuner = orig_hw  # type: ignore[assignment]
+        ll._NullTuner = orig_null  # type: ignore[assignment]
 
-    assert "motor_imitation" in report
-    # Without --real-io the loop is analysis-only: playback fns are not supplied,
-    # so the report still carries the enabled motor-imitation block.
-    assert report["motor_imitation"] is not None
-    assert report["motor_imitation"]["enabled"] is True
-    assert report["frame_count"] >= 1
+    # The playback lambda was invoked with the kwargs play_efference_if_authorized
+    # forwards (the exact shape that previously raised TypeError).
+    assert played, "playback lambda was never invoked"
+    assert "device_index" in played[0]
+    assert "volume_db" in played[0]
+    mi = report["motor_imitation"]
+    assert mi is not None and mi["trial_count"] >= 1
+    assert mi["trials"][0]["played"] is True
