@@ -597,3 +597,54 @@ toy 10 ms). The phase-1 imitation is crude (toy vowel synth, near-field mic) —
 the expected floor, not a fidelity ceiling. Mechanism is closed and honest.
 
 **Validation:** full suite: `pytest tests -q` → 199 passed.
+
+## Phase 2 live self-subtraction (real-data forward-model learning cycle)
+
+**Decision (2026-07-09, user-approved plan + "proceed with Task 1 through 5"):** turn the
+Phase 1 measurement-only loop into a true forward-model learning cycle — reuse
+`io/self_suppression.py`'s `predict_self_pcm` + `spectral_subtract` with the **measured
+device-3 latency anchor** (`/tmp/cora_nf/latency_dev3.json`, mean −0.62 ms, std 1.03 ms)
+and the **real efference + real captured corollary mixture**. Subtract Cora's own played
+audio to isolate the human's continuing speech (`world_residual`). Still gated, bounded,
+no free/looped playback. Default remains `contamination_policy = tag_only`; it transitions
+to `self_subtract_live` only when a NEW real-data promotion gate passes.
+
+**What changed (5 tasks, all TDD, committed):** plan at
+`.hermes/plans/2026-07-09-phase2-live-self-subtraction.md`.
+1. **Fit real forward-model params per trial (measurement-only).** `_motor_imitation_trial`
+   now captures the corollary window (when a `capture_fn` is injected), downmixes it to
+   mono 48k, re-synthesizes the efference at 48k, and runs `fit_forward_model` (grid:
+   delay around the anchor ±2/0/2/4 ms, attenuation 0.3–0.8, echo 0.05–0.35). Records
+   `forward_model_fit` (learned params + svsr_db + residual/observed rms + verdict).
+   No subtraction yet.
+2. **Apply `spectral_subtract`, emit `world_residual` (still `tag_only`).** With
+   `do_self_subtraction=True`, the fitted params drive `predict_self_pcm` → `spectral_subtract`,
+   producing `world_residual` metrics (svsr_db, observed/residual/predicted rms,
+   world_residual_correlation vs the perceived frame as proxy world). Computed + recorded
+   as evidence; policy stays `tag_only`.
+3. **Real-data promotion gate + honesty transition.** `_real_self_subtraction_promotion_gate`
+   (SEPARATE from the sim-only `run_forward_model_promotion_gate`) judges the *actual
+   captured* subtraction: promotes `tag_only → self_subtract_live` only when SVSR ≥ 20 dB
+   AND world-residual correlation ≥ 0.05. Trial records `self_subtraction_gate` + `contamination_policy`.
+4. **CLI `--with-self-subtraction` (gated by `--real-io`).** Requires `--real-io` (raises
+   otherwise, since capture is needed to fit/subtract). Wires `capture_fn` + passes
+   `do_self_subtraction=True` to `listen`. Usage string updated.
+5. **End-to-end integration test (injected fakes).** `test_motor_imitation_end_to_end_self_subtraction_report_shape`
+   drives the full loop with fake play/capture and asserts every Phase 2 field is present
+   and well-formed (fit, world_residual, gate, contamination_policy).
+
+**Key honesty caveats (preserved from the plan):**
+- The toy forward model cannot represent a negative delay; the −0.62 ms anchor collapses
+  to delay=0 at 48k. The fit grid probes (−2..4) ms around the anchor. If real loopback
+  needs negative shift, `predict_self_pcm` must gain an `echo_delay_ms` param (not yet done).
+- `world_residual_correlation` uses the perceived human frame as a proxy world signal —
+  a sanity check, not ground truth.
+- Sample-rate: the efference for subtraction is re-synthesized at 48k (capture rate), not
+  the 16k analysis rate, so samples align with the captured mixture.
+
+**Validation:** full suite: `pytest tests -q` → 209 passed (was 199 at end of Phase 1; +10
+Phase 2 tests).
+
+**NOT yet done — Task 6 (deferred, awaits explicit user go):** real-hardware bounded smoke
+with `--with-self-subtraction`. Command when approved:
+`PYTHONPATH=src python3 -m cora_infans --listen-live --with-motor-imitation --with-self-subtraction --with-attention --with-stimulus --real-io --output-device-index 2 --imitation-device-index 3 --volume-db 12 --latency-anchor /tmp/cora_nf/latency_dev3.json`
