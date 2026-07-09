@@ -520,3 +520,38 @@ now a real, repeatable anchor available to downstream consumers (the future
 imitation loop / self-subtraction) when they appear.
 
 **Validation:** full suite: `pytest tests -q` → 191 passed.
+
+## M8-infans near-field preset + latency calibration artifact (1 + 2)
+
+**Decision (2026-07-09, user-approved "proceed with 1 + 2"):** (1) make the
+proven-stable near-field config the default path so `--real-io --trials N` can
+actually cross `latency_stable` without manual tuning; (2) persist the measured
+stable latency as a calibration artifact for downstream consumers.
+
+**What changed:**
+- `--near-field` CLI preset: chirp @24 dB + `causal_window_ms=4`. Explicit flags
+  override the preset (preset only fills defaults). Validated 2026-07-09 at 4"
+  speaker proximity with max volume.
+- `--save-calibration PATH`: writes `calibration_path` into the trials report and
+  persists a JSON artifact (kind `playback_capture_loopback_latency`) carrying the
+  latency, std, stimulus, volume, window, sample rate, trials, and a UTC timestamp.
+  Only written when `latency_stable=True` (honest: never a noisy estimate).
+- `save_latency_calibration()` helper + `volume_db`/`save_calibration` params on
+  `run_real_io_speak_trials`. Single-trial path does not save (no std).
+- Usage string updated.
+
+**Tests (TDD):** `save_latency_calibration` writes an auditable artifact (unit);
+the stable-trials test now also asserts `calibration_path` is written and the JSON
+contains the stable mean + `tag_only` policy. Suite now 192 passed.
+
+**Real-hardware check:** `--near-field` resolved to chirp@24/cw=4 → 0.917 ms in one
+trial; 6-trial run `latency_stable=True` (mean −2.04 ms, std 1.52 ms) with
+`canonical_frame_tags` present and `/tmp/cora_nf/latency.json` persisted with full
+conditions. The default `causal_window_ms=20` (without `--near-field`) is preserved
+for general use; the preset is the validated-fast path.
+
+**Honesty boundary:** tags still `tag_only`; no subtraction. The calibration artifact
+is a first-class anchor the future imitation loop / self-subtraction can read — but
+only ever for a genuine, repeatable latency.
+
+**Validation:** full suite: `pytest tests -q` → 192 passed.

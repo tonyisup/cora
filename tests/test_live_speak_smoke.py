@@ -223,6 +223,7 @@ def test_real_io_trials_aggregate_latency_stats_with_stable_estimator(tmp_path) 
         latency_estimator=_est,
         trials=4,
         sample_rate=16000,
+        save_calibration=str(tmp_path / "cal.json"),
     )
 
     assert report["verdict"] == "trials_complete"
@@ -244,6 +245,15 @@ def test_real_io_trials_aggregate_latency_stats_with_stable_estimator(tmp_path) 
     states = [t["speak_state"] for t in tags]  # type: ignore[index]
     assert states[0] == "READY_TO_SPEAK"
     assert "SPEAKING" in states
+    # When a calibration path is requested and latency is stable, the artifact is
+    # written and points back at the stable mean under the measurement conditions.
+    assert report["calibration_path"] is not None
+    import json as _json
+
+    cal = _json.loads(open(report["calibration_path"]).read())  # type: ignore[arg-type]
+    assert cal["kind"] == "playback_capture_loopback_latency"
+    assert cal["latency_ms"] == 12.0
+    assert cal["contamination_policy"] == "tag_only"
 
 
 def test_real_io_trials_flag_unstable_when_spread_exceeds_threshold(tmp_path) -> None:
@@ -402,3 +412,34 @@ def test_real_playback_passes_volume_db_to_ffmpeg(monkeypatch) -> None:
     sm.play_wav_to_device("/tmp/x.wav", device_index=2, volume_db=-6.0)
     assert captured["waited"]
     assert any("volume=-6.0dB" in str(c) for c in captured["cmd"])
+
+
+def test_save_latency_calibration_writes_artifact(tmp_path) -> None:
+    # Pure unit: a stable measurement is persisted as an honest, auditable artifact
+    # carrying the measurement conditions (no biological claim).
+    import json as _json
+
+    from cora_infans.live_speak_smoke import save_latency_calibration
+
+    path = str(tmp_path / "calibration" / "latency.json")
+    returned = save_latency_calibration(
+        path,
+        latency_ms=0.844,
+        stimulus_key="c200-4000",
+        volume_db=24.0,
+        causal_window_ms=4.0,
+        sample_rate=48000,
+        trials=6,
+        std_ms=0.83,
+    )
+    assert returned == path
+    cal = _json.loads(open(path).read())
+    assert cal["kind"] == "playback_capture_loopback_latency"
+    assert cal["latency_ms"] == 0.844
+    assert cal["std_ms"] == 0.83
+    assert cal["stimulus_key"] == "c200-4000"
+    assert cal["volume_db"] == 24.0
+    assert cal["causal_window_ms"] == 4.0
+    assert cal["trials"] == 6
+    assert cal["contamination_policy"] == "tag_only"
+    assert "recorded_at" in cal

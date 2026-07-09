@@ -8,7 +8,10 @@ planned efference artifact.
 
 from __future__ import annotations
 
+import datetime
 import hashlib
+import json
+import os
 import shutil
 import subprocess
 import wave
@@ -32,6 +35,44 @@ PlaybackFn = Callable[[str], dict[str, object]]
 CaptureFn = Callable[..., dict[str, object]]
 GateFn = Callable[[], dict[str, object]]
 LatencyEstimator = Callable[..., float | None]
+
+
+def save_latency_calibration(
+    path: str,
+    *,
+    latency_ms: float,
+    stimulus_key: str,
+    volume_db: float,
+    causal_window_ms: float,
+    sample_rate: int,
+    trials: int,
+    std_ms: float | None,
+) -> str:
+    """Persist a measured, stable loopback latency as a calibration artifact.
+
+    Written only for a genuine repeatable measurement (the caller must have
+    already confirmed ``latency_stable``). The path is a JSON file the future
+    imitation loop / self-subtraction reads as a first-class anchor, so the
+    conditions of the measurement (stimulus, volume, window, geometry) are
+    recorded for honest auditability.
+    """
+    record = {
+        "kind": "playback_capture_loopback_latency",
+        "latency_ms": round(float(latency_ms), 3),
+        "std_ms": round(float(std_ms), 3) if std_ms is not None else None,
+        "stimulus_key": stimulus_key,
+        "volume_db": volume_db,
+        "causal_window_ms": causal_window_ms,
+        "sample_rate": sample_rate,
+        "trials": trials,
+        "contamination_policy": "tag_only",
+        "note": "Anchor for frame tagging / future self-subtraction. Not a biological claim.",
+        "recorded_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+    }
+    os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
+    with open(path, "w", encoding="utf-8") as fh:
+        json.dump(record, fh, indent=2)
+    return path
 
 
 @dataclass(frozen=True)
@@ -487,6 +528,8 @@ def run_real_io_speak_trials(
     stimulus: "StimulusSpec | None" = None,
     causal_window_ms: float = 20.0,
     latency_jitter_ms: float = 2.0,
+    save_calibration: str | None = None,
+    volume_db: float = 12.0,
     sample_rate: int = 48000,
     duration_ms: int = 300,
     max_capture_ms: int = 1500,
@@ -565,6 +608,22 @@ def run_real_io_speak_trials(
             tag["latency_source"] = "stable_mean"
             tag["latency_stable"] = True
 
+    # Persist a calibration artifact when requested and the measurement is stable.
+    # This is the anchor the future imitation loop / self-subtraction reads, so it
+    # must only be written for a genuine, repeatable latency — never a noisy one.
+    calibration_path: str | None = None
+    if save_calibration is not None and canonical_latency_ms is not None:
+        calibration_path = save_latency_calibration(
+            save_calibration,
+            latency_ms=canonical_latency_ms,
+            stimulus_key=stimulus.key if stimulus is not None else "unknown",
+            volume_db=volume_db,
+            causal_window_ms=causal_window_ms,
+            sample_rate=sample_rate,
+            trials=stats["n"],  # type: ignore[arg-type]
+            std_ms=stats["std"],  # type: ignore[arg-type]
+        )
+
     return {
         "mode": "bounded_live_speak_smoke_trials",
         "verdict": "trials_complete",
@@ -579,5 +638,6 @@ def run_real_io_speak_trials(
         "latency_jitter_ms": latency_jitter_ms,
         "causal_window_ms": causal_window_ms,
         "canonical_frame_tags": canonical_frame_tags,
+        "calibration_path": calibration_path,
         "per_trial": per_trial,
     }

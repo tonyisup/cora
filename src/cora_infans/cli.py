@@ -835,6 +835,8 @@ def speak_live_smoke_cli(args: list[str]) -> dict[str, object]:
     chirp_f0 = 200.0
     chirp_f1 = 4000.0
     causal_window_ms = 20.0
+    near_field = False
+    save_calibration: str | None = None
     i = 1
     while i < len(args):
         option = args[i]
@@ -844,6 +846,13 @@ def speak_live_smoke_cli(args: list[str]) -> dict[str, object]:
             continue
         if option == "--real-io":
             use_real_io = True
+            i += 1
+            continue
+        if option == "--near-field":
+            # Proven-stable near-field preset (validated 2026-07-09 at 4" speaker
+            # proximity, max volume): chirp @24dB + tight causal window so the
+            # loopback latency can actually cross the stability gate by default.
+            near_field = True
             i += 1
             continue
         if i + 1 >= len(args):
@@ -875,6 +884,8 @@ def speak_live_smoke_cli(args: list[str]) -> dict[str, object]:
             chirp_f1 = float(value)
         elif option == "--causal-window-ms":
             causal_window_ms = float(value)
+        elif option == "--save-calibration":
+            save_calibration = value
         else:
             raise ValueError(f"unknown option: {option}")
         i += 2
@@ -882,6 +893,18 @@ def speak_live_smoke_cli(args: list[str]) -> dict[str, object]:
         raise ValueError("--out-dir is required")
     if use_fake_io and use_real_io:
         raise ValueError("--fake-io and --real-io are mutually exclusive")
+
+    # --near-field applies the proven-stable preset unless the user overrode the
+    # relevant flags explicitly. Explicit flags always win over the preset.
+    if near_field:
+        if stimulus_kind == "vowel":
+            stimulus_kind = "chirp"
+            chirp_f0 = 200.0
+            chirp_f1 = 4000.0
+        if volume_db == 12.0:
+            volume_db = 24.0
+        if causal_window_ms == 20.0:
+            causal_window_ms = 4.0
 
     if stimulus_kind == "vowel":
         stimulus = StimulusSpec(kind="vowel", vowel=vowel)
@@ -920,6 +943,8 @@ def speak_live_smoke_cli(args: list[str]) -> dict[str, object]:
                 trials=trials,
                 stimulus=stimulus,
                 causal_window_ms=causal_window_ms,
+                volume_db=volume_db,
+                save_calibration=save_calibration,
                 sample_rate=48000,
                 duration_ms=duration_ms,
                 max_capture_ms=max_capture_ms,
@@ -1100,7 +1125,7 @@ def main(argv: list[str] | None = None) -> int:
         "[--promote-self-forward-model [--vowel a|e|i|o|u] [--world-vowel a|e|i|o|u] [--world-gain F] [--min-world-correlation F]] "
         "[--promote-speaking-policy [--min-reward-ratio F]] "
         "[--promote-speaking-readiness [--min-speaking-reward-ratio F] [--min-self-world-correlation F]] "
-        "[--speak-live-smoke --out-dir DIR [--vowel a|e|i|o|u] [--duration-ms N] [--max-capture-ms N] [--fake-io] [--real-io [--input-device :0] [--output-device-index 2] [--trials N] [--stimulus vowel|tone|chirp] [--volume-db F] [--tone-hz F] [--chirp-f0 F] [--chirp-f1 F] [--causal-window-ms F]]]",
+        "[--speak-live-smoke --out-dir DIR [--vowel a|e|i|o|u] [--duration-ms N] [--max-capture-ms N] [--fake-io] [--real-io [--near-field] [--input-device :0] [--output-device-index 2] [--trials N] [--stimulus vowel|tone|chirp] [--volume-db F] [--tone-hz F] [--chirp-f0 F] [--chirp-f1 F] [--causal-window-ms F] [--save-calibration PATH]]]",
         file=sys.stderr,
     )
     return 2
