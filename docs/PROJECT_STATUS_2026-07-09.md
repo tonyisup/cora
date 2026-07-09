@@ -434,3 +434,58 @@ signal-level self-subtraction is authorized. This sweep is a measurement of the
 acoustic path, not a claim of alignment fidelity.
 
 **Validation:** full suite: `pytest tests -q` → 190 passed.
+
+## M8-infans causal-window latency fix (from Corollary prior art)
+
+**Decision (2026-07-09, user-approved):** apply the M3/Corollary technique — restrict
+the cross-correlation lag search to a causal window around the *known* playback onset
+(t=0) instead of a free ±500-sample search. This rejects room-reverb false peaks.
+
+**Investigation:** `corollary/docs/m3_streaming_config_schema.md` and
+`packages/thalamus/attributor.py` showed Corollary never free-runs XCORR; it computes
+`rel_pos = observed_onset − expected_onset`, correlates only the aligned slice, and
+scores timing separately as `causal_score = max(0, 1 − onset_error/causal_tolerance_ms)`
+(`causal_tolerance_ms=175ms`). Dry PCM also matched poorly vs a room-colored FIR
+reference (self_score 0.09→0.38, `m3_start.md:392`). Step A implements the causal
+window (the highest-confidence lever); room-colored reference (step B) remains open.
+
+**What changed:**
+- `estimate_playback_latency_ms` gained `expected_onset_ms` (default 0) and
+  `causal_window_ms` (default 20 ms; `None` = legacy free search). The lag search is
+  restricted to `±causal_window_ms` around the expected onset.
+- `run_real_io_speak_trial` / `run_real_io_speak_trials` accept `causal_window_ms`
+  (default 20 ms) and pass it to the default estimator. Injected estimators are used
+  as-is. `causal_window_ms` is reported in the trials summary.
+- CLI `--causal-window-ms F` (default 20). Usage updated.
+
+**Tests (TDD):** under weak playback in strong noise, the windowed estimator's std is
+far below the free search and ≤6 ms at an 8 ms window; chirp recovery exact at clean
+SNR; volume forwarded. Suite now 191 passed.
+
+**Real-hardware sweep (4" proximity, max speaker volume, device 2 / input `:0`):**
+
+4-variant sweep at cw=8 ms (vs no-window prior run):
+
+| variant | prior std | cw=8 std |
+|---|---|---|
+| chirp @24dB | 3.38 | 2.92 |
+| chirp @12dB | 5.37 | 4.15 |
+| tone @24dB | 5.25 | 3.47 |
+| tone @12dB | 7.68 | 5.41 |
+
+Tightening further on the best variant (chirp @24dB, 6 trials):
+- cw=4 ms → `latency_stable=True`, mean 0.24 ms, std 1.74 ms.
+- cw=2 ms → `latency_stable=True`, mean −0.58 ms, std 0.85 ms.
+
+**Result:** the playback→capture loopback latency is now STABLE and measured
+(~0 ms at 4" near-field — essentially the electronic buffer plus a negligible acoustic
+path) when using a chirp probe at high volume with a tight causal window. `latency_stable`
+crossed `True` for the first time. The dominant error was reverb false-peaks in the free
+lag search; the causal window removes them.
+
+**Honesty note:** this is a real, repeatable measurement of CORA's own efference
+loopback. It is the anchor for frame tagging and (future) self-subtraction. Still
+`tag_only`; no subtraction yet. Room-colored reference (step B) is the documented next
+improvement if even tighter stability is wanted, but is no longer blocking.
+
+**Validation:** full suite: `pytest tests -q` → 191 passed.

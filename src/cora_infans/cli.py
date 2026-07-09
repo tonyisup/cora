@@ -834,6 +834,7 @@ def speak_live_smoke_cli(args: list[str]) -> dict[str, object]:
     tone_hz = 1000.0
     chirp_f0 = 200.0
     chirp_f1 = 4000.0
+    causal_window_ms = 20.0
     i = 1
     while i < len(args):
         option = args[i]
@@ -872,6 +873,8 @@ def speak_live_smoke_cli(args: list[str]) -> dict[str, object]:
             chirp_f0 = float(value)
         elif option == "--chirp-f1":
             chirp_f1 = float(value)
+        elif option == "--causal-window-ms":
+            causal_window_ms = float(value)
         else:
             raise ValueError(f"unknown option: {option}")
         i += 2
@@ -916,6 +919,7 @@ def speak_live_smoke_cli(args: list[str]) -> dict[str, object]:
                 capture_fn=_real_capture,
                 trials=trials,
                 stimulus=stimulus,
+                causal_window_ms=causal_window_ms,
                 sample_rate=48000,
                 duration_ms=duration_ms,
                 max_capture_ms=max_capture_ms,
@@ -927,6 +931,7 @@ def speak_live_smoke_cli(args: list[str]) -> dict[str, object]:
             playback_fn=_real_playback,
             capture_fn=_real_capture,
             stimulus=stimulus,
+            causal_window_ms=causal_window_ms,
             sample_rate=48000,
             duration_ms=duration_ms,
             max_capture_ms=max_capture_ms,
@@ -1095,7 +1100,7 @@ def main(argv: list[str] | None = None) -> int:
         "[--promote-self-forward-model [--vowel a|e|i|o|u] [--world-vowel a|e|i|o|u] [--world-gain F] [--min-world-correlation F]] "
         "[--promote-speaking-policy [--min-reward-ratio F]] "
         "[--promote-speaking-readiness [--min-speaking-reward-ratio F] [--min-self-world-correlation F]] "
-        "[--speak-live-smoke --out-dir DIR [--vowel a|e|i|o|u] [--duration-ms N] [--max-capture-ms N] [--fake-io] [--real-io [--input-device :0] [--output-device-index 2] [--trials N] [--stimulus vowel|tone|chirp] [--volume-db F] [--tone-hz F] [--chirp-f0 F] [--chirp-f1 F]]]",
+        "[--speak-live-smoke --out-dir DIR [--vowel a|e|i|o|u] [--duration-ms N] [--max-capture-ms N] [--fake-io] [--real-io [--input-device :0] [--output-device-index 2] [--trials N] [--stimulus vowel|tone|chirp] [--volume-db F] [--tone-hz F] [--chirp-f0 F] [--chirp-f1 F] [--causal-window-ms F]]]",
         file=sys.stderr,
     )
     return 2

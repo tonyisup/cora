@@ -63,10 +63,13 @@ def _stimulus_for(*, stimulus: "StimulusSpec | None", vowel: Vowel) -> "Stimulus
 
 
 def _default_latency_estimator(
-    *, efference_pcm: object, captured_pcm: object, sample_rate: int
+    *, efference_pcm: object, captured_pcm: object, sample_rate: int, causal_window_ms: float | None = 20.0
 ) -> float | None:
     return estimate_playback_latency_ms(
-        efference_pcm=efference_pcm, captured_pcm=captured_pcm, sample_rate=sample_rate
+        efference_pcm=efference_pcm,
+        captured_pcm=captured_pcm,
+        sample_rate=sample_rate,
+        causal_window_ms=causal_window_ms,
     )
 
 _DEFAULT_INPUT_DEVICE = ":0"  # avfoundation index for the reSpeaker XVF3800
@@ -78,14 +81,20 @@ def estimate_playback_latency_ms(
     efference_pcm: object,
     captured_pcm: object,
     sample_rate: int,
+    expected_onset_ms: float = 0.0,
+    causal_window_ms: float | None = None,
 ) -> float | None:
     """Deterministic cross-correlation latency estimate between efference and capture.
 
-    This is a pure-math stub for the future real-hardware slice. It is NOT wired
-    to any live playback path: the ``--real-io`` flag that would call it does not
-    exist yet, and this function never triggers speaker output or microphone input.
-    It recovers the sample shift that best aligns ``captured_pcm`` onto ``efference_pcm``
-    (normalized cross-correlation over a bounded lag window) and converts it to ms.
+    Recovers the sample shift that best aligns ``captured_pcm`` onto ``efference_pcm``
+    (normalized cross-correlation) and converts it to ms.
+
+    Causal windowing (the M3/Corollary technique): instead of a free lag search, the
+    search is constrained to ``±causal_window_ms`` around the *expected* onset
+    (``expected_onset_ms``, which is 0 when playback starts at capture start). This
+    rejects room-reverb false peaks outside the plausible playback→capture path and
+    is what makes the latency estimate stable. When ``causal_window_ms`` is None the
+    legacy free search (±500 samples) is used, for backward compatibility.
     """
     import numpy as np
 
@@ -103,8 +112,16 @@ def estimate_playback_latency_ms(
     norm_cap = float(np.sqrt(np.dot(cap, cap))) or 1.0
     best_lag = 0
     best_corr = float("-inf")
-    max_lag = min(n, 500)
-    for lag in range(-max_lag, max_lag + 1):
+    if causal_window_ms is None:
+        min_lag = -min(n, 500)
+        max_lag = min(n, 500)
+    else:
+        # Restrict the search to the causal window around the expected onset.
+        center = int(round(expected_onset_ms / 1000.0 * sample_rate))
+        half = int(round(causal_window_ms / 1000.0 * sample_rate))
+        min_lag = max(-n + 1, center - half)
+        max_lag = min(n - 1, center + half)
+    for lag in range(min_lag, max_lag + 1):
         if lag < 0:
             a = ref[-lag:]
             b = cap[: n + lag]
@@ -350,6 +367,7 @@ def run_real_io_speak_trial(
     readiness_gate_fn: GateFn | None = None,
     latency_estimator: LatencyEstimator | None = None,
     stimulus: "StimulusSpec | None" = None,
+    causal_window_ms: float = 20.0,
     sample_rate: int = 48000,
     duration_ms: int = 300,
     max_capture_ms: int = 1500,
@@ -405,13 +423,21 @@ def run_real_io_speak_trial(
             str(captured_wav), sample_rate=sample_rate, duration_ms=max_capture_ms
         )
         playback_result = playback_fn(str(efference_wav))
-        # Read captured PCM back and estimate roundtrip latency via the injected
-        # estimator (defaults to the XCORR stub).
+        # Read captured PCM back and estimate roundtrip latency. Injected
+        # estimators are used as-is; the default XCORR estimator applies the
+        # causal window around the known playback onset (t=0).
         captured_pcm = _read_wav_pcm_int16(str(captured_wav))
-        est = latency_estimator or _default_latency_estimator
-        latency_aligned_ms = est(
-            efference_pcm=pcm, captured_pcm=captured_pcm, sample_rate=sample_rate
-        )
+        if latency_estimator is not None:
+            latency_aligned_ms = latency_estimator(
+                efference_pcm=pcm, captured_pcm=captured_pcm, sample_rate=sample_rate
+            )
+        else:
+            latency_aligned_ms = _default_latency_estimator(
+                efference_pcm=pcm,
+                captured_pcm=captured_pcm,
+                sample_rate=sample_rate,
+                causal_window_ms=causal_window_ms,
+            )
     except Exception as exc:  # noqa: BLE001
         verdict = "failed"
         error = f"{type(exc).__name__}: {exc}"
@@ -459,6 +485,7 @@ def run_real_io_speak_trials(
     readiness_gate_fn: GateFn | None = None,
     latency_estimator: LatencyEstimator | None = None,
     stimulus: "StimulusSpec | None" = None,
+    causal_window_ms: float = 20.0,
     latency_jitter_ms: float = 2.0,
     sample_rate: int = 48000,
     duration_ms: int = 300,
@@ -497,6 +524,7 @@ def run_real_io_speak_trials(
             stimulus=stimulus,
             readiness_gate_fn=readiness_gate_fn,
             latency_estimator=latency_estimator,
+            causal_window_ms=causal_window_ms,
             sample_rate=sample_rate,
             duration_ms=duration_ms,
             max_capture_ms=max_capture_ms,
@@ -531,5 +559,6 @@ def run_real_io_speak_trials(
         "latency_stats": stats,
         "latency_stable": stable,
         "latency_jitter_ms": latency_jitter_ms,
+        "causal_window_ms": causal_window_ms,
         "per_trial": per_trial,
     }

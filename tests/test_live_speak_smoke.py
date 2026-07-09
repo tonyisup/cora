@@ -328,6 +328,48 @@ def test_synthesize_tone_and_chirp_are_bounded_unit_waveforms() -> None:
         assert len(sig) == int(0.2 * 16000)
 
 
+def test_causal_window_rejects_reverb_false_peaks_under_weak_signal() -> None:
+    # Under heavy room-tone (weak playback in strong noise), the free lag search
+    # locks onto reverb false peaks (large std). Restricting the search to a causal
+    # window around the known onset (t=0) recovers the true delay stably. This is
+    # the M3/Corollary technique that makes latency estimation repeatable.
+    import numpy as np
+
+    from cora_infans.io.motor_plan import synthesize_chirp
+    from cora_infans.live_speak_smoke import estimate_playback_latency_ms
+
+    sample_rate = 16000
+    true_delay = 53  # samples
+    rng = np.random.default_rng(3)
+    sig = synthesize_chirp(duration_ms=300, sample_rate=sample_rate)
+    ref = (sig * 30000).astype("<i2")
+
+    def _estimates(causal_window_ms):
+        out = []
+        for _ in range(12):
+            n = len(sig) + true_delay
+            # Weak played signal embedded in strong noise (room-tone dominated).
+            noise = rng.standard_normal(n) * 30000.0
+            cap = np.zeros(n, dtype="<i2")
+            cap[true_delay : true_delay + len(sig)] = ref
+            cap = (cap.astype(np.float64) * 0.05 + noise).astype("<i2")
+            e = estimate_playback_latency_ms(
+                efference_pcm=ref,
+                captured_pcm=cap[: len(ref)],
+                sample_rate=sample_rate,
+                causal_window_ms=causal_window_ms,
+            )
+            if e is not None:
+                out.append(e)
+        return out
+
+    free = _estimates(None)
+    windowed = _estimates(8.0)
+    # The windowed estimator must be markedly more stable than the free search.
+    assert np.std(windowed) < np.std(free)
+    assert np.std(windowed) <= 6.0  # tight window excludes reverb false peaks
+
+
 def test_real_playback_passes_volume_db_to_ffmpeg(monkeypatch) -> None:
     # Verify the volume parameter is forwarded into the ffmpeg command (without
     # actually invoking ffmpeg) so higher/lower gains are honored.
