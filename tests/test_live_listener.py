@@ -8,6 +8,7 @@ import shutil
 
 import numpy as np
 import pytest
+from pathlib import Path
 
 from cora_infans.io.live_listener import LiveListener, ParenteseStimulus
 from cora_infans.io.live_mic import LiveMicError
@@ -61,6 +62,67 @@ def test_play_efference_requires_passed_gate() -> None:
     assert ok["played"] is True
     assert ok["reason"] == "authorized"
     assert called == ["/tmp/x.wav"]
+
+
+def test_motor_imitation_trial_plays_when_authorized(tmp_path) -> None:
+    # When play is requested and the gate is promoted, the re-synthesized
+    # imitation is written to a WAV and the injected playback fn is called.
+    import numpy as np
+
+    from cora_infans.io.live_listener import LiveListener
+
+    lst = LiveListener()
+    pcm = (np.sin(np.arange(16000) * 0.05) * 30000).astype("<i2")
+    played = {}
+
+    def fake_play(path, *, device_index, sample_rate, volume_db):
+        played["path"] = path
+        return {"backend": "fake", "completed": True}
+
+    trial = lst._motor_imitation_trial(
+        pcm,
+        source_azimuth_deg=0.0,
+        now_ms=0,
+        frame_idx=0,
+        play=True,
+        gate_fn=lambda: {"verdict": "promote_simulation_only"},
+        playback_fn=fake_play,
+        out_dir=str(tmp_path),
+    )
+    assert trial is not None
+    assert trial["played"] is True
+    assert trial["efference_wav"] == played["path"]
+    assert Path(played["path"]).exists()
+
+
+def test_motor_imitation_trial_no_play_when_gate_refused(tmp_path) -> None:
+    # Gated off -> no playback, but analysis still happens.
+    import numpy as np
+
+    from cora_infans.io.live_listener import LiveListener
+
+    lst = LiveListener()
+    pcm = (np.sin(np.arange(16000) * 0.05) * 30000).astype("<i2")
+    called = []
+
+    def fake_play(path, *, device_index, sample_rate, volume_db):
+        called.append(path)
+        return {"backend": "fake", "completed": True}
+
+    trial = lst._motor_imitation_trial(
+        pcm,
+        0.0,
+        0,
+        0,
+        play=True,
+        gate_fn=lambda: {"verdict": "hold"},
+        playback_fn=fake_play,
+        out_dir=str(tmp_path),
+    )
+    assert trial is not None
+    assert trial["played"] is False
+    assert called == []
+    assert "perceived_nearest_vowel" in trial
 
 
 def test_parentese_stimulus_synthesizes_nonempty_wav(tmp_path) -> None:

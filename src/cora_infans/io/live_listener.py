@@ -24,6 +24,7 @@ from __future__ import annotations
 import math
 import subprocess
 import tempfile
+from pathlib import Path
 
 import numpy as np
 
@@ -44,7 +45,13 @@ from .active_attention import (
     derive_target_azimuth,
 )
 from .hardware_tuner import HardwareTuner, HardwareTunerError, DoAReading
-from .motor_plan import MotorPlanner, VowelAnalysis, analyze_vowel, synthesize_vowel
+from .motor_plan import (
+    MotorPlanner,
+    VowelAnalysis,
+    analyze_vowel,
+    synthesize_vowel,
+    write_wav,
+)
 from ..live_speak_smoke import play_wav_to_device
 
 # External Headphones output device index (audiotoolbox), per host enumeration.
@@ -223,20 +230,20 @@ class LiveListener:
         self.output_device_index = output_device_index
 
     def play_efference_if_authorized(
-        self, *, wav_path: str, gate_fn, volume_db: float = 12.0
+        self, *, wav_path: str, gate_fn, volume_db: float = 12.0, playback_fn=None
     ) -> dict[str, object]:
         """Play an imitation efference to the speaker only if the readiness gate passes.
 
         Bounded + gated: zero playback occurs unless the gate verdict is
         ``promote_simulation_only``. This is the same authorization pattern as the
-        SPEAK smoke; it never performs looped/free playback.
+        SPEAK smoke; it never performs looped/free playback. ``playback_fn`` defaults
+        to the real ffmpeg path and may be injected for tests.
         """
         gate = gate_fn() if gate_fn is not None else {}
         if gate.get("verdict") != "promote_simulation_only":
             return {"played": False, "reason": "gate_not_promoted", "verdict": gate.get("verdict")}
-        result = play_wav_to_device(
-            wav_path, device_index=self.output_device_index, sample_rate=48000, volume_db=volume_db
-        )
+        fn = playback_fn or play_wav_to_device
+        result = fn(wav_path, device_index=self.output_device_index, sample_rate=48000, volume_db=volume_db)
         return {"played": True, "reason": "authorized", "playback": result}
 
     def _resolve_tuner(self) -> HardwareTuner | _NullTuner:
@@ -255,10 +262,20 @@ class LiveListener:
         source_azimuth_deg: float,
         now_ms: int,
         frame_idx: int,
+        *,
+        play: bool = False,
+        gate_fn=None,
+        playback_fn=None,
+        out_dir: str | None = None,
+        volume_db: float = 12.0,
     ) -> "dict[str, object] | None":
         """Run one perception->production trial on a captured speech frame.
 
         Returns a trial record, or None if there is no analyzable waveform.
+        When ``play`` is set AND the readiness gate passes, the re-synthesized
+        motor plan (the imitation efference) is written to a WAV and played to
+        the speaker through the gated helper. This closes the loop from heard
+        sound -> internal motor plan -> played imitation, bounded and gated.
         """
         if pcm is None or len(pcm) < 1600:  # need >= 100 ms @ 16 kHz
             return None
@@ -272,7 +289,7 @@ class LiveListener:
         resynth = self._planner.plan_wav(
             plan.vowel, duration_ms=200, sample_rate=16000
         )
-        return {
+        trial: dict[str, object] = {
             "frame": frame_idx,
             "now_ms": now_ms,
             "source_azimuth_deg": round(source_azimuth_deg, 2),
@@ -282,6 +299,25 @@ class LiveListener:
             "motor_plan_f1_hz": plan.f1_hz,
             "resynth_samples": len(resynth),
         }
+        efference_wav: str | None = None
+        played = False
+        if play and out_dir is not None:
+            out = Path(out_dir)
+            out.mkdir(parents=True, exist_ok=True)
+            efference_wav = str(out / f"imit_{frame_idx}.wav")
+            write_wav(efference_wav, resynth, sample_rate=16000)
+            trial["efference_wav"] = efference_wav
+            if playback_fn is not None:
+                result = self.play_efference_if_authorized(
+                    wav_path=efference_wav,
+                    gate_fn=gate_fn,
+                    volume_db=volume_db,
+                    playback_fn=playback_fn,
+                )
+                played = bool(result.get("played", False))
+                trial["playback"] = result
+        trial["played"] = played
+        return trial
 
     def _build_motor_imitation_report(
         self, log: list[dict[str, object]], enabled: bool
@@ -323,6 +359,11 @@ class LiveListener:
         theta_ms: int = 200,
         gamma_ms: int = 25,
         capacity_cycles: int = 4,
+        motor_imitation_gate_fn=None,
+        motor_imitation_playback_fn=None,
+        motor_imitation_out_dir: str | None = None,
+        motor_imitation_volume_db: float = 12.0,
+        latency_anchor_ms: float | None = None,
     ) -> dict[str, object]:
         """Capture `duration_ms` of live audio in `frame_ms` steps.
 
@@ -475,7 +516,15 @@ class LiveListener:
                     if with_motor_imitation and source_azimuth is not None:
                         pcm = getattr(self.array, "last_pcm", None)
                         trial = self._motor_imitation_trial(
-                            pcm, source_azimuth, now_ms, i
+                            pcm,
+                            source_azimuth,
+                            now_ms,
+                            i,
+                            play=motor_imitation_playback_fn is not None,
+                            gate_fn=motor_imitation_gate_fn,
+                            playback_fn=motor_imitation_playback_fn,
+                            out_dir=motor_imitation_out_dir,
+                            volume_db=motor_imitation_volume_db,
                         )
                         if trial is not None:
                             motor_imitation_log.append(trial)
