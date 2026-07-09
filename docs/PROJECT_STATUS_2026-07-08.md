@@ -736,3 +736,38 @@ simulation. Live playback remains a separate milestone.
 improvement over a bad initial guess, wrong-efference negative control (cannot
 fake good learning with the wrong vowel), mixed self+world residual preservation,
 and CLI JSON output. Full suite: `pytest tests -q` → 136 passed.
+
+## Addendum 16 — Forward-model robustness sweep before live playback
+
+**Decision:** after adding signal-level suppression and prediction-error
+learning, add a simulation-only robustness surface before considering live
+playback. This maps how the learned/candidate forward model behaves under delay,
+gain, echo, and world-overlap mismatch — the exact ambiguity live speaker/mic
+loops would otherwise introduce too early.
+
+**What was added (`src/cora_infans/io/self_suppression.py`):**
+- `run_forward_model_robustness_sweep(...)`: generates observed self audio from
+  hidden true params, then evaluates matched/mismatched candidate predictions
+  across `delay_errors_ms`, `attenuation_scales`, `echo_decay_scales`, and
+  `world_gains`.
+- Each case reports predicted params, residual RMS, SVSR dB, optional
+  `world_residual_correlation`, and verdict (`robust_pass`,
+  `partial_suppression`, or `mismatch_failed`).
+- The summary reports best/worst SVSR cases, robust/partial/failure counts, and
+  min/max world-residual correlation.
+
+**CLI:**
+`python -m cora_infans --sweep-self-forward-model --vowel a [--world-vowel o
+--world-gain 0.25] [--delay-errors-ms -20,-10,0,10,20]
+[--attenuation-scales 0.75,1.0,1.25] [--echo-decay-scales 0.5,1.0,1.5]` emits
+`mode=simulation_only_forward_model_robustness_sweep`, `live_playback=false`,
+case rows, and summary metrics.
+
+**Honesty boundary:** this is still a deterministic simulation. It does not
+prove live playback safety; it defines the acceptance surface that live playback
+must later respect. The main value is making latency/gain/echo mismatch visible
+before hardware enters the loop.
+
+**Validation:** tests assert exact-delay/no-world cases strongly outperform
+±12 ms delay mismatch, world-overlap cases carry residual-world correlation, and
+CLI JSON exposes the sweep summary. Full suite: `pytest tests -q` → 138 passed.

@@ -20,6 +20,7 @@ from .self_suppression import (
     mix_observed,
     predict_self_pcm,
     run_forward_model_learning_trial,
+    run_forward_model_robustness_sweep,
     run_self_suppression_trial,
     spectral_subtract,
 )
@@ -45,4 +46,5 @@ __all__ = [
     "fit_forward_model",
     "run_self_suppression_trial",
     "run_forward_model_learning_trial",
+    "run_forward_model_robustness_sweep",
 ]

@@ -226,6 +226,124 @@ def fit_forward_model(
     return report
 
 
+def run_forward_model_robustness_sweep(
+    *,
+    vowel: Vowel = "a",
+    world_vowel: Vowel | None = None,
+    sample_rate: int = 16000,
+    duration_ms: int = 300,
+    observed_delay_ms: float = 18.0,
+    observed_attenuation: float = 0.55,
+    observed_echo_decay: float = 0.22,
+    delay_errors_ms: tuple[float, ...] = (-20.0, -10.0, 0.0, 10.0, 20.0),
+    attenuation_scales: tuple[float, ...] = (0.75, 1.0, 1.25),
+    echo_decay_scales: tuple[float, ...] = (0.5, 1.0, 1.5),
+    world_gains: tuple[float, ...] = (0.0, 0.25),
+    svsr_pass_db: float = 20.0,
+) -> dict[str, object]:
+    """Sweep forward-model mismatch and world overlap robustness.
+
+    The observed self signal is generated from hidden true params. Each case then
+    evaluates a deliberately matched or mismatched prediction against the same
+    observation, optionally mixed with a world vowel. This maps the acceptance
+    surface before any live playback path is considered.
+    """
+    efference = synthesize_vowel(vowel, duration_ms=duration_ms, sample_rate=sample_rate)
+    observed_self = predict_self_pcm(
+        efference,
+        sample_rate=sample_rate,
+        delay_ms=observed_delay_ms,
+        attenuation=observed_attenuation,
+        echo_decay=observed_echo_decay,
+    )
+    world = (
+        synthesize_vowel(world_vowel, duration_ms=duration_ms, sample_rate=sample_rate)
+        if world_vowel is not None
+        else None
+    )
+    cases: list[dict[str, object]] = []
+    for world_gain in world_gains:
+        observed = mix_observed(
+            observed_self,
+            world,
+            world_gain=world_gain if world is not None else 0.0,
+        )
+        for delay_error in delay_errors_ms:
+            for attenuation_scale in attenuation_scales:
+                for echo_decay_scale in echo_decay_scales:
+                    predicted_delay = max(0.0, observed_delay_ms + delay_error)
+                    predicted_attenuation = observed_attenuation * attenuation_scale
+                    predicted_echo_decay = observed_echo_decay * echo_decay_scale
+                    report = evaluate_forward_model(
+                        efference,
+                        observed,
+                        sample_rate=sample_rate,
+                        delay_ms=predicted_delay,
+                        attenuation=predicted_attenuation,
+                        echo_decay=predicted_echo_decay,
+                        world_pcm=world if world_gain > 0.0 else None,
+                    )
+                    svsr = float(report["svsr_db"])
+                    residual_rms = float(report["residual_rms"])
+                    observed_rms = float(report["observed_rms"])
+                    cases.append(
+                        {
+                            "delay_error_ms": float(delay_error),
+                            "attenuation_scale": float(attenuation_scale),
+                            "echo_decay_scale": float(echo_decay_scale),
+                            "world_gain": float(world_gain if world is not None else 0.0),
+                            "predicted_params": report["params"],
+                            "observed_rms": observed_rms,
+                            "residual_rms": residual_rms,
+                            "svsr_db": svsr,
+                            "world_residual_correlation": report.get("world_residual_correlation"),
+                            "verdict": (
+                                "robust_pass"
+                                if svsr >= svsr_pass_db
+                                else "partial_suppression"
+                                if residual_rms < observed_rms
+                                else "mismatch_failed"
+                            ),
+                        }
+                    )
+    best = max(cases, key=lambda case: float(case["svsr_db"]))
+    worst = min(cases, key=lambda case: float(case["svsr_db"]))
+    world_corrs = [
+        float(case["world_residual_correlation"])
+        for case in cases
+        if case["world_residual_correlation"] is not None
+    ]
+    return {
+        "mode": "simulation_only_forward_model_robustness_sweep",
+        "live_playback": False,
+        "sample_rate": sample_rate,
+        "duration_ms": duration_ms,
+        "vowel": vowel,
+        "world_vowel": world_vowel,
+        "true_params": {
+            "delay_ms": observed_delay_ms,
+            "attenuation": observed_attenuation,
+            "echo_decay": observed_echo_decay,
+        },
+        "case_count": len(cases),
+        "cases": cases,
+        "summary": {
+            "best_svsr_db": float(best["svsr_db"]),
+            "worst_svsr_db": float(worst["svsr_db"]),
+            "best_case": best,
+            "worst_case": worst,
+            "robust_pass_count": sum(1 for case in cases if case["verdict"] == "robust_pass"),
+            "partial_suppression_count": sum(
+                1 for case in cases if case["verdict"] == "partial_suppression"
+            ),
+            "mismatch_failed_count": sum(1 for case in cases if case["verdict"] == "mismatch_failed"),
+            "max_world_residual_correlation": max(world_corrs) if world_corrs else None,
+            "min_world_residual_correlation": min(world_corrs) if world_corrs else None,
+        },
+    }
+
+
+
 def run_forward_model_learning_trial(
     *,
     vowel: Vowel = "a",

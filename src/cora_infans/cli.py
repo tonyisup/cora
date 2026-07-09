@@ -28,6 +28,7 @@ from .io.motor_plan import (  # noqa: E402
 from .io.self_suppression import (
     SelfSuppressionParams,
     run_forward_model_learning_trial,
+    run_forward_model_robustness_sweep,
     run_self_suppression_trial,
 )
 
@@ -54,6 +55,7 @@ def describe() -> dict[str, object]:
             "theta_gamma_motor_subwindow",
             "simulation_only_signal_self_suppression",
             "simulation_only_forward_model_learning",
+            "simulation_only_forward_model_robustness_sweep",
         ],
 
         "planned_subsystems": [
@@ -551,6 +553,103 @@ def learn_self_forward_model_cli(args: list[str]) -> dict[str, object]:
 
 
 
+def _parse_float_tuple(raw: str, *, label: str) -> tuple[float, ...]:
+    try:
+        values = tuple(float(part) for part in raw.split(",") if part)
+    except ValueError as exc:
+        raise ValueError(f"invalid {label}") from exc
+    if not values:
+        raise ValueError(f"invalid {label}")
+    return values
+
+
+def sweep_self_forward_model_cli(args: list[str]) -> dict[str, object]:
+    vowel = "a"
+    world_vowel: str | None = None
+    sample_rate = 16000
+    duration_ms = 300
+    observed_delay_ms = 18.0
+    observed_attenuation = 0.55
+    observed_echo_decay = 0.22
+    delay_errors_ms = (-20.0, -10.0, 0.0, 10.0, 20.0)
+    attenuation_scales = (0.75, 1.0, 1.25)
+    echo_decay_scales = (0.5, 1.0, 1.5)
+    world_gains = (0.0,)
+    svsr_pass_db = 20.0
+    i = 1
+    while i < len(args):
+        option = args[i]
+        if i + 1 >= len(args):
+            raise ValueError(f"missing value for {option}")
+        value = args[i + 1]
+        if option == "--vowel":
+            if value not in VOWEL_FORMANTS_HZ:
+                raise ValueError(f"unknown vowel: {value!r}")
+            vowel = value
+        elif option == "--world-vowel":
+            if value not in VOWEL_FORMANTS_HZ:
+                raise ValueError(f"unknown world vowel: {value!r}")
+            world_vowel = value
+        elif option == "--sample-rate":
+            try:
+                sample_rate = int(value)
+            except ValueError as exc:
+                raise ValueError("invalid sample rate") from exc
+        elif option == "--duration-ms":
+            try:
+                duration_ms = int(value)
+            except ValueError as exc:
+                raise ValueError("invalid duration") from exc
+        elif option == "--observed-delay-ms":
+            try:
+                observed_delay_ms = float(value)
+            except ValueError as exc:
+                raise ValueError("invalid observed delay") from exc
+        elif option == "--observed-attenuation":
+            try:
+                observed_attenuation = float(value)
+            except ValueError as exc:
+                raise ValueError("invalid observed attenuation") from exc
+        elif option == "--observed-echo-decay":
+            try:
+                observed_echo_decay = float(value)
+            except ValueError as exc:
+                raise ValueError("invalid observed echo decay") from exc
+        elif option == "--delay-errors-ms":
+            delay_errors_ms = _parse_float_tuple(value, label="delay errors")
+        elif option == "--attenuation-scales":
+            attenuation_scales = _parse_float_tuple(value, label="attenuation scales")
+        elif option == "--echo-decay-scales":
+            echo_decay_scales = _parse_float_tuple(value, label="echo decay scales")
+        elif option == "--world-gain":
+            world_gains = (0.0,) + _parse_float_tuple(value, label="world gain")
+        elif option == "--world-gains":
+            world_gains = _parse_float_tuple(value, label="world gains")
+        elif option == "--svsr-pass-db":
+            try:
+                svsr_pass_db = float(value)
+            except ValueError as exc:
+                raise ValueError("invalid SVSR threshold") from exc
+        else:
+            raise ValueError(f"unknown option: {option}")
+        i += 2
+    return run_forward_model_robustness_sweep(
+        vowel=vowel,  # type: ignore[arg-type]
+        world_vowel=world_vowel,  # type: ignore[arg-type]
+        sample_rate=sample_rate,
+        duration_ms=duration_ms,
+        observed_delay_ms=observed_delay_ms,
+        observed_attenuation=observed_attenuation,
+        observed_echo_decay=observed_echo_decay,
+        delay_errors_ms=delay_errors_ms,
+        attenuation_scales=attenuation_scales,
+        echo_decay_scales=echo_decay_scales,
+        world_gains=world_gains,
+        svsr_pass_db=svsr_pass_db,
+    )
+
+
+
 def main(argv: list[str] | None = None) -> int:
     args = argv if argv is not None else sys.argv[1:]
     if args == ["--describe"]:
@@ -615,6 +714,13 @@ def main(argv: list[str] | None = None) -> int:
         except ValueError as exc:
             print(str(exc), file=sys.stderr)
             return 2
+    if args and args[0] == "--sweep-self-forward-model":
+        try:
+            print(json.dumps(sweep_self_forward_model_cli(args)))
+            return 0
+        except ValueError as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
     if args and args[0] in ("--snapshot-firmware", "--tune-raw-linear"):
         from .io.hardware_tuner import HardwareTuner, HardwareTunerError
 
@@ -639,7 +745,8 @@ def main(argv: list[str] | None = None) -> int:
         "[--eval-corpus --root DIR --label-csv FILE [--saliency-threshold F] [--frame-ms N]] "
         "[--synthesize-vowel a|e|i|o|u --out PATH.wav [--duration-ms N] [--sample-rate N] [--f0-hz F] [--analyze]] "
         "[--simulate-self-suppression [--vowel a|e|i|o|u] [--world-vowel a|e|i|o|u] [--world-gain F] [--duration-ms N] [--sample-rate N]] "
-        "[--learn-self-forward-model [--vowel a|e|i|o|u] [--observed-delay-ms F] [--observed-attenuation F] [--observed-echo-decay F] [--world-vowel a|e|i|o|u] [--world-gain F]]",
+        "[--learn-self-forward-model [--vowel a|e|i|o|u] [--observed-delay-ms F] [--observed-attenuation F] [--observed-echo-decay F] [--world-vowel a|e|i|o|u] [--world-gain F]] "
+        "[--sweep-self-forward-model [--vowel a|e|i|o|u] [--delay-errors-ms csv] [--attenuation-scales csv] [--echo-decay-scales csv] [--world-vowel a|e|i|o|u] [--world-gain F]]",
         file=sys.stderr,
     )
     return 2

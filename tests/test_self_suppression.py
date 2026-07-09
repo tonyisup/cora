@@ -18,6 +18,7 @@ from cora_infans.io.self_suppression import (
     mix_observed,
     predict_self_pcm,
     run_forward_model_learning_trial,
+    run_forward_model_robustness_sweep,
     run_self_suppression_trial,
     spectral_subtract,
 )
@@ -200,3 +201,28 @@ def test_forward_model_learning_reports_world_preservation_metric() -> None:
     assert report["svsr_improvement_db"] > 3.0
     assert report["world_residual_correlation"] > 0.2
     assert report["verdict"] in ("learned_forward_model", "partial_learning")
+
+
+def test_forward_model_robustness_sweep_reports_delay_degradation_and_world_preservation() -> None:
+    sweep = run_forward_model_robustness_sweep(
+        vowel="a",
+        world_vowel="o",
+        delay_errors_ms=(-12.0, 0.0, 12.0),
+        attenuation_scales=(1.0,),
+        echo_decay_scales=(1.0,),
+        world_gains=(0.0, 0.25),
+    )
+
+    assert sweep["mode"] == "simulation_only_forward_model_robustness_sweep"
+    assert sweep["live_playback"] is False
+    assert sweep["case_count"] == 6
+    exact_cases = [case for case in sweep["cases"] if case["delay_error_ms"] == 0.0 and case["world_gain"] == 0.0]
+    delayed_cases = [case for case in sweep["cases"] if abs(case["delay_error_ms"]) == 12.0 and case["world_gain"] == 0.0]
+    assert exact_cases[0]["svsr_db"] > 20.0
+    assert max(case["svsr_db"] for case in delayed_cases) < exact_cases[0]["svsr_db"] - 10.0
+    world_cases = [case for case in sweep["cases"] if case["world_gain"] == 0.25]
+    assert all(case["world_residual_correlation"] is not None for case in world_cases)
+    assert sweep["summary"]["best_case"]["delay_error_ms"] == 0.0
+    assert sweep["summary"]["best_case"]["world_gain"] == 0.0
+    assert sweep["summary"]["max_world_residual_correlation"] > 0.2
+    assert sweep["summary"]["worst_svsr_db"] < sweep["summary"]["best_svsr_db"]
