@@ -58,6 +58,7 @@ def describe() -> dict[str, object]:
             "simulation_only_forward_model_learning",
             "simulation_only_forward_model_robustness_sweep",
             "simulation_only_forward_model_promotion_gate",
+            "simulation_only_speaking_policy",
         ],
 
         "planned_subsystems": [

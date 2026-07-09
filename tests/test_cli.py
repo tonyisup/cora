@@ -25,6 +25,7 @@ def test_describe_command_prints_json_summary() -> None:
     assert "commanded_active_attention" in payload["implemented_subsystems"]
     assert "offline_corpus_evaluation" in payload["implemented_subsystems"]
     assert "motor_plan_synthesis" in payload["implemented_subsystems"]
+    assert "simulation_only_speaking_policy" in payload["implemented_subsystems"]
     assert "non_speech_source_localization" in payload["planned_subsystems"]
     assert (
         payload["verdicts"]["source_localization"]
