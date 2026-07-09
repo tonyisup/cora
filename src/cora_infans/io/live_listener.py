@@ -52,7 +52,7 @@ from .motor_plan import (
     synthesize_vowel,
     write_wav,
 )
-from ..live_speak_smoke import play_wav_to_device
+from ..live_speak_smoke import capture_to_wav, play_wav_to_device
 
 # External Headphones output device index (audiotoolbox), per host enumeration.
 STIMULUS_OUTPUT_DEVICE_INDEX = 2
@@ -245,6 +245,34 @@ class LiveListener:
         fn = playback_fn or play_wav_to_device
         result = fn(wav_path, device_index=self.output_device_index, sample_rate=48000, volume_db=volume_db)
         return {"played": True, "reason": "authorized", "playback": result}
+
+    def capture_corollary_window(
+        self,
+        *,
+        out_dir: str,
+        capture_fn=None,
+        latency_ms: float | None = None,
+        capture_ms: int = 400,
+        input_device: str = DEFAULT_DEVICE,
+        sample_rate: int = 48000,
+    ) -> dict[str, object]:
+        """Capture the corollary-feedback window after an imitation playback.
+
+        The played efference re-enters the mic; this captures that window so it
+        can be tagged and (later) subtracted. Phase 1 only captures + records the
+        measured latency anchor; no signal subtraction happens here.
+        """
+        out = Path(out_dir)
+        out.mkdir(parents=True, exist_ok=True)
+        captured_wav = str(out / "corollary_capture.wav")
+        fn = capture_fn or capture_to_wav
+        result = fn(captured_wav, device=input_device, sample_rate=sample_rate, duration_ms=capture_ms)
+        return {
+            "captured": True,
+            "captured_wav": captured_wav,
+            "latency_aligned_ms": latency_ms,
+            "capture": result,
+        }
 
     def _resolve_tuner(self) -> HardwareTuner | _NullTuner:
         if self._tuner is not None:

@@ -139,6 +139,31 @@ def test_parentese_stimulus_synthesizes_nonempty_wav(tmp_path) -> None:
         assert np.std(data) > 0.0
 
 
+def test_corollary_capture_records_latency_anchor(tmp_path) -> None:
+    # The corollary-feedback capture records the measured latency anchor and
+    # delegates to the injected capture fn (real ffmpeg otherwise).
+    from cora_infans.io.live_listener import LiveListener
+
+    captured = {}
+    calls = []
+
+    def fake_capture(path, *, device, sample_rate, duration_ms):
+        captured["path"] = path
+        calls.append(duration_ms)
+        return {"backend": "fake", "completed": True}
+
+    out = LiveListener().capture_corollary_window(
+        out_dir=str(tmp_path),
+        capture_fn=fake_capture,
+        latency_ms=0.8,
+        capture_ms=400,
+    )
+    assert out["captured"] is True
+    assert out["latency_aligned_ms"] == 0.8
+    assert out["captured_wav"] == captured["path"]
+    assert calls == [400]
+
+
 def test_listener_accumulates_salient_and_dropout_counts() -> None:
     # Script: salient, salient, dropout, salient -> 1 dropout, 1 recovery.
     frames = [
