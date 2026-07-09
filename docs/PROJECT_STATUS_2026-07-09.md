@@ -133,8 +133,33 @@ feedback safety.
 **Validation:** focused readiness and CLI tests pass; full suite: `pytest tests -q`
 → 170 passed.
 
+## M8-infans-F — Live SPEAK-state and mic-suppression design doc
+
+**Decision:** stop at the live-playback boundary and document the required safety
+architecture before any speaker/mic implementation. The design keeps existing
+live listening safe and requires a separate explicit command for any future live
+SPEAK smoke.
+
+**What was added:**
+- `docs/plans/2026-07-09-live-speak-state-and-mic-suppression.md`.
+- Proposed SPEAK states: `IDLE`, `READY_TO_SPEAK`, `SPEAKING`,
+  `POST_SPEAK_SUPPRESSION`, `RECOVERING`.
+- Required mic-frame tags: `speak_state`, `speaker_output_active`,
+  `efference_id`, `expected_self_audio`, `self_suppression_applied`,
+  `latency_aligned_ms`, `contamination_policy`, and `usable_for_world_learning`.
+- First live-slice recommendation: a bounded explicit `--speak-live-smoke`
+  harness with injectable fake playback/capture tests, defaulting to `tag_only`.
+
+**Honesty boundary:** the doc explicitly forbids overloading `--listen-live` or
+adding automatic playback. Passing simulation gates authorizes only simulated
+speaking; real hardware output still requires explicit opt-in and bounded smoke
+validation.
+
+**Validation:** documentation-only change; no runtime behavior changed.
+
 ## Next step
 
-M8-infans-F: write the live SPEAK-state and mic-suppression design doc before any
-playback implementation. This is the next real boundary: architecture first,
-implementation only after the safety design is explicit.
+If continuing implementation, start the bounded live SPEAK smoke harness with
+fake playback/capture tests first. Do not run real hardware playback until the
+unit-tested report/tagging path exists and the user explicitly opts into live
+validation.
