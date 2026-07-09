@@ -303,6 +303,73 @@ def test_motor_imitation_trial_fits_forward_model_when_captured(tmp_path) -> Non
     assert "svsr_db" in fit and "learned_params" in fit
 
 
+def test_real_self_subtraction_promotion_gate() -> None:
+    # Phase 2 Task 3: the real-data gate promotes only when SVSR is high AND the
+    # world signal survived subtraction; otherwise it holds at tag_only.
+    from cora_infans.io.live_listener import LiveListener
+
+    promote = LiveListener._real_self_subtraction_promotion_gate(
+        svsr_db=24.0, world_residual_correlation=0.4
+    )
+    assert promote["verdict"] == "promote"
+    assert promote["policy_if_promoted"] == "self_subtract_live"
+
+    hold_low_svsr = LiveListener._real_self_subtraction_promotion_gate(
+        svsr_db=5.0, world_residual_correlation=0.4
+    )
+    assert hold_low_svsr["verdict"] == "hold"
+    assert hold_low_svsr["policy_if_held"] == "tag_only"
+
+    hold_world_lost = LiveListener._real_self_subtraction_promotion_gate(
+        svsr_db=24.0, world_residual_correlation=-0.3
+    )
+    assert hold_world_lost["verdict"] == "hold"
+
+
+def test_trial_contamination_policy_transitions_on_gate(tmp_path) -> None:
+    # With a real self+world captured mixture and do_self_subtraction=True, the
+    # trial's contamination_policy reflects the gate verdict.
+    import numpy as np
+
+    from cora_infans.io.live_listener import LiveListener
+    from cora_infans.io.motor_plan import write_wav
+    from cora_infans.io.self_suppression import mix_observed, predict_self_pcm
+
+    lst = LiveListener()
+    pcm = (np.sin(np.arange(16000) * 0.05) * 30000).astype("<i2")
+    sr = 48000
+    n = sr // 4
+    eff = (np.sin(np.arange(n) * 0.05) * 0.8).astype(np.float32)
+    world = (np.sin(np.arange(n) * 0.20) * 0.3).astype(np.float32)
+    observed = mix_observed(
+        predict_self_pcm(eff, sample_rate=sr, delay_ms=0.0, attenuation=0.55, echo_decay=0.22),
+        world,
+        world_gain=1.0,
+    )
+
+    def fake_play(path, *, device_index, sample_rate, volume_db):
+        return {"backend": "fake", "completed": True}
+
+    def fake_capture(path, *, device, sample_rate, duration_ms):
+        write_wav(path, (np.clip(observed, -1.0, 1.0) * 32767.0).astype("<i2"), sample_rate)
+        return {"backend": "fake", "completed": True}
+
+    trial = lst._motor_imitation_trial(
+        pcm, 0.0, 0, 0,
+        play=True,
+        gate_fn=lambda: {"verdict": "promote_simulation_only"},
+        playback_fn=fake_play,
+        capture_fn=fake_capture,
+        out_dir=str(tmp_path),
+        latency_anchor_ms=-0.62,
+        do_self_subtraction=True,
+    )
+    assert trial is not None
+    assert "self_subtraction_gate" in trial
+    assert "contamination_policy" in trial
+    assert trial["contamination_policy"] in ("tag_only", "self_subtract_live")
+
+
 def test_motor_imitation_trial_applies_self_subtraction(tmp_path) -> None:
     # Phase 2 Task 2: with do_self_subtraction=True, the fitted forward model is
     # applied via spectral_subtract, producing world_residual metrics. Still

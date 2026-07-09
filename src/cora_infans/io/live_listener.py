@@ -364,6 +364,43 @@ class LiveListener:
             svsr_pass_db=20.0,
         )
 
+    @staticmethod
+    def _real_self_subtraction_promotion_gate(
+        *,
+        svsr_db: float,
+        world_residual_correlation: float | None,
+        svsr_pass_db: float = 20.0,
+        min_world_corr: float = 0.05,
+    ) -> dict[str, object]:
+        """Real-data go/no-go for promoting tag_only -> self_subtract_live.
+
+        SEPARATE from ``run_forward_model_promotion_gate`` (which is
+        simulation-only and forces ``live_playback_allowed=False``). This gate
+        judges whether the *actual captured* self-subtraction preserved the
+        world signal while suppressing self: require SVSR above threshold AND a
+        non-negative world-residual correlation (world energy survived).
+        """
+        criteria = {
+            "svsr_above_threshold": {
+                "passed": float(svsr_db) >= svsr_pass_db,
+                "value": float(svsr_db),
+                "threshold": svsr_pass_db,
+            },
+            "world_signal_preserved": {
+                "passed": world_residual_correlation is not None
+                and float(world_residual_correlation) >= min_world_corr,
+                "value": world_residual_correlation,
+                "threshold": min_world_corr,
+            },
+        }
+        passed = all(bool(item["passed"]) for item in criteria.values())
+        return {
+            "verdict": "promote" if passed else "hold",
+            "criteria": criteria,
+            "policy_if_promoted": "self_subtract_live",
+            "policy_if_held": "tag_only",
+        }
+
     def _resolve_tuner(self) -> HardwareTuner | _NullTuner:
         if self._tuner is not None:
             return self._tuner
@@ -528,6 +565,22 @@ class LiveListener:
                             ),
                             "applied": True,
                         }
+                        # Real-data promotion gate (Task 3): decide whether this
+                        # subtraction is good enough to flip the honesty policy
+                        # from tag_only to self_subtract_live. Record the gate so
+                        # downstream consumers see the evidence + verdict.
+                        gate = LiveListener._real_self_subtraction_promotion_gate(
+                            svsr_db=float(svsr),
+                            world_residual_correlation=trial["world_residual"][
+                                "world_residual_correlation"
+                            ],
+                        )
+                        trial["self_subtraction_gate"] = gate
+                        trial["contamination_policy"] = (
+                            gate["policy_if_promoted"]
+                            if gate["verdict"] == "promote"
+                            else gate["policy_if_held"]
+                        )
                 except Exception:
                     # Fitting/subtraction is best-effort; never fatal to trial.
                     trial["forward_model_fit"] = trial.get("forward_model_fit")
