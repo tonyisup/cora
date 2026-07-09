@@ -2,7 +2,8 @@ import json
 import os
 import subprocess
 import sys
-
+import tempfile
+from pathlib import Path
 
 
 def test_describe_command_prints_json_summary() -> None:
@@ -688,3 +689,44 @@ def test_promote_speaking_readiness_command_requires_both_simulation_gates() -> 
     assert payload["live_playback_allowed"] is False
     assert payload["criteria"]["speaking_policy_promoted"]["passed"] is True
     assert payload["criteria"]["self_forward_model_promoted"]["passed"] is True
+
+
+def test_speak_live_smoke_cli_is_blocked_without_fake_io() -> None:
+    env = os.environ.copy()
+    env["PYTHONPATH"] = "src"
+    with tempfile.TemporaryDirectory() as out_dir:
+        result = subprocess.run(
+            [sys.executable, "-m", "cora_infans", "--speak-live-smoke", "--out-dir", out_dir],
+            capture_output=True,
+            check=True,
+            text=True,
+            env=env,
+        )
+        payload = json.loads(result.stdout)
+        assert payload["mode"] == "bounded_live_speak_smoke"
+        assert payload["verdict"] == "blocked_missing_injected_io"
+        assert payload["real_hardware"] is False
+        assert payload["live_playback"] is False
+        assert payload["live_playback_allowed"] is False
+        assert Path(payload["artifacts"]["efference_wav"]).exists()
+        assert payload["artifacts"]["captured_wav"] is None
+
+
+def test_speak_live_smoke_cli_runs_fake_io_when_requested() -> None:
+    env = os.environ.copy()
+    env["PYTHONPATH"] = "src"
+    with tempfile.TemporaryDirectory() as out_dir:
+        result = subprocess.run(
+            [sys.executable, "-m", "cora_infans", "--speak-live-smoke", "--out-dir", out_dir, "--fake-io"],
+            capture_output=True,
+            check=True,
+            text=True,
+            env=env,
+        )
+        payload = json.loads(result.stdout)
+        assert payload["verdict"] == "fake_io_smoke_complete"
+        assert payload["real_hardware"] is False
+        assert payload["live_playback"] is False
+        assert payload["live_playback_allowed"] is False
+        assert Path(payload["artifacts"]["efference_wav"]).exists()
+        assert Path(payload["artifacts"]["captured_wav"]).exists()

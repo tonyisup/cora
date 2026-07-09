@@ -213,8 +213,40 @@ are simulation-only; `live_playback`/`live_playback_allowed` remain `False`.
 
 **Validation:** full suite: `pytest tests -q` → 177 passed. Promotion gate verdict remains `promote_simulation_only` with `reward_ratio=1.0` (target derived from canonical sum).
 
+## M8-infans-H — Safe-by-default SPEAK smoke CLI
+
+**Decision:** expose the bounded SPEAK smoke helper on the CLI, but keep it safe by
+default. No real playback exists; the command name makes risk explicit.
+
+**What was added:**
+- `speak_live_smoke_cli(...)` in `src/cora_infans/cli.py`.
+- New command:
+  ```
+  python -m cora_infans --speak-live-smoke --out-dir DIR [--vowel a|e|i|o|u]
+    [--duration-ms N] [--max-capture-ms N] [--fake-io]
+  ```
+- `--describe` now reports `bounded_live_speak_smoke`.
+
+**Safety behavior:**
+- Without `--fake-io`: writes only the planned efference WAV, returns
+  `verdict=blocked_missing_injected_io`, `captured_wav=None`.
+- With `--fake-io`: runs the in-process fake playback/capture harness (silent
+  captured frames), returns `verdict=fake_io_smoke_complete`.
+- In both cases `real_hardware=false`, `live_playback=false`, and
+  `live_playback_allowed=false` are hard-coded. There is no real-speaker path.
+
+**Honesty boundary:** the command is a smoke harness, not live playback. Real
+hardware validation remains deferred behind explicit user opt-in and the SPEAK
+design doc.
+
+**Validation:** new CLI tests pass (blocked default + fake-io path); full suite:
+`pytest tests -q` → 179 passed.
+
 ## Next step
 
-Add a CLI surface only when it remains safe by default, likely a dry-run or
-fake-I/O command first. Do not add real playback until the command makes explicit
-opt-in and hardware risk unavoidable in the name/options.
+M8 is now a coherent simulation-only ladder: policy → tracker → reward → simulator
+→ promotion gate → readiness gate → bounded SPEAK smoke (fake-I/O, no playback).
+The remaining real boundary is the live SPEAK design execution, which must wait
+for explicit user opt-in. Suggested next work is strengthening the canonical
+episode coverage (e.g. backchannel, barge-in recovery) or a deterministic
+latency cross-correlation stub for the future real-hardware slice.

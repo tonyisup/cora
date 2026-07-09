@@ -36,6 +36,7 @@ from .speaking_simulator import (
     run_speaking_policy_promotion_gate,
     run_speaking_readiness_gate,
 )
+from .live_speak_smoke import run_live_speak_smoke_trial
 
 
 OutputMode = str
@@ -65,6 +66,7 @@ def describe() -> dict[str, object]:
             "simulation_only_speaking_policy",
             "simulation_only_speaking_policy_promotion_gate",
             "simulation_only_speaking_readiness_gate",
+            "bounded_live_speak_smoke",
         ],
 
         "planned_subsystems": [
@@ -803,6 +805,78 @@ def promote_speaking_readiness_cli(args: list[str]) -> dict[str, object]:
     )
 
 
+def speak_live_smoke_cli(args: list[str]) -> dict[str, object]:
+    """Safe-by-default CLI for the bounded live SPEAK smoke helper.
+
+    No real playback is ever performed. Without ``--fake-io`` the helper writes
+    only the planned efference WAV and reports ``blocked_missing_injected_io``.
+    With ``--fake-io`` it runs the in-process fake playback/capture harness,
+    still with ``real_hardware=false`` and ``live_playback_allowed=false``.
+    """
+    out_dir: str | None = None
+    vowel: str = "a"
+    duration_ms = 300
+    max_capture_ms = 1500
+    use_fake_io = False
+    i = 1
+    while i < len(args):
+        option = args[i]
+        if option == "--fake-io":
+            use_fake_io = True
+            i += 1
+            continue
+        if i + 1 >= len(args):
+            raise ValueError(f"missing value for {option}")
+        value = args[i + 1]
+        if option == "--out-dir":
+            out_dir = value
+        elif option == "--vowel":
+            vowel = value
+        elif option == "--duration-ms":
+            duration_ms = int(value)
+        elif option == "--max-capture-ms":
+            max_capture_ms = int(value)
+        else:
+            raise ValueError(f"unknown option: {option}")
+        i += 2
+    if out_dir is None:
+        raise ValueError("--out-dir is required")
+
+    if use_fake_io:
+        # In-process fakes: write a real efference WAV, capture silent frames.
+        def _fake_playback(path: str) -> dict[str, object]:
+            return {"backend": "fake_playback", "started": True, "completed": True}
+
+        def _fake_capture(path: str, *, sample_rate: int, duration_ms: int) -> dict[str, object]:
+            import wave
+
+            import numpy as np
+
+            samples = int(sample_rate * duration_ms / 1000)
+            pcm = np.zeros(samples, dtype="<i2")
+            with wave.open(path, "wb") as w:
+                w.setnchannels(1)
+                w.setsampwidth(2)
+                w.setframerate(sample_rate)
+                w.writeframes(pcm.tobytes())
+            return {"backend": "fake_capture", "frames": samples, "completed": True}
+
+        return run_live_speak_smoke_trial(
+            vowel=vowel,  # type: ignore[arg-type]
+            out_dir=out_dir,
+            playback_fn=_fake_playback,
+            capture_fn=_fake_capture,
+            duration_ms=duration_ms,
+            max_capture_ms=max_capture_ms,
+        )
+    return run_live_speak_smoke_trial(
+        vowel=vowel,  # type: ignore[arg-type]
+        out_dir=out_dir,
+        duration_ms=duration_ms,
+        max_capture_ms=max_capture_ms,
+    )
+
+
 def main(argv: list[str] | None = None) -> int:
     args = argv if argv is not None else sys.argv[1:]
     if args == ["--describe"]:
@@ -895,6 +969,13 @@ def main(argv: list[str] | None = None) -> int:
         except ValueError as exc:
             print(str(exc), file=sys.stderr)
             return 2
+    if args and args[0] == "--speak-live-smoke":
+        try:
+            print(json.dumps(speak_live_smoke_cli(args)))
+            return 0
+        except ValueError as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
     if args and args[0] in ("--snapshot-firmware", "--tune-raw-linear"):
         from .io.hardware_tuner import HardwareTuner, HardwareTunerError
 
@@ -923,7 +1004,8 @@ def main(argv: list[str] | None = None) -> int:
         "[--sweep-self-forward-model [--vowel a|e|i|o|u] [--delay-errors-ms csv] [--attenuation-scales csv] [--echo-decay-scales csv] [--world-vowel a|e|i|o|u] [--world-gain F]] "
         "[--promote-self-forward-model [--vowel a|e|i|o|u] [--world-vowel a|e|i|o|u] [--world-gain F] [--min-world-correlation F]] "
         "[--promote-speaking-policy [--min-reward-ratio F]] "
-        "[--promote-speaking-readiness [--min-speaking-reward-ratio F] [--min-self-world-correlation F]]",
+        "[--promote-speaking-readiness [--min-speaking-reward-ratio F] [--min-self-world-correlation F]] "
+        "[--speak-live-smoke --out-dir DIR [--vowel a|e|i|o|u] [--duration-ms N] [--max-capture-ms N] [--fake-io]]",
         file=sys.stderr,
     )
     return 2
