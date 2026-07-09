@@ -329,3 +329,29 @@ step by step; it does not claim biological equivalence or room-calibrated suppre
 **Validation:** full suite: `pytest tests -q` → 185 passed. CLI `--fake-io` path still
 passes; usage documents `--real-io`. A single real-hardware run is deferred to an
 explicit user request (step 7 of the plan).
+
+### Real-hardware run (2026-07-09, user-approved)
+
+Executed one bounded `--real-io` smoke (vowel `a`, 300 ms output, 1500 ms capture,
+output device index 2, input `:0`):
+
+- Readiness gate: `promote_simulation_only` → I/O authorized to proceed.
+- `verdict=real_io_complete`, `real_hardware=true`, `live_playback=true`,
+  `live_playback_allowed=false`, `usable=true`, `error=None`.
+- Playback: ffmpeg audiotoolbox device 2, `returncode=0`.
+- Capture: ffmpeg avfoundation `:0`, 2 fused channels, completed.
+- Artifacts written: `efference_*.wav` (28.8 KB) and `captured_*.wav` (288 KB ≈
+  1500 ms @ 48 kHz stereo).
+- `latency_aligned_ms=-1.125`: a weak estimate. The captured vowel is mostly room
+  tone (mic distance/angle), so the XCORR found only a small lag. This is honest:
+  single-trial latency is not yet well-determined; per the M8-F doc we do NOT claim
+  accurate alignment until it is repeatable across trials.
+
+**Fix during the live run:** the first real attempt crashed on JSON serialization
+(`Popen` not serializable) because `play_wav_to_device` returned the process handle.
+Fixed by awaiting internally and returning a serializable summary (`returncode`);
+the CLI `_real_playback` no longer awaits. Suite still 185 passed.
+
+**Honesty note:** this demonstrates the engineered efference→playback→capture→tag
+mechanism on real hardware. It is a bounded `tag_only` smoke, not conversational
+TTS and not a claim of room-calibrated self-subtraction.

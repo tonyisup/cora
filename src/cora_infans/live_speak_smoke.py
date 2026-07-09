@@ -124,12 +124,13 @@ def play_wav_to_device(path: str, *, device_index: int, sample_rate: int = 48000
         proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     except OSError as exc:
         raise RuntimeError(f"efference playback failed to start: {exc}") from exc
+    proc.wait()
     return {
         "backend": "ffmpeg_audiotoolbox",
         "device_index": device_index,
         "sample_rate": sample_rate,
-        "process": proc,
         "started": True,
+        "returncode": proc.returncode,
     }
 
 

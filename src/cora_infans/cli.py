@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import subprocess
 import sys
 from typing import Any
 
@@ -868,13 +867,9 @@ def speak_live_smoke_cli(args: list[str]) -> dict[str, object]:
         # captures the mic; the playback Popen is awaited so the trial blocks
         # until output finishes.
         def _real_playback(path: str) -> dict[str, object]:
-            result = play_wav_to_device(
+            return play_wav_to_device(
                 path, device_index=output_device_index, sample_rate=48000
             )
-            proc = result.get("process")
-            if isinstance(proc, subprocess.Popen):
-                proc.wait()
-            return result
 
         def _real_capture(path: str, *, sample_rate: int, duration_ms: int) -> dict[str, object]:
             return capture_to_wav(
