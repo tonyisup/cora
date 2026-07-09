@@ -59,7 +59,13 @@ from ..live_speak_smoke import (
 )
 
 # External Headphones output device index (audiotoolbox), per host enumeration.
+# This is the WORLD / test-output sink (stimulus playback, noise sim, etc.).
 STIMULUS_OUTPUT_DEVICE_INDEX = 2
+# Mac mini Speakers output device index (audiotoolbox), per host enumeration.
+# This is the IMITATION efference sink: Cora's own re-synthesized vocalization
+# plays here, kept separate from the world/test device so the corollary feedback
+# path is audibly distinct and the user hears the imitation on the main speakers.
+IMITATION_OUTPUT_DEVICE_INDEX = 3
 DEFAULT_STIMULUS_SAMPLE_RATE = 48000
 
 
@@ -215,12 +221,14 @@ class LiveListener:
         tuner: HardwareTuner | _NullTuner | None = None,
         enable_motor_imitation: bool = False,
         output_device_index: int = STIMULUS_OUTPUT_DEVICE_INDEX,
+        imitation_device_index: int = IMITATION_OUTPUT_DEVICE_INDEX,
     ) -> None:
         self.array = array or LiveMicArray(device=DEFAULT_DEVICE)
         self.saliency_threshold = saliency_threshold
         self.initial_prediction_hz = initial_prediction_hz
         self.workspace_window_ms = workspace_window_ms
-        self.stimulus = stimulus or ParenteseStimulus()
+        # World/test stimulus sink (External Headphones by default).
+        self.stimulus = stimulus or ParenteseStimulus(output_device_index=output_device_index)
         self._pipeline: CoraInfansPipeline | None = None
         # Step 1: perception->production bridge. Off by default; enabled per-run
         # via listen(with_motor_imitation=True). No live playback happens here
@@ -230,8 +238,10 @@ class LiveListener:
         # ActiveAttentionGovernor mediates between software saliency state and
         # hardware execution; resolved to a no-op tuner under tests.
         self.governor = governor or ActiveAttentionGovernor()
-        # Output device for imitation efference playback (bounded, gated).
-        self.output_device_index = output_device_index
+        # Imitation efference sink (Mac mini Speakers by default). Kept separate
+        # from output_device_index so the world/test stimulus and Cora's own
+        # played imitation can use different physical outputs.
+        self.imitation_device_index = imitation_device_index
         self._tuner = tuner  # None => resolve in listen()
 
     def play_efference_if_authorized(
@@ -248,7 +258,7 @@ class LiveListener:
         if gate.get("verdict") != "promote_simulation_only":
             return {"played": False, "reason": "gate_not_promoted", "verdict": gate.get("verdict")}
         fn = playback_fn or play_wav_to_device
-        result = fn(wav_path, device_index=self.output_device_index, sample_rate=48000, volume_db=volume_db)
+        result = fn(wav_path, device_index=self.imitation_device_index, sample_rate=48000, volume_db=volume_db)
         return {"played": True, "reason": "authorized", "playback": result}
 
     def capture_corollary_window(

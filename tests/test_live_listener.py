@@ -130,6 +130,49 @@ def test_motor_imitation_trial_no_play_when_gate_refused(tmp_path) -> None:
     assert "perceived_nearest_vowel" in trial
 
 
+def test_live_listener_world_and_imitation_devices_split() -> None:
+    # The world/test stimulus plays on the External Headphones device (2); the
+    # imitation efference plays on the Mac mini Speakers device (3). They must be
+    # independently configurable and not collide.
+    from cora_infans.io.live_listener import LiveListener
+
+    lst = LiveListener()
+    assert lst.imitation_device_index == 3
+    assert lst.stimulus.output_device_index == 2
+    # Override both independently.
+    lst2 = LiveListener(output_device_index=9, imitation_device_index=7)
+    assert lst2.stimulus.output_device_index == 9
+    assert lst2.imitation_device_index == 7
+
+
+def test_play_efference_uses_imitation_device_index(monkeypatch) -> None:
+    # The gated playback helper must route the efference to imitation_device_index
+    # (not the world/test stimulus device).
+    import cora_infans.io.live_listener as ll
+
+    calls = []
+
+    monkeypatch.setattr(
+        ll,
+        "play_wav_to_device",
+        lambda path, *, device_index, sample_rate, volume_db: (  # type: ignore[misc]
+            calls.append(device_index) or {"backend": "fake"}
+        ),
+    )
+    lst = ll.LiveListener()
+    out = lst.play_efference_if_authorized(
+        wav_path="/tmp/x.wav", gate_fn=lambda: {"verdict": "promote_simulation_only"}
+    )
+    assert out["played"] is True
+    assert calls == [3]
+    # Constructor override is honored.
+    calls.clear()
+    ll.LiveListener(imitation_device_index=5).play_efference_if_authorized(
+        wav_path="/tmp/x.wav", gate_fn=lambda: {"verdict": "promote_simulation_only"}
+    )
+    assert calls == [5]
+
+
 def test_parentese_stimulus_synthesizes_nonempty_wav(tmp_path) -> None:
     stim = ParenteseStimulus()
     out = tmp_path / "stim.wav"

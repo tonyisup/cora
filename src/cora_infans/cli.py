@@ -242,6 +242,7 @@ def listen_live(args: list[str] | None = None) -> dict[str, object]:
     with_motor_imitation = False
     use_real_io = False
     output_device_index = 2
+    imitation_device_index = 3
     volume_db = 12.0
     latency_anchor_ms: float | None = None
     latency_anchor_path: str | None = None
@@ -288,6 +289,11 @@ def listen_live(args: list[str] | None = None) -> dict[str, object]:
                 output_device_index = int(value)
             except ValueError as exc:
                 raise ValueError("invalid output device index") from exc
+        elif option == "--imitation-device-index":
+            try:
+                imitation_device_index = int(value)
+            except ValueError as exc:
+                raise ValueError("invalid imitation device index") from exc
         elif option == "--volume-db":
             try:
                 volume_db = float(value)
@@ -322,7 +328,7 @@ def listen_live(args: list[str] | None = None) -> dict[str, object]:
 
         gate_fn = run_speaking_readiness_gate
         playback_fn = lambda path, **kw: play_wav_to_device(  # type: ignore[misc]
-            path, device_index=output_device_index, sample_rate=48000, volume_db=volume_db
+            path, device_index=imitation_device_index, sample_rate=48000, volume_db=volume_db
         )
         capture_fn = lambda path, **kw: capture_to_wav(  # type: ignore[misc]
             path, device=device, sample_rate=48000, duration_ms=kw.get("duration_ms", 400)
@@ -335,7 +341,9 @@ def listen_live(args: list[str] | None = None) -> dict[str, object]:
         out_dir = tempfile.mkdtemp(prefix="cora_imit_")
 
     listener = LiveListener(
-        LiveMicArray(device=device), output_device_index=output_device_index
+        LiveMicArray(device=device),
+        output_device_index=output_device_index,
+        imitation_device_index=imitation_device_index,
     )
     return listener.listen(
         duration_ms=duration_ms,
@@ -1179,7 +1187,7 @@ def main(argv: list[str] | None = None) -> int:
         "[--timestamp-ms N --dominant-frequency-hz F --channel-energies a,b,c,d --initial-prediction-hz F --mic-geometry l0,l1,l2,l3 --saliency-threshold F --output json|pretty] "
         "[--family sweep|zigzag|gap|multi_gap|delayed_recovery] [--with-scheduling] "
         "[--capture-live [--device :0] [--duration-ms N]] "
-        "[--listen-live [--duration-ms N] [--frame-ms N] [--with-stimulus] [--with-attention] [--with-scheduling] [--with-motor-imitation [--real-io [--output-device-index 2] [--volume-db F] [--latency-anchor PATH]]]] "
+        "[--listen-live [--duration-ms N] [--frame-ms N] [--with-stimulus] [--with-attention] [--with-scheduling] [--with-motor-imitation [--real-io [--output-device-index 2] [--imitation-device-index 3] [--volume-db F] [--latency-anchor PATH]]]] "
         "[--eval-corpus --root DIR --label-csv FILE [--saliency-threshold F] [--frame-ms N]] "
         "[--synthesize-vowel a|e|i|o|u --out PATH.wav [--duration-ms N] [--sample-rate N] [--f0-hz F] [--analyze]] "
         "[--simulate-self-suppression [--vowel a|e|i|o|u] [--world-vowel a|e|i|o|u] [--world-gain F] [--duration-ms N] [--sample-rate N]] "
