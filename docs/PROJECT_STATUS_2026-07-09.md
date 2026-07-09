@@ -677,3 +677,32 @@ perceived-frame world *proxy* with a true separated world reference before trust
 `world_signal_preserved` criterion. Until then, `contamination_policy` stays `tag_only`.
 
 **Final validation:** `pytest tests -q` → 210 passed (209 + 1 downmix regression test).
+
+**Near-field promotion attempt (a) — 2026-07-09, result: HARDWARE-LIMITED, not a code bug:**
+Goal was to make the loopback self dominate the captured window so the promotion gate
+could flip `tag_only → self_subtract_live`. Two approaches were tried on real silicon:
+
+1. **Stimulus-OFF human-speech run** (`--saliency-threshold 0.05`, no `--with-stimulus`,
+   20 dB imitation): the ReSpeaker `:0` reads flat ~0.01 channel energy regardless of
+   speech at this distance/gain — my voice never crosses even a 0.05 saliency gate, so
+   the motor-imitation branch never fires. (The earlier salient runs were driven by the
+   *device-2 stimulus*, not my voice.)
+2. **Pure-loopback diagnostic** (throwaway script): played a real efference on device 3,
+   captured the real loopback on `:0` (stimulus off, no speech), ran fit+subtract+gate
+   directly. Result: `played=True`, `observed_rms=0.0084` (the ReSpeaker barely hears the
+   Mac mini Speakers across the room), while the *modeled* self `predicted_rms=0.110` —
+   ~13× louder than the real loopback. SVSR = −16 dB (subtraction worsened it); gate
+   correctly held `tag_only`.
+
+**Honest conclusion:** the subtraction path executes correctly on real hardware, but in
+this room topology the imitation loopback is acoustically tiny (~50× quieter than the
+stimulus-driven captured energy in Task 6). The promotion gate cannot honestly flip
+because the self-component is not dominant in the captured mixture. To earn promotion the
+loopback self must be the largest term in `observed` — requires (1) Mac mini Speakers moved
+close to the ReSpeaker, (2) higher imitation volume + quieter room, or (3) a wired/loopback
+audio injection instead of acoustic. The code is sound; the room is the limiting factor.
+
+**Capability added during (a):** `--saliency-threshold F` flag on `--listen-live` (default
+`DEFAULT_LIVE_SALIENCY_THRESHOLD = 0.02`, matching `LiveListener`, NOT the 0.7 the pipeline
+reports in some contexts) so near-field/quiet speech can trigger motor imitation. Added
+regression test `test_listen_live_saliency_threshold_flag_parses`. Full suite: 211 passed.

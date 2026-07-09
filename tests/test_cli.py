@@ -840,6 +840,42 @@ def test_listen_live_cli_real_io_path_invokes_playback_fn() -> None:
     assert mi["trials"][0]["played"] is True
 
 
+def test_listen_live_saliency_threshold_flag_parses() -> None:
+    # The near-field self-subtraction run needs a lower saliency gate than the
+    # default 0.7 so quiet/near-field human speech can trigger motor imitation.
+    # Assert --saliency-threshold is parsed and forwarded to LiveListener.
+    import cora_infans.cli as cli
+
+    captured = {}
+
+    class _FakeListener:
+        def __init__(self, array=None, **kw):
+            captured.update(kw)
+
+        def listen(self, **kw):
+            captured["listen"] = kw
+            return {"motor_imitation": None, "frame_count": 0, "salient_frame_count": 0}
+
+    orig = cli.LiveListener
+    cli.LiveListener = _FakeListener  # type: ignore[assignment]
+    try:
+        cli.listen_live(
+            [
+                "--listen-live",
+                "--saliency-threshold",
+                "0.2",
+                "--with-motor-imitation",
+                "--duration-ms",
+                "200",
+                "--frame-ms",
+                "200",
+            ]
+        )
+    finally:
+        cli.LiveListener = orig  # type: ignore[assignment]
+    assert captured.get("saliency_threshold") == 0.2
+
+
 def test_listen_live_with_self_subtraction_requires_real_io() -> None:
     # Phase 2 Task 4: --with-self-subtraction is meaningless without --real-io
     # (no capture to fit/subtract); the CLI must refuse.
