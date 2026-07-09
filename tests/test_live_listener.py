@@ -227,6 +227,28 @@ def test_corollary_frame_tags_anchor_self_vs_world() -> None:
     assert all(t["source"] == "corollary_feedback" for t in tags)
 
 
+def test_mono_downmix_normalizes_int16_to_float_unit_scale(tmp_path) -> None:
+    # Regression for the Task-6 scale bug: real captures arrive as int16 WAV PCM;
+    # _mono_downmix MUST scale them into [-1,1] so observed shares the float scale
+    # of the efference/predicted signals. Otherwise observed_rms is ~13k while
+    # predicted_rms is ~0.3 and SVSR becomes a scale artifact.
+    import numpy as np
+
+    from cora_infans.io.live_listener import LiveListener
+
+    int16 = np.array([0, 16384, -16384, 32767, -32768], dtype=np.int16)
+    f = LiveListener._mono_downmix(int16)
+    assert f.dtype == np.float32
+    assert abs(float(f[1]) - 0.5) < 1e-4
+    assert abs(float(f[3]) - (32767.0 / 32768.0)) < 1e-4
+    assert float(f.max()) <= 1.0 + 1e-6
+
+    # 2-D stereo int16 also downmixes + scales.
+    stereo = np.array([[16384, 0], [-16384, 0]], dtype=np.int16)
+    fs = LiveListener._mono_downmix(stereo)
+    assert abs(float(fs[0]) - 0.25) < 1e-4
+
+
 def test_forward_model_fit_recovers_self_gain(tmp_path) -> None:
     # Phase 2 Task 1 (measurement-only): given a real efference + an observed
     # mixture = self (delayed/attenuated efference) + a world sine, the grid fit

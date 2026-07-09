@@ -320,8 +320,19 @@ class LiveListener:
 
     @staticmethod
     def _mono_downmix(pcm: np.ndarray) -> np.ndarray:
-        """Downmix interleaved stereo int16/float PCM to mono float32 in [-1, 1]."""
-        arr = np.asarray(pcm, dtype=np.float32)
+        """Downmix raw WAV PCM to mono float32 in [-1, 1].
+
+        Accepts int16 (what ``_read_wav_pcm_int16`` yields) or float input; any
+        integer samples are scaled by 1/32768 so the captured ``observed`` shares
+        the float scale of the efference/predicted signals used for self-
+        subtraction. This scaling is load-bearing: the forward-model fit and SVSR
+        are meaningless if observed is int16-scale while predicted is float-scale.
+        """
+        arr = np.asarray(pcm)
+        if np.issubdtype(arr.dtype, np.integer):
+            arr = arr.astype(np.float32) / 32768.0
+        else:
+            arr = arr.astype(np.float32)
         if arr.ndim == 2:
             return (arr[:, 0] + arr[:, 1]) / 2.0
         return arr
@@ -541,27 +552,26 @@ class LiveListener:
                         )
                         residual = spectral_subtract(observed, predicted)
                         svsr = compute_svsr_db(observed, residual)
-                        # World proxy: the perceived human frame (down-sampled to
-                        # 48k via repetition) is an imperfect proxy for the true
-                        # world signal; correlation here is a sanity check only.
+                        # World proxy: the perceived human frame (resampled to
+                        # 48k) is an imperfect proxy for the true world signal;
+                        # correlation here is a sanity check only. Align on the
+                        # shared length (no zero-pad bias) before correlating.
                         world_proxy = np.repeat(
-                            np.asarray(pcm, dtype=np.float32) / 32767.0, 3
-                        )[: len(residual)]
-                        if len(world_proxy) < len(residual):
-                            world_proxy = np.pad(
-                                world_proxy, (0, len(residual) - len(world_proxy))
-                            )
+                            np.asarray(pcm, dtype=np.float32) / 32768.0, 3
+                        ).astype(np.float32)
+                        m = min(len(world_proxy), len(residual))
+                        world_proxy_m = world_proxy[:m]
+                        residual_m = residual[:m]
                         from .self_suppression import _corr
 
+                        corr = _corr(world_proxy_m, residual_m)
                         trial["world_residual"] = {
                             "svsr_db": round(float(svsr), 3),
-                            "observed_rms": round(float(rms(observed)), 6),
-                            "residual_rms": round(float(rms(residual)), 6),
-                            "predicted_rms": round(float(rms(predicted)), 6),
+                            "observed_rms": round(float(rms(observed)), 9),
+                            "residual_rms": round(float(rms(residual)), 9),
+                            "predicted_rms": round(float(rms(predicted)), 9),
                             "world_residual_correlation": (
-                                round(float(_corr(world_proxy, residual)), 4)
-                                if _corr(world_proxy, residual) is not None
-                                else None
+                                round(float(corr), 4) if corr is not None else None
                             ),
                             "applied": True,
                         }

@@ -645,6 +645,35 @@ to `self_subtract_live` only when a NEW real-data promotion gate passes.
 **Validation:** full suite: `pytest tests -q` → 209 passed (was 199 at end of Phase 1; +10
 Phase 2 tests).
 
-**NOT yet done — Task 6 (deferred, awaits explicit user go):** real-hardware bounded smoke
-with `--with-self-subtraction`. Command when approved:
-`PYTHONPATH=src python3 -m cora_infans --listen-live --with-motor-imitation --with-self-subtraction --with-attention --with-stimulus --real-io --output-device-index 2 --imitation-device-index 3 --volume-db 12 --latency-anchor /tmp/cora_nf/latency_dev3.json`
+**Task 6 — real-hardware bounded smoke (DONE, 2026-07-09):** ran on silicon with
+`--with-self-subtraction --real-io`, device 3 (Mac mini Speakers) imitation, device 2
+(Headphones) stimulus, ReSpeaker `:0` capture, device-3 latency anchor
+(`/tmp/cora_nf/latency_dev3.json`). 5–7 trials, all `played=True` on device 3, forward
+model fit per trial, `world_residual` computed, promotion gate evaluated.
+
+**Blocker found + fixed during Task 6 (real bug, not a scale illusion):** `capture_to_wav`
+returns **int16** WAV PCM, but `_mono_downmix` only normalized 2-D float input — the
+1-D captured `observed` stayed int16-scale (~13k) while the efference/`predicted` were
+float in [-1,1]. SVSR came out 36–82 dB, a pure scale artifact. Fixed `_mono_downmix` to
+scale any integer PCM by 1/32768 to float [-1,1]; added regression test
+`test_mono_downmix_normalizes_int16_to_float_unit_scale`. Also removed a zero-pad bias in
+the world-proxy correlation (now overlaps only). Re-ran Task 6 after the fix.
+
+**Corrected Task 6 result (post-fix):** with proper scaling, `observed_rms` ≤ 0.46,
+`predicted_rms` ~0.1, `residual_rms` same band. SVSR is small/negative (0.1 to −24 dB)
+because the captured mixture on `:0` is dominated by the near-headphone stimulus + room,
+not by Cora's own 12 dB imitation across the room. Subtracting the fitted self removes a
+minor component, so residual energy slightly rises. `world_residual_correlation` ~
+−0.02..+0.05 (one frame hit +0.0496, just under the 0.05 gate). The real-data promotion
+gate **correctly holds at `tag_only`** for every trial — honest: the self-component is not
+yet dominant enough to claim world-speech isolation.
+
+**Interpretation:** the loop closes end-to-end on real hardware and the metric is now
+trustworthy, but in this topology the loopback self-energy is small relative to the
+stimulus/room. To make self-subtraction *meaningful* (and let the gate promote), options:
+(a) raise imitation volume / place the Mac mini Speakers closer to the ReSpeaker; (b) run
+a near-field config where the efference dominates the captured window; (c) replace the
+perceived-frame world *proxy* with a true separated world reference before trusting the
+`world_signal_preserved` criterion. Until then, `contamination_policy` stays `tag_only`.
+
+**Final validation:** `pytest tests -q` → 210 passed (209 + 1 downmix regression test).
