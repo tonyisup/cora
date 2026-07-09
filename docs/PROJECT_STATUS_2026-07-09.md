@@ -157,9 +157,36 @@ validation.
 
 **Validation:** documentation-only change; no runtime behavior changed.
 
+## M8-infans-G — Fake-I/O bounded SPEAK smoke helper
+
+**Decision:** start implementation after the SPEAK-state design with a pure helper
+and injected fake I/O only. This creates the report/artifact/tagging surface
+needed for future live validation without touching speakers or microphones.
+
+**What was added:**
+- `src/cora_infans/live_speak_smoke.py` with `run_live_speak_smoke_trial(...)`.
+- `tests/test_live_speak_smoke.py` covering:
+  - efference WAV creation,
+  - captured WAV creation through injected fake capture,
+  - required SPEAK-state frame tags,
+  - safe blocked default when playback/capture functions are not injected.
+
+**Current behavior:**
+- With injected fake functions, the helper returns `verdict=fake_io_smoke_complete`.
+- Without injected functions, it returns `verdict=blocked_missing_injected_io` after
+  writing only the planned efference WAV.
+- `real_hardware=false`, `live_playback=false`, and `live_playback_allowed=false`
+  remain hard-coded in this slice.
+
+**Honesty boundary:** this is not a live command and does not perform playback.
+It only establishes the state/tag/artifact contract for the future explicit live
+smoke harness.
+
+**Validation:** focused fake-I/O tests pass; full suite: `pytest tests -q` →
+172 passed.
+
 ## Next step
 
-If continuing implementation, start the bounded live SPEAK smoke harness with
-fake playback/capture tests first. Do not run real hardware playback until the
-unit-tested report/tagging path exists and the user explicitly opts into live
-validation.
+Add a CLI surface only when it remains safe by default, likely a dry-run or
+fake-I/O command first. Do not add real playback until the command makes explicit
+opt-in and hardware risk unavoidable in the name/options.
