@@ -243,6 +243,7 @@ def listen_live(args: list[str] | None = None) -> dict[str, object]:
     use_real_io = False
     output_device_index = 2
     imitation_device_index = 3
+    with_self_subtraction = False
     volume_db = 12.0
     latency_anchor_ms: float | None = None
     latency_anchor_path: str | None = None
@@ -267,6 +268,10 @@ def listen_live(args: list[str] | None = None) -> dict[str, object]:
             continue
         if option == "--real-io":
             use_real_io = True
+            i += 1
+            continue
+        if option == "--with-self-subtraction":
+            with_self_subtraction = True
             i += 1
             continue
         if i + 1 >= len(parsed):
@@ -333,6 +338,10 @@ def listen_live(args: list[str] | None = None) -> dict[str, object]:
         capture_fn = lambda path, **kw: capture_to_wav(  # type: ignore[misc]
             path, device=device, sample_rate=48000, duration_ms=kw.get("duration_ms", 400)
         )
+    elif with_self_subtraction:
+        # Self-subtraction requires real capture to fit+subtract the loopback;
+        # it is meaningless without --real-io.
+        raise ValueError("--with-self-subtraction requires --real-io")
 
     out_dir = None
     if use_real_io:
@@ -354,9 +363,11 @@ def listen_live(args: list[str] | None = None) -> dict[str, object]:
         with_motor_imitation=with_motor_imitation,
         motor_imitation_gate_fn=gate_fn,
         motor_imitation_playback_fn=playback_fn,
+        motor_imitation_capture_fn=capture_fn,
         motor_imitation_out_dir=out_dir,
         motor_imitation_volume_db=volume_db,
         latency_anchor_ms=latency_anchor_ms,
+        do_self_subtraction=with_self_subtraction,
     )
 
 
@@ -1187,7 +1198,7 @@ def main(argv: list[str] | None = None) -> int:
         "[--timestamp-ms N --dominant-frequency-hz F --channel-energies a,b,c,d --initial-prediction-hz F --mic-geometry l0,l1,l2,l3 --saliency-threshold F --output json|pretty] "
         "[--family sweep|zigzag|gap|multi_gap|delayed_recovery] [--with-scheduling] "
         "[--capture-live [--device :0] [--duration-ms N]] "
-        "[--listen-live [--duration-ms N] [--frame-ms N] [--with-stimulus] [--with-attention] [--with-scheduling] [--with-motor-imitation [--real-io [--output-device-index 2] [--imitation-device-index 3] [--volume-db F] [--latency-anchor PATH]]]] "
+        "[--listen-live [--duration-ms N] [--frame-ms N] [--with-stimulus] [--with-attention] [--with-scheduling] [--with-motor-imitation [--real-io [--output-device-index 2] [--imitation-device-index 3] [--with-self-subtraction] [--volume-db F] [--latency-anchor PATH]]]] "
         "[--eval-corpus --root DIR --label-csv FILE [--saliency-threshold F] [--frame-ms N]] "
         "[--synthesize-vowel a|e|i|o|u --out PATH.wav [--duration-ms N] [--sample-rate N] [--f0-hz F] [--analyze]] "
         "[--simulate-self-suppression [--vowel a|e|i|o|u] [--world-vowel a|e|i|o|u] [--world-gain F] [--duration-ms N] [--sample-rate N]] "

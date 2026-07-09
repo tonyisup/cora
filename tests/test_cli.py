@@ -838,3 +838,134 @@ def test_listen_live_cli_real_io_path_invokes_playback_fn() -> None:
     mi = report["motor_imitation"]
     assert mi is not None and mi["trial_count"] >= 1
     assert mi["trials"][0]["played"] is True
+
+
+def test_listen_live_with_self_subtraction_requires_real_io() -> None:
+    # Phase 2 Task 4: --with-self-subtraction is meaningless without --real-io
+    # (no capture to fit/subtract); the CLI must refuse.
+    import cora_infans.cli as cli
+
+    try:
+        cli.listen_live(
+            [
+                "--listen-live",
+                "--with-motor-imitation",
+                "--with-self-subtraction",
+                "--duration-ms",
+                "200",
+                "--frame-ms",
+                "200",
+            ]
+        )
+        raise AssertionError("expected ValueError: --with-self-subtraction requires --real-io")
+    except ValueError as exc:
+        assert "real-io" in str(exc)
+
+
+def test_listen_live_cli_parses_with_self_subtraction_flag() -> None:
+    # Phase 2 Task 4: with --real-io --with-self-subtraction, the CLI wires both
+    # playback and capture fns and passes do_self_subtraction=True to the listener.
+    import cora_infans.cli as cli
+    import cora_infans.io.live_listener as ll
+    import cora_infans.live_speak_smoke as sm
+    import numpy as np
+    import tempfile
+    from cora_infans.pipeline import AudioFrame
+
+    pcm = (np.sin(np.arange(3200) * 0.05) * 30000).astype("<i2")
+
+    class _FakeArray:
+        channel_count = 2
+        last_pcm = pcm  # type: ignore[assignment]
+
+        def capture_frame(self, *, duration_ms=None, dominant_frequency_hz=None):
+            return AudioFrame(
+                timestamp_ms=0, channel_energies=[0.05, 0.01], dominant_frequency_hz=1000.0
+            )
+
+    class _FakeTuner:
+        is_real_hardware = False
+
+        def read_selected_azimuths(self):
+            return [0.0, 90.0]
+
+        def read_doa(self):
+            class _D:
+                azimuth_deg = 0.0
+                speech_detected = True
+
+            return _D()
+
+    played = []
+    captured = []
+    orig_array = cli.LiveMicArray
+    orig_gate = sm.run_speaking_readiness_gate
+    orig_play = sm.play_wav_to_device
+    orig_cap = sm.capture_to_wav
+    orig_hw = ll.HardwareTuner
+    orig_null = ll._NullTuner
+    cli.LiveMicArray = lambda device: _FakeArray()  # type: ignore[assignment]
+    ll.HardwareTuner = lambda *a, **k: (_ for _ in ()).throw(  # type: ignore[assignment]
+        __import__("cora_infans.io.hardware_tuner", fromlist=["HardwareTunerError"]).HardwareTunerError("forced fake")
+    )
+    ll._NullTuner = _FakeTuner  # type: ignore[assignment]
+    sm.run_speaking_readiness_gate = lambda: {"verdict": "promote_simulation_only"}  # type: ignore[assignment]
+    sm.play_wav_to_device = lambda path, **kw: played.append(kw) or {"backend": "fake"}  # type: ignore[assignment]
+    # Capture fn must write a real WAV: the trial reads captured PCM back to fit
+    # + subtract, so a no-op fake leaves forward_model_fit None. Write a
+    # self+world mixture so the subtraction path has something to act on.
+    from cora_infans.io.motor_plan import write_wav
+    from cora_infans.io.self_suppression import mix_observed, predict_self_pcm
+
+    _sr = 48000
+    _n = _sr // 4
+    _eff = (np.sin(np.arange(_n) * 0.05) * 0.8).astype(np.float32)
+    _world = (np.sin(np.arange(_n) * 0.20) * 0.3).astype(np.float32)
+    _obs = mix_observed(
+        predict_self_pcm(_eff, sample_rate=_sr, delay_ms=0.0, attenuation=0.55, echo_decay=0.22),
+        _world,
+        world_gain=1.0,
+    )
+
+    def _fake_capture(path, **kw):
+        captured.append(kw)
+        write_wav(path, (np.clip(_obs, -1.0, 1.0) * 32767.0).astype("<i2"), _sr)
+        return {"backend": "fake"}
+
+    sm.capture_to_wav = _fake_capture  # type: ignore[assignment]
+    with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as fh:
+        fh.write('{"latency_ms": -0.62}')
+        anchor = fh.name
+    try:
+        report = cli.listen_live(
+            [
+                "--listen-live",
+                "--with-motor-imitation",
+                "--with-attention",
+                "--real-io",
+                "--with-self-subtraction",
+                "--duration-ms",
+                "200",
+                "--frame-ms",
+                "200",
+                "--latency-anchor",
+                anchor,
+            ]
+        )
+    finally:
+        cli.LiveMicArray = orig_array  # type: ignore[assignment]
+        sm.run_speaking_readiness_gate = orig_gate  # type: ignore[assignment]
+        sm.play_wav_to_device = orig_play  # type: ignore[assignment]
+        sm.capture_to_wav = orig_cap  # type: ignore[assignment]
+        ll.HardwareTuner = orig_hw  # type: ignore[assignment]
+        ll._NullTuner = orig_null  # type: ignore[assignment]
+
+    assert played, "playback lambda was never invoked"
+    assert captured, "capture lambda must be wired for self-subtraction"
+    mi = report["motor_imitation"]
+    assert mi is not None and mi["trial_count"] >= 1
+    trial = mi["trials"][0]
+    assert trial["played"] is True
+    # Self-subtraction path executed: world_residual is computed per trial.
+    assert trial.get("world_residual") is not None
+
