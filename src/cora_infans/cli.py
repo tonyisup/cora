@@ -240,6 +240,11 @@ def listen_live(args: list[str] | None = None) -> dict[str, object]:
     with_scheduling = False
     with_attention = False
     with_motor_imitation = False
+    use_real_io = False
+    output_device_index = 2
+    volume_db = 12.0
+    latency_anchor_ms: float | None = None
+    latency_anchor_path: str | None = None
     i = 1
     while i < len(parsed):
         option = parsed[i]
@@ -259,6 +264,10 @@ def listen_live(args: list[str] | None = None) -> dict[str, object]:
             with_motor_imitation = True
             i += 1
             continue
+        if option == "--real-io":
+            use_real_io = True
+            i += 1
+            continue
         if i + 1 >= len(parsed):
             raise ValueError(f"missing value for {option}")
         value = parsed[i + 1]
@@ -274,11 +283,60 @@ def listen_live(args: list[str] | None = None) -> dict[str, object]:
                 frame_ms = int(value)
             except ValueError as exc:
                 raise ValueError("invalid frame ms") from exc
+        elif option == "--output-device-index":
+            try:
+                output_device_index = int(value)
+            except ValueError as exc:
+                raise ValueError("invalid output device index") from exc
+        elif option == "--volume-db":
+            try:
+                volume_db = float(value)
+            except ValueError as exc:
+                raise ValueError("invalid volume db") from exc
+        elif option == "--latency-anchor":
+            latency_anchor_path = value
         else:
             raise ValueError(f"unknown option: {option}")
         i += 2
 
-    listener = LiveListener(LiveMicArray(device=device))
+    # Load a measured latency anchor (the calibration.json we can now write) so
+    # the corollary-feedback window is tagged against the real loopback delay.
+    if latency_anchor_path is not None:
+        import json
+
+        with open(latency_anchor_path, encoding="utf-8") as fh:
+            latency_anchor_ms = float(json.load(fh)["latency_ms"])
+
+    # Real-io wiring: inject the actual ffmpeg playback/capture fns and consult
+    # the speaking readiness gate. Without --real-io, motor imitation stays
+    # analysis-only (no playback fns are supplied -> trial does not play).
+    gate_fn = None
+    playback_fn = None
+    capture_fn = None
+    if use_real_io and with_motor_imitation:
+        from .live_speak_smoke import (
+            capture_to_wav,
+            play_wav_to_device,
+            run_speaking_readiness_gate,
+        )
+
+        gate_fn = run_speaking_readiness_gate
+        playback_fn = lambda path: play_wav_to_device(  # type: ignore[misc]
+            path, device_index=output_device_index, sample_rate=48000, volume_db=volume_db
+        )
+        capture_fn = lambda path, *, duration_ms: capture_to_wav(  # type: ignore[misc]
+            path, device=device, sample_rate=48000, duration_ms=duration_ms
+        )
+
+    out_dir = None
+    if use_real_io:
+        import tempfile
+
+        out_dir = tempfile.mkdtemp(prefix="cora_imit_")
+
+    listener = LiveListener(
+        LiveMicArray(device=device), output_device_index=output_device_index
+    )
     return listener.listen(
         duration_ms=duration_ms,
         frame_ms=frame_ms,
@@ -286,6 +344,11 @@ def listen_live(args: list[str] | None = None) -> dict[str, object]:
         with_scheduling=with_scheduling,
         with_attention=with_attention,
         with_motor_imitation=with_motor_imitation,
+        motor_imitation_gate_fn=gate_fn,
+        motor_imitation_playback_fn=playback_fn,
+        motor_imitation_out_dir=out_dir,
+        motor_imitation_volume_db=volume_db,
+        latency_anchor_ms=latency_anchor_ms,
     )
 
 
@@ -1116,7 +1179,7 @@ def main(argv: list[str] | None = None) -> int:
         "[--timestamp-ms N --dominant-frequency-hz F --channel-energies a,b,c,d --initial-prediction-hz F --mic-geometry l0,l1,l2,l3 --saliency-threshold F --output json|pretty] "
         "[--family sweep|zigzag|gap|multi_gap|delayed_recovery] [--with-scheduling] "
         "[--capture-live [--device :0] [--duration-ms N]] "
-        "[--listen-live [--duration-ms N] [--frame-ms N] [--with-stimulus] [--with-attention] [--with-scheduling] [--with-motor-imitation]] "
+        "[--listen-live [--duration-ms N] [--frame-ms N] [--with-stimulus] [--with-attention] [--with-scheduling] [--with-motor-imitation [--real-io [--output-device-index 2] [--volume-db F] [--latency-anchor PATH]]]] "
         "[--eval-corpus --root DIR --label-csv FILE [--saliency-threshold F] [--frame-ms N]] "
         "[--synthesize-vowel a|e|i|o|u --out PATH.wav [--duration-ms N] [--sample-rate N] [--f0-hz F] [--analyze]] "
         "[--simulate-self-suppression [--vowel a|e|i|o|u] [--world-vowel a|e|i|o|u] [--world-gain F] [--duration-ms N] [--sample-rate N]] "

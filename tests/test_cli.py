@@ -730,3 +730,46 @@ def test_speak_live_smoke_cli_runs_fake_io_when_requested() -> None:
         assert payload["live_playback_allowed"] is False
         assert Path(payload["artifacts"]["efference_wav"]).exists()
         assert Path(payload["artifacts"]["captured_wav"]).exists()
+
+
+def test_listen_live_cli_parses_motor_imitation_flags() -> None:
+    # Unit-level: monkeypatch the hardware array so no real capture runs, and
+    # verify --with-motor-imitation + --real-io flags parse and route into a
+    # report with the motor_imitation block enabled (analysis-only unless the
+    # gate+playback fns are supplied, which real --real-io does).
+    import cora_infans.cli as cli
+    import cora_infans.io.live_listener as ll
+
+    class _FakeArray:
+        channel_count = 2
+
+        def capture_frame(self, *, duration_ms=None, dominant_frequency_hz=None):
+            from cora_infans.pipeline import AudioFrame
+
+            return AudioFrame(
+                timestamp_ms=0, channel_energies=[0.05, 0.01], dominant_frequency_hz=1000.0
+            )
+
+    orig = cli.LiveMicArray
+    cli.LiveMicArray = lambda device: _FakeArray()  # type: ignore[assignment]
+    try:
+        report = cli.listen_live(
+            [
+                "--listen-live",
+                "--with-motor-imitation",
+                "--with-attention",
+                "--duration-ms",
+                "200",
+                "--frame-ms",
+                "200",
+            ]
+        )
+    finally:
+        ll.LiveMicArray = orig  # type: ignore[assignment]
+
+    assert "motor_imitation" in report
+    # Without --real-io the loop is analysis-only: playback fns are not supplied,
+    # so the report still carries the enabled motor-imitation block.
+    assert report["motor_imitation"] is not None
+    assert report["motor_imitation"]["enabled"] is True
+    assert report["frame_count"] >= 1

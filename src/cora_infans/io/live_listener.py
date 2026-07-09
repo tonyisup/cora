@@ -232,6 +232,7 @@ class LiveListener:
         self.governor = governor or ActiveAttentionGovernor()
         # Output device for imitation efference playback (bounded, gated).
         self.output_device_index = output_device_index
+        self._tuner = tuner  # None => resolve in listen()
 
     def play_efference_if_authorized(
         self, *, wav_path: str, gate_fn, volume_db: float = 12.0, playback_fn=None
