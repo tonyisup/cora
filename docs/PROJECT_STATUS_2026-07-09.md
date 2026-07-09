@@ -489,3 +489,34 @@ loopback. It is the anchor for frame tagging and (future) self-subtraction. Stil
 improvement if even tighter stability is wanted, but is no longer blocking.
 
 **Validation:** full suite: `pytest tests -q` → 191 passed.
+
+## M8-infans frame tags anchored to stable measured latency
+
+**Decision (2026-07-09, user-approved):** wire the stable measured loopback latency
+into the frame tags so tagging (and future self-subtraction) anchors to the
+repeatable value, not a single noisy trial.
+
+**What changed:**
+- `run_real_io_speak_trials` now publishes `latency_aligned_ms` (the stable mean)
+  and `canonical_frame_tags` — a frame-tag set built from the stable latency. It is
+  emitted ONLY when `latency_stable=True`; otherwise both are `None` (honest: no
+  canonical latency exists yet). Each canonical tag carries `latency_source="stable_mean"`
+  and `latency_stable=True`.
+- Single-trial reports still tag with their own per-trial measurement (used when not
+  running the multi-trial harness).
+
+**Tests (TDD):** the stable-variant trials test asserts `canonical_frame_tags` is a
+4-tag set using the stable mean as `latency_aligned_ms` with `latency_source=stable_mean`.
+Suite still 191 passed.
+
+**Real-hardware check (chirp @24dB, cw=2ms, 6 trials):** `latency_stable=True`,
+`latency_aligned_ms=0.844`, `canonical_frame_tags` present with all four states
+(READY_TO_SPEAK / SPEAKING / POST_SPEAK_SUPPRESSION / RECOVERING) tagged at the
+measured 0.844 ms. A second run at cw=4ms came back `latency_stable=False` and
+correctly omitted `canonical_frame_tags` — the gate holds when the path varies.
+
+**Honesty boundary:** tags are `tag_only`; no subtraction. The canonical latency is
+now a real, repeatable anchor available to downstream consumers (the future
+imitation loop / self-subtraction) when they appear.
+
+**Validation:** full suite: `pytest tests -q` → 191 passed.

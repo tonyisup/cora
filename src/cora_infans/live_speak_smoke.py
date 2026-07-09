@@ -536,6 +536,7 @@ def run_real_io_speak_trials(
 
     stats: dict[str, object] = {"n": len(latencies), "mean": None, "std": None, "min": None, "max": None}
     stable = False
+    canonical_latency_ms: float | None = None
     if latencies:
         arr = _np.asarray(latencies, dtype=_np.float64)
         stats = {
@@ -547,6 +548,22 @@ def run_real_io_speak_trials(
         }
         # Stable only if repeatable across trials AND within the jitter bound.
         stable = len(latencies) >= 2 and float(arr.std()) <= latency_jitter_ms
+        if stable:
+            canonical_latency_ms = float(stats["mean"])  # type: ignore[arg-type]
+    # Only publish a canonical tag set when latency is genuinely stable. This is
+    # the measured, repeatable playback->capture delay that frame tagging (and
+    # future self-subtraction) should anchor to — never a single noisy trial.
+    canonical_frame_tags: list[dict[str, object]] | None = None
+    if canonical_latency_ms is not None:
+        canonical_frame_tags = _frame_tags(
+            efference_id="aggregate",
+            duration_ms=duration_ms,
+            max_capture_ms=max_capture_ms,
+            latency_aligned_ms=canonical_latency_ms,
+        )
+        for tag in canonical_frame_tags:
+            tag["latency_source"] = "stable_mean"
+            tag["latency_stable"] = True
 
     return {
         "mode": "bounded_live_speak_smoke_trials",
@@ -558,7 +575,9 @@ def run_real_io_speak_trials(
         "trials_ok": trials_ok,
         "latency_stats": stats,
         "latency_stable": stable,
+        "latency_aligned_ms": canonical_latency_ms,
         "latency_jitter_ms": latency_jitter_ms,
         "causal_window_ms": causal_window_ms,
+        "canonical_frame_tags": canonical_frame_tags,
         "per_trial": per_trial,
     }

@@ -233,6 +233,17 @@ def test_real_io_trials_aggregate_latency_stats_with_stable_estimator(tmp_path) 
     assert report["latency_stats"]["min"] == 12.0
     assert report["latency_stats"]["max"] == 12.0
     assert report["latency_stable"] is True
+    # The canonical tag set is published only when latency is stable, and it
+    # anchors to the repeated stable mean (not any single noisy trial).
+    assert report["latency_aligned_ms"] == 12.0
+    tags = report["canonical_frame_tags"]  # type: ignore[assignment]
+    assert isinstance(tags, list) and len(tags) == 4
+    assert all(t["latency_aligned_ms"] == 12.0 for t in tags)  # type: ignore[index]
+    assert all(t["latency_source"] == "stable_mean" for t in tags)  # type: ignore[index]
+    assert all(t["latency_stable"] is True for t in tags)  # type: ignore[index]
+    states = [t["speak_state"] for t in tags]  # type: ignore[index]
+    assert states[0] == "READY_TO_SPEAK"
+    assert "SPEAKING" in states
 
 
 def test_real_io_trials_flag_unstable_when_spread_exceeds_threshold(tmp_path) -> None:
