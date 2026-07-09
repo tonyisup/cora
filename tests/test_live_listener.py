@@ -32,6 +32,37 @@ def _frame(energies, hz=1000.0):
     return AudioFrame(timestamp_ms=0, channel_energies=energies, dominant_frequency_hz=hz)
 
 
+def test_play_efference_requires_passed_gate() -> None:
+    # The imitation playback helper must refuse (zero playback) unless the
+    # readiness gate is promoted; this is the same gating discipline as the
+    # SPEAK smoke. We inject a fake playback fn to assert it is never called.
+    import cora_infans.io.live_listener as ll
+
+    called = []
+
+    def fake_play(path, *, device_index, sample_rate, volume_db):
+        called.append(path)
+        return {"backend": "fake", "completed": True}
+
+    ll.play_wav_to_device = fake_play  # type: ignore[attr-defined]
+    lst = LiveListener()
+    refused = lst.play_efference_if_authorized(
+        wav_path="/tmp/x.wav",
+        gate_fn=lambda: {"verdict": "hold", "live_playback_allowed": False},
+    )
+    assert refused["played"] is False
+    assert refused["reason"] == "gate_not_promoted"
+    assert called == []
+
+    ok = lst.play_efference_if_authorized(
+        wav_path="/tmp/x.wav",
+        gate_fn=lambda: {"verdict": "promote_simulation_only"},
+    )
+    assert ok["played"] is True
+    assert ok["reason"] == "authorized"
+    assert called == ["/tmp/x.wav"]
+
+
 def test_parentese_stimulus_synthesizes_nonempty_wav(tmp_path) -> None:
     stim = ParenteseStimulus()
     out = tmp_path / "stim.wav"

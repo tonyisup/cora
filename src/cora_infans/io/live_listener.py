@@ -44,7 +44,8 @@ from .active_attention import (
     derive_target_azimuth,
 )
 from .hardware_tuner import HardwareTuner, HardwareTunerError, DoAReading
-from .motor_plan import MotorPlanner, analyze_vowel, synthesize_vowel
+from .motor_plan import MotorPlanner, VowelAnalysis, analyze_vowel, synthesize_vowel
+from ..live_speak_smoke import play_wav_to_device
 
 # External Headphones output device index (audiotoolbox), per host enumeration.
 STIMULUS_OUTPUT_DEVICE_INDEX = 2
@@ -202,6 +203,7 @@ class LiveListener:
         governor: ActiveAttentionGovernor | None = None,
         tuner: HardwareTuner | _NullTuner | None = None,
         enable_motor_imitation: bool = False,
+        output_device_index: int = STIMULUS_OUTPUT_DEVICE_INDEX,
     ) -> None:
         self.array = array or LiveMicArray(device=DEFAULT_DEVICE)
         self.saliency_threshold = saliency_threshold
@@ -209,17 +211,33 @@ class LiveListener:
         self.workspace_window_ms = workspace_window_ms
         self.stimulus = stimulus or ParenteseStimulus()
         self._pipeline: CoraInfansPipeline | None = None
-        # The ActiveAttentionGovernor mediates between software saliency state
-        # and hardware execution. If no tuner is supplied we resolve one lazily
-        # at listen() time: real silicon only when actually live, else a
-        # bus-free _NullTuner so tests never touch the USB bus.
-        self.governor = governor or ActiveAttentionGovernor()
-        self._tuner = tuner  # None => resolve in listen()
         # Step 1: perception->production bridge. Off by default; enabled per-run
         # via listen(with_motor_imitation=True). No live playback happens here
         # (to avoid acoustic feedback); matches are logged as internal trials.
         self._enable_motor_imitation = enable_motor_imitation
         self._planner = MotorPlanner()
+        # ActiveAttentionGovernor mediates between software saliency state and
+        # hardware execution; resolved to a no-op tuner under tests.
+        self.governor = governor or ActiveAttentionGovernor()
+        # Output device for imitation efference playback (bounded, gated).
+        self.output_device_index = output_device_index
+
+    def play_efference_if_authorized(
+        self, *, wav_path: str, gate_fn, volume_db: float = 12.0
+    ) -> dict[str, object]:
+        """Play an imitation efference to the speaker only if the readiness gate passes.
+
+        Bounded + gated: zero playback occurs unless the gate verdict is
+        ``promote_simulation_only``. This is the same authorization pattern as the
+        SPEAK smoke; it never performs looped/free playback.
+        """
+        gate = gate_fn() if gate_fn is not None else {}
+        if gate.get("verdict") != "promote_simulation_only":
+            return {"played": False, "reason": "gate_not_promoted", "verdict": gate.get("verdict")}
+        result = play_wav_to_device(
+            wav_path, device_index=self.output_device_index, sample_rate=48000, volume_db=volume_db
+        )
+        return {"played": True, "reason": "authorized", "playback": result}
 
     def _resolve_tuner(self) -> HardwareTuner | _NullTuner:
         if self._tuner is not None:
