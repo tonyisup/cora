@@ -480,16 +480,58 @@ class LiveListener:
                         sample_rate=48000,
                         latency_anchor_ms=latency_anchor_ms,
                     )
+                    learned = fit.get("learned_params") or {}
                     trial["forward_model_fit"] = {
-                        "learned_params": fit.get("learned_params"),
+                        "learned_params": learned,
                         "svsr_db": fit.get("svsr_db"),
                         "residual_rms": fit.get("residual_rms"),
                         "observed_rms": fit.get("observed_rms"),
                         "verdict": fit.get("verdict"),
                     }
+                    # Task 2: apply the fitted forward model as a real
+                    # self-subtraction, producing the world_residual (the human's
+                    # continuing speech, isolated from Cora's own played audio).
+                    # Honesty: tag_only still holds at the policy level until the
+                    # real-data promotion gate (Task 3) passes; here we only
+                    # COMPUTE + record the residual as evidence.
+                    if do_self_subtraction and learned:
+                        predicted = predict_self_pcm(
+                            eff_48k,
+                            sample_rate=48000,
+                            delay_ms=float(learned.get("delay_ms", 0.0)),
+                            attenuation=float(learned.get("attenuation", 0.65)),
+                            echo_decay=float(learned.get("echo_decay", 0.18)),
+                        )
+                        residual = spectral_subtract(observed, predicted)
+                        svsr = compute_svsr_db(observed, residual)
+                        # World proxy: the perceived human frame (down-sampled to
+                        # 48k via repetition) is an imperfect proxy for the true
+                        # world signal; correlation here is a sanity check only.
+                        world_proxy = np.repeat(
+                            np.asarray(pcm, dtype=np.float32) / 32767.0, 3
+                        )[: len(residual)]
+                        if len(world_proxy) < len(residual):
+                            world_proxy = np.pad(
+                                world_proxy, (0, len(residual) - len(world_proxy))
+                            )
+                        from .self_suppression import _corr
+
+                        trial["world_residual"] = {
+                            "svsr_db": round(float(svsr), 3),
+                            "observed_rms": round(float(rms(observed)), 6),
+                            "residual_rms": round(float(rms(residual)), 6),
+                            "predicted_rms": round(float(rms(predicted)), 6),
+                            "world_residual_correlation": (
+                                round(float(_corr(world_proxy, residual)), 4)
+                                if _corr(world_proxy, residual) is not None
+                                else None
+                            ),
+                            "applied": True,
+                        }
                 except Exception:
-                    # Fitting is best-effort; never fatal to the trial.
-                    trial["forward_model_fit"] = None
+                    # Fitting/subtraction is best-effort; never fatal to trial.
+                    trial["forward_model_fit"] = trial.get("forward_model_fit")
+                    trial["world_residual"] = None
         trial["played"] = played
         return trial
 
