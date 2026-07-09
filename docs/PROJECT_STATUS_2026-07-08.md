@@ -771,3 +771,42 @@ before hardware enters the loop.
 **Validation:** tests assert exact-delay/no-world cases strongly outperform
 ±12 ms delay mismatch, world-overlap cases carry residual-world correlation, and
 CLI JSON exposes the sweep summary. Full suite: `pytest tests -q` → 138 passed.
+
+## Addendum 17 — Simulation-only forward-model promotion gate
+
+**Decision:** before reopening live playback, add a single promotion verdict that
+combines the signal-level suppression, prediction-error learning, robustness
+sweep, world preservation, and wrong-efference negative control. This makes the
+simulation milestone auditable instead of relying on a collection of separate
+reports.
+
+**What was added (`src/cora_infans/io/self_suppression.py`):**
+- `run_forward_model_promotion_gate(...)`: produces
+  `mode=simulation_only_forward_model_promotion_gate` and evaluates five
+  explicit criteria:
+  1. learned model improves SVSR over the bad initial model,
+  2. exact prediction suppresses self above the SVSR threshold,
+  3. delay mismatch degrades suppression by the expected margin,
+  4. mixed world signal remains present in the residual,
+  5. wrong efference cannot pass as a learned self model.
+- The gate returns `promote_simulation_only` only when every criterion passes;
+  otherwise it returns `hold` and leaves the failed criteria visible.
+- `live_playback=false` and `live_playback_allowed=false` are deliberately part
+  of the result. Passing this gate promotes the simulation scaffold only; it is
+  not permission to add live speaker/mic playback.
+
+**CLI:**
+`python -m cora_infans --promote-self-forward-model --vowel a --world-vowel o
+--world-gain 0.25` emits the criteria table, the learning report, the robustness
+summary, the wrong-efference result, and the promotion/hold verdict.
+
+**Honesty boundary:** this gate is the final simulation checkpoint for the
+current forward-model work. It validates the cognitive prediction-error loop in
+a deterministic setting. A future live-playback milestone still needs a separate
+SPEAK state, mic-suppression window, latency measurement, and hardware-specific
+validation.
+
+**Validation:** tests assert the default gate promotes only when all criteria
+pass, an intentionally impossible world-preservation threshold forces `hold`,
+and the CLI reports the simulation-only verdict. Full suite: `pytest tests -q`
+→ 141 passed.

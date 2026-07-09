@@ -18,6 +18,7 @@ from cora_infans.io.self_suppression import (
     mix_observed,
     predict_self_pcm,
     run_forward_model_learning_trial,
+    run_forward_model_promotion_gate,
     run_forward_model_robustness_sweep,
     run_self_suppression_trial,
     spectral_subtract,
@@ -226,3 +227,31 @@ def test_forward_model_robustness_sweep_reports_delay_degradation_and_world_pres
     assert sweep["summary"]["best_case"]["world_gain"] == 0.0
     assert sweep["summary"]["max_world_residual_correlation"] > 0.2
     assert sweep["summary"]["worst_svsr_db"] < sweep["summary"]["best_svsr_db"]
+
+
+def test_forward_model_promotion_gate_promotes_only_when_all_simulation_gates_pass() -> None:
+    report = run_forward_model_promotion_gate(vowel="a", world_vowel="o", world_gain=0.25)
+
+    assert report["mode"] == "simulation_only_forward_model_promotion_gate"
+    assert report["live_playback"] is False
+    assert report["verdict"] == "promote_simulation_only"
+    assert report["recommendation"] == "ready_for_simulated_promotion_not_live_playback"
+    assert report["criteria"]["learned_model_improves_svsr"]["passed"] is True
+    assert report["criteria"]["exact_prediction_suppresses_self"]["passed"] is True
+    assert report["criteria"]["delay_mismatch_degrades"]["passed"] is True
+    assert report["criteria"]["world_signal_preserved"]["passed"] is True
+    assert report["criteria"]["wrong_efference_fails"]["passed"] is True
+    assert report["live_playback_allowed"] is False
+
+
+def test_forward_model_promotion_gate_holds_when_world_preservation_threshold_is_too_high() -> None:
+    report = run_forward_model_promotion_gate(
+        vowel="a",
+        world_vowel="o",
+        world_gain=0.25,
+        min_world_correlation=1.01,
+    )
+
+    assert report["verdict"] == "hold"
+    assert report["criteria"]["world_signal_preserved"]["passed"] is False
+    assert report["live_playback_allowed"] is False

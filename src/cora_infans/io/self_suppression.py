@@ -226,6 +226,131 @@ def fit_forward_model(
     return report
 
 
+def run_forward_model_promotion_gate(
+    *,
+    vowel: Vowel = "a",
+    world_vowel: Vowel | None = "o",
+    sample_rate: int = 16000,
+    duration_ms: int = 300,
+    observed_delay_ms: float = 18.0,
+    observed_attenuation: float = 0.55,
+    observed_echo_decay: float = 0.22,
+    world_gain: float = 0.25,
+    min_learning_improvement_db: float = 3.0,
+    min_exact_svsr_db: float = 20.0,
+    min_delay_degradation_db: float = 10.0,
+    min_world_correlation: float = 0.2,
+) -> dict[str, object]:
+    """Promotion gate for the simulation-only forward-model stack.
+
+    This is a go/no-go summary for simulated promotion only. It explicitly keeps
+    live playback disabled until a future SPEAK-state / mic-suppression milestone.
+    """
+    learning = run_forward_model_learning_trial(
+        vowel=vowel,
+        world_vowel=world_vowel,
+        sample_rate=sample_rate,
+        duration_ms=duration_ms,
+        observed_delay_ms=observed_delay_ms,
+        observed_attenuation=observed_attenuation,
+        observed_echo_decay=observed_echo_decay,
+        world_gain=world_gain,
+        svsr_pass_db=min_exact_svsr_db,
+    )
+    sweep = run_forward_model_robustness_sweep(
+        vowel=vowel,
+        world_vowel=world_vowel,
+        sample_rate=sample_rate,
+        duration_ms=duration_ms,
+        observed_delay_ms=observed_delay_ms,
+        observed_attenuation=observed_attenuation,
+        observed_echo_decay=observed_echo_decay,
+        delay_errors_ms=(-12.0, 0.0, 12.0),
+        attenuation_scales=(1.0,),
+        echo_decay_scales=(1.0,),
+        world_gains=(0.0, world_gain) if world_vowel is not None else (0.0,),
+        svsr_pass_db=min_exact_svsr_db,
+    )
+    cases = sweep["cases"]  # type: ignore[assignment]
+    exact_cases = [
+        case
+        for case in cases  # type: ignore[union-attr]
+        if case["delay_error_ms"] == 0.0 and case["world_gain"] == 0.0
+    ]
+    delayed_cases = [
+        case
+        for case in cases  # type: ignore[union-attr]
+        if abs(float(case["delay_error_ms"])) == 12.0 and case["world_gain"] == 0.0
+    ]
+    exact_svsr = max(float(case["svsr_db"]) for case in exact_cases)
+    delayed_best = max(float(case["svsr_db"]) for case in delayed_cases)
+    world_corr = sweep["summary"]["max_world_residual_correlation"]  # type: ignore[index]
+
+    observed_self = predict_self_pcm(
+        synthesize_vowel(vowel, duration_ms=duration_ms, sample_rate=sample_rate),
+        sample_rate=sample_rate,
+        delay_ms=observed_delay_ms,
+        attenuation=observed_attenuation,
+        echo_decay=observed_echo_decay,
+    )
+    wrong_vowel: Vowel = "i" if vowel != "i" else "a"
+    wrong = fit_forward_model(
+        synthesize_vowel(wrong_vowel, duration_ms=duration_ms, sample_rate=sample_rate),
+        observed_self,
+        sample_rate=sample_rate,
+        delay_grid_ms=(observed_delay_ms - 8.0, observed_delay_ms, observed_delay_ms + 8.0),
+        attenuation_grid=(observed_attenuation * 0.75, observed_attenuation, observed_attenuation * 1.25),
+        echo_decay_grid=(observed_echo_decay * 0.5, observed_echo_decay, observed_echo_decay * 1.5),
+        svsr_pass_db=min_exact_svsr_db,
+    )
+
+    criteria = {
+        "learned_model_improves_svsr": {
+            "passed": float(learning["svsr_improvement_db"]) >= min_learning_improvement_db,
+            "value": learning["svsr_improvement_db"],
+            "threshold": min_learning_improvement_db,
+        },
+        "exact_prediction_suppresses_self": {
+            "passed": exact_svsr >= min_exact_svsr_db,
+            "value": exact_svsr,
+            "threshold": min_exact_svsr_db,
+        },
+        "delay_mismatch_degrades": {
+            "passed": exact_svsr - delayed_best >= min_delay_degradation_db,
+            "value": exact_svsr - delayed_best,
+            "threshold": min_delay_degradation_db,
+        },
+        "world_signal_preserved": {
+            "passed": world_corr is not None and float(world_corr) >= min_world_correlation,
+            "value": world_corr,
+            "threshold": min_world_correlation,
+        },
+        "wrong_efference_fails": {
+            "passed": wrong["verdict"] != "learned_forward_model"
+            and exact_svsr > float(wrong["svsr_db"]) + min_delay_degradation_db,
+            "value": wrong["svsr_db"],
+            "threshold": f"< exact_svsr_db - {min_delay_degradation_db}",
+        },
+    }
+    passed = all(bool(item["passed"]) for item in criteria.values())
+    return {
+        "mode": "simulation_only_forward_model_promotion_gate",
+        "live_playback": False,
+        "live_playback_allowed": False,
+        "verdict": "promote_simulation_only" if passed else "hold",
+        "recommendation": (
+            "ready_for_simulated_promotion_not_live_playback"
+            if passed
+            else "hold_simulation_promotion_fix_failed_criteria"
+        ),
+        "criteria": criteria,
+        "learning": learning,
+        "robustness_summary": sweep["summary"],
+        "wrong_efference": wrong,
+    }
+
+
+
 def run_forward_model_robustness_sweep(
     *,
     vowel: Vowel = "a",

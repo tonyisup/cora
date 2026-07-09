@@ -522,6 +522,37 @@ def test_sweep_self_forward_model_command_reports_robustness_surface() -> None:
     assert payload["summary"]["max_world_residual_correlation"] > 0.2
 
 
+def test_promote_self_forward_model_command_reports_simulation_only_verdict() -> None:
+    env = os.environ.copy()
+    env["PYTHONPATH"] = "src"
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "cora_infans",
+            "--promote-self-forward-model",
+            "--vowel",
+            "a",
+            "--world-vowel",
+            "o",
+            "--world-gain",
+            "0.25",
+        ],
+        capture_output=True,
+        check=True,
+        text=True,
+        env=env,
+    )
+
+    payload = json.loads(result.stdout)
+    assert payload["mode"] == "simulation_only_forward_model_promotion_gate"
+    assert payload["verdict"] == "promote_simulation_only"
+    assert payload["live_playback"] is False
+    assert payload["live_playback_allowed"] is False
+    assert all(item["passed"] for item in payload["criteria"].values())
+
+
 
 def test_synthesize_vowel_command_writes_wav_and_closes_loop(tmp_path) -> None:
     env = os.environ.copy()

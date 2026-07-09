@@ -28,6 +28,7 @@ from .io.motor_plan import (  # noqa: E402
 from .io.self_suppression import (
     SelfSuppressionParams,
     run_forward_model_learning_trial,
+    run_forward_model_promotion_gate,
     run_forward_model_robustness_sweep,
     run_self_suppression_trial,
 )
@@ -56,6 +57,7 @@ def describe() -> dict[str, object]:
             "simulation_only_signal_self_suppression",
             "simulation_only_forward_model_learning",
             "simulation_only_forward_model_robustness_sweep",
+            "simulation_only_forward_model_promotion_gate",
         ],
 
         "planned_subsystems": [
@@ -650,6 +652,103 @@ def sweep_self_forward_model_cli(args: list[str]) -> dict[str, object]:
 
 
 
+def promote_self_forward_model_cli(args: list[str]) -> dict[str, object]:
+    vowel = "a"
+    world_vowel: str | None = "o"
+    sample_rate = 16000
+    duration_ms = 300
+    observed_delay_ms = 18.0
+    observed_attenuation = 0.55
+    observed_echo_decay = 0.22
+    world_gain = 0.25
+    min_learning_improvement_db = 3.0
+    min_exact_svsr_db = 20.0
+    min_delay_degradation_db = 10.0
+    min_world_correlation = 0.2
+    i = 1
+    while i < len(args):
+        option = args[i]
+        if i + 1 >= len(args):
+            raise ValueError(f"missing value for {option}")
+        value = args[i + 1]
+        if option == "--vowel":
+            if value not in VOWEL_FORMANTS_HZ:
+                raise ValueError(f"unknown vowel: {value!r}")
+            vowel = value
+        elif option == "--world-vowel":
+            if value not in VOWEL_FORMANTS_HZ:
+                raise ValueError(f"unknown world vowel: {value!r}")
+            world_vowel = value
+        elif option == "--sample-rate":
+            try:
+                sample_rate = int(value)
+            except ValueError as exc:
+                raise ValueError("invalid sample rate") from exc
+        elif option == "--duration-ms":
+            try:
+                duration_ms = int(value)
+            except ValueError as exc:
+                raise ValueError("invalid duration") from exc
+        elif option == "--observed-delay-ms":
+            try:
+                observed_delay_ms = float(value)
+            except ValueError as exc:
+                raise ValueError("invalid observed delay") from exc
+        elif option == "--observed-attenuation":
+            try:
+                observed_attenuation = float(value)
+            except ValueError as exc:
+                raise ValueError("invalid observed attenuation") from exc
+        elif option == "--observed-echo-decay":
+            try:
+                observed_echo_decay = float(value)
+            except ValueError as exc:
+                raise ValueError("invalid observed echo decay") from exc
+        elif option == "--world-gain":
+            try:
+                world_gain = float(value)
+            except ValueError as exc:
+                raise ValueError("invalid world gain") from exc
+        elif option == "--min-learning-improvement-db":
+            try:
+                min_learning_improvement_db = float(value)
+            except ValueError as exc:
+                raise ValueError("invalid learning threshold") from exc
+        elif option == "--min-exact-svsr-db":
+            try:
+                min_exact_svsr_db = float(value)
+            except ValueError as exc:
+                raise ValueError("invalid exact SVSR threshold") from exc
+        elif option == "--min-delay-degradation-db":
+            try:
+                min_delay_degradation_db = float(value)
+            except ValueError as exc:
+                raise ValueError("invalid delay degradation threshold") from exc
+        elif option == "--min-world-correlation":
+            try:
+                min_world_correlation = float(value)
+            except ValueError as exc:
+                raise ValueError("invalid world correlation threshold") from exc
+        else:
+            raise ValueError(f"unknown option: {option}")
+        i += 2
+    return run_forward_model_promotion_gate(
+        vowel=vowel,  # type: ignore[arg-type]
+        world_vowel=world_vowel,  # type: ignore[arg-type]
+        sample_rate=sample_rate,
+        duration_ms=duration_ms,
+        observed_delay_ms=observed_delay_ms,
+        observed_attenuation=observed_attenuation,
+        observed_echo_decay=observed_echo_decay,
+        world_gain=world_gain,
+        min_learning_improvement_db=min_learning_improvement_db,
+        min_exact_svsr_db=min_exact_svsr_db,
+        min_delay_degradation_db=min_delay_degradation_db,
+        min_world_correlation=min_world_correlation,
+    )
+
+
+
 def main(argv: list[str] | None = None) -> int:
     args = argv if argv is not None else sys.argv[1:]
     if args == ["--describe"]:
@@ -721,6 +820,13 @@ def main(argv: list[str] | None = None) -> int:
         except ValueError as exc:
             print(str(exc), file=sys.stderr)
             return 2
+    if args and args[0] == "--promote-self-forward-model":
+        try:
+            print(json.dumps(promote_self_forward_model_cli(args)))
+            return 0
+        except ValueError as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
     if args and args[0] in ("--snapshot-firmware", "--tune-raw-linear"):
         from .io.hardware_tuner import HardwareTuner, HardwareTunerError
 
@@ -746,7 +852,8 @@ def main(argv: list[str] | None = None) -> int:
         "[--synthesize-vowel a|e|i|o|u --out PATH.wav [--duration-ms N] [--sample-rate N] [--f0-hz F] [--analyze]] "
         "[--simulate-self-suppression [--vowel a|e|i|o|u] [--world-vowel a|e|i|o|u] [--world-gain F] [--duration-ms N] [--sample-rate N]] "
         "[--learn-self-forward-model [--vowel a|e|i|o|u] [--observed-delay-ms F] [--observed-attenuation F] [--observed-echo-decay F] [--world-vowel a|e|i|o|u] [--world-gain F]] "
-        "[--sweep-self-forward-model [--vowel a|e|i|o|u] [--delay-errors-ms csv] [--attenuation-scales csv] [--echo-decay-scales csv] [--world-vowel a|e|i|o|u] [--world-gain F]]",
+        "[--sweep-self-forward-model [--vowel a|e|i|o|u] [--delay-errors-ms csv] [--attenuation-scales csv] [--echo-decay-scales csv] [--world-vowel a|e|i|o|u] [--world-gain F]] "
+        "[--promote-self-forward-model [--vowel a|e|i|o|u] [--world-vowel a|e|i|o|u] [--world-gain F] [--min-world-correlation F]]",
         file=sys.stderr,
     )
     return 2
