@@ -313,3 +313,58 @@ def write_wav(path: str, wav: np.ndarray, sample_rate: int = 16000) -> None:
         w.setsampwidth(2)
         w.setframerate(sample_rate)
         w.writeframes(pcm.tobytes())
+
+
+def synthesize_tone(
+    freq_hz: float = 1000.0,
+    *,
+    duration_ms: int = 300,
+    sample_rate: int = 16000,
+    amplitude: float = 0.8,
+) -> np.ndarray:
+    """Synthesize a pure sinusoid (a calibration probe, not a vowel).
+
+    Used for latency estimation where a single-frequency tone gives a cleaner
+    cross-correlation peak than a vowel. No biological claim — it is a test
+    stimulus, explicitly documented as such.
+    """
+    n = int(duration_ms / 1000.0 * sample_rate)
+    t = np.arange(n) / sample_rate
+    sig = np.sin(2 * np.pi * freq_hz * t) * amplitude
+    ramp = int(0.005 * sample_rate)
+    if ramp > 0 and ramp * 2 < n:
+        env = np.ones(n)
+        env[:ramp] = np.linspace(0.0, 1.0, ramp)
+        env[-ramp:] = np.linspace(1.0, 0.0, ramp)
+        sig = sig * env
+    peak = float(np.max(np.abs(sig))) or 1.0
+    return (sig / peak).astype(np.float32)
+
+
+def synthesize_chirp(
+    f0_hz: float = 200.0,
+    f1_hz: float = 4000.0,
+    *,
+    duration_ms: int = 300,
+    sample_rate: int = 16000,
+) -> np.ndarray:
+    """Synthesize a linear-frequency sweep (chirp) — the standard latency probe.
+
+    A chirp has a unique, unambiguous cross-correlation peak (its instantaneous
+    frequency keeps changing), so the playback→capture delay is locked far more
+    reliably than with a stationary vowel or tone. Test stimulus only; no
+    biological claim.
+    """
+    n = int(duration_ms / 1000.0 * sample_rate)
+    t = np.arange(n) / sample_rate
+    k = (f1_hz - f0_hz) / (duration_ms / 1000.0)
+    phase = 2 * np.pi * (f0_hz * t + 0.5 * k * t * t)
+    sig = np.sin(phase)
+    ramp = int(0.005 * sample_rate)
+    if ramp > 0 and ramp * 2 < n:
+        env = np.ones(n)
+        env[:ramp] = np.linspace(0.0, 1.0, ramp)
+        env[-ramp:] = np.linspace(1.0, 0.0, ramp)
+        sig = sig * env
+    peak = float(np.max(np.abs(sig))) or 1.0
+    return (sig / peak).astype(np.float32)

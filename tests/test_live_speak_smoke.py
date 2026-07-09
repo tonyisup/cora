@@ -279,3 +279,73 @@ def test_real_io_trials_flag_unstable_when_spread_exceeds_threshold(tmp_path) ->
     assert report["trials_ok"] == 4
     assert report["latency_stats"]["std"] > 2.0
     assert report["latency_stable"] is False
+
+
+def test_chirp_latency_is_recovered_deterministically_at_clean_snr() -> None:
+    # The chirp probe recovers a known injected delay exactly (no spread) when the
+    # captured signal is clean — the precondition for a stable real-world latency.
+    # Under heavy room-tone noise the estimator degrades for both stimuli (documented
+    # empirically); a clean recovery here proves the estimator+probe path is correct.
+    import numpy as np
+
+    from cora_infans.io.motor_plan import synthesize_chirp
+    from cora_infans.live_speak_smoke import estimate_playback_latency_ms
+
+    sample_rate = 16000
+    true_delay = 53  # samples
+    sig = synthesize_chirp(duration_ms=300, sample_rate=sample_rate)
+    ref = (sig * 30000).astype("<i2")
+    captured = np.zeros(len(sig) + true_delay, dtype="<i2")
+    captured[true_delay : true_delay + len(sig)] = ref
+    # Light noise only — clean enough that the chirp peak is unambiguous.
+    rng = np.random.default_rng(1)
+    captured = (
+        captured + (rng.standard_normal(len(captured)) * 50).astype("<i2")
+    ).astype("<i2")
+
+    ests = [
+        estimate_playback_latency_ms(
+            efference_pcm=ref, captured_pcm=captured[: len(ref)], sample_rate=sample_rate
+        )
+        for _ in range(8)
+    ]
+    ests = [e for e in ests if e is not None]
+    assert len(ests) == 8
+    assert max(ests) - min(ests) <= 1.0  # stable
+    assert abs(float(np.mean(ests)) - true_delay / sample_rate * 1000.0) <= 1.0
+
+
+def test_synthesize_tone_and_chirp_are_bounded_unit_waveforms() -> None:
+    import numpy as np
+
+    from cora_infans.io.motor_plan import synthesize_chirp, synthesize_tone
+
+    tone = synthesize_tone(freq_hz=1000.0, duration_ms=200, sample_rate=16000)
+    chirp = synthesize_chirp(duration_ms=200, sample_rate=16000)
+    for sig in (tone, chirp):
+        assert sig.dtype == np.float32
+        assert abs(float(np.max(np.abs(sig))) - 1.0) < 1e-3  # normalized to [-1, 1]
+        assert len(sig) == int(0.2 * 16000)
+
+
+def test_real_playback_passes_volume_db_to_ffmpeg(monkeypatch) -> None:
+    # Verify the volume parameter is forwarded into the ffmpeg command (without
+    # actually invoking ffmpeg) so higher/lower gains are honored.
+    import cora_infans.live_speak_smoke as sm
+
+    captured: dict[str, object] = {}
+
+    class _FakePopen:
+        returncode = 0
+
+        def wait(self) -> None:
+            captured["waited"] = True
+
+    def _fake_popen(cmd, **kw):  # type: ignore[no-untyped-def]
+        captured["cmd"] = cmd
+        return _FakePopen()
+
+    monkeypatch.setattr(sm.subprocess, "Popen", _fake_popen)
+    sm.play_wav_to_device("/tmp/x.wav", device_index=2, volume_db=-6.0)
+    assert captured["waited"]
+    assert any("volume=-6.0dB" in str(c) for c in captured["cmd"])

@@ -393,3 +393,44 @@ until `latency_stable=True`, only then consider subtraction.
 
 **Validation:** full suite: `pytest tests -q` → 187 passed. CLI `--fake-io` and
 `--real-io --trials 1` paths untouched in behavior; `--trials N` routes correctly.
+
+## M8-infans stimulus/volume variants — latency sweep
+
+**Decision (2026-07-09, user-approved):** run tone + chirp probes at two volumes to
+find which variant stabilizes playback→capture latency. Higher gain and a swept
+chirp were hypothesized to help the XCORR lock a consistent delay.
+
+**What was added:**
+- `synthesize_tone` / `synthesize_chirp` in `io/motor_plan.py`: pure calibration
+  probes (no biological claim), normalized to [-1,1] with short ramps.
+- `play_wav_to_device` gained `volume_db` (forwarded to ffmpeg `volume=…dB`).
+- A `StimulusSpec` dataclass + `stimulus` param threaded through
+  `run_live_speak_smoke_trial`, `run_real_io_speak_trial`, `run_real_io_speak_trials`.
+- CLI `--stimulus {vowel|tone|chirp}`, `--volume-db`, `--tone-hz`, `--chirp-f0`,
+  `--chirp-f1`. Usage updated.
+
+**Tests (TDD):** chirp recovers a known delay deterministically at clean SNR;
+tone/chirp are bounded unit waveforms; `volume_db` is forwarded to ffmpeg. Suite
+now 190 passed.
+
+**Real-hardware sweep (4 trials each, vowel-free, device 2 / input `:0`, 300/1500 ms):**
+
+| variant | trials_ok | mean ms | std ms | min | max | stable |
+|---|---|---|---|---|---|---|
+| chirp @12dB | 4/4 | 0.48 | 6.57 | -9.19 | 7.48 | False |
+| chirp @24dB | 4/4 | 3.89 | 2.93 | -0.17 | 6.98 | False |
+| tone @12dB  | 4/4 | 3.79 | 8.30 | -10.35 | 10.40 | False |
+| tone @24dB  | 4/4 | -2.23 | 4.97 | -8.94 | 4.10 | False |
+
+**Honest read:** no variant reaches `latency_stable=True` (all std ≫ 2 ms). Clear
+trend: louder stimulus tightens spread (chirp 6.57→2.93; tone 8.30→4.97), and the
+chirp beats the tone at equal gain. The residual ~3 ms spread is dominated by the
+room/reverb path, not the probe. Volume and chirp help, but neither stabilizes
+latency at the current mic distance/angle. The honest next lever is mic
+proximity/orientation (or a fixed reference-tone burst), not more gain.
+
+**Honesty boundary:** still `tag_only`. Latency is not yet stable, so no
+signal-level self-subtraction is authorized. This sweep is a measurement of the
+acoustic path, not a claim of alignment fidelity.
+
+**Validation:** full suite: `pytest tests -q` → 190 passed.

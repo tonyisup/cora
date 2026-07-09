@@ -37,6 +37,7 @@ from .speaking_simulator import (
     run_speaking_readiness_gate,
 )
 from .live_speak_smoke import (
+    StimulusSpec,
     capture_to_wav,
     play_wav_to_device,
     run_live_speak_smoke_trial,
@@ -828,6 +829,11 @@ def speak_live_smoke_cli(args: list[str]) -> dict[str, object]:
     use_real_io = False
     input_device = ":0"
     output_device_index = 2
+    stimulus_kind = "vowel"
+    volume_db = 12.0
+    tone_hz = 1000.0
+    chirp_f0 = 200.0
+    chirp_f1 = 4000.0
     i = 1
     while i < len(args):
         option = args[i]
@@ -856,6 +862,16 @@ def speak_live_smoke_cli(args: list[str]) -> dict[str, object]:
             output_device_index = int(value)
         elif option == "--trials":
             trials = int(value)
+        elif option == "--stimulus":
+            stimulus_kind = value
+        elif option == "--volume-db":
+            volume_db = float(value)
+        elif option == "--tone-hz":
+            tone_hz = float(value)
+        elif option == "--chirp-f0":
+            chirp_f0 = float(value)
+        elif option == "--chirp-f1":
+            chirp_f1 = float(value)
         else:
             raise ValueError(f"unknown option: {option}")
         i += 2
@@ -863,6 +879,15 @@ def speak_live_smoke_cli(args: list[str]) -> dict[str, object]:
         raise ValueError("--out-dir is required")
     if use_fake_io and use_real_io:
         raise ValueError("--fake-io and --real-io are mutually exclusive")
+
+    if stimulus_kind == "vowel":
+        stimulus = StimulusSpec(kind="vowel", vowel=vowel)
+    elif stimulus_kind == "tone":
+        stimulus = StimulusSpec(kind="tone", freq_hz=tone_hz)
+    elif stimulus_kind == "chirp":
+        stimulus = StimulusSpec(kind="chirp", f0_hz=chirp_f0, f1_hz=chirp_f1)
+    else:
+        raise ValueError(f"unknown --stimulus: {stimulus_kind!r}")
 
     if use_real_io:
         # Real hardware path: bounded, gated, tag_only. The readiness gate is
@@ -872,7 +897,10 @@ def speak_live_smoke_cli(args: list[str]) -> dict[str, object]:
         # until output finishes.
         def _real_playback(path: str) -> dict[str, object]:
             return play_wav_to_device(
-                path, device_index=output_device_index, sample_rate=48000
+                path,
+                device_index=output_device_index,
+                sample_rate=48000,
+                volume_db=volume_db,
             )
 
         def _real_capture(path: str, *, sample_rate: int, duration_ms: int) -> dict[str, object]:
@@ -887,6 +915,7 @@ def speak_live_smoke_cli(args: list[str]) -> dict[str, object]:
                 playback_fn=_real_playback,
                 capture_fn=_real_capture,
                 trials=trials,
+                stimulus=stimulus,
                 sample_rate=48000,
                 duration_ms=duration_ms,
                 max_capture_ms=max_capture_ms,
@@ -897,6 +926,7 @@ def speak_live_smoke_cli(args: list[str]) -> dict[str, object]:
             out_dir=out_dir,
             playback_fn=_real_playback,
             capture_fn=_real_capture,
+            stimulus=stimulus,
             sample_rate=48000,
             duration_ms=duration_ms,
             max_capture_ms=max_capture_ms,
@@ -1065,7 +1095,7 @@ def main(argv: list[str] | None = None) -> int:
         "[--promote-self-forward-model [--vowel a|e|i|o|u] [--world-vowel a|e|i|o|u] [--world-gain F] [--min-world-correlation F]] "
         "[--promote-speaking-policy [--min-reward-ratio F]] "
         "[--promote-speaking-readiness [--min-speaking-reward-ratio F] [--min-self-world-correlation F]] "
-        "[--speak-live-smoke --out-dir DIR [--vowel a|e|i|o|u] [--duration-ms N] [--max-capture-ms N] [--fake-io] [--real-io [--input-device :0] [--output-device-index 2] [--trials N]]]",
+        "[--speak-live-smoke --out-dir DIR [--vowel a|e|i|o|u] [--duration-ms N] [--max-capture-ms N] [--fake-io] [--real-io [--input-device :0] [--output-device-index 2] [--trials N] [--stimulus vowel|tone|chirp] [--volume-db F] [--tone-hz F] [--chirp-f0 F] [--chirp-f1 F]]]",
         file=sys.stderr,
     )
     return 2

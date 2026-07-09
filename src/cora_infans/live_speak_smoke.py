@@ -17,13 +17,49 @@ from typing import Callable
 
 import numpy as np
 
-from .io.motor_plan import Vowel, synthesize_vowel, write_wav
+from dataclasses import dataclass
+
+from .io.motor_plan import (
+    Vowel,
+    synthesize_chirp,
+    synthesize_tone,
+    synthesize_vowel,
+    write_wav,
+)
 from .speaking_simulator import run_speaking_readiness_gate
 
 PlaybackFn = Callable[[str], dict[str, object]]
 CaptureFn = Callable[..., dict[str, object]]
 GateFn = Callable[[], dict[str, object]]
 LatencyEstimator = Callable[..., float | None]
+
+
+@dataclass(frozen=True)
+class StimulusSpec:
+    """A test stimulus for the live SPEAK probe (not a biological claim)."""
+
+    kind: str  # "vowel" | "tone" | "chirp"
+    vowel: str = "a"
+    freq_hz: float = 1000.0
+    f0_hz: float = 200.0
+    f1_hz: float = 4000.0
+    amplitude: float = 0.8
+
+    @property
+    def key(self) -> str:
+        if self.kind == "vowel":
+            return f"v{self.vowel}"
+        if self.kind == "tone":
+            return f"t{int(self.freq_hz)}"
+        if self.kind == "chirp":
+            return f"c{int(self.f0_hz)}-{int(self.f1_hz)}"
+        return "unknown"
+
+
+def _stimulus_for(*, stimulus: "StimulusSpec | None", vowel: Vowel) -> "StimulusSpec":
+    if stimulus is None:
+        return StimulusSpec(kind="vowel", vowel=vowel)
+    return stimulus
 
 
 def _default_latency_estimator(
@@ -84,24 +120,46 @@ def estimate_playback_latency_ms(
     return round(best_lag / float(sample_rate) * 1000.0, 3)
 
 
-def _efference_id(*, vowel: str, sample_rate: int, duration_ms: int) -> str:
-    raw = f"{vowel}:{sample_rate}:{duration_ms}".encode("utf-8")
+def _efference_id(*, stimulus_key: str, sample_rate: int, duration_ms: int) -> str:
+    raw = f"{stimulus_key}:{sample_rate}:{duration_ms}".encode("utf-8")
     return hashlib.sha1(raw).hexdigest()[:12]
 
 
 def _prepare_efference(
     *,
-    vowel: Vowel,
+    stimulus: "StimulusSpec",
     out_dir: Path,
     sample_rate: int,
     duration_ms: int,
 ) -> tuple[str, Path, np.ndarray]:
-    """Synthesize and write the planned efference WAV; return its id, path, PCM."""
+    """Synthesize and write the planned efference WAV; return its id, path, PCM.
+
+    ``stimulus`` selects the probe: a vowel (analysis-by-synthesis), a pure tone,
+    or a chirp (the standard latency probe). All are explicitly test stimuli.
+    """
     if duration_ms <= 0:
         raise ValueError("duration_ms must be positive")
-    eid = _efference_id(vowel=vowel, sample_rate=sample_rate, duration_ms=duration_ms)
-    efference_wav = out_dir / f"efference_{eid}_{vowel}.wav"
-    pcm = synthesize_vowel(vowel, sample_rate=sample_rate, duration_ms=duration_ms)
+    eid = _efference_id(
+        stimulus_key=stimulus.key, sample_rate=sample_rate, duration_ms=duration_ms
+    )
+    efference_wav = out_dir / f"efference_{eid}_{stimulus.key}.wav"
+    if stimulus.kind == "vowel":
+        pcm = synthesize_vowel(
+            stimulus.vowel,  # type: ignore[arg-type]
+            sample_rate=sample_rate,
+            duration_ms=duration_ms,
+        )
+    elif stimulus.kind == "tone":
+        pcm = synthesize_tone(
+            stimulus.freq_hz, duration_ms=duration_ms, sample_rate=sample_rate,
+            amplitude=stimulus.amplitude,
+        )
+    elif stimulus.kind == "chirp":
+        pcm = synthesize_chirp(
+            stimulus.f0_hz, stimulus.f1_hz, duration_ms=duration_ms, sample_rate=sample_rate
+        )
+    else:
+        raise ValueError(f"unknown stimulus kind: {stimulus.kind!r}")
     write_wav(str(efference_wav), pcm, sample_rate)
     return eid, efference_wav, pcm
 
@@ -110,9 +168,9 @@ def _read_wav_pcm_int16(path: str) -> np.ndarray:
     with wave.open(path, "rb") as w:
         raw = w.readframes(w.getnframes())
     return np.frombuffer(raw, dtype="<i2")
-
-
-def play_wav_to_device(path: str, *, device_index: int, sample_rate: int = 48000) -> dict[str, object]:
+def play_wav_to_device(
+    path: str, *, device_index: int, sample_rate: int = 48000, volume_db: float = 12.0
+) -> dict[str, object]:
     """Play a WAV to an explicit output device via ffmpeg audiotoolbox.
 
     Non-blocking: returns a Popen handle the caller must wait on. Raises
@@ -125,7 +183,7 @@ def play_wav_to_device(path: str, *, device_index: int, sample_rate: int = 48000
     cmd = [
         ffmpeg, "-hide_banner", "-loglevel", "error", "-y",
         "-i", path,
-        "-af", "volume=12dB",
+        "-af", f"volume={volume_db}dB",
         "-f", "audiotoolbox", "-audio_device_index", str(device_index),
         "/tmp/_cora_speak_sink.wav",
     ]
@@ -220,6 +278,7 @@ def run_live_speak_smoke_trial(
     out_dir: str,
     playback_fn: PlaybackFn | None = None,
     capture_fn: CaptureFn | None = None,
+    stimulus: "StimulusSpec | None" = None,
     sample_rate: int = 16000,
     duration_ms: int = 300,
     max_capture_ms: int = 1500,
@@ -234,10 +293,11 @@ def run_live_speak_smoke_trial(
         raise ValueError("duration_ms and max_capture_ms must be positive")
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
+    stim = _stimulus_for(stimulus=stimulus, vowel=vowel)
     eid, efference_wav, pcm = _prepare_efference(
-        vowel=vowel, out_dir=out, sample_rate=sample_rate, duration_ms=duration_ms
+        stimulus=stim, out_dir=out, sample_rate=sample_rate, duration_ms=duration_ms
     )
-    captured_wav = out / f"captured_{eid}_{vowel}.wav"
+    captured_wav = out / f"captured_{eid}_{stim.key}.wav"
 
     base: dict[str, object] = {
         "mode": "bounded_live_speak_smoke",
@@ -289,6 +349,7 @@ def run_real_io_speak_trial(
     capture_fn: CaptureFn,
     readiness_gate_fn: GateFn | None = None,
     latency_estimator: LatencyEstimator | None = None,
+    stimulus: "StimulusSpec | None" = None,
     sample_rate: int = 48000,
     duration_ms: int = 300,
     max_capture_ms: int = 1500,
@@ -328,10 +389,11 @@ def run_real_io_speak_trial(
         raise ValueError("duration_ms and max_capture_ms must be positive")
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
+    stim = _stimulus_for(stimulus=stimulus, vowel=vowel)
     eid, efference_wav, pcm = _prepare_efference(
-        vowel=vowel, out_dir=out, sample_rate=sample_rate, duration_ms=duration_ms
+        stimulus=stim, out_dir=out, sample_rate=sample_rate, duration_ms=duration_ms
     )
-    captured_wav = out / f"captured_{eid}_{vowel}.wav"
+    captured_wav = out / f"captured_{eid}_{stim.key}.wav"
 
     latency_aligned_ms: float | None = None
     error: str | None = None
@@ -396,6 +458,7 @@ def run_real_io_speak_trials(
     trials: int = 3,
     readiness_gate_fn: GateFn | None = None,
     latency_estimator: LatencyEstimator | None = None,
+    stimulus: "StimulusSpec | None" = None,
     latency_jitter_ms: float = 2.0,
     sample_rate: int = 48000,
     duration_ms: int = 300,
@@ -431,6 +494,7 @@ def run_real_io_speak_trials(
             out_dir=str(trial_dir / f"t{n + 1}"),
             playback_fn=playback_fn,
             capture_fn=capture_fn,
+            stimulus=stimulus,
             readiness_gate_fn=readiness_gate_fn,
             latency_estimator=latency_estimator,
             sample_rate=sample_rate,
