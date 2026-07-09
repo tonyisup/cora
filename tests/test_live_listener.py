@@ -489,6 +489,87 @@ def test_motor_imitation_loop_closes_end_to_end_with_subtraction(tmp_path) -> No
     assert "forward_model_fit" in trial
     assert trial.get("world_residual") is not None
     assert trial["world_residual"]["applied"] is True
+
+
+def test_motor_imitation_end_to_end_self_subtraction_report_shape(tmp_path) -> None:
+    # Phase 2 Task 5: full-loop integration (no hardware) with self-subtraction:
+    # the per-trial record carries the forward-model fit, the world_residual, the
+    # real-data promotion gate, and the resulting contamination_policy.
+    import numpy as np
+
+    from cora_infans.io.live_listener import LiveListener
+    from cora_infans.io.motor_plan import write_wav
+    from cora_infans.io.self_suppression import mix_observed, predict_self_pcm
+    from cora_infans.pipeline import AudioFrame
+
+    pcm = (np.sin(np.arange(3200) * 0.05) * 30000).astype("<i2")
+    sr = 48000
+    n = sr // 4
+    eff = (np.sin(np.arange(n) * 0.05) * 0.8).astype(np.float32)
+    world = (np.sin(np.arange(n) * 0.20) * 0.3).astype(np.float32)
+    observed = mix_observed(
+        predict_self_pcm(eff, sample_rate=sr, delay_ms=0.0, attenuation=0.55, echo_decay=0.22),
+        world,
+        world_gain=1.0,
+    )
+
+    class _FakeArray:
+        channel_count = 2
+
+        def capture_frame(self, *, duration_ms=None, dominant_frequency_hz=None):
+            return AudioFrame(
+                timestamp_ms=0, channel_energies=[0.05, 0.01], dominant_frequency_hz=1000.0
+            )
+
+    _FakeArray.last_pcm = pcm  # type: ignore[attr-defined]
+
+    class _FakeTuner:
+        is_real_hardware = False
+
+        def read_selected_azimuths(self):
+            return [0.0, 90.0]
+
+        def read_doa(self):
+            class _D:
+                azimuth_deg = 0.0
+                speech_detected = True
+
+            return _D()
+
+    def fake_play(path, *, device_index, sample_rate, volume_db):
+        return {"backend": "fake", "completed": True}
+
+    def fake_capture(path, *, device, sample_rate, duration_ms):
+        # Record the world so correlation comes out finite/meaningful.
+        write_wav(path, (np.clip(observed, -1.0, 1.0) * 32767.0).astype("<i2"), sample_rate)
+        return {"backend": "fake", "completed": True}
+
+    listener = LiveListener(_FakeArray(), tuner=_FakeTuner())
+    report = listener.listen(
+        duration_ms=200,
+        frame_ms=200,
+        with_attention=True,
+        with_motor_imitation=True,
+        motor_imitation_gate_fn=lambda: {"verdict": "promote_simulation_only"},
+        motor_imitation_playback_fn=fake_play,
+        motor_imitation_capture_fn=fake_capture,
+        motor_imitation_out_dir=str(tmp_path),
+        latency_anchor_ms=-0.62,
+        do_self_subtraction=True,
+    )
+    mi = report["motor_imitation"]
+    assert mi is not None and mi["trial_count"] == 1
+    t = mi["trials"][0]
+    # Every Phase 2 field is present and well-formed on the real-data path.
+    assert t["forward_model_fit"] is not None
+    assert t["forward_model_fit"]["svsr_db"] is not None
+    assert t["world_residual"] is not None
+    assert t["world_residual"]["applied"] is True
+    assert "svsr_db" in t["world_residual"]
+    assert t["self_subtraction_gate"] is not None
+    assert t["self_subtraction_gate"]["verdict"] in ("promote", "hold")
+    assert t["contamination_policy"] in ("tag_only", "self_subtract_live")
+
     # Full loop without hardware: heard frame -> perception -> motor plan ->
     # gated playback -> corollary capture -> frame tags -> imitation quality.
     import numpy as np
