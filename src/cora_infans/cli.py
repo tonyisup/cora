@@ -41,6 +41,7 @@ from .live_speak_smoke import (
     play_wav_to_device,
     run_live_speak_smoke_trial,
     run_real_io_speak_trial,
+    run_real_io_speak_trials,
 )
 
 
@@ -822,6 +823,7 @@ def speak_live_smoke_cli(args: list[str]) -> dict[str, object]:
     vowel: str = "a"
     duration_ms = 300
     max_capture_ms = 1500
+    trials = 1
     use_fake_io = False
     use_real_io = False
     input_device = ":0"
@@ -852,6 +854,8 @@ def speak_live_smoke_cli(args: list[str]) -> dict[str, object]:
             input_device = value
         elif option == "--output-device-index":
             output_device_index = int(value)
+        elif option == "--trials":
+            trials = int(value)
         else:
             raise ValueError(f"unknown option: {option}")
         i += 2
@@ -874,6 +878,18 @@ def speak_live_smoke_cli(args: list[str]) -> dict[str, object]:
         def _real_capture(path: str, *, sample_rate: int, duration_ms: int) -> dict[str, object]:
             return capture_to_wav(
                 path, device=input_device, sample_rate=sample_rate, duration_ms=duration_ms
+            )
+
+        if trials > 1:
+            return run_real_io_speak_trials(
+                vowel=vowel,  # type: ignore[arg-type]
+                out_dir=out_dir,
+                playback_fn=_real_playback,
+                capture_fn=_real_capture,
+                trials=trials,
+                sample_rate=48000,
+                duration_ms=duration_ms,
+                max_capture_ms=max_capture_ms,
             )
 
         return run_real_io_speak_trial(
@@ -1049,7 +1065,7 @@ def main(argv: list[str] | None = None) -> int:
         "[--promote-self-forward-model [--vowel a|e|i|o|u] [--world-vowel a|e|i|o|u] [--world-gain F] [--min-world-correlation F]] "
         "[--promote-speaking-policy [--min-reward-ratio F]] "
         "[--promote-speaking-readiness [--min-speaking-reward-ratio F] [--min-self-world-correlation F]] "
-        "[--speak-live-smoke --out-dir DIR [--vowel a|e|i|o|u] [--duration-ms N] [--max-capture-ms N] [--fake-io] [--real-io [--input-device :0] [--output-device-index 2]]]",
+        "[--speak-live-smoke --out-dir DIR [--vowel a|e|i|o|u] [--duration-ms N] [--max-capture-ms N] [--fake-io] [--real-io [--input-device :0] [--output-device-index 2] [--trials N]]]",
         file=sys.stderr,
     )
     return 2

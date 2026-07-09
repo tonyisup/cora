@@ -185,3 +185,97 @@ def test_real_io_runs_with_promoted_gate_using_injected_fakes(tmp_path) -> None:
     states = [t["speak_state"] for t in report["frame_tags"]]
     assert states[0] == "READY_TO_SPEAK"
     assert "SPEAKING" in states
+
+
+def test_real_io_trials_aggregate_latency_stats_with_stable_estimator(tmp_path) -> None:
+    # Multi-trial harness: runs N real trials and reports latency mean/std/min/max.
+    # With a deterministic injected estimator the spread is zero and the harness
+    # flags latency_stable=True (the precondition for any later subtraction).
+    import numpy as np
+
+    from cora_infans.live_speak_smoke import run_real_io_speak_trials
+
+    def _gate() -> dict[str, object]:
+        return {"verdict": "promote_simulation_only", "live_playback_allowed": False}
+
+    def _fake_play(path: str) -> dict[str, object]:
+        return {"backend": "fake", "completed": True}
+
+    def _fake_capture(path: str, *, sample_rate: int, duration_ms: int) -> dict[str, object]:
+        samples = int(sample_rate * duration_ms / 1000)
+        pcm = np.zeros(samples, dtype="<i2")
+        with wave.open(path, "wb") as w:
+            w.setnchannels(1)
+            w.setsampwidth(2)
+            w.setframerate(sample_rate)
+            w.writeframes(pcm.tobytes())
+        return {"backend": "fake", "completed": True}
+
+    def _est(*, efference_pcm: object, captured_pcm: object, sample_rate: int) -> float:
+        return 12.0
+
+    report = run_real_io_speak_trials(
+        vowel="a",
+        out_dir=str(tmp_path),
+        playback_fn=_fake_play,
+        capture_fn=_fake_capture,
+        readiness_gate_fn=_gate,
+        latency_estimator=_est,
+        trials=4,
+        sample_rate=16000,
+    )
+
+    assert report["verdict"] == "trials_complete"
+    assert report["trials_run"] == 4
+    assert report["trials_ok"] == 4
+    assert report["latency_stats"]["mean"] == 12.0
+    assert report["latency_stats"]["std"] == 0.0
+    assert report["latency_stats"]["min"] == 12.0
+    assert report["latency_stats"]["max"] == 12.0
+    assert report["latency_stable"] is True
+
+
+def test_real_io_trials_flag_unstable_when_spread_exceeds_threshold(tmp_path) -> None:
+    # If the per-trial latency varies beyond the jitter threshold, the harness must
+    # NOT claim stability — honest precondition for signal-level subtraction.
+    import numpy as np
+
+    from cora_infans.live_speak_smoke import run_real_io_speak_trials
+
+    def _gate() -> dict[str, object]:
+        return {"verdict": "promote_simulation_only", "live_playback_allowed": False}
+
+    def _fake_play(path: str) -> dict[str, object]:
+        return {"backend": "fake", "completed": True}
+
+    def _fake_capture(path: str, *, sample_rate: int, duration_ms: int) -> dict[str, object]:
+        samples = int(sample_rate * duration_ms / 1000)
+        pcm = np.zeros(samples, dtype="<i2")
+        with wave.open(path, "wb") as w:
+            w.setnchannels(1)
+            w.setsampwidth(2)
+            w.setframerate(sample_rate)
+            w.writeframes(pcm.tobytes())
+        return {"backend": "fake", "completed": True}
+
+    _vals = {"n": 0}
+
+    def _est(*, efference_pcm: object, captured_pcm: object, sample_rate: int) -> float:
+        _vals["n"] += 1
+        return float(_vals["n"] * 5.0)  # 5, 10, 15, 20 -> spread exceeds 2 ms
+
+    report = run_real_io_speak_trials(
+        vowel="a",
+        out_dir=str(tmp_path),
+        playback_fn=_fake_play,
+        capture_fn=_fake_capture,
+        readiness_gate_fn=_gate,
+        latency_estimator=_est,
+        trials=4,
+        latency_jitter_ms=2.0,
+        sample_rate=16000,
+    )
+
+    assert report["trials_ok"] == 4
+    assert report["latency_stats"]["std"] > 2.0
+    assert report["latency_stable"] is False

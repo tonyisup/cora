@@ -23,6 +23,15 @@ from .speaking_simulator import run_speaking_readiness_gate
 PlaybackFn = Callable[[str], dict[str, object]]
 CaptureFn = Callable[..., dict[str, object]]
 GateFn = Callable[[], dict[str, object]]
+LatencyEstimator = Callable[..., float | None]
+
+
+def _default_latency_estimator(
+    *, efference_pcm: object, captured_pcm: object, sample_rate: int
+) -> float | None:
+    return estimate_playback_latency_ms(
+        efference_pcm=efference_pcm, captured_pcm=captured_pcm, sample_rate=sample_rate
+    )
 
 _DEFAULT_INPUT_DEVICE = ":0"  # avfoundation index for the reSpeaker XVF3800
 _DEFAULT_OUTPUT_DEVICE_INDEX = 2  # External Headphones (audiotoolbox)
@@ -279,6 +288,7 @@ def run_real_io_speak_trial(
     playback_fn: PlaybackFn,
     capture_fn: CaptureFn,
     readiness_gate_fn: GateFn | None = None,
+    latency_estimator: LatencyEstimator | None = None,
     sample_rate: int = 48000,
     duration_ms: int = 300,
     max_capture_ms: int = 1500,
@@ -333,12 +343,12 @@ def run_real_io_speak_trial(
             str(captured_wav), sample_rate=sample_rate, duration_ms=max_capture_ms
         )
         playback_result = playback_fn(str(efference_wav))
-        # Read captured PCM back and estimate roundtrip latency via XCORR.
+        # Read captured PCM back and estimate roundtrip latency via the injected
+        # estimator (defaults to the XCORR stub).
         captured_pcm = _read_wav_pcm_int16(str(captured_wav))
-        latency_aligned_ms = estimate_playback_latency_ms(
-            efference_pcm=pcm,
-            captured_pcm=captured_pcm,
-            sample_rate=sample_rate,
+        est = latency_estimator or _default_latency_estimator
+        latency_aligned_ms = est(
+            efference_pcm=pcm, captured_pcm=captured_pcm, sample_rate=sample_rate
         )
     except Exception as exc:  # noqa: BLE001
         verdict = "failed"
@@ -374,4 +384,88 @@ def run_real_io_speak_trial(
         "latency_aligned_ms": latency_aligned_ms,
         "readiness_gate": gate,
         "error": error,
+    }
+
+
+def run_real_io_speak_trials(
+    *,
+    vowel: Vowel = "a",
+    out_dir: str,
+    playback_fn: PlaybackFn,
+    capture_fn: CaptureFn,
+    trials: int = 3,
+    readiness_gate_fn: GateFn | None = None,
+    latency_estimator: LatencyEstimator | None = None,
+    latency_jitter_ms: float = 2.0,
+    sample_rate: int = 48000,
+    duration_ms: int = 300,
+    max_capture_ms: int = 1500,
+) -> dict[str, object]:
+    """Repeat the bounded real-I/O smoke and report the latency spread.
+
+    This is the honesty gate before any signal-level self-subtraction: we only
+    report ``latency_stable=True`` when the per-trial latency std dev is within
+    ``latency_jitter_ms``. A single noisy trial (as seen in the first live run,
+    where captured audio was mostly room tone) must NOT be promoted to a stable
+    alignment.
+
+    The harness delegates each trial to ``run_real_io_speak_trial``; it does not
+    touch hardware itself, so the real playback/capture behavior is identical to
+    a single run. Unit tests inject fakes for both I/O and the latency estimator.
+    """
+    import numpy as _np
+
+    if trials <= 0:
+        raise ValueError("trials must be positive")
+    out = Path(out_dir)
+    out.mkdir(parents=True, exist_ok=True)
+    trial_dir = out / "trials"
+    trial_dir.mkdir(parents=True, exist_ok=True)
+
+    per_trial: list[dict[str, object]] = []
+    latencies: list[float] = []
+    trials_ok = 0
+    for n in range(trials):
+        report = run_real_io_speak_trial(
+            vowel=vowel,
+            out_dir=str(trial_dir / f"t{n + 1}"),
+            playback_fn=playback_fn,
+            capture_fn=capture_fn,
+            readiness_gate_fn=readiness_gate_fn,
+            latency_estimator=latency_estimator,
+            sample_rate=sample_rate,
+            duration_ms=duration_ms,
+            max_capture_ms=max_capture_ms,
+        )
+        per_trial.append(report)
+        if report.get("verdict") == "real_io_complete" and report.get("latency_aligned_ms") is not None:
+            trials_ok += 1
+            latencies.append(float(report["latency_aligned_ms"]))  # type: ignore[arg-type]
+
+    stats: dict[str, object] = {"n": len(latencies), "mean": None, "std": None, "min": None, "max": None}
+    stable = False
+    if latencies:
+        arr = _np.asarray(latencies, dtype=_np.float64)
+        stats = {
+            "n": int(arr.size),
+            "mean": round(float(arr.mean()), 3),
+            "std": round(float(arr.std()), 3),
+            "min": round(float(arr.min()), 3),
+            "max": round(float(arr.max()), 3),
+        }
+        # Stable only if repeatable across trials AND within the jitter bound.
+        stable = len(latencies) >= 2 and float(arr.std()) <= latency_jitter_ms
+
+    return {
+        "mode": "bounded_live_speak_smoke_trials",
+        "verdict": "trials_complete",
+        "real_hardware": True,
+        "live_playback_allowed": False,
+        "contamination_policy": "tag_only",
+        "trials_run": trials,
+        "trials_ok": trials_ok,
+        "latency_stats": stats,
+        "latency_stable": stable,
+        "latency_jitter_ms": latency_jitter_ms,
+        "per_trial": per_trial,
     }

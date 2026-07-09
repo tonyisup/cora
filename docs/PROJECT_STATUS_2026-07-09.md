@@ -355,3 +355,41 @@ the CLI `_real_playback` no longer awaits. Suite still 185 passed.
 **Honesty note:** this demonstrates the engineered efference→playback→capture→tag
 mechanism on real hardware. It is a bounded `tag_only` smoke, not conversational
 TTS and not a claim of room-calibrated self-subtraction.
+
+## M8-infans repeatability harness — multi-trial latency spread
+
+**Decision (2026-07-09, user-approved):** before any signal-level self-subtraction
+we must prove the playback→capture latency is repeatable. Added a multi-trial
+harness so a single noisy trial cannot be promoted to a stable alignment.
+
+**What was added:**
+- `run_real_io_speak_trials(...)` in `src/cora_infans/live_speak_smoke.py`: runs
+  N bounded real-I/O trials, collects per-trial latencies, and reports
+  `latency_stats` (n/mean/std/min/max) plus a `latency_stable` flag. Stable is
+  defined honestly: ≥2 trials AND std ≤ `latency_jitter_ms` (default 2 ms). It
+  delegates each trial to `run_real_io_speak_trial`, so hardware behavior is
+  identical to a single run.
+- `run_real_io_speak_trial` gained a `latency_estimator` seam (defaults to the
+  XCORR stub) so tests inject a deterministic estimator.
+- CLI: `--speak-live-smoke --real-io` gains `--trials N` (N>1 routes to the
+  trials harness). Usage updated.
+
+**Tests (TDD):** red tests assert (a) a deterministic injected estimator yields
+zero spread and `latency_stable=True`, and (b) a varying estimator (>2 ms spread)
+yields `latency_stable=False`. Both green.
+
+**Real-hardware run (4 trials, vowel `a`, 300 ms / 1500 ms):**
+- 4/4 trials completed; readiness gate `promote_simulation_only`.
+- `latency_stats = {n:4, mean:-1.5, std:7.476, min:-10.417, max:6.479}`.
+- `latency_stable=False` — correctly NOT claimed. The captured vowel is mostly
+  room tone at the current mic distance/angle, so the XCORR cannot lock a
+  consistent delay. This is exactly the honest outcome the harness exists to
+  produce; it blocks any premature subtraction claim.
+
+**Honesty boundary:** latency is NOT yet stable, so no signal-level self-
+subtraction is authorized. Next step (if pursued) is to improve the capture
+condition (mic proximity/orientation, gain, or a fixed reference tone) and repeat
+until `latency_stable=True`, only then consider subtraction.
+
+**Validation:** full suite: `pytest tests -q` → 187 passed. CLI `--fake-io` and
+`--real-io --trials 1` paths untouched in behavior; `--trials N` routes correctly.
