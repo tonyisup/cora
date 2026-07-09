@@ -48,11 +48,28 @@ gated behind both self-forward-model promotion and speaking-policy promotion.
 transitions, reward terms, and deterministic simulator replay. Full suite:
 `pytest tests -q` → 163 passed.
 
-## Next step
+## M8-infans-D — Speaking-policy promotion gate
 
-M8-infans-D: add a simulation-only speaking-policy promotion gate over canonical
-episodes. Expected output shape:
+**Decision:** add a single simulation-only promotion verdict for the offline
+speaking-policy ladder, analogous to the self-forward-model promotion gate. This
+keeps live playback gated behind an auditable action-policy checkpoint rather
+than a loose collection of episode reports.
 
+**What was added:**
+- `canonical_speaking_policy_episodes()` in `src/cora_infans/speaking_simulator.py`:
+  deterministic fixtures for clean handoff, overlap/yield/repair, clarification,
+  and quiet no-false-action cases.
+- `run_speaking_policy_promotion_gate(...)`: evaluates canonical episode reports
+  against five criteria:
+  1. reward ratio meets threshold,
+  2. active overlap yields,
+  3. no false repairs,
+  4. no unnecessary clarification,
+  5. no excessive stall penalty.
+- CLI: `python -m cora_infans --promote-speaking-policy [--min-reward-ratio F]`.
+- `--describe` now reports `simulation_only_speaking_policy_promotion_gate`.
+
+**Output shape:**
 ```json
 {
   "mode": "simulation_only_speaking_policy_promotion_gate",
@@ -60,11 +77,25 @@ episodes. Expected output shape:
   "live_playback": false,
   "live_playback_allowed": false,
   "criteria": {
-    "reward_threshold": true,
-    "overlap_yields": true,
-    "no_false_repairs": true,
-    "no_unnecessary_clarification": true,
-    "no_excessive_stall_penalty": true
+    "reward_threshold": {"passed": true},
+    "overlap_yields": {"passed": true},
+    "no_false_repairs": {"passed": true},
+    "no_unnecessary_clarification": {"passed": true},
+    "no_excessive_stall_penalty": {"passed": true}
   }
 }
 ```
+
+**Honesty boundary:** passing this gate promotes only the offline policy scaffold.
+It still does not authorize live TTS or speaker output. Live playback remains
+behind both self-forward-model promotion and speaking-policy promotion, plus a
+separate SPEAK-state/mic-suppression design.
+
+**Validation:** focused gate and CLI tests pass; full suite: `pytest tests -q` →
+166 passed.
+
+## Next step
+
+M8-infans-E: integrate the speaking-policy gate with the self-forward-model gate
+so a simulated `speak` decision requires both policy promotion and self-prediction
+promotion. The output should still say `live_playback_allowed=false`.

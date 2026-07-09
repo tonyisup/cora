@@ -22,6 +22,44 @@ class ConversationEpisode:
     decision_times_ms: tuple[int, ...]
 
 
+def canonical_speaking_policy_episodes() -> tuple[ConversationEpisode, ...]:
+    """Canonical deterministic episodes for the M8-infans acceptance gate."""
+    return (
+        ConversationEpisode(
+            episode_id="clean_turn_handoff",
+            events=(
+                ConversationEvent(timestamp_ms=0, kind="user_speech_start"),
+                ConversationEvent(timestamp_ms=600, kind="user_speech_end"),
+                ConversationEvent(timestamp_ms=2600, kind="agent_output_queued", payload={"text": "response"}),
+            ),
+            decision_times_ms=(100, 2600),
+        ),
+        ConversationEpisode(
+            episode_id="overlap_then_yield_and_repair",
+            events=(
+                ConversationEvent(timestamp_ms=0, kind="agent_output_queued"),
+                ConversationEvent(timestamp_ms=100, kind="agent_speech_start"),
+                ConversationEvent(timestamp_ms=250, kind="overlap_detected"),
+                ConversationEvent(timestamp_ms=400, kind="agent_speech_end"),
+            ),
+            decision_times_ms=(125, 275, 450),
+        ),
+        ConversationEpisode(
+            episode_id="clarification_needed",
+            events=(ConversationEvent(timestamp_ms=100, kind="user_correction"),),
+            decision_times_ms=(150,),
+        ),
+        ConversationEpisode(
+            episode_id="quiet_no_false_repair_or_clarify",
+            events=(
+                ConversationEvent(timestamp_ms=0, kind="user_speech_end"),
+                ConversationEvent(timestamp_ms=2200, kind="agent_output_queued"),
+            ),
+            decision_times_ms=(2200,),
+        ),
+    )
+
+
 def _features_dict(features: object) -> dict[str, object]:
     return asdict(features)  # type: ignore[arg-type]
 
@@ -78,4 +116,90 @@ def run_conversation_episode(
         "live_playback_allowed": False,
         "steps": steps,
         "summary": summary,
+    }
+
+
+def _criterion(value: float, threshold: float, passed: bool) -> dict[str, object]:
+    return {"value": round(value, 6), "threshold": threshold, "passed": bool(passed)}
+
+
+def run_speaking_policy_promotion_gate(
+    *,
+    episodes: tuple[ConversationEpisode, ...] | None = None,
+    min_reward_ratio: float = 0.8,
+) -> dict[str, object]:
+    """Run the M8-infans simulation-only speaking-policy promotion gate."""
+    active_episodes = episodes or canonical_speaking_policy_episodes()
+    reports = tuple(run_conversation_episode(ep, policy=HeuristicSpeakingPolicy()) for ep in active_episodes)
+    total_reward = sum(float(report["summary"]["total_reward"]) for report in reports)  # type: ignore[index]
+    target_reward = 4.0
+    reward_ratio = total_reward / target_reward if target_reward else 0.0
+
+    all_steps = [step for report in reports for step in report["steps"]]  # type: ignore[index]
+    overlap_steps = [
+        step
+        for step in all_steps
+        if bool(step["features"].get("was_collided"))  # type: ignore[union-attr]
+        and bool(step["features"].get("is_agent_speaking"))  # type: ignore[union-attr]
+    ]
+    overlap_yields = (
+        sum(1 for step in overlap_steps if step["action"] == "yield") / len(overlap_steps)
+        if overlap_steps
+        else 1.0
+    )
+    false_repairs = [
+        step
+        for step in all_steps
+        if step["action"] == "repair"
+        and not (
+            bool(step["features"].get("was_collided"))  # type: ignore[union-attr]
+            or bool(step["features"].get("was_interrupted"))  # type: ignore[union-attr]
+        )
+    ]
+    clarifies = [step for step in all_steps if step["action"] == "clarify"]
+    unnecessary_clarifies = [
+        step
+        for step in clarifies
+        if not bool(step["features"].get("needs_clarification"))  # type: ignore[union-attr]
+    ]
+    stall_penalties = [
+        float(step["reward"].get("terms", {}).get("stalled_conversation", 0.0))  # type: ignore[union-attr]
+        for step in all_steps
+    ]
+    worst_stall = min(stall_penalties) if stall_penalties else 0.0
+
+    criteria = {
+        "reward_threshold": _criterion(
+            reward_ratio,
+            min_reward_ratio,
+            reward_ratio >= min_reward_ratio,
+        ),
+        "overlap_yields": _criterion(overlap_yields, 1.0, overlap_yields == 1.0),
+        "no_false_repairs": _criterion(1.0 if not false_repairs else 0.0, 1.0, not false_repairs),
+        "no_unnecessary_clarification": _criterion(
+            1.0 if not unnecessary_clarifies else 0.0,
+            1.0,
+            not unnecessary_clarifies,
+        ),
+        "no_excessive_stall_penalty": _criterion(
+            1.0 if worst_stall >= -0.4 else 0.0,
+            1.0,
+            worst_stall >= -0.4,
+        ),
+    }
+    verdict = "promote_simulation_only" if all(c["passed"] for c in criteria.values()) else "hold"
+    return {
+        "mode": "simulation_only_speaking_policy_promotion_gate",
+        "verdict": verdict,
+        "live_playback": False,
+        "live_playback_allowed": False,
+        "criteria": criteria,
+        "summary": {
+            "episode_count": len(reports),
+            "step_count": len(all_steps),
+            "total_reward": round(total_reward, 6),
+            "target_reward": target_reward,
+            "reward_ratio": round(reward_ratio, 6),
+        },
+        "episode_reports": reports,
     }

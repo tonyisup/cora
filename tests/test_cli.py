@@ -25,7 +25,10 @@ def test_describe_command_prints_json_summary() -> None:
     assert "commanded_active_attention" in payload["implemented_subsystems"]
     assert "offline_corpus_evaluation" in payload["implemented_subsystems"]
     assert "motor_plan_synthesis" in payload["implemented_subsystems"]
+    assert "simulation_only_forward_model_robustness_sweep" in payload["implemented_subsystems"]
+    assert "simulation_only_forward_model_promotion_gate" in payload["implemented_subsystems"]
     assert "simulation_only_speaking_policy" in payload["implemented_subsystems"]
+    assert "simulation_only_speaking_policy_promotion_gate" in payload["implemented_subsystems"]
     assert "non_speech_source_localization" in payload["planned_subsystems"]
     assert (
         payload["verdicts"]["source_localization"]
@@ -644,3 +647,21 @@ def test_listen_live_cli_handler_wires_motor_imitation() -> None:
     assert report["motor_imitation"]["trial_count"] >= 1
 
 
+def test_promote_speaking_policy_command_reports_simulation_only_verdict() -> None:
+    env = os.environ.copy()
+    env["PYTHONPATH"] = "src"
+
+    result = subprocess.run(
+        [sys.executable, "-m", "cora_infans", "--promote-speaking-policy"],
+        capture_output=True,
+        check=True,
+        text=True,
+        env=env,
+    )
+
+    payload = json.loads(result.stdout)
+    assert payload["mode"] == "simulation_only_speaking_policy_promotion_gate"
+    assert payload["verdict"] == "promote_simulation_only"
+    assert payload["live_playback"] is False
+    assert payload["live_playback_allowed"] is False
+    assert all(criterion["passed"] for criterion in payload["criteria"].values())
