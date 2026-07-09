@@ -274,6 +274,28 @@ class LiveListener:
             "capture": result,
         }
 
+    def corollary_frame_tags(
+        self, *, latency_ms: float | None, capture_ms: int = 400
+    ) -> list[dict[str, object]]:
+        """Tag the captured corollary window against the measured latency anchor.
+
+        Reuses the same frame-tag schema as the SPEAK smoke (READY_TO_SPEAK /
+        SPEAKING / POST_SPEAK_SUPPRESSION / RECOVERING) so a downstream consumer
+        can tell which captured frames are Cora's own played audio (self) versus
+        any continuing human speech (world). Anchored at the known latency.
+        """
+        from ..live_speak_smoke import _frame_tags
+
+        tags = _frame_tags(
+            efference_id="corollary",
+            duration_ms=min(capture_ms, 300),
+            max_capture_ms=capture_ms,
+            latency_aligned_ms=latency_ms,
+        )
+        for tag in tags:
+            tag["source"] = "corollary_feedback"
+        return tags
+
     def _resolve_tuner(self) -> HardwareTuner | _NullTuner:
         if self._tuner is not None:
             return self._tuner

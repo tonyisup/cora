@@ -164,6 +164,21 @@ def test_corollary_capture_records_latency_anchor(tmp_path) -> None:
     assert calls == [400]
 
 
+def test_corollary_frame_tags_anchor_self_vs_world() -> None:
+    # Frame tags classify the captured corollary window: the played-audio window
+    # is tagged self (expected_self_audio), anchored at the measured latency.
+    from cora_infans.io.live_listener import LiveListener
+
+    tags = LiveListener().corollary_frame_tags(latency_ms=0.8, capture_ms=400)
+    states = [t["speak_state"] for t in tags]
+    assert states[0] == "READY_TO_SPEAK"
+    assert "SPEAKING" in states
+    speaking = next(t for t in tags if t["speak_state"] == "SPEAKING")
+    assert speaking["expected_self_audio"] is True
+    assert speaking["latency_aligned_ms"] == 0.8
+    assert all(t["source"] == "corollary_feedback" for t in tags)
+
+
 def test_listener_accumulates_salient_and_dropout_counts() -> None:
     # Script: salient, salient, dropout, salient -> 1 dropout, 1 recovery.
     frames = [
