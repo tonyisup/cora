@@ -227,6 +227,82 @@ def test_corollary_frame_tags_anchor_self_vs_world() -> None:
     assert all(t["source"] == "corollary_feedback" for t in tags)
 
 
+def test_forward_model_fit_recovers_self_gain(tmp_path) -> None:
+    # Phase 2 Task 1 (measurement-only): given a real efference + an observed
+    # mixture = self (delayed/attenuated efference) + a world sine, the grid fit
+    # recovers an attenuation near the true value and reports a positive SVSR.
+    import numpy as np
+
+    from cora_infans.io.live_listener import LiveListener
+    from cora_infans.io.self_suppression import mix_observed, predict_self_pcm
+
+    sr = 48000
+    n = sr // 4  # 250 ms
+    eff = (np.sin(np.arange(n) * 0.05) * 0.8).astype(np.float32)
+    world = (np.sin(np.arange(n) * 0.20) * 0.3).astype(np.float32)
+    self_pcm = predict_self_pcm(eff, sample_rate=sr, delay_ms=0.0, attenuation=0.55, echo_decay=0.22)
+    observed = mix_observed(self_pcm, world, world_gain=1.0)
+
+    fit = LiveListener()._fit_self_forward_model(
+        efference_pcm=eff, observed_pcm=observed, sample_rate=sr, latency_anchor_ms=-0.62
+    )
+    learned = fit["learned_params"]
+    assert learned is not None
+    # The toy model's attenuation is the dominant learnable gain; the fit should
+    # land within the grid resolution of the true 0.55 (grid: 0.3,0.45,0.55,...).
+    assert abs(learned["attenuation"] - 0.55) <= 0.1
+    assert fit["svsr_db"] is not None and float(fit["svsr_db"]) > 0.0
+    # Delay grid is centered on the anchor; recovered delay must be a grid point.
+    assert learned["delay_ms"] in (-2.62, -0.62, 1.38, 3.38)
+
+
+def test_motor_imitation_trial_fits_forward_model_when_captured(tmp_path) -> None:
+    # With a capture_fn injected (real-io), the trial captures the corollary
+    # window and records a forward_model_fit (measurement-only in Task 1).
+    import numpy as np
+
+    from cora_infans.io.live_listener import LiveListener
+
+    lst = LiveListener()
+    pcm = (np.sin(np.arange(16000) * 0.05) * 30000).astype("<i2")
+
+    captured_paths = []
+
+    def fake_play(path, *, device_index, sample_rate, volume_db):
+        return {"backend": "fake", "completed": True}
+
+    def fake_capture(path, *, device, sample_rate, duration_ms):
+        captured_paths.append(path)
+        # Mimic real capture_to_wav: the trial reads this file back, so it must
+        # actually exist with valid PCM (silence is enough for the fit path).
+        from cora_infans.io.motor_plan import write_wav
+
+        write_wav(path, np.zeros(sample_rate * duration_ms // 1000, dtype=np.float32), sample_rate)
+        return {"backend": "fake", "completed": True}
+
+    trial = lst._motor_imitation_trial(
+        pcm,
+        source_azimuth_deg=0.0,
+        now_ms=0,
+        frame_idx=0,
+        play=True,
+        gate_fn=lambda: {"verdict": "promote_simulation_only"},
+        playback_fn=fake_play,
+        capture_fn=fake_capture,
+        out_dir=str(tmp_path),
+        latency_anchor_ms=-0.62,
+    )
+    assert trial is not None
+    assert trial["played"] is True
+    assert captured_paths  # corollary window was captured
+    assert "corollary_capture" in trial
+    # Measurement-only: the fit is recorded; subtraction has not been wired yet.
+    assert "forward_model_fit" in trial
+    fit = trial["forward_model_fit"]
+    assert fit is not None
+    assert "svsr_db" in fit and "learned_params" in fit
+
+
 def test_listen_live_motor_imitation_loop_closes_end_to_end(tmp_path) -> None:
     # Full loop without hardware: heard frame -> perception -> motor plan ->
     # gated playback -> corollary capture -> frame tags -> imitation quality.

@@ -57,6 +57,13 @@ from ..live_speak_smoke import (
     capture_to_wav,
     play_wav_to_device,
 )
+from .self_suppression import (  # Phase 2: real-data forward-model fitting / subtraction
+    compute_svsr_db,
+    fit_forward_model,
+    predict_self_pcm,
+    rms,
+    spectral_subtract,
+)
 
 # External Headphones output device index (audiotoolbox), per host enumeration.
 # This is the WORLD / test-output sink (stimulus playback, noise sim, etc.).
@@ -311,6 +318,52 @@ class LiveListener:
             tag["source"] = "corollary_feedback"
         return tags
 
+    @staticmethod
+    def _mono_downmix(pcm: np.ndarray) -> np.ndarray:
+        """Downmix interleaved stereo int16/float PCM to mono float32 in [-1, 1]."""
+        arr = np.asarray(pcm, dtype=np.float32)
+        if arr.ndim == 2:
+            return (arr[:, 0] + arr[:, 1]) / 2.0
+        return arr
+
+    def _resynth_efference_pcm(self, plan, *, sample_rate: int) -> np.ndarray:
+        """Re-synthesize the motor plan at an arbitrary rate for subtraction.
+
+        Phase 1 analyzed + played via a 16 kHz WAV; the corollary capture is at
+        the 48 kHz hardware rate, so the efference used for self-prediction must
+        match that rate to align samples with the captured mixture.
+        """
+        return self._planner.plan_wav(
+            plan.vowel, duration_ms=200, sample_rate=sample_rate
+        )
+
+    def _fit_self_forward_model(
+        self,
+        *,
+        efference_pcm: np.ndarray,
+        observed_pcm: np.ndarray,
+        sample_rate: int,
+        latency_anchor_ms: float | None,
+    ) -> dict[str, object]:
+        """Fit the toy forward model to a real efference->observation pair.
+
+        Phase 2 (measurement-only in Task 1): grid-search delay around the
+        measured anchor, plus attenuation/echo grids, to find params that
+        minimize self-prediction residual. Returns the learned params + SVSR.
+        No signal is subtracted or routed anywhere by this method.
+        """
+        grid_center = 0.0 if latency_anchor_ms is None else float(latency_anchor_ms)
+        delay_grid_ms = tuple(round(grid_center + d, 3) for d in (-2.0, 0.0, 2.0, 4.0))
+        return fit_forward_model(
+            efference_pcm,
+            observed_pcm,
+            sample_rate=sample_rate,
+            delay_grid_ms=delay_grid_ms,
+            attenuation_grid=(0.3, 0.45, 0.55, 0.65, 0.8),
+            echo_decay_grid=(0.05, 0.12, 0.22, 0.35),
+            svsr_pass_db=20.0,
+        )
+
     def _resolve_tuner(self) -> HardwareTuner | _NullTuner:
         if self._tuner is not None:
             return self._tuner
@@ -331,8 +384,11 @@ class LiveListener:
         play: bool = False,
         gate_fn=None,
         playback_fn=None,
+        capture_fn=None,
         out_dir: str | None = None,
         volume_db: float = 12.0,
+        latency_anchor_ms: float | None = None,
+        do_self_subtraction: bool = False,
     ) -> "dict[str, object] | None":
         """Run one perception->production trial on a captured speech frame.
 
@@ -341,6 +397,12 @@ class LiveListener:
         motor plan (the imitation efference) is written to a WAV and played to
         the speaker through the gated helper. This closes the loop from heard
         sound -> internal motor plan -> played imitation, bounded and gated.
+
+        When ``capture_fn`` is supplied (real-io), the corollary-feedback window
+        is captured after playback; the real efference (at the capture rate) and
+        the captured mixture drive a forward-model fit. With ``do_self_subtraction``
+        the fit is applied to subtract Cora's own audio (Phase 2); otherwise it is
+        recorded as measurement-only evidence (Task 1).
         """
         if pcm is None or len(pcm) < 1600:  # need >= 100 ms @ 16 kHz
             return None
@@ -396,6 +458,38 @@ class LiveListener:
             except Exception:
                 # Analysis of the played artifact is best-effort; never fatal.
                 trial["played_formants_hz"] = None
+            # Phase 2: capture the corollary window after playback, fit the
+            # forward model on the real efference + observed mixture. Task 1 is
+            # MEASUREMENT-ONLY: record the fit; subtraction is added in Task 2.
+            if capture_fn is not None:
+                cap = self.capture_corollary_window(
+                    out_dir=out_dir,
+                    capture_fn=capture_fn,
+                    latency_ms=latency_anchor_ms,
+                    capture_ms=400,
+                    sample_rate=48000,
+                )
+                trial["corollary_capture"] = cap
+                try:
+                    cap_pcm = _read_wav_pcm_int16(cap["captured_wav"])
+                    observed = self._mono_downmix(cap_pcm)
+                    eff_48k = self._resynth_efference_pcm(plan, sample_rate=48000)
+                    fit = self._fit_self_forward_model(
+                        efference_pcm=eff_48k,
+                        observed_pcm=observed,
+                        sample_rate=48000,
+                        latency_anchor_ms=latency_anchor_ms,
+                    )
+                    trial["forward_model_fit"] = {
+                        "learned_params": fit.get("learned_params"),
+                        "svsr_db": fit.get("svsr_db"),
+                        "residual_rms": fit.get("residual_rms"),
+                        "observed_rms": fit.get("observed_rms"),
+                        "verdict": fit.get("verdict"),
+                    }
+                except Exception:
+                    # Fitting is best-effort; never fatal to the trial.
+                    trial["forward_model_fit"] = None
         trial["played"] = played
         return trial
 
@@ -441,9 +535,11 @@ class LiveListener:
         capacity_cycles: int = 4,
         motor_imitation_gate_fn=None,
         motor_imitation_playback_fn=None,
+        motor_imitation_capture_fn=None,
         motor_imitation_out_dir: str | None = None,
         motor_imitation_volume_db: float = 12.0,
         latency_anchor_ms: float | None = None,
+        do_self_subtraction: bool = False,
     ) -> dict[str, object]:
         """Capture `duration_ms` of live audio in `frame_ms` steps.
 
@@ -603,8 +699,11 @@ class LiveListener:
                             play=motor_imitation_playback_fn is not None,
                             gate_fn=motor_imitation_gate_fn,
                             playback_fn=motor_imitation_playback_fn,
+                            capture_fn=motor_imitation_capture_fn,
                             out_dir=motor_imitation_out_dir,
                             volume_db=motor_imitation_volume_db,
+                            latency_anchor_ms=latency_anchor_ms,
+                            do_self_subtraction=do_self_subtraction,
                         )
                         if trial is not None:
                             motor_imitation_log.append(trial)
