@@ -11,6 +11,7 @@ from collections import Counter
 from dataclasses import asdict, dataclass
 
 from .conversation_tracker import ConversationEvent, ConversationTracker
+from .io.self_suppression import run_forward_model_promotion_gate
 from .speaking_policy import ACTION_NAMES, HeuristicSpeakingPolicy, SpeakingPolicy
 from .speaking_reward import score_speaking_action
 
@@ -202,4 +203,41 @@ def run_speaking_policy_promotion_gate(
             "reward_ratio": round(reward_ratio, 6),
         },
         "episode_reports": reports,
+    }
+
+
+def run_speaking_readiness_gate(
+    *,
+    min_speaking_reward_ratio: float = 0.8,
+    min_self_world_correlation: float = 0.2,
+) -> dict[str, object]:
+    """Join speaking policy and self-forward-model gates before live SPEAK work.
+
+    Passing this gate authorizes only simulated speaking decisions. It explicitly
+    does not authorize TTS playback or a live speaker/mic loop.
+    """
+    speaking_gate = run_speaking_policy_promotion_gate(
+        min_reward_ratio=min_speaking_reward_ratio,
+    )
+    self_gate = run_forward_model_promotion_gate(
+        min_world_correlation=min_self_world_correlation,
+    )
+    speaking_passed = speaking_gate["verdict"] == "promote_simulation_only"
+    self_passed = self_gate["verdict"] == "promote_simulation_only"
+    criteria = {
+        "speaking_policy_promoted": _criterion(1.0 if speaking_passed else 0.0, 1.0, speaking_passed),
+        "self_forward_model_promoted": _criterion(1.0 if self_passed else 0.0, 1.0, self_passed),
+        "live_playback_blocked": _criterion(1.0, 1.0, True),
+    }
+    simulated_authorized = speaking_passed and self_passed
+    verdict = "promote_simulation_only" if simulated_authorized else "hold"
+    return {
+        "mode": "simulation_only_speaking_readiness_gate",
+        "verdict": verdict,
+        "simulated_speak_authorized": simulated_authorized,
+        "live_playback": False,
+        "live_playback_allowed": False,
+        "criteria": criteria,
+        "speaking_policy_gate": speaking_gate,
+        "self_forward_model_gate": self_gate,
     }

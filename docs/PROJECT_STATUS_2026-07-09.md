@@ -94,8 +94,47 @@ separate SPEAK-state/mic-suppression design.
 **Validation:** focused gate and CLI tests pass; full suite: `pytest tests -q` →
 166 passed.
 
+## M8-infans-E — Combined speaking readiness gate
+
+**Decision:** join the speaking-policy promotion gate with the self-forward-model
+promotion gate before any simulated speak authorization. This makes the M8 bridge
+explicit: the agent may only mark `simulated_speak_authorized=true` when both
+conversation action selection and self-prediction safety have passed.
+
+**What was added:**
+- `run_speaking_readiness_gate(...)` in `src/cora_infans/speaking_simulator.py`:
+  combines `run_speaking_policy_promotion_gate(...)` with
+  `run_forward_model_promotion_gate(...)`.
+- CLI: `python -m cora_infans --promote-speaking-readiness
+  [--min-speaking-reward-ratio F] [--min-self-world-correlation F]`.
+- `--describe` now reports `simulation_only_speaking_readiness_gate`.
+
+**Output shape:**
+```json
+{
+  "mode": "simulation_only_speaking_readiness_gate",
+  "verdict": "promote_simulation_only",
+  "simulated_speak_authorized": true,
+  "live_playback": false,
+  "live_playback_allowed": false,
+  "criteria": {
+    "speaking_policy_promoted": {"passed": true},
+    "self_forward_model_promoted": {"passed": true},
+    "live_playback_blocked": {"passed": true}
+  }
+}
+```
+
+**Honesty boundary:** passing this gate still does not authorize live playback.
+It authorizes only simulation-side SPEAK decisions. The next milestone is a design
+doc for live SPEAK state, mic suppression/tagging, latency measurement, and
+feedback safety.
+
+**Validation:** focused readiness and CLI tests pass; full suite: `pytest tests -q`
+→ 170 passed.
+
 ## Next step
 
-M8-infans-E: integrate the speaking-policy gate with the self-forward-model gate
-so a simulated `speak` decision requires both policy promotion and self-prediction
-promotion. The output should still say `live_playback_allowed=false`.
+M8-infans-F: write the live SPEAK-state and mic-suppression design doc before any
+playback implementation. This is the next real boundary: architecture first,
+implementation only after the safety design is explicit.

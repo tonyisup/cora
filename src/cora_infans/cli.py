@@ -32,7 +32,10 @@ from .io.self_suppression import (
     run_forward_model_robustness_sweep,
     run_self_suppression_trial,
 )
-from .speaking_simulator import run_speaking_policy_promotion_gate
+from .speaking_simulator import (
+    run_speaking_policy_promotion_gate,
+    run_speaking_readiness_gate,
+)
 
 
 OutputMode = str
@@ -61,6 +64,7 @@ def describe() -> dict[str, object]:
             "simulation_only_forward_model_promotion_gate",
             "simulation_only_speaking_policy",
             "simulation_only_speaking_policy_promotion_gate",
+            "simulation_only_speaking_readiness_gate",
         ],
 
         "planned_subsystems": [
@@ -771,6 +775,34 @@ def promote_speaking_policy_cli(args: list[str]) -> dict[str, object]:
     return run_speaking_policy_promotion_gate(min_reward_ratio=min_reward_ratio)
 
 
+def promote_speaking_readiness_cli(args: list[str]) -> dict[str, object]:
+    min_speaking_reward_ratio = 0.8
+    min_self_world_correlation = 0.2
+    i = 1
+    while i < len(args):
+        option = args[i]
+        if i + 1 >= len(args):
+            raise ValueError(f"missing value for {option}")
+        value = args[i + 1]
+        if option == "--min-speaking-reward-ratio":
+            try:
+                min_speaking_reward_ratio = float(value)
+            except ValueError as exc:
+                raise ValueError("invalid speaking reward ratio threshold") from exc
+        elif option == "--min-self-world-correlation":
+            try:
+                min_self_world_correlation = float(value)
+            except ValueError as exc:
+                raise ValueError("invalid self/world correlation threshold") from exc
+        else:
+            raise ValueError(f"unknown option: {option}")
+        i += 2
+    return run_speaking_readiness_gate(
+        min_speaking_reward_ratio=min_speaking_reward_ratio,
+        min_self_world_correlation=min_self_world_correlation,
+    )
+
+
 def main(argv: list[str] | None = None) -> int:
     args = argv if argv is not None else sys.argv[1:]
     if args == ["--describe"]:
@@ -856,6 +888,13 @@ def main(argv: list[str] | None = None) -> int:
         except ValueError as exc:
             print(str(exc), file=sys.stderr)
             return 2
+    if args and args[0] == "--promote-speaking-readiness":
+        try:
+            print(json.dumps(promote_speaking_readiness_cli(args)))
+            return 0
+        except ValueError as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
     if args and args[0] in ("--snapshot-firmware", "--tune-raw-linear"):
         from .io.hardware_tuner import HardwareTuner, HardwareTunerError
 
@@ -883,7 +922,8 @@ def main(argv: list[str] | None = None) -> int:
         "[--learn-self-forward-model [--vowel a|e|i|o|u] [--observed-delay-ms F] [--observed-attenuation F] [--observed-echo-decay F] [--world-vowel a|e|i|o|u] [--world-gain F]] "
         "[--sweep-self-forward-model [--vowel a|e|i|o|u] [--delay-errors-ms csv] [--attenuation-scales csv] [--echo-decay-scales csv] [--world-vowel a|e|i|o|u] [--world-gain F]] "
         "[--promote-self-forward-model [--vowel a|e|i|o|u] [--world-vowel a|e|i|o|u] [--world-gain F] [--min-world-correlation F]] "
-        "[--promote-speaking-policy [--min-reward-ratio F]]",
+        "[--promote-speaking-policy [--min-reward-ratio F]] "
+        "[--promote-speaking-readiness [--min-speaking-reward-ratio F] [--min-self-world-correlation F]]",
         file=sys.stderr,
     )
     return 2
