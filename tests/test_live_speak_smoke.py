@@ -81,3 +81,28 @@ def test_recovering_frame_tag_has_positive_width_at_boundary(tmp_path) -> None:
     recovering = [t for t in tags if t["speak_state"] == "RECOVERING"]
     assert recovering, "RECOVERING tag must be present"
     assert recovering[0]["end_ms"] > recovering[0]["start_ms"]
+
+
+def test_latency_cross_correlation_recovers_known_delay() -> None:
+    # Deterministic stub for the future real-hardware slice: a cross-correlation
+    # estimator that recovers a known injected delay on synthetic PCM. This is
+    # pure math, not live playback; the real-io path that would use it does not
+    # exist yet.
+    import numpy as np
+
+    from cora_infans.live_speak_smoke import estimate_playback_latency_ms
+
+    sample_rate = 16000
+    ref = (np.sin(2 * np.pi * 0.01 * np.arange(2000)) * 30000).astype("<i2")
+    delay_samples = 40
+    captured = np.zeros(2000 + delay_samples, dtype="<i2")
+    captured[delay_samples : delay_samples + 2000] = ref
+
+    latency_ms = estimate_playback_latency_ms(
+        efference_pcm=ref,
+        captured_pcm=captured[:2000] if captured.size >= 2000 else captured,
+        sample_rate=sample_rate,
+    )
+
+    assert latency_ms is not None
+    assert abs(latency_ms - (delay_samples / sample_rate * 1000.0)) <= 2.0

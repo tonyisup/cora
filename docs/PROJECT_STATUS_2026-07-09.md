@@ -250,3 +250,39 @@ The remaining real boundary is the live SPEAK design execution, which must wait
 for explicit user opt-in. Suggested next work is strengthening the canonical
 episode coverage (e.g. backchannel, barge-in recovery) or a deterministic
 latency cross-correlation stub for the future real-hardware slice.
+
+## M8-infans coverage hardening — canonical episodes + latency stub
+
+**Decision:** strengthen the canonical episode set (backchannel suppression,
+barge-in recovery) and pre-build the deterministic latency cross-correlation
+estimator needed for the future real-hardware slice, without adding any live path.
+
+**Episode additions (`canonical_speaking_policy_episodes`):**
+- `barge_in_recovery`: user interrupts the agent mid-speech. Policy protects the
+  user's speech (wait), then repairs the deferred/interrupted output after the user
+  ends. Exercises deferred-output repair under barge-in.
+- `backchannel_suppression`: user is speaking, agent has queued output. Policy must
+  not speak over the user (wait) and only speak after silence. Exercises
+  backchannel suppression (no premature turn takeover).
+
+**Reward/policy correction found while wiring episodes:**
+- `missed_repair` previously penalized *any* non-repair while a collision/interrupt
+  was unresolved — including the correct "wait" while the user is actively speaking.
+  Fixed: `missed_repair` no longer fires when `is_user_speaking` (yielding the floor
+  is correct, not a missed repair).
+- Promotion criterion `overlap_yields` required every collision step to be `yield`,
+  which failed for a barge-in where the user is mid-speech (correct action `wait`).
+  Renamed to `collision_safety` and now requires only "no speak into collision"
+  (every overlap step is non-`speak`).
+
+**Latency cross-correlation stub (`live_speak_smoke.estimate_playback_latency_ms`):**
+- Pure deterministic numpy normalized cross-correlation over a bounded lag window.
+- Recovers injected sample delay on synthetic PCM (verified in tests within ±2 ms).
+- Explicitly NOT wired to any playback/capture path. The `--real-io` flag that
+  would call it does not exist; this function never triggers speaker/mic I/O.
+
+**Honesty boundary:** both additions are simulation-only. No live playback path was
+opened; `live_playback_allowed` stays `False` everywhere.
+
+**Validation:** full suite: `pytest tests -q` → 183 passed. Promotion gate still
+`promote_simulation_only` (6 episodes, `reward_ratio=1.0`, `collision_safety=1.0`).

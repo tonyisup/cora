@@ -18,6 +18,53 @@ PlaybackFn = Callable[[str], dict[str, object]]
 CaptureFn = Callable[..., dict[str, object]]
 
 
+def estimate_playback_latency_ms(
+    *,
+    efference_pcm: object,
+    captured_pcm: object,
+    sample_rate: int,
+) -> float | None:
+    """Deterministic cross-correlation latency estimate between efference and capture.
+
+    This is a pure-math stub for the future real-hardware slice. It is NOT wired
+    to any live playback path: the ``--real-io`` flag that would call it does not
+    exist yet, and this function never triggers speaker output or microphone input.
+    It recovers the sample shift that best aligns ``captured_pcm`` onto ``efference_pcm``
+    (normalized cross-correlation over a bounded lag window) and converts it to ms.
+    """
+    import numpy as np
+
+    ref = np.asarray(efference_pcm, dtype=np.float64)
+    cap = np.asarray(captured_pcm, dtype=np.float64)
+    if ref.size == 0 or cap.size == 0:
+        return None
+    n = min(ref.size, cap.size)
+    ref = ref[:n]
+    cap = cap[:n]
+    # Center both signals so the correlation measures alignment, not DC offset.
+    ref = ref - ref.mean()
+    cap = cap - cap.mean()
+    norm_ref = float(np.sqrt(np.dot(ref, ref))) or 1.0
+    norm_cap = float(np.sqrt(np.dot(cap, cap))) or 1.0
+    best_lag = 0
+    best_corr = float("-inf")
+    max_lag = min(n, 500)
+    for lag in range(-max_lag, max_lag + 1):
+        if lag < 0:
+            a = ref[-lag:]
+            b = cap[: n + lag]
+        else:
+            a = ref[: n - lag]
+            b = cap[lag:]
+        if a.size == 0:
+            continue
+        corr = float(np.dot(a, b)) / (norm_ref * norm_cap)
+        if corr > best_corr:
+            best_corr = corr
+            best_lag = lag
+    return round(best_lag / float(sample_rate) * 1000.0, 3)
+
+
 def _efference_id(*, vowel: str, sample_rate: int, duration_ms: int) -> str:
     raw = f"{vowel}:{sample_rate}:{duration_ms}".encode("utf-8")
     return hashlib.sha1(raw).hexdigest()[:12]

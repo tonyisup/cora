@@ -4,7 +4,11 @@ import json
 
 from cora_infans.conversation_tracker import ConversationEvent
 from cora_infans.speaking_policy import HeuristicSpeakingPolicy
-from cora_infans.speaking_simulator import ConversationEpisode, run_conversation_episode
+from cora_infans.speaking_simulator import (
+    ConversationEpisode,
+    canonical_speaking_policy_episodes,
+    run_conversation_episode,
+)
 
 
 def test_simulator_replays_episode_and_returns_jsonable_steps() -> None:
@@ -64,3 +68,45 @@ def test_simulator_orders_events_before_decision_at_same_timestamp() -> None:
 
     assert report["steps"][0]["features"]["queued_output"] is True
     assert report["steps"][0]["action"] == "speak"
+
+
+def test_canonical_episodes_cover_backchannel_and_barge_in() -> None:
+    ids = {ep.episode_id for ep in canonical_speaking_policy_episodes()}
+
+    assert "backchannel_suppression" in ids
+    assert "barge_in_recovery" in ids
+
+
+def test_barge_in_recovery_yields_then_repairs() -> None:
+    report = run_conversation_episode(
+        next(
+            ep
+            for ep in canonical_speaking_policy_episodes()
+            if ep.episode_id == "barge_in_recovery"
+        ),
+        policy=HeuristicSpeakingPolicy(),
+    )
+
+    actions = [step["action"] for step in report["steps"]]
+    # User barges in while the agent is speaking: the policy protects the user's
+    # speech first (wait), then repairs the deferred/interrupted output after the
+    # user finishes. No speaking over the user at any point.
+    assert actions == ["wait", "wait", "repair"]
+    assert report["summary"]["total_reward"] > 0
+
+
+def test_backchannel_suppression_waits_over_user_then_speaks() -> None:
+    report = run_conversation_episode(
+        next(
+            ep
+            for ep in canonical_speaking_policy_episodes()
+            if ep.episode_id == "backchannel_suppression"
+        ),
+        policy=HeuristicSpeakingPolicy(),
+    )
+
+    actions = [step["action"] for step in report["steps"]]
+    # Must not speak over the user (backchannel suppression), then speak after silence.
+    assert actions[0] == "wait"
+    assert "speak" in actions
+    assert report["live_playback"] is False

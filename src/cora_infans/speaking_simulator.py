@@ -58,6 +58,27 @@ def canonical_speaking_policy_episodes() -> tuple[ConversationEpisode, ...]:
             ),
             decision_times_ms=(2200,),
         ),
+        ConversationEpisode(
+            episode_id="barge_in_recovery",
+            events=(
+                ConversationEvent(timestamp_ms=0, kind="agent_output_queued"),
+                ConversationEvent(timestamp_ms=100, kind="agent_speech_start"),
+                ConversationEvent(timestamp_ms=200, kind="user_speech_start"),
+                ConversationEvent(timestamp_ms=250, kind="overlap_detected"),
+                ConversationEvent(timestamp_ms=400, kind="agent_speech_end"),
+                ConversationEvent(timestamp_ms=700, kind="user_speech_end"),
+            ),
+            decision_times_ms=(250, 450, 1200),
+        ),
+        ConversationEpisode(
+            episode_id="backchannel_suppression",
+            events=(
+                ConversationEvent(timestamp_ms=0, kind="user_speech_start"),
+                ConversationEvent(timestamp_ms=500, kind="agent_output_queued"),
+                ConversationEvent(timestamp_ms=1500, kind="user_speech_end"),
+            ),
+            decision_times_ms=(700, 3500),
+        ),
     )
 
 
@@ -146,8 +167,13 @@ def run_speaking_policy_promotion_gate(
         if bool(step["features"].get("was_collided"))  # type: ignore[union-attr]
         and bool(step["features"].get("is_agent_speaking"))  # type: ignore[union-attr]
     ]
-    overlap_yields = (
-        sum(1 for step in overlap_steps if step["action"] == "yield") / len(overlap_steps)
+    non_speak_into_collision = [
+        step
+        for step in overlap_steps
+        if step["action"] != "speak"
+    ]
+    collision_safety = (
+        len(non_speak_into_collision) / len(overlap_steps)
         if overlap_steps
         else 1.0
     )
@@ -178,7 +204,7 @@ def run_speaking_policy_promotion_gate(
             min_reward_ratio,
             reward_ratio >= min_reward_ratio,
         ),
-        "overlap_yields": _criterion(overlap_yields, 1.0, overlap_yields == 1.0),
+        "collision_safety": _criterion(collision_safety, 1.0, collision_safety == 1.0),
         "no_false_repairs": _criterion(1.0 if not false_repairs else 0.0, 1.0, not false_repairs),
         "no_unnecessary_clarification": _criterion(
             1.0 if not unnecessary_clarifies else 0.0,

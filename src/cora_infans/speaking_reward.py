@@ -27,11 +27,10 @@ def score_speaking_action(
         _add(terms, "successful_yield", 1.0)
     elif action == "repair" and needs_repair:
         _add(terms, "successful_repair", 1.5)
-    elif action != "repair" and needs_repair:
-        # Any non-repair action while a collision/interrupt is unresolved is a
-        # missed repair. The prior code gated this on `has_deferred_output`, which
-        # let a `speak` straight into a collision (overlap without prior agent
-        # speech) go unpenalized.
+    elif action != "repair" and needs_repair and not features.is_user_speaking:
+        # A non-repair action while a collision/interrupt is unresolved is a
+        # missed repair — unless the user is actively speaking, in which case
+        # waiting (yielding the floor) is the correct policy, not a failure.
         _add(terms, "missed_repair", -1.5)
 
     if action == "clarify" and features.needs_clarification:

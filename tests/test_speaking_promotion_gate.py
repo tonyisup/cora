@@ -13,7 +13,7 @@ def test_speaking_policy_promotion_gate_promotes_canonical_episodes() -> None:
     assert report["summary"]["episode_count"] >= 4
     assert all(criterion["passed"] for criterion in report["criteria"].values())
     assert report["criteria"]["reward_threshold"]["value"] >= 0.8
-    assert report["criteria"]["overlap_yields"]["value"] == 1.0
+    assert report["criteria"]["collision_safety"]["value"] == 1.0
     assert report["criteria"]["no_false_repairs"]["value"] == 1.0
     assert report["criteria"]["no_unnecessary_clarification"]["value"] == 1.0
     assert report["criteria"]["no_excessive_stall_penalty"]["value"] == 1.0
