@@ -93,6 +93,11 @@ def test_motor_imitation_trial_plays_when_authorized(tmp_path) -> None:
     assert trial["played"] is True
     assert trial["efference_wav"] == played["path"]
     assert Path(played["path"]).exists()
+    # Imitation target is the PLAYED sound: re-analyzed formants + prediction error
+    # vs the perceived human vowel are recorded.
+    assert trial["played_formants_hz"] is not None
+    assert isinstance(trial["imitation_prediction_error_hz"], list)
+    assert len(trial["imitation_prediction_error_hz"]) == 3
 
 
 def test_motor_imitation_trial_no_play_when_gate_refused(tmp_path) -> None:

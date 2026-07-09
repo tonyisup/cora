@@ -52,7 +52,11 @@ from .motor_plan import (
     synthesize_vowel,
     write_wav,
 )
-from ..live_speak_smoke import capture_to_wav, play_wav_to_device
+from ..live_speak_smoke import (
+    _read_wav_pcm_int16,
+    capture_to_wav,
+    play_wav_to_device,
+)
 
 # External Headphones output device index (audiotoolbox), per host enumeration.
 STIMULUS_OUTPUT_DEVICE_INDEX = 2
@@ -366,6 +370,21 @@ class LiveListener:
                 )
                 played = bool(result.get("played", False))
                 trial["playback"] = result
+            # Replace the imitation TARGET with the sound that actually left the
+            # speaker: re-analyze the played WAV (not the internal plan) and
+            # record the prediction error vs the perceived human vowel.
+            try:
+                played_pcm = _read_wav_pcm_int16(efference_wav)
+                played_feat = analyze_vowel(played_pcm, sample_rate=16000)
+                trial["played_formants_hz"] = [round(f, 2) for f in played_feat.formant_hz]
+                trial["played_nearest_vowel"] = played_feat.nearest_vowel
+                trial["imitation_prediction_error_hz"] = [
+                    round(abs(p - w), 2)
+                    for p, w in zip(played_feat.formant_hz, feat.formant_hz)
+                ]
+            except Exception:
+                # Analysis of the played artifact is best-effort; never fatal.
+                trial["played_formants_hz"] = None
         trial["played"] = played
         return trial
 
