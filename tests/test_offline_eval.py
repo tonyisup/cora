@@ -6,7 +6,9 @@ from cora_infans.io.offline_eval import (
     Annotation,
     CorpusClip,
     CorpusLoader,
+    FrameObservation,
     OfflineEvalHarness,
+    compare_saliency_baselines,
 )
 
 
@@ -40,6 +42,47 @@ def test_corpus_loader_reads_label_csv(tmp_path):
     assert len(clip.annotations) == 2
     assert clip.annotations[0] == Annotation(0.0, 1.0, "salient_speech")
     assert clip.annotations[1] == Annotation(1.0, 2.0, "non_speech")
+    assert clip.split == "unspecified"
+
+
+def test_corpus_loader_records_development_and_held_out_splits(tmp_path):
+    (tmp_path / "dev01.wav").write_bytes(b"RIFF")
+    (tmp_path / "held01.wav").write_bytes(b"RIFF")
+    csv_path = tmp_path / "labels.csv"
+    _write_csv(
+        csv_path,
+        [
+            ["clip_id", "start_s", "end_s", "label", "split"],
+            ["dev01", "0.0", "0.5", "speech", "dev"],
+            ["held01", "0.0", "0.5", "speech", "held_out"],
+        ],
+    )
+
+    clips = CorpusLoader(root=tmp_path).load_labels(csv_path)
+
+    assert [(clip.clip_id, clip.split) for clip in clips] == [
+        ("dev01", "dev"),
+        ("held01", "held_out"),
+    ]
+
+
+def test_corpus_loader_uses_manifest_source_path_for_nested_audio(tmp_path):
+    nested = tmp_path / "edited" / "site"
+    nested.mkdir(parents=True)
+    wav = nested / "USD01B.wav"
+    wav.write_bytes(b"RIFF")
+    csv_path = tmp_path / "labels.csv"
+    _write_csv(
+        csv_path,
+        [
+            ["clip_id", "start_s", "end_s", "label", "source_path"],
+            ["USD01B", "0.0", "1.0", "speech", "edited/site/USD01B.wav"],
+        ],
+    )
+
+    clip = CorpusLoader(root=tmp_path).load_labels(csv_path)[0]
+
+    assert clip.wav_path == wav
 
 
 def test_corpus_loader_rejects_nonmatching_wav(tmp_path):
@@ -118,6 +161,31 @@ def test_harness_detects_missed_and_false_salient(tmp_path):
     assert report.label_frame_counts == {"salient_speech": 1}
 
 
+def test_harness_can_treat_annotated_control_labels_as_negative(tmp_path):
+    clip = CorpusClip(
+        clip_id="clip",
+        wav_path=tmp_path / "clip.wav",
+        annotations=(
+            Annotation(0.0, 0.25, "infant_directed_speech"),
+            Annotation(0.25, 0.5, "adult_directed_speech"),
+        ),
+    )
+    frames = [
+        FrameObservation(0, [0.2], source="pcm_wav"),
+        FrameObservation(250, [0.2], source="pcm_wav"),
+    ]
+
+    report = OfflineEvalHarness(
+        saliency_threshold=0.1,
+        frame_ms=250,
+        positive_labels={"infant_directed_speech"},
+    ).evaluate_clip(clip, lambda clip, frame_ms: frames)
+
+    assert report.true_positive_frames == 1
+    assert report.false_positive_frames == 1
+    assert report.positive_labels == ["infant_directed_speech"]
+
+
 def test_harness_aggregates_over_corpus(tmp_path):
     wav = tmp_path / "clip01.wav"
     wav.write_bytes(b"RIFF")
@@ -147,3 +215,73 @@ def test_harness_aggregates_over_corpus(tmp_path):
     assert corpus_report["correct_frames"] == 2
     assert corpus_report["accuracy"] == 2 / 3
     assert corpus_report["per_clip"][0]["clip_id"] == "clip01"
+
+
+def test_baseline_threshold_is_selected_on_dev_and_frozen_for_held_out(tmp_path):
+    dev = CorpusClip(
+        clip_id="dev",
+        wav_path=tmp_path / "dev.wav",
+        annotations=(Annotation(0.0, 0.25, "speech"),),
+        split="dev",
+    )
+    held = CorpusClip(
+        clip_id="held",
+        wav_path=tmp_path / "held.wav",
+        annotations=(Annotation(0.0, 0.25, "speech"),),
+        split="held_out",
+    )
+    frames = {
+        "dev": [
+            FrameObservation(0, [0.2, 0.2], source="pcm_wav"),
+            FrameObservation(250, [0.01, 0.01], source="pcm_wav"),
+        ],
+        "held": [
+            FrameObservation(0, [0.15, 0.15], source="pcm_wav"),
+            FrameObservation(250, [0.01, 0.01], source="pcm_wav"),
+        ],
+    }
+
+    report = compare_saliency_baselines(
+        [dev, held],
+        lambda clip, frame_ms: frames[clip.clip_id],
+        frame_ms=250,
+    )
+
+    peak = report["baselines"]["peak_rms"]
+    assert report["evidence_kind"] == "real_audio"
+    assert peak["selected_threshold"] == 0.2
+    assert peak["dev"]["f1"] == 1.0
+    assert peak["held_out"]["f1"] == 0.0
+
+
+def test_feature_baseline_is_tuned_on_dev_for_target_label(tmp_path):
+    annotations = (
+        Annotation(0.0, 0.25, "infant_directed_speech"),
+        Annotation(0.25, 0.5, "adult_directed_speech"),
+    )
+    dev = CorpusClip("dev", tmp_path / "dev.wav", annotations, "dev")
+    held = CorpusClip("held", tmp_path / "held.wav", annotations, "held_out")
+
+    def frames_for(clip, frame_ms):
+        pitches = (300.0, 150.0) if clip.split == "dev" else (320.0, 140.0)
+        return [
+            FrameObservation(
+                timestamp_ms=index * 250,
+                channel_energies=[0.2],
+                features={"pitch_hz": pitch},
+                source="pcm_wav",
+            )
+            for index, pitch in enumerate(pitches)
+        ]
+
+    report = compare_saliency_baselines(
+        [dev, held],
+        frames_for,
+        positive_labels={"infant_directed_speech"},
+    )
+
+    pitch = report["baselines"]["feature:pitch_hz"]
+    assert pitch["selected_threshold"] == 300.0
+    assert pitch["dev"]["f1"] == 1.0
+    assert pitch["held_out"]["f1"] == 1.0
+    assert report["positive_labels"] == ["infant_directed_speech"]

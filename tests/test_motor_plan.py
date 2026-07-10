@@ -17,6 +17,7 @@ from cora_infans.io.motor_plan import (
     MotorPlanner,
     VowelArticulation,
     analyze_vowel,
+    evaluate_vowel_round_trip,
     synthesize_vowel,
 )
 
@@ -93,6 +94,18 @@ def test_motor_planner_closes_analysis_by_synthesis_loop() -> None:
         assert plan.f1_hz == VOWEL_FORMANTS_HZ[feat.nearest_vowel][0]
         out = planner.plan_wav(feat.nearest_vowel, duration_ms=120, sample_rate=16000)
         assert len(out) == int(0.120 * 16000)
+
+
+def test_clean_synthetic_vowel_round_trip_passes_confusion_matrix_gate() -> None:
+    report = evaluate_vowel_round_trip()
+
+    assert report["trial_count"] == 40
+    assert report["accuracy"] >= 0.9
+    assert report["criterion_passed"] is True
+    assert report["evidence_scope"] == "clean_synthetic_only"
+    for vowel in ("a", "e", "i", "o", "u"):
+        assert report["confusion_matrix"][vowel][vowel] >= 1
+    assert set(report["formant_mae_hz"]) == {"f1", "f2", "f3"}
 
 
 def test_motor_planner_maps_perceived_vowel_to_articulation() -> None:

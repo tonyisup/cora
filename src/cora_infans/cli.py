@@ -2,11 +2,23 @@ from __future__ import annotations
 
 import json
 import sys
+from contextlib import nullcontext
 from typing import Any
 
 from .io.live_listener import LiveListener
+from .benchmark import benchmark_event_pipeline
 from .io.live_mic import DEFAULT_DEVICE, LiveMicArray, LiveMicError
-from .io.offline_eval import CorpusLoader, OfflineEvalHarness
+from .io.ids_corpus import build_ids_manifest
+from .io.recorded_frames import (
+    build_corollary_capture_manifest,
+    build_recorded_npy_frames,
+)
+from .io.offline_eval import (
+    CorpusLoader,
+    OfflineEvalHarness,
+    compare_saliency_baselines,
+)
+from .io.wav_frames import build_wav_corpus_frames
 from .simulation import (
     SimulationParams,
     _builtin_sequence_family,
@@ -16,12 +28,14 @@ from .simulation import (
     build_sequence_report_with_scheduling,
     build_simulation_report,
 )
-from .io.synthetic_stream import build_synthetic_corpus_frames
+from .predictive_learning import evaluate_predictive_corpus
+from .workspace_ablation import run_workspace_ablation
 from .io.motor_plan import (  # noqa: E402
     ANALYSIS_BY_SYNTHESIS_TABLE,
     VOWEL_FORMANTS_HZ,
     MotorPlanner,
     analyze_vowel,
+    evaluate_vowel_round_trip,
     synthesize_vowel,
     write_wav,
 )
@@ -53,10 +67,11 @@ SequenceArgs = tuple[str, bool]
 def describe() -> dict[str, object]:
     return {
         "project": "cora-infans",
-        "implemented_slice": "saliency_workspace_live_attention",
+        "implemented_slice": "evidence_first_auditory_learning",
         "implemented_subsystems": [
             "synthetic_mic_array_front_end",
             "live_xvf3800_front_end",
+            "native_coreaudio_continuous_front_end",
             "acoustic_saliency_gate",
             "predictive_hierarchy",
             "stateful_event_workspace",
@@ -64,7 +79,12 @@ def describe() -> dict[str, object]:
             "xvf3800_hardware_tuner",
             "commanded_active_attention",
             "offline_corpus_evaluation",
+            "real_wav_corpus_evaluation",
+            "recorded_npy_corpus_evaluation",
+            "dev_held_out_saliency_baselines",
+            "prior_art_capture_replay",
             "motor_plan_synthesis",
+            "clean_synthetic_vowel_round_trip_gate",
             "theta_gamma_motor_subwindow",
             "simulation_only_signal_self_suppression",
             "simulation_only_forward_model_learning",
@@ -74,11 +94,22 @@ def describe() -> dict[str, object]:
             "simulation_only_speaking_policy_promotion_gate",
             "simulation_only_speaking_readiness_gate",
             "bounded_live_speak_smoke",
+            "event_pipeline_microbenchmark",
+            "live_capture_to_workspace_latency",
+            "ids_corpus_manifest_builder",
+            "external_ids_real_audio_evaluation",
+            "participant_disjoint_parentese_confirmation",
+            "synthetic_workspace_ablation",
+            "phase_template_top_down_prediction",
         ],
 
         "planned_subsystems": [
             "non_speech_source_localization",
-            "training_and_evaluation_harnesses",
+            "cross_cultural_parentese_robustness",
+            "parentese_noise_controls",
+            "cross_protocol_predictive_generalization",
+            "device_timestamped_latency",
+            "energy_benchmark",
             "general_user_authored_sequences",
         ],
         "verdicts": {
@@ -236,6 +267,7 @@ def listen_live(args: list[str] | None = None) -> dict[str, object]:
     device = DEFAULT_DEVICE
     duration_ms = 2000
     frame_ms = 250
+    capture_backend = "auto"
     with_stimulus = False
     with_scheduling = False
     with_attention = False
@@ -297,6 +329,10 @@ def listen_live(args: list[str] | None = None) -> dict[str, object]:
                 frame_ms = int(value)
             except ValueError as exc:
                 raise ValueError("invalid frame ms") from exc
+        elif option == "--capture-backend":
+            if value not in ("auto", "native", "ffmpeg"):
+                raise ValueError("invalid capture backend")
+            capture_backend = value
         elif option == "--output-device-index":
             try:
                 output_device_index = int(value)
@@ -432,49 +468,70 @@ def listen_live(args: list[str] | None = None) -> dict[str, object]:
 
         out_dir = tempfile.mkdtemp(prefix="cora_imit_")
 
+    array = (
+        LiveMicArray(device=device)
+        if capture_backend == "auto"
+        else LiveMicArray(device=device, stream_backend=capture_backend)
+    )
     listener = LiveListener(
-        LiveMicArray(device=device),
+        array,
         output_device_index=output_device_index,
         imitation_device_index=imitation_device_index,
         saliency_threshold=saliency_threshold,
     )
-    return listener.listen(
-        duration_ms=duration_ms,
-        frame_ms=frame_ms,
-        with_stimulus=with_stimulus,
-        with_scheduling=with_scheduling,
-        with_attention=with_attention,
-        with_motor_imitation=with_motor_imitation,
-        motor_imitation_gate_fn=gate_fn,
-        motor_imitation_playback_fn=playback_fn,
-        motor_imitation_capture_fn=capture_fn,
-        motor_imitation_out_dir=out_dir,
-        motor_imitation_volume_db=volume_db,
-        latency_anchor_ms=latency_anchor_ms,
-        do_self_subtraction=with_self_subtraction,
-        bounded_playback_authorized=use_real_io,
-        self_subtraction_stable_calibration=stable_calibration,
-        self_subtraction_held_out_trials=held_out_trials,
+    stream_context = (
+        array.streaming() if callable(getattr(array, "streaming", None)) else nullcontext()
     )
+    with stream_context:
+        return listener.listen(
+            duration_ms=duration_ms,
+            frame_ms=frame_ms,
+            with_stimulus=with_stimulus,
+            with_scheduling=with_scheduling,
+            with_attention=with_attention,
+            with_motor_imitation=with_motor_imitation,
+            motor_imitation_gate_fn=gate_fn,
+            motor_imitation_playback_fn=playback_fn,
+            motor_imitation_capture_fn=capture_fn,
+            motor_imitation_out_dir=out_dir,
+            motor_imitation_volume_db=volume_db,
+            latency_anchor_ms=latency_anchor_ms,
+            do_self_subtraction=with_self_subtraction,
+            bounded_playback_authorized=use_real_io,
+            self_subtraction_stable_calibration=stable_calibration,
+            self_subtraction_held_out_trials=held_out_trials,
+        )
 
 
 def eval_corpus(args: list[str] | None = None) -> dict[str, object]:
     """Run the offline evaluation harness over a labeled corpus.
 
     Usage: --eval-corpus --root DIR --label-csv FILE [--saliency-threshold F]
-           [--frame-ms N]
+           [--frame-ms N] [--score-mode peak_rms|spatial_contrast]
+           [--input-mode wav|recorded_npy|synthetic_fixture] [--compare-baselines]
+           [--evaluate-prediction FEATURE] [--positive-label LABEL[,LABEL]]
 
-    The harness scores a deterministic synthetic frame stream derived from each
-    clip's labeled intervals; no hardware or real WAV decoding is required.
+    Real uncompressed WAV decoding is the default and is the only WAV mode
+    reported as real evidence. The synthetic fixture mode exists solely for
+    plumbing tests.
     """
     parsed = args or ["--eval-corpus"]
     root = "."
     label_csv: str | None = None
-    saliency_threshold = 0.7
+    saliency_threshold = 0.02
     frame_ms = 250
+    score_mode = "peak_rms"
+    input_mode = "wav"
+    compare_baselines = False
+    predictive_feature: str | None = None
+    positive_labels: set[str] | None = None
     i = 1
     while i < len(parsed):
         option = parsed[i]
+        if option == "--compare-baselines":
+            compare_baselines = True
+            i += 1
+            continue
         if i + 1 >= len(parsed):
             raise ValueError(f"missing value for {option}")
         value = parsed[i + 1]
@@ -492,6 +549,21 @@ def eval_corpus(args: list[str] | None = None) -> dict[str, object]:
                 frame_ms = int(value)
             except ValueError as exc:
                 raise ValueError("invalid frame ms") from exc
+        elif option == "--score-mode":
+            if value not in ("peak_rms", "spatial_contrast"):
+                raise ValueError("invalid score mode")
+            score_mode = value
+        elif option == "--input-mode":
+            if value not in ("wav", "recorded_npy", "synthetic_fixture"):
+                raise ValueError("invalid input mode")
+            input_mode = value
+        elif option == "--evaluate-prediction":
+            predictive_feature = value
+        elif option == "--positive-label":
+            parsed_labels = {label.strip() for label in value.split(",") if label.strip()}
+            if not parsed_labels:
+                raise ValueError("positive label must not be empty")
+            positive_labels = parsed_labels
         else:
             raise ValueError(f"unknown option: {option}")
         i += 2
@@ -502,11 +574,44 @@ def eval_corpus(args: list[str] | None = None) -> dict[str, object]:
     loader = CorpusLoader(root=root)
     clips = loader.load_labels(label_csv)
     harness = OfflineEvalHarness(
-        saliency_threshold=saliency_threshold, frame_ms=frame_ms
+        saliency_threshold=saliency_threshold,
+        frame_ms=frame_ms,
+        score_mode=score_mode,  # type: ignore[arg-type]
+        positive_labels=positive_labels,
     )
-    report = harness.evaluate_corpus(clips, build_synthetic_corpus_frames)
+    if input_mode == "wav":
+        frame_provider = build_wav_corpus_frames
+    elif input_mode == "recorded_npy":
+        frame_provider = build_recorded_npy_frames
+    else:
+        from .io.synthetic_stream import build_synthetic_corpus_frames
+
+        frame_provider = build_synthetic_corpus_frames
+    if compare_baselines and predictive_feature is not None:
+        raise ValueError(
+            "--compare-baselines and --evaluate-prediction are mutually exclusive"
+        )
+    if predictive_feature is not None:
+        if input_mode not in ("wav", "recorded_npy"):
+            raise ValueError("predictive corpus evidence requires real audio input")
+        report = evaluate_predictive_corpus(
+            clips,
+            frame_provider,
+            frame_ms=frame_ms,
+            feature=predictive_feature,
+        )
+    elif compare_baselines:
+        report = compare_saliency_baselines(
+            clips,
+            frame_provider,
+            frame_ms=frame_ms,
+            positive_labels=positive_labels,
+        )
+    else:
+        report = harness.evaluate_corpus(clips, frame_provider)
     report["label_csv"] = label_csv
     report["clip_loaded"] = len(clips)
+    report["input_mode"] = input_mode
     return report
 
 
@@ -604,6 +709,114 @@ def synthesize_vowel_cli(args: list[str] | None = None) -> dict[str, object]:
             "f3_hz": plan.f3_hz,
         }
     return report
+
+
+def evaluate_vowel_loop_cli(args: list[str] | None = None) -> dict[str, object]:
+    parsed = args or ["--evaluate-vowel-loop"]
+    duration_ms = 300
+    minimum_accuracy = 0.9
+    i = 1
+    while i < len(parsed):
+        if i + 1 >= len(parsed):
+            raise ValueError(f"missing value for {parsed[i]}")
+        option, value = parsed[i], parsed[i + 1]
+        if option == "--duration-ms":
+            duration_ms = int(value)
+        elif option == "--minimum-accuracy":
+            minimum_accuracy = float(value)
+        else:
+            raise ValueError(f"unknown option: {option}")
+        i += 2
+    return evaluate_vowel_round_trip(
+        duration_ms=duration_ms,
+        minimum_accuracy=minimum_accuracy,
+    )
+
+
+def benchmark_core_cli(args: list[str] | None = None) -> dict[str, object]:
+    parsed = args or ["--benchmark-core"]
+    iterations = 1000
+    frame_ms = 25
+    i = 1
+    while i < len(parsed):
+        if i + 1 >= len(parsed):
+            raise ValueError(f"missing value for {parsed[i]}")
+        option, value = parsed[i], parsed[i + 1]
+        if option == "--iterations":
+            iterations = int(value)
+        elif option == "--frame-ms":
+            frame_ms = int(value)
+        else:
+            raise ValueError(f"unknown option: {option}")
+        i += 2
+    return benchmark_event_pipeline(iterations=iterations, frame_ms=frame_ms)
+
+
+def prepare_ids_manifest_cli(args: list[str] | None = None) -> dict[str, object]:
+    parsed = args or ["--prepare-ids-manifest"]
+    root: str | None = None
+    output: str | None = None
+    held_out_fraction = 0.2
+    include_song = False
+    i = 1
+    while i < len(parsed):
+        option = parsed[i]
+        if option == "--include-song":
+            include_song = True
+            i += 1
+            continue
+        if i + 1 >= len(parsed):
+            raise ValueError(f"missing value for {option}")
+        value = parsed[i + 1]
+        if option == "--root":
+            root = value
+        elif option == "--out":
+            output = value
+        elif option == "--held-out-fraction":
+            held_out_fraction = float(value)
+        else:
+            raise ValueError(f"unknown option: {option}")
+        i += 2
+    if root is None or output is None:
+        raise ValueError("--root and --out are required")
+    return build_ids_manifest(
+        root,
+        output,
+        held_out_fraction=held_out_fraction,
+        include_song=include_song,
+    )
+
+
+def prepare_corollary_manifest_cli(args: list[str] | None = None) -> dict[str, object]:
+    parsed = args or ["--prepare-corollary-manifest"]
+    root: str | None = None
+    output: str | None = None
+    sample_rate = 16000
+    held_out_seeds = (2,)
+    i = 1
+    while i < len(parsed):
+        if i + 1 >= len(parsed):
+            raise ValueError(f"missing value for {parsed[i]}")
+        option, value = parsed[i], parsed[i + 1]
+        if option == "--root":
+            root = value
+        elif option == "--out":
+            output = value
+        elif option == "--sample-rate":
+            sample_rate = int(value)
+        elif option == "--held-out-seeds":
+            held_out_seeds = tuple(int(seed) for seed in value.split(","))
+        else:
+            raise ValueError(f"unknown option: {option}")
+        i += 2
+    if root is None or output is None:
+        raise ValueError("--root and --out are required")
+    return build_corollary_capture_manifest(
+        root,
+        output,
+        sample_rate=sample_rate,
+        held_out_seeds=held_out_seeds,
+    )
 
 
 def simulate_self_suppression_cli(args: list[str]) -> dict[str, object]:
@@ -1232,6 +1445,37 @@ def main(argv: list[str] | None = None) -> int:
         except ValueError as exc:
             print(str(exc), file=sys.stderr)
             return 2
+    if args and args[0] == "--evaluate-vowel-loop":
+        try:
+            print(json.dumps(evaluate_vowel_loop_cli(args)))
+            return 0
+        except ValueError as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
+    if args and args[0] == "--benchmark-core":
+        try:
+            print(json.dumps(benchmark_core_cli(args)))
+            return 0
+        except ValueError as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
+    if args == ["--evaluate-workspace-ablation"]:
+        print(json.dumps(run_workspace_ablation()))
+        return 0
+    if args and args[0] == "--prepare-ids-manifest":
+        try:
+            print(json.dumps(prepare_ids_manifest_cli(args)))
+            return 0
+        except ValueError as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
+    if args and args[0] == "--prepare-corollary-manifest":
+        try:
+            print(json.dumps(prepare_corollary_manifest_cli(args)))
+            return 0
+        except ValueError as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
     if args and args[0] == "--simulate-self-suppression":
         try:
             print(json.dumps(simulate_self_suppression_cli(args)))
@@ -1301,9 +1545,14 @@ def main(argv: list[str] | None = None) -> int:
         "[--timestamp-ms N --dominant-frequency-hz F --channel-energies a,b,c,d --initial-prediction-hz F --mic-geometry l0,l1,l2,l3 --saliency-threshold F --output json|pretty] "
         "[--family sweep|zigzag|gap|multi_gap|delayed_recovery] [--with-scheduling] "
         "[--capture-live [--device :0] [--duration-ms N]] "
-        "[--listen-live [--duration-ms N] [--frame-ms N] [--with-stimulus] [--with-attention] [--with-scheduling] [--saliency-threshold F] [--with-motor-imitation [--real-io [--output-device-index 2] [--imitation-device-index 3] [--with-self-subtraction] [--volume-db F] [--latency-anchor PATH]]]] "
-        "[--eval-corpus --root DIR --label-csv FILE [--saliency-threshold F] [--frame-ms N]] "
+        "[--listen-live [--duration-ms N] [--frame-ms N] [--capture-backend auto|native|ffmpeg] [--with-stimulus] [--with-attention] [--with-scheduling] [--saliency-threshold F] [--with-motor-imitation [--real-io [--output-device-index 2] [--imitation-device-index 3] [--with-self-subtraction] [--volume-db F] [--latency-anchor PATH]]]] "
+        "[--eval-corpus --root DIR --label-csv FILE [--saliency-threshold F] [--frame-ms N] [--score-mode peak_rms|spatial_contrast] [--input-mode wav|recorded_npy|synthetic_fixture] [--compare-baselines] [--evaluate-prediction FEATURE] [--positive-label LABEL[,LABEL]]] "
         "[--synthesize-vowel a|e|i|o|u --out PATH.wav [--duration-ms N] [--sample-rate N] [--f0-hz F] [--analyze]] "
+        "[--evaluate-vowel-loop [--duration-ms N] [--minimum-accuracy F]] "
+        "[--benchmark-core [--iterations N] [--frame-ms N]] "
+        "[--evaluate-workspace-ablation] "
+        "[--prepare-ids-manifest --root DIR --out labels.csv [--held-out-fraction F] [--include-song]] "
+        "[--prepare-corollary-manifest --root DIR --out labels.csv [--sample-rate N] [--held-out-seeds csv]] "
         "[--simulate-self-suppression [--vowel a|e|i|o|u] [--world-vowel a|e|i|o|u] [--world-gain F] [--duration-ms N] [--sample-rate N]] "
         "[--learn-self-forward-model [--vowel a|e|i|o|u] [--observed-delay-ms F] [--observed-attenuation F] [--observed-echo-decay F] [--world-vowel a|e|i|o|u] [--world-gain F]] "
         "[--sweep-self-forward-model [--vowel a|e|i|o|u] [--delay-errors-ms csv] [--attenuation-scales csv] [--echo-decay-scales csv] [--world-vowel a|e|i|o|u] [--world-gain F]] "

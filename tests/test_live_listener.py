@@ -34,6 +34,21 @@ def _frame(energies, hz=1000.0):
     return AudioFrame(timestamp_ms=0, channel_energies=energies, dominant_frequency_hz=hz)
 
 
+def test_listener_reports_capture_to_workspace_latency_boundary() -> None:
+    listener = LiveListener(array=FakeArray([_frame([0.2, 0.1])]))
+
+    report = listener.listen(duration_ms=50, frame_ms=25)
+    performance = report["runtime_performance"]
+
+    assert performance["measurement_boundary"] == (
+        "capture_frame_call_start_to_workspace_decision"
+    )
+    assert performance["frame_count"] == 2
+    assert performance["capture_backend"] == "FakeArray"
+    assert performance["real_capture"] is False
+    assert performance["capture_to_workspace_latency_ms"]["p95"] >= 0.0
+
+
 def test_play_efference_requires_passed_gate() -> None:
     # The imitation playback helper must refuse (zero playback) unless the
     # readiness gate is promoted; this is the same gating discipline as the

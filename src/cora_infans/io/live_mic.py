@@ -27,6 +27,8 @@ import shutil
 import subprocess
 import tempfile
 import time
+from contextlib import contextmanager
+from typing import Any, Iterator
 
 import numpy as np
 
@@ -66,15 +68,159 @@ class LiveMicArray:
         device: str = DEFAULT_DEVICE,
         sample_rate: int = DEFAULT_SAMPLE_RATE,
         capture_seconds: float = 0.25,
+        stream_backend: str = "auto",
     ) -> None:
+        if stream_backend not in ("auto", "native", "ffmpeg"):
+            raise ValueError("stream_backend must be auto, native, or ffmpeg")
         self.device = device
         self.sample_rate = sample_rate
         self.capture_seconds = capture_seconds
+        self.stream_backend = stream_backend
         self._channel_count: int | None = None
+        self._stream_process: subprocess.Popen[bytes] | None = None
+        self._native_stream: Any | None = None
+        self.active_stream_backend: str | None = None
+        self.stream_fallback_reason: str | None = None
+        self.stream_metadata: dict[str, object] | None = None
+        self.last_input_overflowed = False
+        self.is_real_capture = True
         # Retained raw PCM of the most recent capture, so downstream consumers
         # (e.g. the motor-imitation loop's analyze_vowel) have a waveform to
         # analyze. None until the first capture.
         self.last_pcm: np.ndarray | None = None
+
+    def start_stream(self) -> None:
+        """Open one continuous raw-PCM ffmpeg session for repeated frames."""
+
+        if self._stream_process is not None or self._native_stream is not None:
+            return
+        if self.stream_backend in ("auto", "native"):
+            try:
+                self._start_native_stream()
+                return
+            except Exception as exc:  # native is optional only in auto mode
+                if self.stream_backend == "native":
+                    raise LiveMicError(f"native CoreAudio stream failed: {exc}") from exc
+                self.stream_fallback_reason = f"{type(exc).__name__}: {exc}"
+        self._start_ffmpeg_stream()
+
+    def _start_native_stream(self) -> None:
+        import sounddevice as sd
+
+        device_index = self._resolve_sounddevice_input(sd)
+        stream = sd.InputStream(
+            samplerate=self.sample_rate,
+            # Let CoreAudio choose its optimal callback quantum. Cora reblocks
+            # the native stream into the requested analysis-frame size.
+            blocksize=0,
+            device=device_index,
+            channels=CAPTURE_CHANNELS,
+            dtype="float32",
+            latency="low",
+        )
+        stream.start()
+        self._native_stream = stream
+        self._channel_count = CAPTURE_CHANNELS
+        self.active_stream_backend = "sounddevice_portaudio_coreaudio"
+        self.stream_metadata = {
+            "sample_rate": self.sample_rate,
+            "channel_count": CAPTURE_CHANNELS,
+            "requested_latency": "low",
+            "reported_input_latency_ms": float(stream.latency) * 1000.0,
+            "reported_blocksize": int(stream.blocksize),
+        }
+
+    def _resolve_sounddevice_input(self, sounddevice_module: Any) -> int:
+        devices = sounddevice_module.query_devices()
+        preferred_name = "respeaker xvf3800"
+        for index, device in enumerate(devices):
+            if (
+                preferred_name in str(device["name"]).lower()
+                and int(device["max_input_channels"]) >= CAPTURE_CHANNELS
+            ):
+                return index
+        raise LiveMicError("sounddevice could not find the XVF3800 input")
+
+    def _start_ffmpeg_stream(self) -> None:
+        ffmpeg = _require_ffmpeg()
+        cmd = [
+            ffmpeg,
+            "-hide_banner",
+            "-loglevel",
+            "error",
+            "-thread_queue_size",
+            "512",
+            "-fflags",
+            "nobuffer",
+            "-flags",
+            "low_delay",
+            "-probesize",
+            "32",
+            "-analyzeduration",
+            "0",
+            "-f",
+            "avfoundation",
+            "-i",
+            self.device,
+            "-vn",
+            "-ac",
+            str(CAPTURE_CHANNELS),
+            "-ar",
+            str(self.sample_rate),
+            "-f",
+            "s16le",
+            "-acodec",
+            "pcm_s16le",
+            "-flush_packets",
+            "1",
+            "pipe:1",
+        ]
+        self._stream_process = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            bufsize=0,
+        )
+        self._channel_count = CAPTURE_CHANNELS
+        self.active_stream_backend = "ffmpeg_avfoundation_raw_pcm"
+        self.stream_metadata = {
+            "sample_rate": self.sample_rate,
+            "channel_count": CAPTURE_CHANNELS,
+            "reported_input_latency_ms": None,
+            "reported_blocksize": None,
+        }
+
+    def stop_stream(self) -> None:
+        native_stream = self._native_stream
+        self._native_stream = None
+        if native_stream is not None:
+            try:
+                native_stream.stop()
+            finally:
+                native_stream.close()
+        process = self._stream_process
+        self._stream_process = None
+        if process is None:
+            self.active_stream_backend = None
+            return
+        if process.stdout is not None:
+            process.stdout.close()
+        if process.poll() is None:
+            process.terminate()
+            try:
+                process.wait(timeout=2.0)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                process.wait(timeout=2.0)
+        self.active_stream_backend = None
+
+    @contextmanager
+    def streaming(self) -> Iterator["LiveMicArray"]:
+        self.start_stream()
+        try:
+            yield self
+        finally:
+            self.stop_stream()
 
     @property
     def channel_count(self) -> int:
@@ -119,8 +265,27 @@ class LiveMicArray:
         `dominant_frequency_hz` is computed from the captured signal by default;
         callers may override it only for deterministic test injection.
         """
-        ffmpeg = _require_ffmpeg()
         seconds = (duration_ms / 1000.0) if duration_ms is not None else self.capture_seconds
+        if self._native_stream is not None:
+            sample_count = max(1, int(round(seconds * self.sample_rate)))
+            data, overflowed = self._native_stream.read(sample_count)
+            self.last_input_overflowed = bool(overflowed)
+            return self._frame_from_float_data(
+                np.asarray(data, dtype=np.float32),
+                sample_rate=self.sample_rate,
+                dominant_frequency_hz=dominant_frequency_hz,
+            )
+        if self._stream_process is not None:
+            sample_count = max(1, int(round(seconds * self.sample_rate)))
+            raw = self._read_stream_bytes(sample_count * CAPTURE_CHANNELS * 2)
+            return self._frame_from_pcm_bytes(
+                raw,
+                channel_count=CAPTURE_CHANNELS,
+                sample_rate=self.sample_rate,
+                dominant_frequency_hz=dominant_frequency_hz,
+            )
+
+        ffmpeg = _require_ffmpeg()
         with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
             out_path = tmp.name
         cmd = [
@@ -146,12 +311,69 @@ class LiveMicArray:
         finally:
             os.unlink(out_path)
 
-        data = np.frombuffer(raw, dtype=np.int16).reshape(-1, nch).astype(np.float32)
+        return self._frame_from_pcm_bytes(
+            raw,
+            channel_count=nch,
+            sample_rate=sr,
+            dominant_frequency_hz=dominant_frequency_hz,
+        )
+
+    def _read_stream_bytes(self, expected_bytes: int) -> bytes:
+        process = self._stream_process
+        if process is None or process.stdout is None:
+            raise LiveMicError("live PCM stream is not open")
+        chunks: list[bytes] = []
+        remaining = expected_bytes
+        while remaining > 0:
+            chunk = process.stdout.read(remaining)
+            if not chunk:
+                stderr = (
+                    process.stderr.read().decode("utf-8", errors="replace").strip()
+                    if process.stderr is not None and process.poll() is not None
+                    else ""
+                )
+                raise LiveMicError(
+                    f"live PCM stream ended early: {stderr or 'ffmpeg produced no audio'}"
+                )
+            chunks.append(chunk)
+            remaining -= len(chunk)
+        return b"".join(chunks)
+
+    def _frame_from_pcm_bytes(
+        self,
+        raw: bytes,
+        *,
+        channel_count: int,
+        sample_rate: int,
+        dominant_frequency_hz: float | None,
+    ) -> AudioFrame:
+        data = (
+            np.frombuffer(raw, dtype="<i2")
+            .reshape(-1, channel_count)
+            .astype(np.float32)
+        )
         data /= 32768.0
+        return self._frame_from_float_data(
+            data,
+            sample_rate=sample_rate,
+            dominant_frequency_hz=dominant_frequency_hz,
+        )
+
+    def _frame_from_float_data(
+        self,
+        data: np.ndarray,
+        *,
+        sample_rate: int,
+        dominant_frequency_hz: float | None,
+    ) -> AudioFrame:
+        if data.ndim != 2 or data.shape[1] != CAPTURE_CHANNELS:
+            raise LiveMicError(
+                f"expected {CAPTURE_CHANNELS}-channel PCM, got shape {data.shape}"
+            )
 
         # Retain the raw PCM (mono mix) for downstream waveform analysis.
-        self.last_pcm = data.sum(axis=1).astype(np.float32)
-        self.last_pcm_sample_rate = sr
+        self.last_pcm = data.mean(axis=1).astype(np.float32)
+        self.last_pcm_sample_rate = sample_rate
 
         channel_energies = [
             float(np.sqrt(np.mean(col**2))) for col in data.T
@@ -159,7 +381,7 @@ class LiveMicArray:
         dominant = (
             dominant_frequency_hz
             if dominant_frequency_hz is not None
-            else self._dominant_frequency_hz(data, sr)
+            else self._dominant_frequency_hz(data, sample_rate)
         )
 
         return AudioFrame(
@@ -170,7 +392,7 @@ class LiveMicArray:
 
     @staticmethod
     def _dominant_frequency_hz(data: np.ndarray, sample_rate: int) -> float:
-        mono = data.sum(axis=1)
+        mono = data.mean(axis=1)
         energy = float(np.sqrt(np.mean(mono**2)))
         if energy < MIN_SALIENT_ENERGY:
             return 0.0

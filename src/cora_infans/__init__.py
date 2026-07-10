@@ -25,6 +25,7 @@ from .simulation import (
 )
 from .theta_gamma import ThetaGammaScheduler
 from .workspace import EventWorkspace
+from .workspace_ablation import run_workspace_ablation
 
 __all__ = [
     "AudioFrame",
@@ -50,6 +51,7 @@ __all__ = [
     "load_scenario_definition_yaml",
     "lower_scenario_definition",
     "ThetaGammaScheduler",
+    "run_workspace_ablation",
     "resolve_focus_label",
 ]
 __version__ = "0.1.0"

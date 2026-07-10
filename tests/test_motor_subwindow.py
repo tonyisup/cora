@@ -16,23 +16,37 @@ from cora_infans.theta_gamma import ThetaGammaScheduler, motor_bin_of
 from cora_infans.pipeline import WorkspaceEvent, AudioFrame
 
 
-def _audio(ts: int, label: str) -> WorkspaceEvent:
+def _audio(
+    ts: int,
+    label: str,
+    *,
+    expected_self_audio: bool = False,
+    efference_id: str | None = None,
+) -> WorkspaceEvent:
+    state = {
+        "timestamp_ms": ts,
+        "focus_label": label,
+        "saliency_reward": 0.1,
+    }
+    if expected_self_audio:
+        state["expected_self_audio"] = True
+    if efference_id is not None:
+        state["efference_id"] = efference_id
     return WorkspaceEvent(
         kind="salient_audio",
         saliency_score=0.5,
-        workspace_state={
-            "timestamp_ms": ts,
-            "focus_label": label,
-            "saliency_reward": 0.1,
-        },
+        workspace_state=state,
     )
 
 
-def _motor(ts: int) -> WorkspaceEvent:
+def _motor(ts: int, efference_id: str | None = None) -> WorkspaceEvent:
+    state = {"timestamp_ms": ts, "perceived_vowel": "a"}
+    if efference_id is not None:
+        state["efference_id"] = efference_id
     return WorkspaceEvent(
         kind="motor_intention",
         saliency_score=0.3,
-        workspace_state={"timestamp_ms": ts, "perceived_vowel": "a"},
+        workspace_state=state,
     )
 
 
@@ -69,13 +83,15 @@ def test_motor_intention_phase_locked_into_subwindow() -> None:
     assert sched.motor_subwindow_bin() in bins
 
 
-def test_corollary_discharge_suppresses_concurrent_external_audio() -> None:
+def test_corollary_discharge_suppresses_matching_verified_self_audio() -> None:
     sched = ThetaGammaScheduler(theta_ms=200, gamma_ms=25)
     # External audio arriving in the SAME gamma bin as the motor sub-window
     # (bin 7 spans 175..200 ms). Place audio at 185 ms.
-    sched.push(_audio(185, "L_mid"))
+    sched.push(
+        _audio(185, "L_mid", expected_self_audio=True, efference_id="trial-1")
+    )
     motor_ts = sched.reserve_motor_timestamp(185)  # -> bin 7 mid (187)
-    sched.push(_motor(motor_ts))
+    sched.push(_motor(motor_ts, efference_id="trial-1"))
     # The external audio in bin 7 must be flagged self_suppressed.
     summary = sched.summary()
     assert summary["self_suppressed_events"] == 1
@@ -85,6 +101,14 @@ def test_corollary_discharge_suppresses_concurrent_external_audio() -> None:
     suppressed = [ev for ev in cyc.events if ev.workspace_state.get("self_suppressed") is True]
     assert len(suppressed) == 1
     assert suppressed[0].kind == "salient_audio"
+
+
+def test_phase_coincident_world_audio_is_not_suppressed() -> None:
+    sched = ThetaGammaScheduler(theta_ms=200, gamma_ms=25)
+    sched.push(_audio(185, "world"))
+    sched.push(_motor(sched.reserve_motor_timestamp(185), efference_id="trial-1"))
+
+    assert sched.summary()["self_suppressed_events"] == 0
 
 
 def test_no_suppression_when_bins_differ() -> None:

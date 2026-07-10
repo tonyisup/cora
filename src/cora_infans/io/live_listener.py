@@ -25,6 +25,7 @@ import inspect
 import math
 import subprocess
 import tempfile
+import time
 from pathlib import Path
 
 import numpy as np
@@ -40,6 +41,7 @@ from .live_mic import (
     _require_ffmpeg,
 )
 from ..predictive import FocusTrajectoryCoder, PredictiveCoder, PredictiveHierarchy
+from ..runtime_metrics import RuntimeLatencyTracker
 from .active_attention import (
     ActiveAttentionGovernor,
     AttentionConfig,
@@ -913,11 +915,20 @@ class LiveListener:
         frame_is_salient: list[bool] = []
         attention_log: list[dict[str, object]] = []
         motor_imitation_log: list[dict[str, object]] = []
+        latency_tracker = RuntimeLatencyTracker(deadline_ms=frame_ms)
         target_frames = max(1, duration_ms // frame_ms)
         for i in range(target_frames):
             now_ms = i * frame_ms
+            capture_started_ns = time.perf_counter_ns()
             frame = self.array.capture_frame(duration_ms=frame_ms)
+            capture_ended_ns = time.perf_counter_ns()
             event = pipeline.process_frame(frame)
+            decision_ended_ns = time.perf_counter_ns()
+            latency_tracker.record(
+                capture_ms=(capture_ended_ns - capture_started_ns) / 1_000_000.0,
+                pipeline_ms=(decision_ended_ns - capture_ended_ns) / 1_000_000.0,
+                total_ms=(decision_ended_ns - capture_started_ns) / 1_000_000.0,
+            )
             is_salient = event is not None
             frame_is_salient.append(is_salient)
             frame_view = asdict_public(frame)
@@ -1119,6 +1130,20 @@ class LiveListener:
                 asdict_public(ev) for ev in pipeline.workspace.snapshot()
             ],
             "theta_gamma": scheduler.summary() if scheduler is not None else None,
+            "runtime_performance": latency_tracker.summary(
+                capture_backend=(
+                    getattr(self.array, "active_stream_backend", None)
+                    or type(self.array).__name__
+                ),
+                real_capture=bool(getattr(self.array, "is_real_capture", False)),
+                backend_reported_input_latency_ms=(
+                    getattr(self.array, "stream_metadata", {}) or {}
+                ).get("reported_input_latency_ms"),
+            ),
+            "capture_stream_fallback_reason": getattr(
+                self.array, "stream_fallback_reason", None
+            ),
+            "capture_stream_metadata": getattr(self.array, "stream_metadata", None),
             "active_attention": (
                 {
                     "enabled": with_attention,

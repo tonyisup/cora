@@ -22,10 +22,13 @@ def test_describe_command_prints_json_summary() -> None:
     payload = json.loads(result.stdout)
 
     assert payload["project"] == "cora-infans"
-    assert payload["implemented_slice"] == "saliency_workspace_live_attention"
+    assert payload["implemented_slice"] == "evidence_first_auditory_learning"
     assert "predictive_hierarchy" in payload["implemented_subsystems"]
     assert "commanded_active_attention" in payload["implemented_subsystems"]
     assert "offline_corpus_evaluation" in payload["implemented_subsystems"]
+    assert "prior_art_capture_replay" in payload["implemented_subsystems"]
+    assert "participant_disjoint_parentese_confirmation" in payload["implemented_subsystems"]
+    assert "cross_cultural_parentese_robustness" in payload["planned_subsystems"]
     assert "motor_plan_synthesis" in payload["implemented_subsystems"]
     assert "simulation_only_forward_model_robustness_sweep" in payload["implemented_subsystems"]
     assert "simulation_only_forward_model_promotion_gate" in payload["implemented_subsystems"]
@@ -392,10 +395,21 @@ def test_simulate_sequence_command_accepts_delayed_recovery_family_override() ->
 
 
 def test_eval_corpus_command_runs_offline_smoke(tmp_path) -> None:
+    import wave
+
+    import numpy as np
+
     env = os.environ.copy()
     env["PYTHONPATH"] = "src"
 
-    (tmp_path / "clip01.wav").write_bytes(b"RIFF")
+    sample_rate = 8000
+    tone = 0.4 * np.sin(2.0 * np.pi * 220.0 * np.arange(sample_rate) / sample_rate)
+    samples = np.concatenate([tone, np.zeros(sample_rate)])
+    with wave.open(str(tmp_path / "clip01.wav"), "wb") as wav:
+        wav.setnchannels(1)
+        wav.setsampwidth(2)
+        wav.setframerate(sample_rate)
+        wav.writeframes((samples * 32767.0).astype("<i2").tobytes())
     label_csv = tmp_path / "labels.csv"
     label_csv.write_text(
         "clip_id,start_s,end_s,label\n"
@@ -423,7 +437,10 @@ def test_eval_corpus_command_runs_offline_smoke(tmp_path) -> None:
     payload = json.loads(result.stdout)
     assert payload["clip_loaded"] == 1
     assert payload["clip_count"] == 1
-    assert payload["total_frames"] == 4  # two intervals * (on + quiet) frames
+    assert payload["total_frames"] == 8
+    assert payload["evidence_kind"] == "real_audio"
+    assert payload["input_mode"] == "wav"
+    assert payload["per_clip"][0]["sample_rate"] == sample_rate
     assert payload["per_clip"][0]["clip_id"] == "clip01"
 
 

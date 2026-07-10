@@ -15,18 +15,13 @@ Honesty boundary (matches the project's "don't fake it" rule):
 - Synthesis is a source-filter (glottal pulse + formant resonators) toy model,
   explicitly a *plausible* vowel generator for the analysis-by-synthesis loop.
   It is NOT a claim of biological vocal-tract fidelity.
-- Perception (`analyze_vowel`) is a real spectral-envelope formant estimator
-  (range-gated peak search over the windowed power spectrum) over the
+- Perception (`analyze_vowel`) is a real LPC spectral-envelope formant estimator
+  (linear prediction roots filtered by frequency and bandwidth) over the
   synthesized waveform, so the loop is closed with actual signal processing,
   not by echoing the input label.
-- Acoustic-fidelity ceiling (Step 2, 2026-07-08): the toy source-filter model
-  renders F2 as a genuine, table-matched spectral peak for the cardinal vowels,
-  but the glottal source's low-frequency energy dominates so F1 is NOT cleanly
-  resolved. Full 5-vowel F1/F2/F3 *recovery* is therefore out of scope for this
-  toy model; the nearest-vowel map can mis-assign. The mechanism (vowel ->
-  table -> synth -> analyze -> table-anchored motor plan) is real and tested;
-  we do not claim biological or acoustic recovery fidelity. The fix (a proper
-  glottal-source model, e.g. Liljencrants-Fant) is documented as future work.
+- Clean synthetic round-trip accuracy is measured by
+  `evaluate_vowel_round_trip`; it does not establish performance on recorded
+  speakers or biological vocal-tract fidelity.
 - No playback happens unless a caller explicitly plays; the pure core is fully
   unit-tested without audio I/O.
 """
@@ -165,7 +160,10 @@ def synthesize_vowel(
     # Parallel formant resonators, each driven by the (flatter) source; gains
     # emphasize the higher formants so they remain audible after the source's
     # natural high-frequency rolloff. Bandwidths are vowel-independent defaults.
-    sig = _formant_resonator(src, sample_rate, f1, 80.0) * 1.0
+    # F1 needs enough energy to remain identifiable after lip-radiation tilt.
+    # The gain is fixed across vowels and is validated by the confusion-matrix
+    # gate rather than tuned per label.
+    sig = _formant_resonator(src, sample_rate, f1, 80.0) * 5.0
     sig = sig + _formant_resonator(src, sample_rate, f2, 100.0) * 3.0
     sig = sig + _formant_resonator(src, sample_rate, f3, 130.0) * 2.0
     sig = _radiation_filter(sig, sample_rate)
@@ -188,70 +186,95 @@ class VowelAnalysis:
 
 
 def _estimate_formants(
-    wav: np.ndarray, sample_rate: int, order: int = 12
+    wav: np.ndarray, sample_rate: int, order: int = 24
 ) -> tuple[float, float, float]:
-    """Estimate the lowest formants from the smoothed spectral envelope.
+    """Estimate F1/F2/F3 from LPC poles without consulting a vowel label."""
 
-    The waveform is windowed, transformed to a power spectrum, lightly smoothed
-    (to suppress the harmonic comb), and peak-picked. Candidate peaks are
-    ordered by *frequency* (not height) so the robust F1/F2 ordering survives;
-    the strongest are returned. This is real signal processing (no label
-    echoing). With the Step-2 flatter source + parallel formants, F1 and F2 are
-    resolvable for the cardinal vowels; F3 and the high-formant vowels (i/u)
-    remain at the edge of the toy model's resolution.
-    """
-    x = wav.astype(np.float64)
+    if order < 8:
+        raise ValueError("LPC order must be at least 8")
+    x = np.asarray(wav, dtype=np.float64).reshape(-1)
+    # The target formant band is below 3.5 kHz. Analyze high-rate captures near
+    # 16 kHz so LPC order and pole selection stay consistent across 16/48 kHz
+    # inputs. The hardware path is normally an integer 48k -> 16k decimation.
+    decimation = max(1, int(round(sample_rate / 16000.0)))
+    if decimation > 1:
+        x = x[::decimation]
+        analysis_rate = sample_rate / decimation
+    else:
+        analysis_rate = float(sample_rate)
     x = x - float(np.mean(x))
-    spectrum = np.abs(np.fft.rfft(x * np.hanning(len(x)))) ** 2
-    # Smooth to remove harmonic ripple; width ~ a few formant bandwidths.
-    smooth_bins = max(8, int(0.004 * sample_rate))
-    kernel = np.ones(smooth_bins) / smooth_bins
-    smooth = np.convolve(spectrum, kernel, mode="same")
-    freqs = np.fft.rfftfreq(len(x), 1.0 / sample_rate)
-    band = (freqs >= 200.0) & (freqs <= 3500.0)
-    sm_b = smooth[band]
-    fr_b = freqs[band]
-    peaks: list[tuple[float, float]] = []
-    for k in range(1, len(sm_b) - 1):
-        if (
-            sm_b[k] > sm_b[k - 1]
-            and sm_b[k] >= sm_b[k + 1]
-            and sm_b[k] > 0.02 * float(np.max(sm_b))
-        ):
-            peaks.append((float(fr_b[k]), float(sm_b[k])))
-    # De-duplicate peaks closer than 150 Hz, keeping the taller one.
-    merged: list[tuple[float, float]] = []
-    for p, h in sorted(peaks, key=lambda t: t[0]):
-        if merged and abs(p - merged[-1][0]) < 150.0:
-            if h > merged[-1][1]:
-                merged[-1] = (p, h)
-            continue
-        merged.append((p, h))
-    # Range-gated formant assignment (the standard "formant tracking" step):
-    # F1 in [280,1000], F2 in [800,2500], F3 in [2000,3500]. Each band takes
-    # its strongest peak. This is real signal processing (frequency-range
-    # gating, not label echo) and gives the best-effort formant estimate the
-    # toy source-filter model supports.
-    ranges = [(280.0, 1000.0), (800.0, 2500.0), (2000.0, 3500.0)]
-    picked: list[float] = []
-    for lo, hi in ranges:
-        cand = [(p, h) for p, h in merged if lo <= p <= hi]
-        if cand:
-            picked.append(max(cand, key=lambda t: t[1])[0])
-        else:
-            picked.append(picked[-1] if picked else 500.0)
-    return float(picked[0]), float(picked[1]), float(picked[2])
+    # Standard pre-emphasis exposes resonances hidden by glottal spectral tilt.
+    x = np.append(x[0], x[1:] - 0.97 * x[:-1])
+    x *= np.hamming(len(x))
+
+    autocorrelation = np.correlate(x, x, mode="full")[len(x) - 1 : len(x) + order]
+    if autocorrelation[0] <= 1e-12:
+        return 500.0, 1500.0, 2500.0
+    toeplitz = np.fromfunction(
+        lambda i, j: autocorrelation[np.abs(i - j).astype(int)],
+        (order, order),
+    )
+    regularization = np.eye(order) * autocorrelation[0] * 1e-8
+    coefficients = np.concatenate(
+        ([1.0], np.linalg.solve(toeplitz + regularization, -autocorrelation[1:]))
+    )
+    roots = np.roots(coefficients)
+    roots = roots[np.imag(roots) >= 0.0]
+    frequencies = np.angle(roots) * analysis_rate / (2.0 * np.pi)
+    bandwidths = (
+        -0.5
+        * analysis_rate
+        / np.pi
+        * np.log(np.maximum(np.abs(roots), 1e-12))
+    )
+    candidates = sorted(
+        (float(frequency), float(bandwidth))
+        for frequency, bandwidth in zip(frequencies, bandwidths)
+        if 200.0 <= frequency <= 3500.0 and 5.0 <= bandwidth <= 700.0
+    )
+    if not candidates:
+        return 500.0, 1500.0, 2500.0
+
+    # Select ordered resonances using only generic human-formant ranges and pole
+    # bandwidth, never a candidate vowel label or its table entry.
+    f1_candidates = [candidate for candidate in candidates if candidate[0] <= 1000.0]
+    f1 = (
+        min(f1_candidates, key=lambda item: item[1])[0]
+        if f1_candidates
+        else candidates[0][0]
+    )
+    f2_candidates = [
+        candidate
+        for candidate in candidates
+        if max(700.0, f1 + 250.0) <= candidate[0] <= 2500.0
+    ]
+    f2_narrow = [candidate for candidate in f2_candidates if candidate[1] <= 150.0]
+    f2 = (
+        min(f2_narrow or f2_candidates, key=lambda item: item[0])[0]
+        if f2_candidates
+        else max(f1 + 300.0, 1500.0)
+    )
+    f3_candidates = [
+        candidate
+        for candidate in candidates
+        if max(1800.0, f2 + 300.0) <= candidate[0] <= 3500.0
+    ]
+    f3_narrow = [candidate for candidate in f3_candidates if candidate[1] <= 250.0]
+    f3 = (
+        min(f3_narrow or f3_candidates, key=lambda item: item[0])[0]
+        if f3_candidates
+        else max(f2 + 500.0, 2500.0)
+    )
+    return f1, f2, f3
 
 
 def analyze_vowel(
-    wav: np.ndarray, *, sample_rate: int = 16000, order: int = 12
+    wav: np.ndarray, *, sample_rate: int = 16000, order: int = 24
 ) -> VowelAnalysis:
     """Perception side: estimate formants and map to the nearest vowel.
 
-    The nearest-vowel map uses the same formant table as production, closing
-    the analysis-by-synthesis loop honestly via real signal processing. The
-    toy synthesizer resolves F2 as a table-matched spectral peak but not F1
-    cleanly (see module docstring); the distance weights F1/F2 fully.
+    The nearest-vowel map uses the same formant table as production after LPC
+    estimation; the waveform is not accompanied by its source label.
     """
     if len(wav) < sample_rate // 10:
         raise ValueError("waveform too short for formant analysis")
@@ -273,6 +296,73 @@ def analyze_vowel(
     return VowelAnalysis(
         formant_hz=(f1, f2, f3), nearest_vowel=best, spectral_distance=best_d
     )
+
+
+def evaluate_vowel_round_trip(
+    *,
+    sample_rates: tuple[int, ...] = (16000, 48000),
+    f0_values_hz: tuple[float, ...] = (90.0, 110.0, 140.0, 180.0),
+    duration_ms: int = 300,
+    minimum_accuracy: float = 0.9,
+) -> dict[str, object]:
+    """Measure the clean synthetic perception-production fidelity gate."""
+
+    if not sample_rates or not f0_values_hz:
+        raise ValueError("sample_rates and f0_values_hz must be non-empty")
+    confusion = {
+        expected: {perceived: 0 for perceived in _VOWELS} for expected in _VOWELS
+    }
+    absolute_errors: list[list[float]] = [[], [], []]
+    trials: list[dict[str, object]] = []
+    correct = 0
+    for sample_rate in sample_rates:
+        for f0_hz in f0_values_hz:
+            for vowel in _VOWELS:
+                waveform = synthesize_vowel(
+                    vowel,
+                    duration_ms=duration_ms,
+                    sample_rate=sample_rate,
+                    f0_hz=f0_hz,
+                )
+                analysis = analyze_vowel(waveform, sample_rate=sample_rate)
+                target = VOWEL_FORMANTS_HZ[vowel]
+                errors = [
+                    abs(measured - expected)
+                    for measured, expected in zip(analysis.formant_hz, target)
+                ]
+                for index, error in enumerate(errors):
+                    absolute_errors[index].append(error)
+                is_correct = analysis.nearest_vowel == vowel
+                correct += int(is_correct)
+                confusion[vowel][analysis.nearest_vowel] += 1
+                trials.append(
+                    {
+                        "expected_vowel": vowel,
+                        "perceived_vowel": analysis.nearest_vowel,
+                        "correct": is_correct,
+                        "sample_rate": sample_rate,
+                        "f0_hz": f0_hz,
+                        "target_formants_hz": list(target),
+                        "measured_formants_hz": list(analysis.formant_hz),
+                        "absolute_formant_error_hz": errors,
+                    }
+                )
+    accuracy = correct / len(trials)
+    return {
+        "mode": "clean_synthetic_vowel_round_trip_evaluation",
+        "evidence_scope": "clean_synthetic_only",
+        "trial_count": len(trials),
+        "correct_count": correct,
+        "accuracy": accuracy,
+        "minimum_accuracy": minimum_accuracy,
+        "criterion_passed": accuracy >= minimum_accuracy,
+        "formant_mae_hz": {
+            f"f{index + 1}": float(np.mean(errors))
+            for index, errors in enumerate(absolute_errors)
+        },
+        "confusion_matrix": confusion,
+        "trials": trials,
+    }
 
 
 class MotorPlanner:
