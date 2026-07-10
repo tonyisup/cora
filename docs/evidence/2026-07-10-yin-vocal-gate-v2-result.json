@@ -1,0 +1,70 @@
+{
+  "experiment": "stricter_yin_coverage_vocal_activity_gate_fresh_controls",
+  "date": "2026-07-10",
+  "preregistration": "2026-07-10-yin-vocal-gate-v2-preregistration.json",
+  "verdict": "all_preregistered_gates_passed",
+  "threshold": 0.20,
+  "vocal": {
+    "count": 12,
+    "true_positive_count": 12,
+    "recall": 1.0,
+    "minimum_score": 0.6277162771627717,
+    "maximum_score": 0.9495390587093644
+  },
+  "environmental": {
+    "count": 16,
+    "false_positive_count": 1,
+    "false_positive_rate": 0.0625,
+    "minimum_score": 0.0,
+    "maximum_score": 0.3420523138832998,
+    "diffuse_false_positive_count": 1,
+    "diffuse_false_positive_rate": 0.125,
+    "impulsive_false_positive_count": 0,
+    "impulsive_false_positive_rate": 0.0,
+    "false_positives": {
+      "3-104632-A-12.wav": {
+        "category": "crackling_fire",
+        "score": 0.3420523138832998
+      }
+    }
+  },
+  "all_files_decoded_with_finite_features": true,
+  "acceptance": {
+    "minimum_vocal_recall_passed": true,
+    "maximum_overall_environmental_fpr_passed": true,
+    "maximum_diffuse_fpr_passed": true,
+    "maximum_impulsive_fpr_passed": true,
+    "finite_feature_gate_passed": true
+  },
+  "interpretation": "The stricter YIN-coverage threshold retained every selected Hadza vocalization and rejected all but one selected ESC-50 control. It is promoted only as a five-second upstream vocal-activity gate. A periodic crackling-fire false positive remains, so this does not support general or frame-level voice activity detection.",
+  "selected_file_sha256": {
+    "HAD01A.wav": "6d1d982903cc03d849df57021ff4f52f2023b363c8a91a0d81eae5ab79f80fcd",
+    "HAD01B.wav": "3833e84bbf14de88af48fd2c2071b34c1d68eb19f86ce24cad25e27e87f17163",
+    "HAD01C.wav": "2ea7a8f65590ada71806a69a69d2edaed6b474572236e7a55e371f3afd500782",
+    "HAD01D.wav": "dd3a9fc94f5ffa3cb64244bc5e5ff2ffc752b18d03c5f98bf1f7ae76402cb8fa",
+    "HAD04A.wav": "37c691fa4d5e0bfe40dc372d81e799da294d76f2e16908c2b52509ea4ba57b4e",
+    "HAD04B.wav": "b699488ba0bc369e1bc637a0c651ef07ef1699abac17dafdd24e584d7536eceb",
+    "HAD04C.wav": "852a83cdc520f634d9a799e5675d8bbf716cd16177821e149f22ae422ef361cc",
+    "HAD04D.wav": "4030085e7c5ac21b0c308430285003b24366f2ecb2f728d6cb2ebd23e0b6bda7",
+    "HAD09A.wav": "4b95faffd7d1eff03d10dfcf252de4be11e9e8f00de3e1e39789c967d6492fe6",
+    "HAD09B.wav": "a1e468eb29696296f340b4d57f8160e34c5c3bcd5993b239bcc24add8684c7fb",
+    "HAD09C.wav": "31fc76d94641b26a8343543404a1a71e49a88773f594f03659c689eee3686cc9",
+    "HAD09D.wav": "68443f7f8607ed94ab312254b308ef55c99f1b08c6dabb9e6232b2d8e1fe949e",
+    "3-104632-A-12.wav": "415e6d92371447377a916760fdda326f55f6f88cf428dc45b3edfe45b1d2b0a5",
+    "3-104958-A-12.wav": "d538428b1a51d450809757d169ba16f77c85721c267a46d29f5d538dfc846563",
+    "3-117504-A-16.wav": "e8870d76a3bb29b43606231859c1b75ffc6dfaded319944028d122993470669e",
+    "3-117504-B-16.wav": "c57afdb76acf9b99fa15282bca63f411c280a158e905c2619488aabbf53ef04e",
+    "3-119120-A-48.wav": "baad57c9428d78f0e0de5eaa79fff661478c37433bfd6cb6031c0c92135a4cc0",
+    "3-119120-B-48.wav": "3dbb97983366a994bd607b064da52879a47b68f7194f202987aa45e0d947cf9e",
+    "3-130330-A-22.wav": "2b08bf04f38ce08b05f00ab62eeccb5b8dd1996020ade19a1e8e8505783340b5",
+    "3-132852-A-10.wav": "5d4960883ceabe28c008721ea3b5f5206a6f0234cacd4c1af81dd7594b4d3503",
+    "3-138114-A-22.wav": "0dd59218eee6155a51d69b3f2a6d618550d55f56260bf12032b46dbdd3ca5d0b",
+    "3-140774-A-10.wav": "1dd994fb071b52e4232b0cbd06558dd8d179008be2e4cf1f41d4abdca4f390fe",
+    "3-144510-A-30.wav": "c7fbb4cbda9d1f2950bf205212115a372b840382228c3baeb6451ae83366ee34",
+    "3-144827-A-11.wav": "553ceeb0be8984ea22e9ae1b4c892e76c19867e9240d5f9367c62b08ee7eba4e",
+    "3-144827-B-11.wav": "977a5b671cb9b57aea049bce2b1c139c039aa745c5c46c1f84964d8098381aa8",
+    "3-151089-A-30.wav": "77f3f8c26ea85756b565e142b920908a443bc95cc2b3e1e2546e7a69746bc06c",
+    "3-203371-A-39.wav": "60a600ff3e1ac00b41c60b0e3979ee8b1b46ebfcbc370523389094e4fbda415b",
+    "3-203373-A-39.wav": "beb0605537f3fe20e98b54f19f20842d92b7a95f9408dee41e620a8955b33111"
+  }
+}

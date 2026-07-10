@@ -1,0 +1,23 @@
+{
+  "mode": "register_pipeline_composition",
+  "date": "2026-07-10",
+  "feature_schema_version": 3,
+  "base_register_model_artifact": "2026-07-10-speaker-adaptive-register-model-v3.json",
+  "base_register_model_sha256": "b3cadc8f52feb5d75e34389bc40c71413f17446d6acb64f52611e68b941cb327",
+  "vocal_gate": {
+    "mode": "yin_coverage_vocal_activity_gate",
+    "feature": "yin_voiced_fraction",
+    "minimum_voiced_fraction": 0.2
+  },
+  "decision_order": [
+    "reject_non_vocal_long_windows",
+    "reject_song",
+    "score_ids_vs_ads_within_speaker_and_mode"
+  ],
+  "evidence": {
+    "register_confirmation": "2026-07-10-mode-scoped-register-result.json",
+    "vocal_gate_confirmation": "2026-07-10-yin-vocal-gate-v2-result.json"
+  },
+  "calibration_boundary": "The vocal gate is clip-local. IDS/ADS scoring still requires at least two unlabeled observations from the same speaker and vocal mode and is not cold-start causal.",
+  "claim_boundary": "A composition of two separately confirmed five-second gates; not a jointly confirmed end-to-end environmental IDS detector."
+}

@@ -1,0 +1,70 @@
+{
+  "experiment": "yin_speaker_adaptive_register_fresh_fieldsites",
+  "date": "2026-07-10",
+  "preregistration": "2026-07-10-yin-register-preregistration.json",
+  "model_artifact": "2026-07-10-speaker-adaptive-register-model-v2.json",
+  "verdict": "failed_preregistered_pooled_and_fieldsite_f1_gates",
+  "calibration_boundary": "unlabeled within-speaker normalization across speech and song; four observations per speaker; not cold-start causal",
+  "prediction_count": 24,
+  "calibrated_prediction_count": 24,
+  "metrics": {
+    "true_positive": 2,
+    "false_positive": 1,
+    "true_negative": 17,
+    "false_negative": 4,
+    "precision": 0.6666666666666666,
+    "recall": 0.3333333333333333,
+    "f1": 0.4444444444444444,
+    "false_positive_rate": 0.05555555555555555,
+    "song_false_positive_count": 0,
+    "song_count": 12,
+    "song_false_positive_rate": 0.0
+  },
+  "per_fieldsite": {
+    "MES": {
+      "f1": 0.6666666666666666,
+      "false_positive_rate": 0.1111111111111111,
+      "gate_passed": true
+    },
+    "TSI": {
+      "f1": 0.0,
+      "false_positive_rate": 0.0,
+      "gate_passed": false
+    }
+  },
+  "acceptance": {
+    "minimum_pooled_f1_passed": false,
+    "maximum_pooled_fpr_passed": true,
+    "maximum_song_fpr_passed": true,
+    "minimum_each_fieldsite_f1_passed": false,
+    "all_speakers_calibrated_passed": true
+  },
+  "interpretation": "Improved pitch-variability extraction did not repair cross-fieldsite IDS discrimination. Inspection of the published analysis then exposed a more important adaptation mismatch: the source method standardizes within speaker and vocal mode, whereas this model standardized speech and song together. The MES/TSI clips are spent and were not reused for confirmation of that correction.",
+  "selected_file_sha256": {
+    "MES01A.wav": "9efa392f205f8b3a0236e53d11dbd1196f2c4c454aca84dbe28e1813bf36603b",
+    "MES01B.wav": "eb056603fed3e5f82c1f4c8fc47423bb7c1f6f504ba0512339be7fa28e4048de",
+    "MES01C.wav": "d40e87cd728761b64d4670f9febb08e9f98c0b44dff5a721b78ee6416fd0e7c3",
+    "MES01D.wav": "9802c4cbb8ab8cbafdce102215420e9c437a6e1f81c81922325a5fdcba3df16f",
+    "MES06A.wav": "e04642e09ed925f929d888436e988a34ae67778f4358106ce7ab31bf2aed7beb",
+    "MES06B.wav": "080fbbfcdcda5fb511e0f204a2d0493923feaa7b05be273470398a6a6c8f657b",
+    "MES06C.wav": "16e0d0137c8532c6af1b75e19fd266ff6d9a8920c4aee81f144cd8a7938f050d",
+    "MES06D.wav": "bcce51436783e6c836147c962ff4049e72b0472ae7ff397dd6e90ff3b14021f6",
+    "MES11A.wav": "c8ab506b7d96ca567fc39c773e34c20751569fa00a95fa76b21abaa4143a9659",
+    "MES11B.wav": "aa27f558bff5eb6fe6afb3d12a09f4b2377575768983ecf19e397123e40500ba",
+    "MES11C.wav": "d29f67419f103276a701e49866958cb7506a9551394f29761625d325bb2a52b0",
+    "MES11D.wav": "beb0402501f9ceb53c1c760d3d0544f129af0796747da15330d71347fb78d13f",
+    "TSI03A.wav": "e20d81fa64d28656c4bdc48776de8cf34212fdcb42ad8b7c1dda10b37c18b6ef",
+    "TSI03B.wav": "a85987a93b4074e1a4c9297536133d464b04840afa4c0557c38a9093c1c15135",
+    "TSI03C.wav": "d742f60dba6c443cad033d0d1f8307736f6c6896d6c0c841b20cca0423f6f5d4",
+    "TSI03D.wav": "f6af43284674bf221329587ec87681d274069f16f21e893945b06784c858f61e",
+    "TSI09A.wav": "bbae2f2c9b0e7c21a42f5758107d8d2f3e6ebb5eda41e7c19616fb953579418b",
+    "TSI09B.wav": "b1399eb3273c5784a25e0778cf991cc64a796ff3bf8b462b1302bdd5acd1a4cb",
+    "TSI09C.wav": "072c3ccfed09525272db5f51b9b71230d32903c2b0019b61d12c5d5571389cf1",
+    "TSI09D.wav": "a06c60f533a1c1c1e2af77687ab2f315b76499b1b4afe88de9f25d9aa0c2848a",
+    "TSI10A.wav": "3f6a11318bcc7e78f166b1cfac3929f60aac104dbb82c46b766dfc4ae71a3567",
+    "TSI10B.wav": "d5eb6f838a0d7bde7680567b6b06efe337b4fd46509ed3db13f2a47a4512947a",
+    "TSI10C.wav": "136f463c300d9306695a6205a98433eb661301bd2f305acb36d81ed099269125",
+    "TSI10D.wav": "309115ede9f7adc19d9fc699031fdc181de7afc1932a70ae052229f094a891a7",
+    "labels.csv": "712fb9fbcb89d241106ae297331c1ce7083c96db87a44703676f3b735d2f3fbe"
+  }
+}

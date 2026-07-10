@@ -1,0 +1,29 @@
+{
+  "experiment": "frozen_register_speech_gate_environmental_controls",
+  "date": "2026-07-10",
+  "preregistration": "2026-07-10-environmental-speech-gate-preregistration.json",
+  "verdict": "failed_all_false_positive_gates",
+  "overall_false_positive_rate": 0.875,
+  "diffuse_false_positive_rate": 0.75,
+  "impulsive_false_positive_rate": 1.0,
+  "all_files_decoded_with_finite_features": true,
+  "interpretation": "The register model's first gate distinguishes speech from song within a known-vocal corpus; it is not a vocal/non-vocal detector. Environmental rejection must be a separate upstream stage.",
+  "selected_file_sha256": {
+    "1-101336-A-30.wav": "e738266e395e378102f74e0920b05ff5937543788420d5b2a6b8d3df8bdb3910",
+    "1-103995-A-30.wav": "1c1d3e65b7a58658766180d2faeeb9bdd1fe7405119bf100d9cd2f671a6e2b11",
+    "1-104089-A-22.wav": "2b6ec14aafc6ed98c833c5c7e56780d283f3ceaea0d4c3c142b2f49fcc2fd215",
+    "1-104089-B-22.wav": "61adeef196a98fc7b2c22104cd160bded3ce89b7e9867814b22e40a08e993291",
+    "1-115545-A-48.wav": "3ac50abf1e7c9b3086585d7d786c2f6b7b4b884108ceb4c4f643f8e3fa4caaab",
+    "1-115545-B-48.wav": "5f0f6888b96325412665b9265ffecfc6337f07d9e71bf98205304f9e28fd34a2",
+    "1-137296-A-16.wav": "73e2dd5e66dda29f76a54b53c3c8e33441d105fc35c1d231bfbd8f7a18442969",
+    "1-17150-A-12.wav": "3d278bc2034dfb83881491a8eec97de6f1239f0a5b8a7c02be46b5aab0a51609",
+    "1-17367-A-10.wav": "d732acd2e0c7c40405968010f49f250740c86998fc416eff2ed5330fc8c89dea",
+    "1-17565-A-12.wav": "bf16e25363a2d5824c07e96dc05defcb87e1d9dcd47bfd241a9d25e01b411209",
+    "1-20133-A-39.wav": "db6946133c37fbd4513fe932dbb71e0b077bf7d240beaed339eb6c88e48c903b",
+    "1-21189-A-10.wav": "5f15ab2d8f6ef9932909b1b75c8ac254cbea46c93b4b2f0f3542abdf09b9abc0",
+    "1-28135-A-11.wav": "4d04b84d490c4d9ab28a52c4c96d1b14c2f8b132fc4be38166197ae814920742",
+    "1-28135-B-11.wav": "806548ec876df9f91ced5503f76794a42dca6b8790324f87464de5ed780189cb",
+    "1-29532-A-16.wav": "f7161457776ff69adbb903e870a3ecf532228a033de6896f25af2f4ce77c5f68",
+    "1-84536-A-39.wav": "79efba4c0c54acadc88783e83b428fc9c430db94515b25339a6b5598e2ade0c0"
+  }
+}

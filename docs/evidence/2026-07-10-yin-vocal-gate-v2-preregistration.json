@@ -1,0 +1,60 @@
+{
+  "experiment": "stricter_yin_coverage_vocal_activity_gate_fresh_controls",
+  "registered_date": "2026-07-10",
+  "status": "registered_before_selected_audio_fetch",
+  "gate": {
+    "feature": "yin_voiced_fraction",
+    "minimum_voiced_fraction": 0.20,
+    "change_from_v1": "raise the frozen threshold from 0.14 after all five fold-2 environmental false positives scored between 0.151 and 0.191",
+    "spent_vocal_count": 140,
+    "spent_vocal_below_new_threshold_count": 1,
+    "spent_vocal_minimum": 0.16514599,
+    "spent_environmental_maximum": 0.19114688
+  },
+  "fresh_vocal_fieldsite": {
+    "code": "HAD",
+    "society": "Hadza",
+    "participants": ["HAD01", "HAD04", "HAD09"],
+    "conditions": [
+      "infant_directed_song",
+      "infant_directed_speech",
+      "adult_directed_song",
+      "adult_directed_speech"
+    ]
+  },
+  "fresh_environmental_dataset": {
+    "name": "ESC-50",
+    "source": "https://github.com/karolpiczak/ESC-50",
+    "license": "CC BY-NC 3.0",
+    "fold": 3,
+    "use": "personal non-commercial research"
+  },
+  "diffuse_controls": [
+    "3-132852-A-10.wav",
+    "3-140774-A-10.wav",
+    "3-144827-A-11.wav",
+    "3-144827-B-11.wav",
+    "3-117504-A-16.wav",
+    "3-117504-B-16.wav",
+    "3-104632-A-12.wav",
+    "3-104958-A-12.wav"
+  ],
+  "impulsive_controls": [
+    "3-144510-A-30.wav",
+    "3-151089-A-30.wav",
+    "3-130330-A-22.wav",
+    "3-138114-A-22.wav",
+    "3-203371-A-39.wav",
+    "3-203373-A-39.wav",
+    "3-119120-A-48.wav",
+    "3-119120-B-48.wav"
+  ],
+  "acceptance_rule": {
+    "minimum_vocal_recall": 0.95,
+    "maximum_overall_environmental_false_positive_rate": 0.10,
+    "maximum_diffuse_false_positive_rate": 0.125,
+    "maximum_impulsive_false_positive_rate": 0.125,
+    "all_files_must_decode_and_produce_finite_features": true
+  },
+  "claim_boundary": "A pass supports a five-second long-window vocal activity gate on these conditions, not frame-level VAD, speaker identity, or IDS classification."
+}

@@ -16,8 +16,8 @@ the repository.
 |---|---|---|
 | Reproducible substrate | Implemented | Synthetic/live contracts, deterministic reports, and tests exist |
 | Real-audio evaluation | First replay passed | WAV and prior-art captured NumPy PCM are measured directly with dev/held-out provenance; developmental-speech breadth is still open |
-| Parentese-relevant saliency | Cross-fieldsite gate failed | The Beijing result did not transport to Krakow or Mbendjele; song activated the pitch gate on 76–92% of frames |
-| Local predictive hierarchy | Safe but not superior | The redesigned local expert mixture passed fresh-fieldsite regret limits but won 0/8 clips; the phase prior remains the only positive predictor evidence |
+| Parentese-relevant saliency | Mixed; not promoted | The final 16-fieldsite refit reached F1 0.600 on untouched Enga/Turku clips and failed its 0.65 gate; the separately tested vocal front gate remains positive |
+| Local predictive hierarchy | Safe but not superior | The expert mixture won 0/8 fresh clips; four longer-timescale candidates then failed a 200-clip spent-data design audit, including correction of a spectral-flux boundary artifact |
 | Workspace binding | Synthetic ablation passed | Matching self-audio identity plus phase improves synthetic self-echo handling without suppressing a legitimate overlap; real-audio validation remains open |
 | Analysis by synthesis | Clean synthetic gate passed | Five vowels round-trip across multiple F0 values and 16/48 kHz; recorded-speaker validation remains open |
 | Efficiency | Host boundary measured on hardware | Core microbenchmarks and native XVF3800 capture-call-to-workspace latency are reported; device-onset timestamps, live CPU/memory, and energy remain excluded |
@@ -130,6 +130,48 @@ froze the Beijing thresholds and added paired song controls for unseen Krakow
 and Mbendjele BaYaka speakers. Both fieldsites failed. See
 `docs/evidence/2026-07-10-cross-fieldsite-result.json`.
 
+The replacement is a transparent long-window pipeline rather than another
+absolute pitch threshold. It first uses YIN voiced-window coverage to reject
+non-vocal clips, then separates speech from song, then compares IDS with ADS
+after unlabeled normalization within speaker and vocal mode. The corrected
+register scorer passed a preregistered 24-clip Menominee/Toposa test with F1
+`0.667`, FPR `0.111`, and zero song false positives. Its calibration requires
+two observations from the same speaker and mode, so it is not cold-start or
+strictly causal.
+
+Environmental controls were tested separately. The first vocal gate failed;
+the frozen revision retained 12/12 fresh Hadza vocal clips and rejected 15/16
+fresh ESC-50 fold-3 controls. The remaining false positive was crackling fire.
+The composed, hash-pinned artifact is
+`docs/evidence/2026-07-10-register-pipeline-v4.json`. A later jointly untouched
+Vanuatu/ESC-50 fold-4 test retained 12/12 vocals and rejected 16/16
+environmental clips, but the register scorer fell to F1 `0.400` and failed its
+frozen `0.65` criterion. The vocal front gate generalized; IDS/ADS scoring did
+not. Stage 2 therefore remains unpromoted.
+
+A grouped-training threshold revision then reached F1 `0.857` on fresh
+Nyangatom clips but failed the strict song-control ceiling by promoting one of
+six songs. The final same-family attempt refit unchanged transparent features
+on 176 spent clips from 16 fieldsites. On untouched Enga and Turku clips it
+reached pooled F1 `0.600`, below the frozen `0.65` gate, despite FPR `0.056`,
+song FPR `0.083`, and vocal recall `1.0`. Its preregistered stop rule is active:
+remaining corpus fieldsites will not fund another threshold/refit iteration of
+this model family.
+
+Fit a self-contained scorer from external, spent corpus subsets and evaluate a
+frozen artifact on an unseen speaker batch:
+
+```bash
+python3 -m cora_infans --fit-register-scorer \
+  --source /path/to/subset::/path/to/subset/labels.csv \
+  --out /tmp/register-model.json
+
+python3 -m cora_infans --eval-register-scorer \
+  --model /tmp/register-model.json \
+  --root /path/to/unseen-subset \
+  --label-csv /path/to/unseen-subset/labels.csv
+```
+
 Evaluate prequential prediction on held-out acoustic observations:
 
 ```bash
@@ -236,14 +278,20 @@ developmental language learning.
 ## Important limitations
 
 - Licensed developmental-speech audio has been evaluated from external
-  temporary subsets. A same-fieldsite gate passed narrowly but failed on both
-  unseen fieldsites; the CC BY-NC-SA audio is not checked in.
-- The current pitch-confidence threshold confuses song with IDS and cannot be
-  called a cross-cultural parentese detector.
+  temporary subsets; the CC BY-NC-SA audio is not checked in.
+- The original pitch-confidence threshold confused song with IDS and failed on
+  both unseen fieldsites. Its speaker-and-mode adaptive replacement passed on
+  two later fieldsites, then failed on Vanuatu; larger-data revisions failed a
+  song ceiling and a final pooled-F1 gate. It requires batch calibration and is
+  not a universal or cold-start parentese detector.
+- The upstream vocal gate passed selected diffuse and impulsive controls but
+  admitted one crackling-fire clip in fold 3; it rejected all selected fold-4
+  controls in the later joint test.
 - The current saliency gate is a loudness baseline, not a parentese detector.
 - The online local predictor is now conservatively bounded and passed its fresh
   regret gate, but it still has zero real-clip wins. Only the onset-phase
-  template has a held-out advantage.
+  template has a held-out advantage, and that advantage excludes a later
+  duration-normalized flux result retracted as a warm-up/clip-boundary artifact.
 - Theta/gamma scheduling is an event-timing model, not measured neural dynamics.
 - The vowel table uses adult reference targets and clean synthetic success does
   not imply recorded infant/adult speech performance.
@@ -256,6 +304,7 @@ developmental language learning.
 - `io/recorded_frames.py` — retained real-capture arrays and prior-art manifests
 - `io/offline_eval.py` — confusion metrics and dev/held-out baseline comparison
 - `predictive_learning.py` — bounded local hierarchy and baseline evaluation
+- `register_saliency.py` — long-window vocal, speech/song, and adaptive IDS gates
 - `io/motor_plan.py` — source-filter synthesis, LPC perception, and vowel gate
 - `benchmark.py` — explicit-boundary event-pipeline microbenchmark
 - `pipeline.py` — saliency, predictive state, and workspace admission

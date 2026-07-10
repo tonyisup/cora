@@ -1,0 +1,45 @@
+{
+  "experiment": "register_decision_threshold_selection_from_spent_training",
+  "date": "2026-07-10",
+  "status": "design_only_before_next_fresh_fieldsite",
+  "training_fieldsites": ["ACO", "ARA", "BEJ", "JEN", "KRA", "LIM", "MBE", "MES", "QUE", "TSI"],
+  "training_clip_count": 104,
+  "excluded_from_selection": {
+    "confirmation_fieldsites": ["MEN", "TOP"],
+    "failed_joint_fieldsite": ["VAN"],
+    "reason": "all are spent outcomes and cannot choose v5 parameters"
+  },
+  "protocol": "joint grid selection from leave-one-fieldsite-out prediction scores",
+  "selection_order": [
+    "reject candidates with pooled false-positive rate above 0.15",
+    "reject candidates with song false-positive rate above 0.15",
+    "maximize pooled F1",
+    "break ties by minimum fieldsite F1, then lower pooled FPR, then lower song FPR"
+  ],
+  "selected_thresholds": {
+    "speech_score_minimum": -0.020085646558273572,
+    "ids_score_minimum": -2.706168622523819e-16
+  },
+  "grouped_design_metrics": {
+    "true_positive": 26,
+    "false_positive": 5,
+    "true_negative": 65,
+    "false_negative": 8,
+    "precision": 0.8387096774193549,
+    "recall": 0.7647058823529411,
+    "f1": 0.8,
+    "false_positive_rate": 0.07142857142857142,
+    "song_false_positive_count": 4,
+    "song_count": 36,
+    "song_false_positive_rate": 0.1111111111111111,
+    "minimum_fieldsite_f1": 0.2857142857142857
+  },
+  "zero_threshold_design_f1": 0.78125,
+  "spent_outcome_sensitivity_check_not_used_for_selection": {
+    "MEN_f1": 0.6666666666666666,
+    "TOP_f1": 0.6666666666666666,
+    "VAN_f1": 0.6666666666666666,
+    "VAN_zero_threshold_f1": 0.4
+  },
+  "interpretation": "The speech cutoff was previously an arbitrary ridge zero. A slightly lower cutoff is selected reproducibly from original out-of-field training predictions. The weak ACO fieldsite remains visible and prohibits promotion from design metrics alone. Vanuatu consistency is a spent sensitivity check, not confirmation."
+}

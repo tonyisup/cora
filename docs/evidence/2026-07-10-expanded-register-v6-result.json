@@ -1,0 +1,101 @@
+{
+  "experiment": "expanded_spent_data_register_v6_fresh_fieldsites",
+  "date": "2026-07-10",
+  "preregistration": "2026-07-10-expanded-register-v6-preregistration.json",
+  "model_artifact": "2026-07-10-speaker-adaptive-register-model-v6.json",
+  "verdict": "pooled_f1_failed_stop_rule_activated",
+  "prediction_count": 24,
+  "calibrated_prediction_count": 24,
+  "vocal_retained_count": 24,
+  "vocal_recall": 1.0,
+  "metrics": {
+    "true_positive": 3,
+    "false_positive": 1,
+    "true_negative": 17,
+    "false_negative": 3,
+    "precision": 0.75,
+    "recall": 0.5,
+    "f1": 0.6,
+    "false_positive_rate": 0.05555555555555555,
+    "song_false_positive_count": 1,
+    "song_count": 12,
+    "song_false_positive_rate": 0.08333333333333333
+  },
+  "per_fieldsite": {
+    "PNG": {
+      "society": "Enga",
+      "true_positive": 1,
+      "false_positive": 0,
+      "true_negative": 9,
+      "false_negative": 2,
+      "f1": 0.5,
+      "false_positive_rate": 0.0,
+      "fieldsite_gate_passed": true
+    },
+    "TUR": {
+      "society": "Turku",
+      "true_positive": 2,
+      "false_positive": 1,
+      "true_negative": 8,
+      "false_negative": 1,
+      "f1": 0.6666666666666666,
+      "false_positive_rate": 0.1111111111111111,
+      "fieldsite_gate_passed": true
+    }
+  },
+  "frozen_baselines": {
+    "intensity_db_median": {
+      "f1": 0.4,
+      "false_positive_rate": 1.0
+    },
+    "pitch_confidence_median": {
+      "f1": 0.43478260869565216,
+      "false_positive_rate": 0.6666666666666666
+    }
+  },
+  "f1_improvement_over_best_frozen_baseline": 0.16521739130434782,
+  "acceptance": {
+    "minimum_pooled_f1_passed": false,
+    "baseline_improvement_passed": true,
+    "maximum_pooled_fpr_passed": true,
+    "maximum_song_fpr_passed": true,
+    "minimum_each_fieldsite_f1_passed": true,
+    "minimum_vocal_recall_passed": true,
+    "all_speakers_calibrated_passed": true,
+    "finite_feature_gate_passed": true
+  },
+  "failure_notes": [
+    "PNG01 infant-directed speech had negative speech and IDS scores",
+    "PNG04 infant-directed speech had a positive IDS score but was rejected by the speech gate",
+    "TUR20 infant-directed speech had a positive IDS score but was rejected by the speech gate",
+    "TUR10 infant-directed song was the only song false positive"
+  ],
+  "stop_rule_outcome": "Do not consume WEL, USD, or TOR for another threshold or refit iteration of this same feature family.",
+  "interpretation": "Adding every spent fieldsite improved coverage but did not produce reliable cross-fieldsite register recall. The vocal gate remained perfect on the selected clips, while the speech/song stage rejected two otherwise positive IDS scores. This transparent paired-summary model family remains useful as bounded evidence and is not promoted as a robust parentese detector.",
+  "selected_file_sha256": {
+    "PNG01A.wav": "27fba09b50db21331b2e2ed0782a19123e4ef717087d65238023d2be98464156",
+    "PNG01B.wav": "538991b4f8bc7339baf8a8979589d85d7e90cd6f95c66b327b46943f173786fd",
+    "PNG01C.wav": "6d91b2fec84a4dd3cdfee378691f6d42e255a380fba5021e6f8ef6878327f32f",
+    "PNG01D.wav": "0cb4c2cbe5a23b35ee701ee97b97bb043c98775da511cb7feaccd10cf58c2f94",
+    "PNG04A.wav": "cacefdb7bf2f6f727c831a71045d29b14c310bb8b93bcf8c11a138be3fb95168",
+    "PNG04B.wav": "21985524b4d11d2651ea8f97a0974f83fcae4eed9eccacfec7a1be0838113051",
+    "PNG04C.wav": "1b272077bcb71386be356244380a1eae5d5d67c6cdadca1e7e3ccbc84ed47780",
+    "PNG04D.wav": "62e1453db7dff98c62b5e322230953713568151e124e6e0d56151d1ae65eda1d",
+    "PNG06A.wav": "55697298c631e069a29961771abf13bad85a55af08553c9657ca069fabbe72d7",
+    "PNG06B.wav": "3648395e57e3c6e535d2d92c22d0ce6f703b5b4db3a405ced56aa7f52306319c",
+    "PNG06C.wav": "1f7733c47125634350fe38812c2989363c6da11b2f86e2c5b0512af102737d6b",
+    "PNG06D.wav": "432082288e19174e6d5c611a7464fdfee7ea0d283ca75eaaa31089c25ea3fbdd",
+    "TUR01A.wav": "2dc52a44403451d6af542c12de9823241177fa6b4c6a8dcc9eb8da9eca85ad6a",
+    "TUR01B.wav": "df68a7819ea2b66b28fcde8315c278a6c4c606dab8d1a2c7ccfddc547136b489",
+    "TUR01C.wav": "4c33f884c787d1ea0c50d0cf92be9b2db418afbd0a8d30e9b0921f1012c98a1b",
+    "TUR01D.wav": "c59fc7e2c14c4c261d119e53b8d8f6b9872abdd8b6744f2bfd05e89248ed0bad",
+    "TUR10A.wav": "785c5a90666e3cd107cd68b3ac7ef4928445a06af9fce8cd58e2e10129effacc",
+    "TUR10B.wav": "98a7cf89040a51d092b90a2fc6228172dda1984106e2e0fbcd5d455d30f5edb2",
+    "TUR10C.wav": "ed4133af27c2c34e8effc9f9af0a7b231478d1af8ce00dac767a7502a71b972f",
+    "TUR10D.wav": "a7e0b931ecf6a2041df60de721f2d358b31e11bd5bb9ca1448f64f3cf48df3c8",
+    "TUR20A.wav": "b40067c26aad04039d2ce02b0f46bbbc8836a5495d3bfcf640c94660b6fbdae0",
+    "TUR20B.wav": "fab76e18b8f44980e74c73256ab7d7b6fcff5cdbb1b9719a93a9e9a5bbfb3ec9",
+    "TUR20C.wav": "d2c860ce48f46fc97e58fc9e63487fc9af263f38a1a1a7b3dc5b24af3f1470b3",
+    "TUR20D.wav": "1faff18320326a89cc5252739ffa7cb49c1e4d0a6859015e98bd9e57ef93832a"
+  }
+}

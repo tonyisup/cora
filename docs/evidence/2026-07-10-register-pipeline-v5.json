@@ -1,0 +1,24 @@
+{
+  "mode": "register_pipeline_composition",
+  "date": "2026-07-10",
+  "feature_schema_version": 4,
+  "base_register_model_artifact": "2026-07-10-speaker-adaptive-register-model-v3.json",
+  "base_register_model_sha256": "b3cadc8f52feb5d75e34389bc40c71413f17446d6acb64f52611e68b941cb327",
+  "vocal_gate": {
+    "mode": "yin_coverage_vocal_activity_gate",
+    "feature": "yin_voiced_fraction",
+    "minimum_voiced_fraction": 0.2
+  },
+  "decision_thresholds": {
+    "speech_score_minimum": -0.020085646558273572,
+    "ids_score_minimum": -2.706168622523819e-16
+  },
+  "threshold_selection": "2026-07-10-register-threshold-selection.json",
+  "decision_order": [
+    "reject_non_vocal_long_windows",
+    "reject_song_below_selected_speech_score",
+    "score_ids_vs_ads_within_speaker_and_mode"
+  ],
+  "calibration_boundary": "The vocal gate is clip-local. IDS/ADS scoring still requires at least two unlabeled observations from the same speaker and vocal mode and is not cold-start causal.",
+  "claim_boundary": "Design candidate selected without MEN, TOP, or VAN outcomes. It requires a fresh preregistered fieldsite and is not validated by its spent-data sensitivity checks."
+}

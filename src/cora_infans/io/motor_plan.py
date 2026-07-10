@@ -207,7 +207,15 @@ def _estimate_formants(
     x = np.append(x[0], x[1:] - 0.97 * x[:-1])
     x *= np.hamming(len(x))
 
-    autocorrelation = np.correlate(x, x, mode="full")[len(x) - 1 : len(x) + order]
+    # LPC only needs lags 0..order. Computing the full O(n^2) correlation made
+    # real-speech window summaries unnecessarily expensive.
+    autocorrelation = np.asarray(
+        [
+            float(np.dot(x[: len(x) - lag], x[lag:]))
+            for lag in range(order + 1)
+        ],
+        dtype=np.float64,
+    )
     if autocorrelation[0] <= 1e-12:
         return 500.0, 1500.0, 2500.0
     toeplitz = np.fromfunction(
@@ -266,6 +274,14 @@ def _estimate_formants(
         else max(f2 + 500.0, 2500.0)
     )
     return f1, f2, f3
+
+
+def estimate_formants(
+    wav: np.ndarray, sample_rate: int, order: int = 24
+) -> tuple[float, float, float]:
+    """Public label-free LPC formant estimator for auditory feature research."""
+
+    return _estimate_formants(wav, sample_rate, order=order)
 
 
 def analyze_vowel(

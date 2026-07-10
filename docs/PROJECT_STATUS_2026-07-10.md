@@ -97,6 +97,77 @@ research contract and implements the first vertical evidence path.
 - Conclusion: the narrow Beijing confirmation does not transport. A useful
   scorer needs site normalization and explicit speech-vs-song structure.
 
+### Speaker-adaptive register scorer
+
+- Added long-window acoustic summaries spanning pitch and YIN pitch variation,
+  energy, spectral change, modulation, and formant-related proxies.
+- Added a transparent speech/song ridge gate followed by an IDS/ADS ridge gate
+  over unlabeled within-speaker normalized summaries. Fitting, JSON
+  serialization, grouped-fieldsite evaluation, and frozen-model CLI evaluation
+  are reproducible.
+- The first fresh Jenu Kuruba/Quechua confirmation failed: pooled F1 `0.4286`
+  and FPR `0.2778`.
+- An extraction audit against the source study found strong agreement for pitch
+  median (`r=0.984`) but weak agreement for pitch IQR (`r=0.093`). An
+  overlapping FFT-YIN estimator improved pitch-IQR agreement to `r=0.689`.
+- The resulting v2 model still failed on fresh Mescalero/Tsimane' clips: pooled
+  F1 `0.4444`; Tsimane' F1 `0.0`. Those clips were marked spent.
+- Inspection of the published analysis code then exposed a semantic mismatch:
+  the source standardized within both speaker and vocal mode. Cora had
+  standardized all four speech/song conditions together.
+- The corrected v3 scorer was frozen before fetching six unseen Menominee and
+  Toposa speakers. It passed every preregistered gate: pooled F1 `0.6667`, FPR
+  `0.1111`, zero song false positives, and F1 `0.6667` on each fieldsite. The
+  better frozen baseline reached only F1 `0.4138`.
+- Scope: each speaker supplies two unlabeled clips per vocal mode. This is
+  batch calibration, not speaker identification, cold start, or strictly causal
+  live detection.
+
+### Environmental controls and vocal front gate
+
+- Registered 16 ESC-50 fold-1 diffuse/impulsive controls before fetching them.
+  The frozen register speech/song gate mislabeled `87.5%` as speech, proving it
+  is not a vocal/non-vocal detector.
+- Added a transparent upstream gate based on the fraction of five-second YIN
+  windows with a credible pitch estimate.
+- Threshold `0.14` was registered before fresh Spanish vocal clips and ESC-50
+  fold-2 controls. Vocal recall was `1.0`, but environmental FPR was `0.3125`,
+  so the gate failed and the fold was spent.
+- Threshold `0.20` was then fixed from spent scores before fetching 12 Hadza
+  vocal clips and 16 ESC-50 fold-3 controls. All preregistered gates passed:
+  vocal recall `1.0`, overall environmental FPR `0.0625`, diffuse FPR `0.125`,
+  and impulsive FPR `0.0`.
+- One crackling-fire clip scored as vocal. The claim is limited to a five-second
+  front gate on these conditions; it is not general or frame-level VAD.
+- The confirmed front gate and v3 register scorer are combined in a hash-pinned
+  v4 composition. It preserves the earlier Menominee/Toposa metrics, but the
+  two gates were confirmed separately rather than in one untouched joint test.
+- The v4 composition was then frozen before selecting 12 Vanuatu vocal clips
+  and 16 ESC-50 fold-4 controls. The vocal surface passed cleanly: recall `1.0`
+  and environmental pass-through `0.0` for both diffuse and impulsive groups.
+- The register surface failed: F1 `0.400`, recall `0.333`, FPR `0.111`, with one
+  of three IDS clips promoted. This fails the frozen `0.65` F1 gate and blocks
+  Stage-2 promotion despite the earlier Menominee/Toposa pass.
+- The active weakness is now IDS/ADS generalization rather than environmental
+  rejection. All Vanuatu and fold-4 clips are spent.
+- A v5 candidate selected its speech cutoff strictly from the original ten
+  training fieldsites. On fresh Nyangatom clips, F1 was `0.857`, FPR `0.111`,
+  and vocal recall `1.0`, but one adult-directed song produced song FPR `0.167`
+  and failed the frozen `0.15` ceiling.
+- The final same-family v6 refit used all 176 now-spent vocal clips across 16
+  fieldsites, with unchanged feature families. Its 16-fieldsite LOFO threshold
+  selection produced F1 `0.785`, FPR `0.105`, and minimum fieldsite F1 `0.500`.
+- v6 was frozen before fetching six speakers from two untouched societies.
+  Enga F1 was `0.500`; Turku F1 was `0.667`; pooled F1 `0.600` failed the
+  required `0.65`. Baseline improvement, pooled FPR `0.056`, song FPR `0.083`,
+  vocal recall `1.0`, and calibration gates all passed.
+- The preregistered stop rule is active: Wellington, San Diego, and Toronto will
+  not be spent on another threshold/refit iteration of the same paired-summary
+  feature family.
+- Music Lab audio remains external under CC BY-NC-SA 4.0; ESC-50 audio remains
+  external under CC BY-NC 3.0. This personal, non-commercial use and the
+  repository boundary are recorded in `docs/DATA_POLICY.md`.
+
 ### Developmental-speech predictive probe
 
 - On the fresh Beijing protocol, the development-trained phase template beat
@@ -124,6 +195,28 @@ research contract and implements the first vertical evidence path.
   to `4.47%`; worst single-clip regret was `13.67%`, below the `15%` ceiling.
 - Every feature still won `0/8` clips. The redesign validates safe degradation,
   not H2 predictive superiority.
+
+### Longer-timescale predictive design audit
+
+- Used only 200 already-spent clips across 18 fieldsites; no new confirmation
+  audio was fetched.
+- Tested duration-normalized phase templates, bounded local velocity over one
+  to eight frames, fixed persistence/EMA interpolation, and quantized acoustic
+  state transitions.
+- The initial duration-normalized log-flux result appeared to win `198/200`
+  clips. Audit found two non-auditory shortcuts: the extractor forces the first
+  flux frame to zero, and duration normalization exposes the clip boundary.
+- After discarding warm-up, excluding edge bins, and adding a causal running-
+  mean baseline, the template won `56/200` clips and mean RMSE was `12.59%`
+  worse than the strongest baseline.
+- Every local-velocity and fixed-mean-reversion setting regressed on average.
+- A 12-state, one-second transition model using batch codebook optimization had
+  a modest `+4.7` point accuracy ceiling, but a one-pass local competitive
+  codebook regressed by `3.0–4.5` points. It therefore fails H2's local-learning
+  boundary and was not implemented or promoted.
+- Conclusion: the current short isolated clips and frame summaries do not
+  support another justified predictor iteration. Stage 3 needs a different
+  observation protocol or locally learnable representation.
 
 ### Prior-art real-capture replay
 
@@ -233,7 +326,7 @@ research contract and implements the first vertical evidence path.
 
 ```text
 pytest tests -q
-268 passed in 17.77s
+278 passed in 17.38s
 ```
 
 Representative 100-iteration event-core run on the current host:
@@ -249,11 +342,14 @@ These numbers are a microbenchmark, not end-to-end auditory latency.
 
 ## Next evidence required
 
-1. Replace the single pitch threshold with a site-normalized, explicitly
-   speech-vs-song-aware scorer, then freeze it before another fresh fieldsite.
-2. Add impulsive-noise and diffuse-background negative controls.
-3. Keep the safe expert mixture as a fallback, but seek predictive structure at
-   a longer timescale; frame-to-frame persistence remains unbeaten.
+1. Preserve the vocal front gate, but retire threshold/refit iteration of the
+   current paired-summary IDS model. A future register attempt needs a genuinely
+   different temporal representation or protocol before using another fieldsite.
+2. Separately design a causal calibration path before any cold-start or live
+   parentese claim.
+3. Keep the safe expert mixture as a fallback. Before another H2 attempt, choose
+   a new structured continuous-audio protocol; frame-to-frame persistence and
+   stronger causal means remain unbeaten on the current clips.
 4. Add recorded-vowel speakers not used to tune LPC selection and run a separate
    confusion matrix.
 5. Instrument the live capture path for microphone-to-event latency and dropped

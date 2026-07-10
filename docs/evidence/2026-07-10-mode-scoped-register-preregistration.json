@@ -1,0 +1,39 @@
+{
+  "experiment": "mode_scoped_speaker_adaptive_register_fresh_fieldsites",
+  "registered_date": "2026-07-10",
+  "status": "registered_before_selected_audio_fetch",
+  "model_artifact": "2026-07-10-speaker-adaptive-register-model-v3.json",
+  "model_sha256": "b3cadc8f52feb5d75e34389bc40c71413f17446d6acb64f52611e68b941cb327",
+  "training_fieldsites": ["ACO", "ARA", "BEJ", "JEN", "KRA", "LIM", "MBE", "MES", "QUE", "TSI"],
+  "unseen_evaluation_fieldsites": ["MEN", "TOP"],
+  "selected_participants": {
+    "MEN": ["MEN05", "MEN07", "MEN14"],
+    "TOP": ["TOP01", "TOP10", "TOP14"]
+  },
+  "required_conditions_per_participant": [
+    "infant_directed_song",
+    "infant_directed_speech",
+    "adult_directed_song",
+    "adult_directed_speech"
+  ],
+  "calibration_boundary": {
+    "method": "unlabeled within-speaker normalization separately within speech and song",
+    "calibration_observations_per_prediction": 2,
+    "total_observations_per_speaker": 4,
+    "cold_start_claim": false,
+    "strictly_causal_live_claim": false
+  },
+  "frozen_clip_level_baselines": {
+    "intensity_db_median": -46.522474966932535,
+    "pitch_confidence_median": 0.6157772178851884
+  },
+  "acceptance_rule": {
+    "minimum_pooled_f1": 0.65,
+    "minimum_f1_improvement_over_best_frozen_baseline": 0.10,
+    "maximum_pooled_false_positive_rate": 0.15,
+    "maximum_song_false_positive_rate": 0.15,
+    "minimum_each_fieldsite_f1": 0.50,
+    "all_speakers_must_be_calibrated": true
+  },
+  "claim_boundary": "A pass supports only a speaker-and-mode-adaptive batch-calibrated long-window register gate."
+}

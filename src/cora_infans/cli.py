@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import sys
 from contextlib import nullcontext
+from dataclasses import replace
+from pathlib import Path
 from typing import Any
 
 from .io.live_listener import LiveListener
@@ -31,6 +34,14 @@ from .simulation import (
 from .predictive_learning import (
     evaluate_online_predictor_safety,
     evaluate_predictive_corpus,
+)
+from .register_saliency import (
+    SpeakerAdaptiveRegisterModel,
+    VocalActivityGate,
+    build_register_example,
+    evaluate_leave_one_fieldsite_out,
+    evaluate_register_pipeline,
+    select_register_thresholds,
 )
 from .workspace_ablation import run_workspace_ablation
 from .io.motor_plan import (  # noqa: E402
@@ -103,6 +114,10 @@ def describe() -> dict[str, object]:
             "external_ids_real_audio_evaluation",
             "participant_disjoint_parentese_confirmation",
             "cross_fieldsite_parentese_falsification",
+            "speaker_and_mode_adaptive_register_gate",
+            "long_window_vocal_activity_gate",
+            "joint_register_pipeline_falsification",
+            "expanded_register_refit_falsification",
             "safe_online_predictor_regret_gate",
             "synthetic_workspace_ablation",
             "phase_template_top_down_prediction",
@@ -110,8 +125,9 @@ def describe() -> dict[str, object]:
 
         "planned_subsystems": [
             "non_speech_source_localization",
+            "environmental_pass_through_policy",
+            "cold_start_parentese_detection",
             "cross_cultural_parentese_robustness",
-            "parentese_noise_controls",
             "cross_protocol_predictive_generalization",
             "device_timestamped_latency",
             "energy_benchmark",
@@ -639,6 +655,215 @@ def eval_corpus(args: list[str] | None = None) -> dict[str, object]:
     report["label_csv"] = label_csv
     report["clip_loaded"] = len(clips)
     report["input_mode"] = input_mode
+    return report
+
+
+def _register_sources(args: list[str]) -> tuple[list[tuple[str, str]], str | None]:
+    sources: list[tuple[str, str]] = []
+    out: str | None = None
+    i = 1
+    while i < len(args):
+        option = args[i]
+        if i + 1 >= len(args):
+            raise ValueError(f"missing value for {option}")
+        value = args[i + 1]
+        if option == "--source":
+            if "::" not in value:
+                raise ValueError("--source must be ROOT::LABEL_CSV")
+            root, label_csv = value.split("::", 1)
+            if not root or not label_csv:
+                raise ValueError("--source must be ROOT::LABEL_CSV")
+            sources.append((root, label_csv))
+        elif option == "--out":
+            out = value
+        else:
+            raise ValueError(f"unknown option: {option}")
+        i += 2
+    if not sources:
+        raise ValueError("at least one --source ROOT::LABEL_CSV is required")
+    return sources, out
+
+
+def fit_register_scorer_cli(args: list[str]) -> dict[str, object]:
+    """Fit the transparent speaker-adaptive register model from spent data."""
+
+    sources, out = _register_sources(args)
+    if out is None:
+        raise ValueError("--out model JSON is required")
+    examples = []
+    source_reports: list[dict[str, object]] = []
+    for root, label_csv in sources:
+        clips = CorpusLoader(root).load_labels(label_csv)
+        source_examples = [build_register_example(clip) for clip in clips]
+        examples.extend(source_examples)
+        source_reports.append(
+            {
+                "root": str(Path(root).resolve()),
+                "label_csv": str(Path(label_csv).resolve()),
+                "clip_count": len(source_examples),
+                "clip_ids": [example.clip_id for example in source_examples],
+            }
+        )
+    design_report = evaluate_leave_one_fieldsite_out(examples)
+    threshold_report = select_register_thresholds(examples)
+    model = replace(
+        SpeakerAdaptiveRegisterModel.fit(examples),
+        speech_score_minimum=float(threshold_report["speech_score_minimum"]),
+        ids_score_minimum=float(threshold_report["ids_score_minimum"]),
+    )
+    payload = {
+        "mode": "speaker_adaptive_register_model_artifact",
+        "training_sources": source_reports,
+        "training_clip_count": len(examples),
+        "training_fieldsites": sorted({example.fieldsite for example in examples}),
+        "design_evaluation": {
+            key: value
+            for key, value in design_report.items()
+            if key != "predictions"
+        },
+        "threshold_selection": threshold_report,
+        "model": model.to_dict(),
+    }
+    output_path = Path(out)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_text(json.dumps(payload, indent=2) + "\n")
+    return {
+        "mode": "fit_speaker_adaptive_register_model",
+        "out": str(output_path.resolve()),
+        "training_clip_count": len(examples),
+        "training_fieldsites": payload["training_fieldsites"],
+        "design_metrics": design_report["metrics"],
+        "selected_decision_thresholds": {
+            "speech_score_minimum": model.speech_score_minimum,
+            "ids_score_minimum": model.ids_score_minimum,
+        },
+        "calibration_boundary": design_report["calibration_boundary"],
+    }
+
+
+def _load_register_model_artifact(model_path: str | Path) -> SpeakerAdaptiveRegisterModel:
+    """Load either a self-contained model or a hash-pinned gate composition."""
+
+    path = Path(model_path)
+    payload = json.loads(path.read_text())
+    if payload.get("mode") != "register_pipeline_composition":
+        model_payload = payload.get("model", payload)
+        return SpeakerAdaptiveRegisterModel.from_dict(model_payload)
+
+    base_name = payload.get("base_register_model_artifact")
+    expected_sha = payload.get("base_register_model_sha256")
+    gate_payload = payload.get("vocal_gate")
+    if not isinstance(base_name, str) or not isinstance(expected_sha, str):
+        raise ValueError("invalid composed register model reference")
+    if not isinstance(gate_payload, dict):
+        raise ValueError("invalid composed vocal gate")
+    base_path = path.parent / base_name
+    base_bytes = base_path.read_bytes()
+    if hashlib.sha256(base_bytes).hexdigest() != expected_sha:
+        raise ValueError("composed register model hash mismatch")
+    base_artifact = json.loads(base_bytes)
+    base_payload = base_artifact.get("model", base_artifact)
+    base_model = SpeakerAdaptiveRegisterModel.from_dict(base_payload)
+    decision_thresholds = payload.get("decision_thresholds")
+    thresholds = (
+        decision_thresholds if isinstance(decision_thresholds, dict) else {}
+    )
+    return replace(
+        base_model,
+        vocal_gate=VocalActivityGate.from_dict(gate_payload),
+        speech_score_minimum=float(
+            thresholds.get("speech_score_minimum", base_model.speech_score_minimum)
+        ),
+        ids_score_minimum=float(
+            thresholds.get("ids_score_minimum", base_model.ids_score_minimum)
+        ),
+    )
+
+
+def eval_register_scorer_cli(args: list[str]) -> dict[str, object]:
+    """Evaluate a frozen register model on a batch of unseen speakers."""
+
+    model_path: str | None = None
+    root: str | None = None
+    label_csv: str | None = None
+    i = 1
+    while i < len(args):
+        option = args[i]
+        if i + 1 >= len(args):
+            raise ValueError(f"missing value for {option}")
+        value = args[i + 1]
+        if option == "--model":
+            model_path = value
+        elif option == "--root":
+            root = value
+        elif option == "--label-csv":
+            label_csv = value
+        else:
+            raise ValueError(f"unknown option: {option}")
+        i += 2
+    if model_path is None or root is None or label_csv is None:
+        raise ValueError("--model, --root, and --label-csv are required")
+    model = _load_register_model_artifact(model_path)
+    clips = CorpusLoader(root).load_labels(label_csv)
+    examples = [build_register_example(clip) for clip in clips]
+    report = model.evaluate_batch(examples)
+    report["model_path"] = str(Path(model_path).resolve())
+    report["root"] = str(Path(root).resolve())
+    report["label_csv"] = str(Path(label_csv).resolve())
+    return report
+
+
+def eval_register_pipeline_cli(args: list[str]) -> dict[str, object]:
+    """Evaluate vocal retention, noise rejection, and register scoring jointly."""
+
+    values: dict[str, str] = {}
+    i = 1
+    while i < len(args):
+        option = args[i]
+        if i + 1 >= len(args):
+            raise ValueError(f"missing value for {option}")
+        if option not in {
+            "--model",
+            "--vocal-root",
+            "--vocal-label-csv",
+            "--environmental-root",
+            "--environmental-label-csv",
+        }:
+            raise ValueError(f"unknown option: {option}")
+        values[option] = args[i + 1]
+        i += 2
+    required = {
+        "--model",
+        "--vocal-root",
+        "--vocal-label-csv",
+        "--environmental-root",
+        "--environmental-label-csv",
+    }
+    if required - values.keys():
+        raise ValueError("model, vocal source, and environmental source are required")
+    model = _load_register_model_artifact(values["--model"])
+    vocal_clips = CorpusLoader(values["--vocal-root"]).load_labels(
+        values["--vocal-label-csv"]
+    )
+    environmental_clips = CorpusLoader(values["--environmental-root"]).load_labels(
+        values["--environmental-label-csv"]
+    )
+    report = evaluate_register_pipeline(
+        model,
+        [build_register_example(clip) for clip in vocal_clips],
+        [build_register_example(clip) for clip in environmental_clips],
+    )
+    report["model_path"] = str(Path(values["--model"]).resolve())
+    report["vocal_root"] = str(Path(values["--vocal-root"]).resolve())
+    report["vocal_label_csv"] = str(
+        Path(values["--vocal-label-csv"]).resolve()
+    )
+    report["environmental_root"] = str(
+        Path(values["--environmental-root"]).resolve()
+    )
+    report["environmental_label_csv"] = str(
+        Path(values["--environmental-label-csv"]).resolve()
+    )
     return report
 
 
@@ -1465,6 +1690,27 @@ def main(argv: list[str] | None = None) -> int:
         except ValueError as exc:
             print(str(exc), file=sys.stderr)
             return 2
+    if args and args[0] == "--fit-register-scorer":
+        try:
+            print(json.dumps(fit_register_scorer_cli(args)))
+            return 0
+        except (ValueError, OSError, json.JSONDecodeError) as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
+    if args and args[0] == "--eval-register-scorer":
+        try:
+            print(json.dumps(eval_register_scorer_cli(args)))
+            return 0
+        except (ValueError, OSError, json.JSONDecodeError) as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
+    if args and args[0] == "--eval-register-pipeline":
+        try:
+            print(json.dumps(eval_register_pipeline_cli(args)))
+            return 0
+        except (ValueError, OSError, json.JSONDecodeError) as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
     if args and args[0] == "--synthesize-vowel":
         try:
             print(json.dumps(synthesize_vowel_cli(args)))
@@ -1580,6 +1826,9 @@ def main(argv: list[str] | None = None) -> int:
         "[--evaluate-workspace-ablation] "
         "[--prepare-ids-manifest --root DIR --out labels.csv [--held-out-fraction F] [--include-song]] "
         "[--prepare-corollary-manifest --root DIR --out labels.csv [--sample-rate N] [--held-out-seeds csv]] "
+        "[--fit-register-scorer --source ROOT::LABEL_CSV [--source ROOT::LABEL_CSV] --out MODEL.json] "
+        "[--eval-register-scorer --model MODEL.json --root DIR --label-csv FILE] "
+        "[--eval-register-pipeline --model MODEL.json --vocal-root DIR --vocal-label-csv FILE --environmental-root DIR --environmental-label-csv FILE] "
         "[--simulate-self-suppression [--vowel a|e|i|o|u] [--world-vowel a|e|i|o|u] [--world-gain F] [--duration-ms N] [--sample-rate N]] "
         "[--learn-self-forward-model [--vowel a|e|i|o|u] [--observed-delay-ms F] [--observed-attenuation F] [--observed-echo-decay F] [--world-vowel a|e|i|o|u] [--world-gain F]] "
         "[--sweep-self-forward-model [--vowel a|e|i|o|u] [--delay-errors-ms csv] [--attenuation-scales csv] [--echo-decay-scales csv] [--world-vowel a|e|i|o|u] [--world-gain F]] "

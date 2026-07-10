@@ -1,0 +1,66 @@
+{
+  "experiment": "longer_timescale_predictor_spent_data_design_audit",
+  "date": "2026-07-10",
+  "status": "design_candidates_rejected_before_fresh_evaluation",
+  "data_status": "200 clips across 18 fieldsites; every clip was already spent by an earlier registered experiment",
+  "frame_ms": 250,
+  "features": [
+    "log_peak_rms",
+    "pitch_confidence",
+    "log_spectral_centroid",
+    "log_spectral_flux"
+  ],
+  "audit_corrections": [
+    "discard the first spectral-flux frame because its zero value is extractor initialization, not an auditory observation",
+    "exclude duration-normalized edge bins when checking whether a phase result is driven by clip boundaries",
+    "compare phase and mean-reversion candidates with the best persistence, EMA, and causal running-mean baseline",
+    "fit acoustic-state codebooks without the held-out fieldsite and reserve a two-second unlabeled prefix for clip normalization"
+  ],
+  "candidates": {
+    "duration_normalized_phase_template": {
+      "best_audited_setting": "0.10 blend, interior bins 4 through 27, log spectral flux",
+      "wins_vs_best_strong_baseline": 56,
+      "evaluated_clip_count": 200,
+      "mean_rmse_improvement_fraction": -0.1259,
+      "verdict": "rejected",
+      "note": "The initial 198/200 result was driven by deterministic flux warm-up and clip-end decay."
+    },
+    "bounded_local_velocity": {
+      "horizons_frames": [1, 2, 4, 8],
+      "learning_rates": [0.05, 0.1, 0.2, 0.5],
+      "best_observed_case": "log spectral flux, one frame, learning rate 0.05",
+      "best_mean_rmse_improvement_fraction": -0.0073,
+      "best_win_count": 51,
+      "evaluated_clip_count": 200,
+      "verdict": "rejected"
+    },
+    "fixed_mean_reversion": {
+      "interpolation_grid": [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
+      "horizons_frames": [1, 2, 4, 8],
+      "verdict": "rejected",
+      "note": "Every interpolation was worse on average than the better persistence/EMA endpoint."
+    },
+    "quantized_acoustic_state_transitions": {
+      "state_count": 12,
+      "horizon_frames": 4,
+      "prefix_calibration_frames": 8,
+      "optimistic_batch_codebook": {
+        "wins_vs_state_persistence": 111,
+        "evaluated_clip_count": 173,
+        "mean_accuracy_improvement": 0.047,
+        "majority_win_fieldsite_count": 12,
+        "fieldsite_count": 18
+      },
+      "one_pass_local_competitive_codebook": {
+        "learning_rates": [0.01, 0.03, 0.05, 0.1],
+        "mean_accuracy_improvement_range": [-0.0447, -0.0299],
+        "maximum_win_count": 75,
+        "evaluated_clip_count": 173
+      },
+      "verdict": "rejected_for_H2",
+      "note": "The apparent transition ceiling depends on batch codebook optimization; the bounded one-pass local learner does not retain it."
+    }
+  },
+  "decision": "Do not implement or preregister any audited candidate. A fresh Stage-3 attempt needs a different observation protocol or a locally learnable representation, not more tuning on these clips.",
+  "claim_boundary": "This is a negative spent-data design audit. It consumes no fresh evidence and does not alter the positive bounded phase-template result or the safe-but-not-superior online learner result."
+}

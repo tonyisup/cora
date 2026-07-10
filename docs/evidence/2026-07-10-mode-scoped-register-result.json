@@ -1,0 +1,87 @@
+{
+  "experiment": "mode_scoped_speaker_adaptive_register_fresh_fieldsites",
+  "date": "2026-07-10",
+  "preregistration": "2026-07-10-mode-scoped-register-preregistration.json",
+  "model_artifact": "2026-07-10-speaker-adaptive-register-model-v3.json",
+  "verdict": "all_preregistered_gates_passed",
+  "calibration_boundary": "unlabeled within-speaker normalization separately within speech and song; two observations per mode; not cold-start causal",
+  "prediction_count": 24,
+  "calibrated_prediction_count": 24,
+  "metrics": {
+    "true_positive": 4,
+    "false_positive": 2,
+    "true_negative": 16,
+    "false_negative": 2,
+    "precision": 0.6666666666666666,
+    "recall": 0.6666666666666666,
+    "f1": 0.6666666666666666,
+    "false_positive_rate": 0.1111111111111111,
+    "song_false_positive_count": 0,
+    "song_count": 12,
+    "song_false_positive_rate": 0.0
+  },
+  "per_fieldsite": {
+    "MEN": {
+      "f1": 0.6666666666666666,
+      "false_positive_rate": 0.1111111111111111,
+      "gate_passed": true
+    },
+    "TOP": {
+      "f1": 0.6666666666666666,
+      "false_positive_rate": 0.1111111111111111,
+      "gate_passed": true
+    }
+  },
+  "frozen_baselines": {
+    "intensity_db_median": {
+      "f1": 0.41379310344827586,
+      "false_positive_rate": 0.9444444444444444
+    },
+    "pitch_confidence_median": {
+      "f1": 0.3157894736842105,
+      "false_positive_rate": 0.5555555555555556
+    }
+  },
+  "f1_improvement_over_best_frozen_baseline": 0.2528735632183908,
+  "acceptance": {
+    "minimum_pooled_f1_passed": true,
+    "baseline_improvement_passed": true,
+    "maximum_pooled_fpr_passed": true,
+    "maximum_song_fpr_passed": true,
+    "minimum_each_fieldsite_f1_passed": true,
+    "all_speakers_calibrated_passed": true
+  },
+  "limitations": [
+    "requires paired or accumulated observations from the same speaker and mode",
+    "does not identify speakers",
+    "does not provide cold-start or strictly causal live predictions",
+    "six held-out speakers are insufficient for a universal claim",
+    "two held-out speakers showed reversed IDS/ADS direction"
+  ],
+  "selected_file_sha256": {
+    "MEN05A.wav": "fdcf883f4dfa485d058c5c1abc71b314073a7457cb4acb606f52acef00e79786",
+    "MEN05B.wav": "87c3c1eff2336a3f998f2f6fc425eb16b74e4a7f99f16ffa00f98cf4b3a3f5cd",
+    "MEN05C.wav": "2a69f18661daa94aace33c79a1348c1a5544d9f1556fe222b97f6773ebeb373b",
+    "MEN05D.wav": "1bbee761624fc4185948bf8d161027889707a19935653cb208e5ce0843deef96",
+    "MEN07A.wav": "62cf3a782e7c91ec6c0c351a9ce7bd027d434fefb8b3850699dc0c890bd8e316",
+    "MEN07B.wav": "e8c346c7588280b869215f812f27d3df022df3d7eae002a2fb6fd0f7e458f80e",
+    "MEN07C.wav": "9315d25be58182e9d83107f0a7b0841f99d5bf6d851c5f207e3c174697424610",
+    "MEN07D.wav": "232b9f642600b9589fbe0e78288cb1fb709e6062a37b9fce83a71e9a55df8bc4",
+    "MEN14A.wav": "7958d255fe86632eba4d3ae9969741f0275c9370517e9042734d363534a5bf26",
+    "MEN14B.wav": "2da65dc3eb18f0a03e9096044c18821adc25f9331cdd869e7a5f0432a1a3ccb3",
+    "MEN14C.wav": "230a0ea6acb118f71024118c38157320afbcc1cc259bb2dd5e64519712e4dcf3",
+    "MEN14D.wav": "294e28032f069e70fb98e3619f39a9e89b4182d5836cd553399fc62a0adf3c5b",
+    "TOP01A.wav": "421d11560ab95f5c6b7c7050ac62c432de00c869e78679e10986df3edaa0413c",
+    "TOP01B.wav": "2583f0b03748accc64d3d54e2871971c94dfd23ff2c0b66c45a1861375b36f2f",
+    "TOP01C.wav": "e04ec6ba24af1f4fc3a9675e0e0545c0b360563339c54e43cff314466de71510",
+    "TOP01D.wav": "508ac4d8ce66be399b945a73d5b09c0caa520fbb3a340bf5c8a1367df17c9d72",
+    "TOP10A.wav": "dbc049a790b453afd64380518e2c6d3017d3007a18ef86250eb40a293f59ee3a",
+    "TOP10B.wav": "0b791fe5991b6bd850bae2ec2d5c26857b83eff230dc0185da1ebe4a0f083722",
+    "TOP10C.wav": "7b3fc991eb2e3d00fdc89ff149bb9f2f6f2b94efbc12c0e0dfd46dc36f0ccc3a",
+    "TOP10D.wav": "e58b5b492e3da7a21acf26fcaf99538b6c1cd7ffe0873d448e873d9bdcb8cc33",
+    "TOP14A.wav": "928f0a555c6fe11d974527d8a1741d374a920bf49d316b4c3d6df5fb15600f0e",
+    "TOP14B.wav": "0e658c374c23678be30d45e670568f3c2eaa749bd764c8f6b371e6589f5e5037",
+    "TOP14C.wav": "71415537853b4fba7c1b81d90aca75068fa01a0146ffcdec9c910d34d5996563",
+    "TOP14D.wav": "63da9f2d9db9c3cda21af08a16426aeab85877ed478b30433684e9516b4745e6"
+  }
+}

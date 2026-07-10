@@ -121,8 +121,10 @@ Promotion criterion:
 
 ### Stage 2 — Parentese-relevant saliency
 
-Status: narrow participant-disjoint IDS-vs-ADS confirmation passed within one
-fieldsite; the preregistered cross-fieldsite test with song controls failed.
+Status: mixed and not promoted. A five-second, speaker-and-mode batch-calibrated
+scorer passed on two fresh fieldsites but failed a later joint untouched
+Vanuatu test. The environmental front gate has repeated positive evidence;
+cold-start, causal, and robust cross-fieldsite register operation remain open.
 
 Required evidence:
 
@@ -181,6 +183,55 @@ Current cross-fieldsite result:
   cross-cultural parentese detector. Register evidence must separate speech
   from song and normalize collection-site effects.
 
+Current speaker-adaptive register result:
+
+- a transparent ridge scorer now separates speech from song before comparing
+  infant- and adult-directed speech using unlabeled, within-speaker summaries;
+- the first fresh test on Jenu Kuruba and Quechua speakers failed (pooled F1
+  `0.429`, FPR `0.278`), and a YIN pitch upgrade then failed on Tsimane' despite
+  low pooled FPR;
+- inspection of the source analysis exposed the adaptation error: acoustic
+  summaries must be standardized within both speaker and vocal mode, rather
+  than across speech and song together;
+- that correction was frozen before evaluating 24 clips from six unseen Menominee
+  and Toposa speakers. Pooled F1 was `0.667` versus `0.414` for the better frozen
+  baseline, FPR was `0.111`, and song FPR was `0.0`; both fieldsites met the
+  preregistered F1 floor;
+- calibration uses two unlabeled observations from the same speaker and mode.
+  It does not identify speakers and is neither cold-start nor strictly causal.
+
+Current environmental-control result:
+
+- the register model's speech/song gate alone mislabeled `87.5%` of selected
+  ESC-50 environmental clips as speech, confirming that vocal activity is a
+  separate upstream decision;
+- a preregistered YIN-coverage threshold of `0.14` retained all fresh Spanish
+  vocal clips but admitted `31.25%` of fresh fold-2 controls and failed;
+- a stricter `0.20` threshold was then frozen before fetching 12 Hadza vocal
+  clips and 16 fold-3 ESC-50 controls. Vocal recall was `1.0`; environmental
+  FPR was `0.0625` overall, `0.125` for diffuse controls, and `0.0` for
+  impulsive controls;
+- one crackling-fire clip remained a false positive. The supported claim is a
+  five-second vocal-activity front gate on these conditions, not general VAD;
+- the front gate and register scorer are composed with hash-pinned artifacts;
+- on a later jointly untouched Vanuatu/ESC-50 fold-4 set, the front gate retained
+  all 12 vocal clips and rejected all 16 environmental clips, but register F1
+  fell to `0.400` and failed its frozen `0.65` gate;
+- the Menominee/Toposa pass remains bounded evidence. The latest result blocks
+  Stage-2 cross-cultural promotion and points to IDS/ADS generalization—not
+  environmental rejection—as the active failure.
+- a speech cutoff selected only from the original ten-fieldsite grouped
+  predictions restored F1 to `0.857` on fresh Nyangatom clips, but one of six
+  songs was promoted and failed the frozen song-FPR ceiling;
+- a final same-family refit used all 176 spent clips from 16 fieldsites and was
+  frozen before two untouched Enga/Turku fieldsites. Pooled F1 was `0.600`
+  versus the required `0.65`; Enga F1 was `0.500` and Turku F1 `0.667`;
+- the final refit still improved over frozen absolute-feature baselines and kept
+  FPR `0.056`, song FPR `0.083`, and vocal recall `1.0`, but low cross-site
+  recall activates the preregistered stop rule. The remaining Wellington, San
+  Diego, and Toronto fieldsites will not be consumed by another threshold/refit
+  iteration of this feature family.
+
 ### Stage 3 — Predictive hierarchy
 
 Status: phase-template evidence remains positive in bounded settings. A safer
@@ -222,6 +273,19 @@ Current evidence:
   single-clip regret was `13.7%`;
 - it won `0/8` clips for every feature. This validates conservative bounded
   behavior, not predictive advantage, and H2 remains open.
+- a later spent-data design audit tested duration-normalized phase templates,
+  local velocity at `0.25–2.0 s` horizons, fixed mean reversion, and quantized
+  acoustic-state transitions across 200 clips from 18 fieldsites;
+- an apparent `198/200` spectral-flux phase result was traced to the extractor's
+  deterministic zero first frame and clip-end decay. After removing warm-up,
+  edge bins, and adding a causal running-mean baseline, the audited template won
+  only `56/200` clips and regressed mean RMSE by `12.6%`;
+- the other scalar candidates also failed. Batch-optimized acoustic states had
+  a modest transition ceiling, but a one-pass local competitive codebook
+  regressed accuracy by `3.0–4.5` points;
+- no candidate cleared the design gate, so no fresh fieldsite was consumed.
+  H2 now requires a different observation protocol or locally learnable
+  representation rather than another predictor tuned to these clips.
 
 Promotion criterion:
 
