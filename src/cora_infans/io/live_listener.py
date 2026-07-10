@@ -418,6 +418,18 @@ class LiveListener:
         judges whether the *actual captured* self-subtraction preserved the
         world signal while suppressing self: require SVSR above threshold AND a
         non-negative world-residual correlation (world energy survived).
+
+        The three session/capture-level criteria are evidence-backed, not
+        constants -- callers must feed the real values:
+          - ``stable_calibration``: a synchronized loopback latency anchor was
+            loaded for the session (consumer passes it from the calibration
+            artifact's ``synchronized_capture`` flag).
+          - ``synchronized_world_reference``: the corollary window was genuinely
+            captured around playback with a verified overlap and a stream
+            byte-count position source (set by the motor-imitation loop from the
+            capture I/O timing, never defaulted True).
+          - ``held_out_trial_count``: the operator committed to this many
+            independent held-out trials (``>=3`` required).
         """
         criteria = {
             "svsr_above_threshold": {
@@ -483,6 +495,8 @@ class LiveListener:
         do_self_subtraction: bool = False,
         bounded_playback_authorized: bool = False,
         capture_preroll_ms: int = 100,
+        stable_calibration: bool = False,
+        held_out_trial_count: int = 0,
     ) -> "dict[str, object] | None":
         """Run one perception->production trial on a captured speech frame.
 
@@ -762,12 +776,30 @@ class LiveListener:
                         # Real-data promotion gate (Task 3): decide whether this
                         # subtraction is good enough to flip the honesty policy
                         # from tag_only to self_subtract_live. Record the gate so
-                        # downstream consumers see the evidence + verdict.
+                        # downstream consumers see the evidence + verdict. The
+                        # three session/scapture-level criteria are fed the real
+                        # values the loop actually has, not constants:
+                        #  - stable_calibration: a synchronized latency anchor was
+                        #    loaded for this session (else promotion is barred);
+                        #  - synchronized_world_reference: the corollary window was
+                        #    genuinely captured around playback with a verified
+                        #    overlap and a stream-byte-count position source;
+                        #  - held_out_trial_count: the operator committed to this
+                        #    many independent held-out trials (>=3 required).
+                        cap_timing = cap.get("io_timing") if isinstance(cap, dict) else None
+                        synchronized_world_reference = bool(
+                            isinstance(cap_timing, dict)
+                            and cap_timing.get("overlap_verified")
+                            and cap_timing.get("stream_position_verified")
+                        )
                         gate = LiveListener._real_self_subtraction_promotion_gate(
                             svsr_db=float(svsr),
                             world_residual_correlation=trial["world_residual"][
                                 "world_residual_correlation"
                             ],
+                            stable_calibration=stable_calibration,
+                            synchronized_world_reference=synchronized_world_reference,
+                            held_out_trial_count=held_out_trial_count,
                         )
                         trial["self_subtraction_gate"] = gate
                         trial["contamination_policy"] = (
@@ -837,6 +869,8 @@ class LiveListener:
         do_self_subtraction: bool = False,
         bounded_playback_authorized: bool = False,
         motor_imitation_capture_preroll_ms: int = 100,
+        self_subtraction_stable_calibration: bool = False,
+        self_subtraction_held_out_trials: int = 0,
     ) -> dict[str, object]:
         """Capture `duration_ms` of live audio in `frame_ms` steps.
 
@@ -1006,6 +1040,8 @@ class LiveListener:
                             do_self_subtraction=do_self_subtraction,
                             bounded_playback_authorized=bounded_playback_authorized,
                             capture_preroll_ms=motor_imitation_capture_preroll_ms,
+                            stable_calibration=self_subtraction_stable_calibration,
+                            held_out_trial_count=self_subtraction_held_out_trials,
                         )
                         if trial is not None:
                             motor_imitation_log.append(trial)

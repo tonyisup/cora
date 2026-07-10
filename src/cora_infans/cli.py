@@ -250,6 +250,11 @@ def listen_live(args: list[str] | None = None) -> dict[str, object]:
     saliency_threshold = DEFAULT_LIVE_SALIENCY_THRESHOLD
     latency_anchor_ms: float | None = None
     latency_anchor_path: str | None = None
+    stable_calibration: bool = False
+    # Held-out trial count the operator commits to before any self_subtract_live
+    # promotion is even considered (>=3 required by the real-data gate). Defaults
+    # to 0 so the gate cannot promote unless the operator explicitly commits.
+    held_out_trials: int = 0
     i = 1
     while i < len(parsed):
         option = parsed[i]
@@ -314,6 +319,11 @@ def listen_live(args: list[str] | None = None) -> dict[str, object]:
                 raise ValueError("invalid saliency threshold") from exc
         elif option == "--latency-anchor":
             latency_anchor_path = value
+        elif option == "--held-out-trials":
+            try:
+                held_out_trials = int(value)
+            except ValueError as exc:
+                raise ValueError("invalid held-out-trials count") from exc
         else:
             raise ValueError(f"unknown option: {option}")
         i += 2
@@ -330,6 +340,7 @@ def listen_live(args: list[str] | None = None) -> dict[str, object]:
                 "latency anchor is missing synchronized-capture provenance; recalibrate"
             )
         latency_anchor_ms = float(calibration["latency_ms"])
+        stable_calibration = bool(calibration.get("synchronized_capture") is True)
 
     # Real-io wiring: inject the actual ffmpeg playback/capture fns and consult
     # the speaking readiness gate. Without --real-io, motor imitation stays
@@ -389,6 +400,8 @@ def listen_live(args: list[str] | None = None) -> dict[str, object]:
         latency_anchor_ms=latency_anchor_ms,
         do_self_subtraction=with_self_subtraction,
         bounded_playback_authorized=use_real_io,
+        self_subtraction_stable_calibration=stable_calibration,
+        self_subtraction_held_out_trials=held_out_trials,
     )
 
 

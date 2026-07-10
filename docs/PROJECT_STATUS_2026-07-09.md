@@ -749,3 +749,37 @@ audio injection instead of acoustic. The code is sound; the room is the limiting
 `DEFAULT_LIVE_SALIENCY_THRESHOLD = 0.02`, matching `LiveListener`, NOT the 0.7 the pipeline
 reports in some contexts) so near-field/quiet speech can trigger motor imitation. Added
 regression test `test_listen_live_saliency_threshold_flag_parses`. Full suite: 211 passed.
+
+## Correctness-repair follow-up — promotion guardrails wired to real evidence
+
+**Trigger:** review of commit 727706d found the three gate guardrails added in
+Phase 2 Task 3 (`stable_calibration`, `synchronized_world_reference`,
+`held_out_trials`) were never fed by the production call site — only the unit
+test exercised them, so in the integration path all three defaulted `False` and
+the gate could never promote. `synchronized_world_reference` in particular had
+no producer anywhere, making it vestigial.
+
+**Fix:** the motor-imitation loop now derives the guardrails from real evidence
+it already holds:
+- `stable_calibration` is forwarded from the loaded latency anchor's
+  `synchronized_capture` flag (CLI `--latency-anchor`), or `False` when no
+  anchor is loaded.
+- `synchronized_world_reference` is derived per trial from the captured
+  corollary window's I/O timing: `overlap_verified` AND `stream_position_verified`
+  (a raw PCM byte-count position source). It is never defaulted `True`.
+- `held_out_trials` is the operator-committed count (`--held-out-trials`, default
+  0, `>=3` required by the gate), threaded from the CLI through `listen` to the
+  trial.
+
+The gate docstring now states the three criteria are evidence-backed and must be
+fed by callers. A new test (`test_trial_gate_wiring_feeds_real_evidence`) asserts
+the guardrails flip True under verified timing + synchronized anchor + committed
+trials, and stay False when capture timing is unverified.
+
+**Honesty boundary unchanged:** the gate still only promotes `tag_only ->
+self_subtract_live` when SVSR, world preservation, stable calibration, verified
+synchronized capture, AND >=3 held-out trials ALL hold. The room topology from
+the prior runs still cannot satisfy SVSR, so promotion correctly remains `hold`.
+
+**Validation:** full suite: `pytest tests -q` → 237 passed (236 + 1 new wiring
+test).

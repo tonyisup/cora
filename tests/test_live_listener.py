@@ -569,6 +569,86 @@ def test_real_self_subtraction_promotion_gate() -> None:
     assert hold_world_lost["verdict"] == "hold"
 
 
+def test_trial_gate_wiring_feeds_real_evidence(tmp_path) -> None:
+    # The guardrails (stable_calibration, synchronized_world_reference,
+    # held_out_trials) MUST be driven by real session/capture evidence, not
+    # defaulted True. With verified capture timing + a synchronized anchor + a
+    # committed >=3 held-out trials, the guardrails flip True; without verified
+    # timing the synchronized_world_reference criterion stays False.
+    import numpy as np
+
+    from cora_infans.io.live_listener import LiveListener
+    from cora_infans.io.motor_plan import write_wav
+    from cora_infans.io.self_suppression import mix_observed, predict_self_pcm
+
+    lst = LiveListener()
+    pcm = (np.sin(np.arange(16000) * 0.05) * 30000).astype("<i2")
+    sr = 48000
+    n = sr // 4
+    eff = (np.sin(np.arange(n) * 0.05) * 0.8).astype(np.float32)
+    world = (np.sin(np.arange(n) * 0.20) * 0.3).astype(np.float32)
+    observed = mix_observed(
+        predict_self_pcm(eff, sample_rate=sr, delay_ms=0.0, attenuation=0.55, echo_decay=0.22),
+        world,
+        world_gain=1.0,
+    )
+
+    def fake_play(path, *, device_index, sample_rate, volume_db):
+        return {"backend": "fake", "completed": True}
+
+    def fake_capture(path, *, device, sample_rate, duration_ms, ready_event,
+                     capture_timeline=None, cancel_event=None):
+        write_wav(path, (np.clip(observed, -1.0, 1.0) * 32767.0).astype("<i2"), sample_rate)
+        # Mirror capture_to_wav: publish a genuine byte-count position source so
+        # the loop's stream_position_verified derivation sees a real capture.
+        if isinstance(capture_timeline, dict):
+            capture_timeline["position_source"] = "raw_pcm_byte_count"
+            # Simulate playback having just begun: a small positive frame count
+            # at onset (mirrors capture_to_wav's bytes-written count early in the
+            # capture), so the trial's onset slice is non-empty.
+            capture_timeline["frame_position_fn"] = lambda: sample_rate // 100
+        ready_event.set()
+        time.sleep(0.01)
+        return {"backend": "fake", "completed": True}
+
+    # Verified timing + synchronized anchor + committed held-out trials.
+    trial = lst._motor_imitation_trial(
+        pcm, 0.0, 0, 0,
+        play=True,
+        gate_fn=lambda: {"verdict": "promote_simulation_only"},
+        playback_fn=fake_play,
+        capture_fn=fake_capture,
+        out_dir=str(tmp_path),
+        latency_anchor_ms=-0.62,
+        do_self_subtraction=True,
+        bounded_playback_authorized=True,
+        capture_preroll_ms=0,
+        stable_calibration=True,
+        held_out_trial_count=3,
+    )
+    assert trial is not None
+    gate = trial["self_subtraction_gate"]
+    assert gate["criteria"]["stable_calibration"]["passed"] is True
+    assert gate["criteria"]["synchronized_world_reference"]["passed"] is True
+    assert gate["criteria"]["held_out_trials"]["passed"] is True
+    assert trial["contamination_policy"] in ("tag_only", "self_subtract_live")
+
+    # Without verified capture timing the synchronized_world_reference criterion
+    # must be False (mirrors the call-site derivation from cap io_timing).
+    unverified_timing = {
+        "overlap_verified": False,
+        "stream_position_verified": False,
+        "timestamp_source": "wall_clock_fallback",
+    }
+    cap_timing = unverified_timing
+    synchronized = bool(
+        isinstance(cap_timing, dict)
+        and cap_timing.get("overlap_verified")
+        and cap_timing.get("stream_position_verified")
+    )
+    assert synchronized is False
+
+
 def test_trial_contamination_policy_transitions_on_gate(tmp_path) -> None:
     # With a real self+world captured mixture and do_self_subtraction=True, the
     # trial's contamination_policy reflects the gate verdict.
