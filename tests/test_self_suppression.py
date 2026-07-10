@@ -58,6 +58,34 @@ def test_spectral_subtraction_reduces_self_residual_energy() -> None:
     assert compute_svsr_db(observed, residual) > 20.0
 
 
+def test_spectral_subtract_does_not_clip_oversubtraction_error() -> None:
+    observed = np.zeros(4, dtype=np.float32)
+    predicted = np.full(4, 2.0, dtype=np.float32)
+
+    residual = spectral_subtract(observed, predicted)
+
+    assert np.array_equal(residual, np.full(4, -2.0, dtype=np.float32))
+
+
+def test_forward_model_scoring_uses_unclipped_float_prediction() -> None:
+    import pytest
+
+    pcm = np.full(1000, 2.0, dtype=np.float32)
+
+    report = evaluate_forward_model(
+        pcm,
+        pcm,
+        sample_rate=1000,
+        delay_ms=0.0,
+        attenuation=1.0,
+        echo_decay=0.0,
+    )
+
+    assert report["predicted_rms"] == pytest.approx(2.0)
+    assert report["residual_rms"] == pytest.approx(0.0)
+    assert report["svsr_db"] == float("inf")
+
+
 def test_world_only_signal_is_not_erased_by_empty_prediction() -> None:
     world = synthesize_vowel("e", duration_ms=300, sample_rate=16000)
     predicted = np.zeros_like(world)

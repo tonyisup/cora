@@ -21,6 +21,7 @@ Honesty boundary (per VISION.md / README.md):
 
 from __future__ import annotations
 
+import inspect
 import math
 import subprocess
 import tempfile
@@ -53,7 +54,8 @@ from .motor_plan import (
     write_wav,
 )
 from ..live_speak_smoke import (
-    _read_wav_pcm_int16,
+    _capture_during_playback,
+    _read_wav_mono_float32,
     capture_to_wav,
     play_wav_to_device,
 )
@@ -252,7 +254,13 @@ class LiveListener:
         self._tuner = tuner  # None => resolve in listen()
 
     def play_efference_if_authorized(
-        self, *, wav_path: str, gate_fn, volume_db: float = 12.0, playback_fn=None
+        self,
+        *,
+        wav_path: str,
+        gate_fn,
+        volume_db: float = 12.0,
+        playback_fn=None,
+        bounded_playback_authorized: bool = False,
     ) -> dict[str, object]:
         """Play an imitation efference to the speaker only if the readiness gate passes.
 
@@ -261,11 +269,22 @@ class LiveListener:
         SPEAK smoke; it never performs looped/free playback. ``playback_fn`` defaults
         to the real ffmpeg path and may be injected for tests.
         """
-        gate = gate_fn() if gate_fn is not None else {}
+        gate = gate_fn()
         if gate.get("verdict") != "promote_simulation_only":
-            return {"played": False, "reason": "gate_not_promoted", "verdict": gate.get("verdict")}
-        fn = playback_fn or play_wav_to_device
-        result = fn(wav_path, device_index=self.imitation_device_index, sample_rate=48000, volume_db=volume_db)
+            return {"played": False, "reason": "gate_not_promoted", "gate": gate}
+        if not bounded_playback_authorized:
+            return {
+                "played": False,
+                "reason": "bounded_live_io_not_authorized",
+                "gate": gate,
+            }
+        player = playback_fn or play_wav_to_device
+        result = player(
+            wav_path,
+            device_index=self.imitation_device_index,
+            sample_rate=48000,
+            volume_db=volume_db,
+        )
         return {"played": True, "reason": "authorized", "playback": result}
 
     def capture_corollary_window(
@@ -297,7 +316,12 @@ class LiveListener:
         }
 
     def corollary_frame_tags(
-        self, *, latency_ms: float | None, capture_ms: int = 400
+        self,
+        *,
+        latency_ms: float | None,
+        capture_ms: int = 400,
+        playback_offset_ms: float = 0.0,
+        efference_duration_ms: int = 300,
     ) -> list[dict[str, object]]:
         """Tag the captured corollary window against the measured latency anchor.
 
@@ -310,9 +334,10 @@ class LiveListener:
 
         tags = _frame_tags(
             efference_id="corollary",
-            duration_ms=min(capture_ms, 300),
+            duration_ms=min(capture_ms, efference_duration_ms),
             max_capture_ms=capture_ms,
             latency_aligned_ms=latency_ms,
+            playback_offset_ms=playback_offset_ms,
         )
         for tag in tags:
             tag["source"] = "corollary_feedback"
@@ -322,7 +347,7 @@ class LiveListener:
     def _mono_downmix(pcm: np.ndarray) -> np.ndarray:
         """Downmix raw WAV PCM to mono float32 in [-1, 1].
 
-        Accepts int16 (what ``_read_wav_pcm_int16`` yields) or float input; any
+        Accepts int16 or float input; any
         integer samples are scaled by 1/32768 so the captured ``observed`` shares
         the float scale of the efference/predicted signals used for self-
         subtraction. This scaling is load-bearing: the forward-model fit and SVSR
@@ -382,6 +407,9 @@ class LiveListener:
         world_residual_correlation: float | None,
         svsr_pass_db: float = 20.0,
         min_world_corr: float = 0.05,
+        stable_calibration: bool = False,
+        synchronized_world_reference: bool = False,
+        held_out_trial_count: int = 0,
     ) -> dict[str, object]:
         """Real-data go/no-go for promoting tag_only -> self_subtract_live.
 
@@ -402,6 +430,21 @@ class LiveListener:
                 and float(world_residual_correlation) >= min_world_corr,
                 "value": world_residual_correlation,
                 "threshold": min_world_corr,
+            },
+            "stable_calibration": {
+                "passed": stable_calibration,
+                "value": stable_calibration,
+                "threshold": True,
+            },
+            "synchronized_world_reference": {
+                "passed": synchronized_world_reference,
+                "value": synchronized_world_reference,
+                "threshold": True,
+            },
+            "held_out_trials": {
+                "passed": held_out_trial_count >= 3,
+                "value": held_out_trial_count,
+                "threshold": 3,
             },
         }
         passed = all(bool(item["passed"]) for item in criteria.values())
@@ -429,6 +472,7 @@ class LiveListener:
         now_ms: int,
         frame_idx: int,
         *,
+        pcm_sample_rate: int = 16000,
         play: bool = False,
         gate_fn=None,
         playback_fn=None,
@@ -437,6 +481,8 @@ class LiveListener:
         volume_db: float = 12.0,
         latency_anchor_ms: float | None = None,
         do_self_subtraction: bool = False,
+        bounded_playback_authorized: bool = False,
+        capture_preroll_ms: int = 100,
     ) -> "dict[str, object] | None":
         """Run one perception->production trial on a captured speech frame.
 
@@ -447,56 +493,172 @@ class LiveListener:
         sound -> internal motor plan -> played imitation, bounded and gated.
 
         When ``capture_fn`` is supplied (real-io), the corollary-feedback window
-        is captured after playback; the real efference (at the capture rate) and
+        spans playback; the real efference (at the capture rate) and
         the captured mixture drive a forward-model fit. With ``do_self_subtraction``
         the fit is applied to subtract Cora's own audio (Phase 2); otherwise it is
         recorded as measurement-only evidence (Task 1).
         """
-        if pcm is None or len(pcm) < 1600:  # need >= 100 ms @ 16 kHz
+        if pcm is None or len(pcm) < max(1, pcm_sample_rate // 10):
             return None
         try:
-            feat = analyze_vowel(pcm, sample_rate=16000)
+            feat = analyze_vowel(pcm, sample_rate=pcm_sample_rate)
         except ValueError:
             return None
         # The perceived vowel selects the table-anchored motor target; the
         # planner re-synthesizes that target (the "internal vocalization").
         plan = self._planner.plan_from_analysis(feat)
         resynth = self._planner.plan_wav(
-            plan.vowel, duration_ms=200, sample_rate=16000
+            plan.vowel, duration_ms=200, sample_rate=48000
         )
         trial: dict[str, object] = {
             "frame": frame_idx,
             "now_ms": now_ms,
+            "timestamp_ms": now_ms,
+            "source_pcm_sample_rate": pcm_sample_rate,
             "source_azimuth_deg": round(source_azimuth_deg, 2),
             "perceived_formants_hz": [round(f, 2) for f in feat.formant_hz],
             "perceived_nearest_vowel": feat.nearest_vowel,
             "motor_plan_vowel": plan.vowel,
             "motor_plan_f1_hz": plan.f1_hz,
+            "motor_plan_formants_hz": [plan.f1_hz, plan.f2_hz, plan.f3_hz],
             "resynth_samples": len(resynth),
         }
         efference_wav: str | None = None
+        emitted_pcm = np.asarray(resynth, dtype=np.float32)
         played = False
+        cap: dict[str, object] | None = None
         if play and out_dir is not None:
             out = Path(out_dir)
             out.mkdir(parents=True, exist_ok=True)
             efference_wav = str(out / f"imit_{frame_idx}.wav")
-            write_wav(efference_wav, resynth, sample_rate=16000)
-            trial["efference_wav"] = efference_wav
-            if playback_fn is not None:
-                result = self.play_efference_if_authorized(
-                    wav_path=efference_wav,
-                    gate_fn=gate_fn,
-                    volume_db=volume_db,
-                    playback_fn=playback_fn,
+            digital_gain = 10.0 ** (volume_db / 20.0)
+            write_wav(
+                efference_wav,
+                np.clip(emitted_pcm * digital_gain, -1.0, 1.0),
+                sample_rate=48000,
+            )
+            emitted_pcm, emitted_sample_rate = _read_wav_mono_float32(efference_wav)
+            if emitted_sample_rate != 48000:
+                raise ValueError(
+                    f"efference sample rate mismatch: expected 48000, got {emitted_sample_rate}"
                 )
+            trial["efference_wav"] = efference_wav
+            efference_duration_ms = int(round(len(emitted_pcm) / 48.0))
+            if playback_fn is not None:
+                gate = gate_fn() if gate_fn is not None else {}
+                if gate.get("verdict") != "promote_simulation_only":
+                    result = {"played": False, "reason": "gate_not_promoted", "gate": gate}
+                elif not bounded_playback_authorized:
+                    result = {
+                        "played": False,
+                        "reason": "bounded_live_io_not_authorized",
+                        "gate": gate,
+                    }
+                elif capture_fn is not None:
+                    captured_wav = str(out / f"corollary_capture_f{frame_idx}.wav")
+
+                    def _capture(
+                        path: str,
+                        *,
+                        sample_rate: int,
+                        duration_ms: int,
+                        ready_event,
+                        cancel_event,
+                        capture_timeline,
+                    ):
+                        kwargs: dict[str, object] = {
+                            "device": DEFAULT_DEVICE,
+                            "sample_rate": sample_rate,
+                            "duration_ms": duration_ms,
+                            "ready_event": ready_event,
+                        }
+                        parameters = list(inspect.signature(capture_fn).parameters.values())
+                        if any(
+                            parameter.name == "capture_timeline"
+                            or parameter.kind is inspect.Parameter.VAR_KEYWORD
+                            for parameter in parameters
+                        ):
+                            kwargs["capture_timeline"] = capture_timeline
+                        if any(
+                            parameter.name == "cancel_event"
+                            or parameter.kind is inspect.Parameter.VAR_KEYWORD
+                            for parameter in parameters
+                        ):
+                            kwargs["cancel_event"] = cancel_event
+                        return capture_fn(path, **kwargs)
+
+                    def _playback(path: str):
+                        return playback_fn(
+                            path,
+                            device_index=self.imitation_device_index,
+                            sample_rate=48000,
+                            volume_db=0.0,
+                        )
+
+                    capture_duration_ms = max(
+                        400, capture_preroll_ms + efference_duration_ms + 150
+                    )
+                    io_result = _capture_during_playback(
+                        capture_path=captured_wav,
+                        playback_path=efference_wav,
+                        sample_rate=48000,
+                        capture_duration_ms=capture_duration_ms,
+                        capture_fn=_capture,
+                        playback_fn=_playback,
+                        capture_preroll_ms=capture_preroll_ms,
+                    )
+                    playback_offset = io_result["playback_offset_from_capture_ms"]
+                    if not isinstance(playback_offset, (int, float)):
+                        raise TypeError("playback offset must be numeric")
+                    result = {
+                        "played": True,
+                        "reason": "authorized",
+                        "playback": io_result["playback"],
+                        "io_timing": {
+                            "capture_start_ms": io_result["capture_start_ms"],
+                            "capture_end_ms": io_result["capture_end_ms"],
+                            "playback_onset_ms": io_result["playback_onset_ms"],
+                            "playback_end_ms": io_result["playback_end_ms"],
+                            "playback_offset_samples": io_result[
+                                "playback_offset_samples"
+                            ],
+                            "playback_offset_from_capture_ms": io_result[
+                                "playback_offset_from_capture_ms"
+                            ],
+                            "overlap_verified": io_result["overlap_verified"],
+                            "stream_position_verified": io_result[
+                                "stream_position_verified"
+                            ],
+                            "timestamp_source": io_result["timestamp_source"],
+                        },
+                    }
+                    cap = {
+                        "path": captured_wav,
+                        "captured_wav": captured_wav,
+                        "capture": io_result["capture"],
+                        "frame_tags": self.corollary_frame_tags(
+                            latency_ms=latency_anchor_ms,
+                            capture_ms=capture_duration_ms,
+                            playback_offset_ms=float(playback_offset),
+                            efference_duration_ms=efference_duration_ms,
+                        ),
+                        "io_timing": result["io_timing"],
+                    }
+                else:
+                    result = self.play_efference_if_authorized(
+                        wav_path=efference_wav,
+                        gate_fn=lambda: gate,
+                        volume_db=0.0,
+                        playback_fn=playback_fn,
+                        bounded_playback_authorized=True,
+                    )
                 played = bool(result.get("played", False))
                 trial["playback"] = result
             # Replace the imitation TARGET with the sound that actually left the
             # speaker: re-analyze the played WAV (not the internal plan) and
             # record the prediction error vs the perceived human vowel.
             try:
-                played_pcm = _read_wav_pcm_int16(efference_wav)
-                played_feat = analyze_vowel(played_pcm, sample_rate=16000)
+                played_feat = analyze_vowel(emitted_pcm, sample_rate=48000)
                 trial["played_formants_hz"] = [round(f, 2) for f in played_feat.formant_hz]
                 trial["played_nearest_vowel"] = played_feat.nearest_vowel
                 trial["imitation_prediction_error_hz"] = [
@@ -506,22 +668,37 @@ class LiveListener:
             except Exception:
                 # Analysis of the played artifact is best-effort; never fatal.
                 trial["played_formants_hz"] = None
-            # Phase 2: capture the corollary window after playback, fit the
+            # Phase 2: use the corollary window captured around playback to fit the
             # forward model on the real efference + observed mixture. Task 1 is
             # MEASUREMENT-ONLY: record the fit; subtraction is added in Task 2.
-            if capture_fn is not None:
-                cap = self.capture_corollary_window(
-                    out_dir=out_dir,
-                    capture_fn=capture_fn,
-                    latency_ms=latency_anchor_ms,
-                    capture_ms=400,
-                    sample_rate=48000,
-                )
+            if cap is not None:
                 trial["corollary_capture"] = cap
                 try:
-                    cap_pcm = _read_wav_pcm_int16(cap["captured_wav"])
-                    observed = self._mono_downmix(cap_pcm)
-                    eff_48k = self._resynth_efference_pcm(plan, sample_rate=48000)
+                    observed, observed_sample_rate = _read_wav_mono_float32(
+                        str(cap["captured_wav"])
+                    )
+                    if observed_sample_rate != 48000:
+                        raise ValueError(
+                            f"capture sample rate mismatch: expected 48000, got {observed_sample_rate}"
+                        )
+                    timing = cap.get("io_timing")
+                    if not isinstance(timing, dict):
+                        raise ValueError("capture timing metadata is missing")
+                    playback_offset = timing.get("playback_offset_from_capture_ms")
+                    if not isinstance(playback_offset, (int, float)):
+                        raise ValueError("capture playback offset is missing")
+                    playback_offset_samples = timing.get("playback_offset_samples")
+                    if not isinstance(playback_offset_samples, int):
+                        raise ValueError("capture playback frame offset is missing")
+                    onset_samples = max(0, playback_offset_samples)
+                    observed = observed[onset_samples:]
+                    if observed.size == 0:
+                        raise ValueError("capture contains no samples after playback onset")
+                    trial["capture_alignment"] = {
+                        "playback_offset_ms": round(float(playback_offset), 3),
+                        "discarded_preroll_samples": onset_samples,
+                    }
+                    eff_48k = emitted_pcm
                     fit = self._fit_self_forward_model(
                         efference_pcm=eff_48k,
                         observed_pcm=observed,
@@ -556,9 +733,16 @@ class LiveListener:
                         # 48k) is an imperfect proxy for the true world signal;
                         # correlation here is a sanity check only. Align on the
                         # shared length (no zero-pad bias) before correlating.
-                        world_proxy = np.repeat(
-                            np.asarray(pcm, dtype=np.float32) / 32768.0, 3
-                        ).astype(np.float32)
+                        world_proxy = self._mono_downmix(np.asarray(pcm))
+                        if pcm_sample_rate != 48000:
+                            target_n = max(
+                                1, int(round(len(world_proxy) * 48000 / pcm_sample_rate))
+                            )
+                            world_proxy = np.interp(
+                                np.linspace(0.0, 1.0, target_n, endpoint=False),
+                                np.linspace(0.0, 1.0, len(world_proxy), endpoint=False),
+                                world_proxy,
+                            ).astype(np.float32)
                         m = min(len(world_proxy), len(residual))
                         world_proxy_m = world_proxy[:m]
                         residual_m = residual[:m]
@@ -591,8 +775,14 @@ class LiveListener:
                             if gate["verdict"] == "promote"
                             else gate["policy_if_held"]
                         )
-                except Exception:
-                    # Fitting/subtraction is best-effort; never fatal to trial.
+                except Exception as exc:  # noqa: BLE001
+                    # Playback remains a completed physical fact, but processing
+                    # failures must remain auditable evidence rather than vanish.
+                    trial["processing_error"] = {
+                        "type": type(exc).__name__,
+                        "message": str(exc),
+                        "stage": "forward_model_fit_or_subtraction",
+                    }
                     trial["forward_model_fit"] = trial.get("forward_model_fit")
                     trial["world_residual"] = None
         trial["played"] = played
@@ -645,6 +835,8 @@ class LiveListener:
         motor_imitation_volume_db: float = 12.0,
         latency_anchor_ms: float | None = None,
         do_self_subtraction: bool = False,
+        bounded_playback_authorized: bool = False,
+        motor_imitation_capture_preroll_ms: int = 100,
     ) -> dict[str, object]:
         """Capture `duration_ms` of live audio in `frame_ms` steps.
 
@@ -799,8 +991,11 @@ class LiveListener:
                         trial = self._motor_imitation_trial(
                             pcm,
                             source_azimuth,
-                            now_ms,
+                            frame.timestamp_ms,
                             i,
+                            pcm_sample_rate=int(
+                                getattr(self.array, "last_pcm_sample_rate", 16000)
+                            ),
                             play=motor_imitation_playback_fn is not None,
                             gate_fn=motor_imitation_gate_fn,
                             playback_fn=motor_imitation_playback_fn,
@@ -809,6 +1004,8 @@ class LiveListener:
                             volume_db=motor_imitation_volume_db,
                             latency_anchor_ms=latency_anchor_ms,
                             do_self_subtraction=do_self_subtraction,
+                            bounded_playback_authorized=bounded_playback_authorized,
+                            capture_preroll_ms=motor_imitation_capture_preroll_ms,
                         )
                         if trial is not None:
                             motor_imitation_log.append(trial)
@@ -820,7 +1017,7 @@ class LiveListener:
                             # self_suppressed (bookkeeping flag, not signal-level
                             # spectral subtraction -- see theta_gamma.py docstring).
                             if scheduler is not None:
-                                motor_ts = scheduler.reserve_motor_timestamp(now_ms)
+                                motor_ts = scheduler.reserve_motor_timestamp(frame.timestamp_ms)
                                 motor_event = WorkspaceEvent(
                                     kind="motor_intention",
                                     saliency_score=float(
@@ -829,8 +1026,15 @@ class LiveListener:
                                     / 1000.0,
                                     workspace_state={
                                         "timestamp_ms": motor_ts,
-                                        "perceived_vowel": str(trial.get("perceived_vowel", "")),
-                                        "motor_target_vowel": str(trial.get("motor_target_vowel", "")),
+                                        "perceived_vowel": str(
+                                            trial.get("perceived_nearest_vowel", "")
+                                        ),
+                                        "motor_target_vowel": str(
+                                            trial.get("motor_plan_vowel", "")
+                                        ),
+                                        "motor_target_formants_hz": trial.get(
+                                            "motor_plan_formants_hz", []
+                                        ),
                                         "source_azimuth_deg": round(float(source_azimuth), 2),
                                         "frame": i,
                                     },

@@ -18,6 +18,7 @@ ConversationEventKind = Literal[
     "agent_output_queued",
     "agent_speech_start",
     "agent_speech_end",
+    "agent_speech_yielded",
     "overlap_detected",
     "user_correction",
     "repair_issued",
@@ -67,10 +68,14 @@ class ConversationTracker:
         elif event.kind == "agent_speech_end":
             self._is_agent_speaking = False
             self._last_speech_end_ms = event.timestamp_ms
+        elif event.kind == "agent_speech_yielded":
+            self._is_agent_speaking = False
+            self._has_deferred_output = True
+            self._last_speech_end_ms = event.timestamp_ms
         elif event.kind == "overlap_detected":
             self._was_collided = True
             self._was_interrupted = True
-            if self._is_agent_speaking:
+            if self._is_agent_speaking or self._queued_output:
                 self._has_deferred_output = True
         elif event.kind == "user_correction":
             self._needs_clarification = True
@@ -78,6 +83,7 @@ class ConversationTracker:
             self._repair_count += 1
             self._was_collided = False
             self._was_interrupted = False
+            self._has_deferred_output = False
         elif event.kind == "clarification_issued":
             self._clarification_count += 1
             self._needs_clarification = False

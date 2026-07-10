@@ -48,6 +48,15 @@ def test_gamma_binning_counts_distinct_subwindows() -> None:
     assert cycle.gamma_bins_occupied == 2
 
 
+def test_custom_gamma_geometry_drives_cycle_summary() -> None:
+    scheduler = ThetaGammaScheduler(theta_ms=100, gamma_ms=10)
+    scheduler.push(_ev(0, "ch0"))
+    scheduler.push(_ev(15, "ch0"))
+
+    cycle = scheduler.summary()["cycles"][0]
+    assert cycle["gamma_bins_occupied"] == 2
+
+
 def test_capacity_evicts_oldest_cycles() -> None:
     s = ThetaGammaScheduler(theta_ms=100, gamma_ms=25, capacity_cycles=2)
     for i in range(5):

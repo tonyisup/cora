@@ -20,7 +20,7 @@ class AudioFrame:
 class WorkspaceEvent:
     kind: str
     saliency_score: float
-    workspace_state: dict[str, int | float | str]
+    workspace_state: dict[str, int | float | str | list[float]]
 
 
 class CoraInfansPipeline:
@@ -50,7 +50,7 @@ class CoraInfansPipeline:
 
         focus_channel = frame.channel_energies.index(saliency_score)
         focus_label = resolve_focus_label(focus_channel, self.config.mic_channel_geometry)
-        workspace_state: dict[str, int | float | str] = {
+        workspace_state: dict[str, int | float | str | list[float]] = {
             "focus_channel": focus_channel,
             "focus_label": focus_label,
             "dominant_frequency_hz": frame.dominant_frequency_hz,

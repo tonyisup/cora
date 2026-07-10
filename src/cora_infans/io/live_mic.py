@@ -151,6 +151,7 @@ class LiveMicArray:
 
         # Retain the raw PCM (mono mix) for downstream waveform analysis.
         self.last_pcm = data.sum(axis=1).astype(np.float32)
+        self.last_pcm_sample_rate = sr
 
         channel_energies = [
             float(np.sqrt(np.mean(col**2))) for col in data.T

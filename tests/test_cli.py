@@ -3,6 +3,7 @@ import os
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
 
 
@@ -732,6 +733,18 @@ def test_speak_live_smoke_cli_runs_fake_io_when_requested() -> None:
         assert Path(payload["artifacts"]["captured_wav"]).exists()
 
 
+def test_listen_live_rejects_anchor_without_synchronized_provenance(tmp_path) -> None:
+    import pytest
+
+    from cora_infans.cli import listen_live
+
+    anchor = tmp_path / "old-anchor.json"
+    anchor.write_text('{"latency_ms": -0.62}', encoding="utf-8")
+
+    with pytest.raises(ValueError, match="synchronized-capture provenance"):
+        listen_live(["--listen-live", "--latency-anchor", str(anchor)])
+
+
 def test_listen_live_cli_real_io_path_invokes_playback_fn() -> None:
     # Regression: the --real-io playback/capture lambdas must accept the kwargs
     # play_efference_if_authorized forwards (device_index/sample_rate/volume_db).
@@ -784,7 +797,13 @@ def test_listen_live_cli_real_io_path_invokes_playback_fn() -> None:
     ll._NullTuner = _FakeTuner  # type: ignore[assignment]
     sm.run_speaking_readiness_gate = lambda: {"verdict": "promote_simulation_only"}  # type: ignore[assignment]
     sm.play_wav_to_device = lambda path, **kw: played.append(kw) or {"backend": "fake"}  # type: ignore[assignment]
-    sm.capture_to_wav = lambda path, **kw: captured.append(kw) or {"backend": "fake"}  # type: ignore[assignment]
+    def _fake_ready_capture(path, **kw):
+        captured.append(kw)
+        kw["ready_event"].set()
+        time.sleep(0.15)
+        return {"backend": "fake"}
+
+    sm.capture_to_wav = _fake_ready_capture  # type: ignore[assignment]
     try:
         report = cli.listen_live(
             [
@@ -806,7 +825,7 @@ def test_listen_live_cli_real_io_path_invokes_playback_fn() -> None:
         import tempfile
 
         with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as fh:
-            fh.write('{"latency_ms": 0.0}')
+            fh.write('{"latency_ms": 0.0, "synchronized_capture": true}')
             anchor = fh.name
         report = cli.listen_live(
             [
@@ -966,11 +985,13 @@ def test_listen_live_cli_parses_with_self_subtraction_flag() -> None:
     def _fake_capture(path, **kw):
         captured.append(kw)
         write_wav(path, (np.clip(_obs, -1.0, 1.0) * 32767.0).astype("<i2"), _sr)
+        kw["ready_event"].set()
+        time.sleep(0.15)
         return {"backend": "fake"}
 
     sm.capture_to_wav = _fake_capture  # type: ignore[assignment]
     with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as fh:
-        fh.write('{"latency_ms": -0.62}')
+        fh.write('{"latency_ms": -0.62, "synchronized_capture": true}')
         anchor = fh.name
     try:
         report = cli.listen_live(

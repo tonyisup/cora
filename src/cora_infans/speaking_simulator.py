@@ -21,6 +21,7 @@ class ConversationEpisode:
     episode_id: str
     events: tuple[ConversationEvent, ...]
     decision_times_ms: tuple[int, ...]
+    expected_reward: float | None = None
 
 
 def canonical_speaking_policy_episodes() -> tuple[ConversationEpisode, ...]:
@@ -34,6 +35,7 @@ def canonical_speaking_policy_episodes() -> tuple[ConversationEpisode, ...]:
                 ConversationEvent(timestamp_ms=2600, kind="agent_output_queued", payload={"text": "response"}),
             ),
             decision_times_ms=(100, 2600),
+            expected_reward=0.5,
         ),
         ConversationEpisode(
             episode_id="overlap_then_yield_and_repair",
@@ -44,11 +46,13 @@ def canonical_speaking_policy_episodes() -> tuple[ConversationEpisode, ...]:
                 ConversationEvent(timestamp_ms=400, kind="agent_speech_end"),
             ),
             decision_times_ms=(125, 275, 450),
+            expected_reward=2.5,
         ),
         ConversationEpisode(
             episode_id="clarification_needed",
             events=(ConversationEvent(timestamp_ms=100, kind="user_correction"),),
             decision_times_ms=(150,),
+            expected_reward=1.0,
         ),
         ConversationEpisode(
             episode_id="quiet_no_false_repair_or_clarify",
@@ -57,6 +61,7 @@ def canonical_speaking_policy_episodes() -> tuple[ConversationEpisode, ...]:
                 ConversationEvent(timestamp_ms=2200, kind="agent_output_queued"),
             ),
             decision_times_ms=(2200,),
+            expected_reward=0.0,
         ),
         ConversationEpisode(
             episode_id="barge_in_recovery",
@@ -69,6 +74,7 @@ def canonical_speaking_policy_episodes() -> tuple[ConversationEpisode, ...]:
                 ConversationEvent(timestamp_ms=700, kind="user_speech_end"),
             ),
             decision_times_ms=(250, 450, 1200),
+            expected_reward=1.5,
         ),
         ConversationEpisode(
             episode_id="backchannel_suppression",
@@ -78,6 +84,7 @@ def canonical_speaking_policy_episodes() -> tuple[ConversationEpisode, ...]:
                 ConversationEvent(timestamp_ms=1500, kind="user_speech_end"),
             ),
             decision_times_ms=(700, 3500),
+            expected_reward=0.5,
         ),
     )
 
@@ -88,7 +95,11 @@ def _features_dict(features: object) -> dict[str, object]:
 
 def _auto_observe_action(tracker: ConversationTracker, *, timestamp_ms: int, action: str) -> None:
     """Feed policy actions that update future tracker state in simulation."""
-    if action == "repair":
+    if action == "speak":
+        tracker.observe(ConversationEvent(timestamp_ms=timestamp_ms, kind="agent_speech_start"))
+    elif action == "yield":
+        tracker.observe(ConversationEvent(timestamp_ms=timestamp_ms, kind="agent_speech_yielded"))
+    elif action == "repair":
         tracker.observe(ConversationEvent(timestamp_ms=timestamp_ms, kind="repair_issued"))
     elif action == "clarify":
         tracker.observe(ConversationEvent(timestamp_ms=timestamp_ms, kind="clarification_issued"))
@@ -152,13 +163,15 @@ def run_speaking_policy_promotion_gate(
 ) -> dict[str, object]:
     """Run the M8-infans simulation-only speaking-policy promotion gate."""
     active_episodes = episodes or canonical_speaking_policy_episodes()
+    expected_rewards = tuple(episode.expected_reward for episode in active_episodes)
+    if any(expected_reward is None for expected_reward in expected_rewards):
+        raise ValueError("promotion episodes must define expected_reward")
     reports = tuple(run_conversation_episode(ep, policy=HeuristicSpeakingPolicy()) for ep in active_episodes)
     total_reward = sum(float(report["summary"]["total_reward"]) for report in reports)  # type: ignore[index]
-    # Explicit acceptance threshold: the gate's reward target is the summed reward
-    # of the canonical episodes, not a free-floating constant. This keeps the gate
-    # stable when canonical episodes change.
-    target_reward = round(total_reward, 6)
-    reward_ratio = total_reward / target_reward if target_reward else 0.0
+    target_reward = round(sum(value for value in expected_rewards if value is not None), 6)
+    if target_reward <= 0.0:
+        raise ValueError("promotion expected reward target must be positive")
+    reward_ratio = total_reward / target_reward
 
     all_steps = [step for report in reports for step in report["steps"]]  # type: ignore[index]
     overlap_steps = [
@@ -202,7 +215,7 @@ def run_speaking_policy_promotion_gate(
         "reward_threshold": _criterion(
             reward_ratio,
             min_reward_ratio,
-            reward_ratio >= min_reward_ratio,
+            total_reward >= 0.0 and reward_ratio >= min_reward_ratio,
         ),
         "collision_safety": _criterion(collision_safety, 1.0, collision_safety == 1.0),
         "no_false_repairs": _criterion(1.0 if not false_repairs else 0.0, 1.0, not false_repairs),

@@ -5,6 +5,7 @@ listener test is skipped unless the XVF3800 is present (no synthetic fallback).
 """
 
 import shutil
+import time
 
 import numpy as np
 import pytest
@@ -55,9 +56,17 @@ def test_play_efference_requires_passed_gate() -> None:
     assert refused["reason"] == "gate_not_promoted"
     assert called == []
 
+    simulation_only = lst.play_efference_if_authorized(
+        wav_path="/tmp/x.wav",
+        gate_fn=lambda: {"verdict": "promote_simulation_only"},
+    )
+    assert simulation_only["played"] is False
+    assert simulation_only["reason"] == "bounded_live_io_not_authorized"
+
     ok = lst.play_efference_if_authorized(
         wav_path="/tmp/x.wav",
         gate_fn=lambda: {"verdict": "promote_simulation_only"},
+        bounded_playback_authorized=True,
     )
     assert ok["played"] is True
     assert ok["reason"] == "authorized"
@@ -88,6 +97,7 @@ def test_motor_imitation_trial_plays_when_authorized(tmp_path) -> None:
         gate_fn=lambda: {"verdict": "promote_simulation_only"},
         playback_fn=fake_play,
         out_dir=str(tmp_path),
+        bounded_playback_authorized=True,
     )
     assert trial is not None
     assert trial["played"] is True
@@ -98,6 +108,72 @@ def test_motor_imitation_trial_plays_when_authorized(tmp_path) -> None:
     assert trial["played_formants_hz"] is not None
     assert isinstance(trial["imitation_prediction_error_hz"], list)
     assert len(trial["imitation_prediction_error_hz"]) == 3
+
+
+def test_motor_imitation_uses_source_rate_and_writes_model_efference_at_48k(
+    tmp_path, monkeypatch
+) -> None:
+    import wave
+
+    import cora_infans.io.live_listener as ll
+    from cora_infans.io.motor_plan import write_wav
+
+    seen_rates: list[int] = []
+    playback_volume: list[float] = []
+    fitted_pcm: list[np.ndarray] = []
+    real_analyze = ll.analyze_vowel
+
+    def recording_analyze(pcm, *, sample_rate):
+        seen_rates.append(sample_rate)
+        return real_analyze(pcm, sample_rate=sample_rate)
+
+    monkeypatch.setattr(ll, "analyze_vowel", recording_analyze)
+
+    def record_fit(self, *, efference_pcm, observed_pcm, sample_rate, latency_anchor_ms):
+        fitted_pcm.append(efference_pcm.copy())
+        return {
+            "learned_params": {},
+            "svsr_db": 0.0,
+            "residual_rms": 0.0,
+            "observed_rms": 0.0,
+            "verdict": "not_learned",
+        }
+
+    monkeypatch.setattr(ll.LiveListener, "_fit_self_forward_model", record_fit)
+    pcm = (np.sin(np.arange(9600) * 0.05) * 0.5).astype(np.float32)
+
+    def fake_play(path, *, device_index, sample_rate, volume_db):
+        playback_volume.append(volume_db)
+        return {"completed": True}
+
+    def fake_capture(path, *, device, sample_rate, duration_ms, ready_event):
+        write_wav(path, np.zeros(sample_rate * duration_ms // 1000), sample_rate)
+        ready_event.set()
+        time.sleep(0.01)
+        return {"completed": True}
+
+    trial = ll.LiveListener()._motor_imitation_trial(
+        pcm,
+        source_azimuth_deg=0.0,
+        now_ms=0,
+        frame_idx=0,
+        pcm_sample_rate=48000,
+        play=True,
+        gate_fn=lambda: {"verdict": "promote_simulation_only"},
+        playback_fn=fake_play,
+        capture_fn=fake_capture,
+        out_dir=str(tmp_path),
+        bounded_playback_authorized=True,
+        capture_preroll_ms=0,
+    )
+
+    assert trial is not None
+    assert seen_rates[0] == 48000
+    with wave.open(trial["efference_wav"], "rb") as wav:
+        assert wav.getframerate() == 48000
+    emitted_pcm, _ = ll._read_wav_mono_float32(str(trial["efference_wav"]))
+    np.testing.assert_array_equal(fitted_pcm[0], emitted_pcm)
+    assert playback_volume == [0.0]
 
 
 def test_motor_imitation_trial_no_play_when_gate_refused(tmp_path) -> None:
@@ -161,14 +237,18 @@ def test_play_efference_uses_imitation_device_index(monkeypatch) -> None:
     )
     lst = ll.LiveListener()
     out = lst.play_efference_if_authorized(
-        wav_path="/tmp/x.wav", gate_fn=lambda: {"verdict": "promote_simulation_only"}
+        wav_path="/tmp/x.wav",
+        gate_fn=lambda: {"verdict": "promote_simulation_only"},
+        bounded_playback_authorized=True,
     )
     assert out["played"] is True
     assert calls == [3]
     # Constructor override is honored.
     calls.clear()
     ll.LiveListener(imitation_device_index=5).play_efference_if_authorized(
-        wav_path="/tmp/x.wav", gate_fn=lambda: {"verdict": "promote_simulation_only"}
+        wav_path="/tmp/x.wav",
+        gate_fn=lambda: {"verdict": "promote_simulation_only"},
+        bounded_playback_authorized=True,
     )
     assert calls == [5]
 
@@ -293,13 +373,15 @@ def test_motor_imitation_trial_fits_forward_model_when_captured(tmp_path) -> Non
     def fake_play(path, *, device_index, sample_rate, volume_db):
         return {"backend": "fake", "completed": True}
 
-    def fake_capture(path, *, device, sample_rate, duration_ms):
+    def fake_capture(path, *, device, sample_rate, duration_ms, ready_event):
         captured_paths.append(path)
         # Mimic real capture_to_wav: the trial reads this file back, so it must
         # actually exist with valid PCM (silence is enough for the fit path).
         from cora_infans.io.motor_plan import write_wav
 
         write_wav(path, np.zeros(sample_rate * duration_ms // 1000, dtype=np.float32), sample_rate)
+        ready_event.set()
+        time.sleep(0.01)
         return {"backend": "fake", "completed": True}
 
     trial = lst._motor_imitation_trial(
@@ -313,6 +395,8 @@ def test_motor_imitation_trial_fits_forward_model_when_captured(tmp_path) -> Non
         capture_fn=fake_capture,
         out_dir=str(tmp_path),
         latency_anchor_ms=-0.62,
+        bounded_playback_authorized=True,
+        capture_preroll_ms=0,
     )
     assert trial is not None
     assert trial["played"] is True
@@ -325,13 +409,150 @@ def test_motor_imitation_trial_fits_forward_model_when_captured(tmp_path) -> Non
     assert "svsr_db" in fit and "learned_params" in fit
 
 
+def test_motor_imitation_capture_overlaps_playback(tmp_path) -> None:
+    import threading
+
+    from cora_infans.io.live_listener import LiveListener
+    from cora_infans.io.motor_plan import write_wav
+
+    capture_active = threading.Event()
+    playback_finished = threading.Event()
+    order: list[str] = []
+
+    def fake_capture(path, *, device, sample_rate, duration_ms, ready_event):
+        order.append("capture_start")
+        capture_active.set()
+        ready_event.set()
+        assert playback_finished.wait(timeout=1.0)
+        write_wav(path, np.zeros(sample_rate * duration_ms // 1000, dtype=np.float32), sample_rate)
+        order.append("capture_end")
+        return {"completed": True}
+
+    def fake_play(path, *, device_index, sample_rate, volume_db):
+        assert capture_active.wait(timeout=1.0)
+        order.append("playback")
+        playback_finished.set()
+        return {"completed": True}
+
+    trial = LiveListener()._motor_imitation_trial(
+        (np.sin(np.arange(16000) * 0.05) * 30000).astype("<i2"),
+        source_azimuth_deg=0.0,
+        now_ms=0,
+        frame_idx=7,
+        play=True,
+        gate_fn=lambda: {"verdict": "promote_simulation_only"},
+        playback_fn=fake_play,
+        capture_fn=fake_capture,
+        out_dir=str(tmp_path),
+        bounded_playback_authorized=True,
+    )
+
+    assert trial is not None
+    assert trial["played"] is True
+    assert order == ["capture_start", "playback", "capture_end"]
+    assert trial["corollary_capture"]["path"].endswith("corollary_capture_f7.wav")
+
+
+def test_motor_imitation_aligns_capture_to_measured_playback_offset(
+    tmp_path, monkeypatch
+) -> None:
+    from cora_infans.io.live_listener import LiveListener
+    from cora_infans.io.motor_plan import write_wav
+
+    fitted_observed: list[np.ndarray] = []
+
+    def record_fit(self, *, efference_pcm, observed_pcm, sample_rate, latency_anchor_ms):
+        fitted_observed.append(observed_pcm.copy())
+        return {"learned_params": {}, "verdict": "not_learned"}
+
+    monkeypatch.setattr(LiveListener, "_fit_self_forward_model", record_fit)
+
+    def fake_capture(
+        path, *, device, sample_rate, duration_ms, ready_event, capture_timeline
+    ):
+        pre_roll = np.zeros(sample_rate // 10, dtype=np.float32)
+        played = np.ones(sample_rate * duration_ms // 1000 - len(pre_roll), dtype=np.float32)
+        write_wav(path, np.concatenate([pre_roll, played]), sample_rate)
+        capture_timeline["frame_position_fn"] = lambda: len(pre_roll)
+        capture_timeline["position_source"] = "synthetic_frame_count"
+        ready_event.set()
+        time.sleep(0.15)
+        return {"backend": "fake", "completed": True}
+
+    trial = LiveListener()._motor_imitation_trial(
+        (np.sin(np.arange(16000) * 0.05) * 30000).astype("<i2"),
+        source_azimuth_deg=0.0,
+        now_ms=0,
+        frame_idx=1,
+        play=True,
+        gate_fn=lambda: {"verdict": "promote_simulation_only"},
+        playback_fn=lambda path, **kwargs: {"backend": "fake", "completed": True},
+        capture_fn=fake_capture,
+        out_dir=str(tmp_path),
+        bounded_playback_authorized=True,
+        capture_preroll_ms=100,
+    )
+
+    assert fitted_observed and float(np.mean(fitted_observed[0][:100])) > 0.9
+    tags = trial["corollary_capture"]["frame_tags"]
+    speaking = next(tag for tag in tags if tag["speak_state"] == "SPEAKING")
+    assert 90 <= speaking["start_ms"] <= 120
+
+
+def test_motor_imitation_serializes_forward_model_failure(tmp_path, monkeypatch) -> None:
+    from cora_infans.io.live_listener import LiveListener
+    from cora_infans.io.motor_plan import write_wav
+
+    def fail_fit(self, **kwargs):
+        raise ValueError("malformed calibration evidence")
+
+    monkeypatch.setattr(LiveListener, "_fit_self_forward_model", fail_fit)
+
+    def fake_capture(path, *, device, sample_rate, duration_ms, ready_event):
+        write_wav(path, np.zeros(sample_rate * duration_ms // 1000), sample_rate)
+        ready_event.set()
+        time.sleep(0.01)
+        return {"completed": True}
+
+    trial = LiveListener()._motor_imitation_trial(
+        np.zeros(16000, dtype=np.float32),
+        source_azimuth_deg=0.0,
+        now_ms=0,
+        frame_idx=2,
+        play=True,
+        gate_fn=lambda: {"verdict": "promote_simulation_only"},
+        playback_fn=lambda path, **kwargs: {"completed": True},
+        capture_fn=fake_capture,
+        out_dir=str(tmp_path),
+        bounded_playback_authorized=True,
+        capture_preroll_ms=0,
+    )
+
+    assert trial["played"] is True
+    assert trial["processing_error"] == {
+        "type": "ValueError",
+        "message": "malformed calibration evidence",
+        "stage": "forward_model_fit_or_subtraction",
+    }
+    assert trial["world_residual"] is None
+
+
 def test_real_self_subtraction_promotion_gate() -> None:
     # Phase 2 Task 3: the real-data gate promotes only when SVSR is high AND the
     # world signal survived subtraction; otherwise it holds at tag_only.
     from cora_infans.io.live_listener import LiveListener
 
-    promote = LiveListener._real_self_subtraction_promotion_gate(
+    missing_evidence = LiveListener._real_self_subtraction_promotion_gate(
         svsr_db=24.0, world_residual_correlation=0.4
+    )
+    assert missing_evidence["verdict"] == "hold"
+
+    promote = LiveListener._real_self_subtraction_promotion_gate(
+        svsr_db=24.0,
+        world_residual_correlation=0.4,
+        stable_calibration=True,
+        synchronized_world_reference=True,
+        held_out_trial_count=3,
     )
     assert promote["verdict"] == "promote"
     assert promote["policy_if_promoted"] == "self_subtract_live"
@@ -372,8 +593,10 @@ def test_trial_contamination_policy_transitions_on_gate(tmp_path) -> None:
     def fake_play(path, *, device_index, sample_rate, volume_db):
         return {"backend": "fake", "completed": True}
 
-    def fake_capture(path, *, device, sample_rate, duration_ms):
+    def fake_capture(path, *, device, sample_rate, duration_ms, ready_event):
         write_wav(path, (np.clip(observed, -1.0, 1.0) * 32767.0).astype("<i2"), sample_rate)
+        ready_event.set()
+        time.sleep(0.01)
         return {"backend": "fake", "completed": True}
 
     trial = lst._motor_imitation_trial(
@@ -385,6 +608,8 @@ def test_trial_contamination_policy_transitions_on_gate(tmp_path) -> None:
         out_dir=str(tmp_path),
         latency_anchor_ms=-0.62,
         do_self_subtraction=True,
+        bounded_playback_authorized=True,
+        capture_preroll_ms=0,
     )
     assert trial is not None
     assert "self_subtraction_gate" in trial
@@ -420,9 +645,11 @@ def test_motor_imitation_trial_applies_self_subtraction(tmp_path) -> None:
     observed = mix_observed(self_pcm, world, world_gain=1.0)
     observed_i16 = (np.clip(observed, -1.0, 1.0) * 32767.0).astype("<i2")
 
-    def fake_capture(path, *, device, sample_rate, duration_ms):
+    def fake_capture(path, *, device, sample_rate, duration_ms, ready_event):
         captured_paths.append(path)
         write_wav(path, observed_i16, sample_rate)
+        ready_event.set()
+        time.sleep(0.01)
         return {"backend": "fake", "completed": True}
 
     trial = lst._motor_imitation_trial(
@@ -437,6 +664,8 @@ def test_motor_imitation_trial_applies_self_subtraction(tmp_path) -> None:
         out_dir=str(tmp_path),
         latency_anchor_ms=-0.62,
         do_self_subtraction=True,
+        bounded_playback_authorized=True,
+        capture_preroll_ms=0,
     )
     assert trial is not None
     wr = trial.get("world_residual")
@@ -466,7 +695,9 @@ def test_motor_imitation_loop_closes_end_to_end_with_subtraction(tmp_path) -> No
 
         def capture_frame(self, *, duration_ms=None, dominant_frequency_hz=None):
             return AudioFrame(
-                timestamp_ms=0, channel_energies=[0.05, 0.01], dominant_frequency_hz=1000.0
+                timestamp_ms=987654,
+                channel_energies=[0.05, 0.01],
+                dominant_frequency_hz=1000.0,
             )
 
     _FakeArray.last_pcm = pcm  # type: ignore[attr-defined]
@@ -487,8 +718,10 @@ def test_motor_imitation_loop_closes_end_to_end_with_subtraction(tmp_path) -> No
     def fake_play(path, *, device_index, sample_rate, volume_db):
         return {"backend": "fake", "completed": True}
 
-    def fake_capture(path, *, device, sample_rate, duration_ms):
+    def fake_capture(path, *, device, sample_rate, duration_ms, ready_event):
         write_wav(path, np.zeros(sample_rate * duration_ms // 1000, dtype=np.float32), sample_rate)
+        ready_event.set()
+        time.sleep(0.01)
         return {"backend": "fake", "completed": True}
 
     listener = LiveListener(_FakeArray(), tuner=_FakeTuner())
@@ -503,6 +736,9 @@ def test_motor_imitation_loop_closes_end_to_end_with_subtraction(tmp_path) -> No
         motor_imitation_out_dir=str(tmp_path),
         latency_anchor_ms=-0.62,
         do_self_subtraction=True,
+        bounded_playback_authorized=True,
+        motor_imitation_capture_preroll_ms=0,
+        with_scheduling=True,
     )
     mi = report["motor_imitation"]
     assert mi is not None and mi["trial_count"] == 1
@@ -511,6 +747,11 @@ def test_motor_imitation_loop_closes_end_to_end_with_subtraction(tmp_path) -> No
     assert "forward_model_fit" in trial
     assert trial.get("world_residual") is not None
     assert trial["world_residual"]["applied"] is True
+    assert trial["timestamp_ms"] == 987654
+    assert len(trial["motor_plan_formants_hz"]) == 3
+    occupied = [cycle for cycle in report["theta_gamma"]["cycles"] if cycle["event_count"]]
+    assert len(occupied) == 1
+    assert occupied[0]["cycle"] == 987654 // 200
 
 
 def test_motor_imitation_end_to_end_self_subtraction_report_shape(tmp_path) -> None:
@@ -561,9 +802,11 @@ def test_motor_imitation_end_to_end_self_subtraction_report_shape(tmp_path) -> N
     def fake_play(path, *, device_index, sample_rate, volume_db):
         return {"backend": "fake", "completed": True}
 
-    def fake_capture(path, *, device, sample_rate, duration_ms):
+    def fake_capture(path, *, device, sample_rate, duration_ms, ready_event):
         # Record the world so correlation comes out finite/meaningful.
         write_wav(path, (np.clip(observed, -1.0, 1.0) * 32767.0).astype("<i2"), sample_rate)
+        ready_event.set()
+        time.sleep(0.01)
         return {"backend": "fake", "completed": True}
 
     listener = LiveListener(_FakeArray(), tuner=_FakeTuner())
@@ -578,6 +821,8 @@ def test_motor_imitation_end_to_end_self_subtraction_report_shape(tmp_path) -> N
         motor_imitation_out_dir=str(tmp_path),
         latency_anchor_ms=-0.62,
         do_self_subtraction=True,
+        bounded_playback_authorized=True,
+        motor_imitation_capture_preroll_ms=0,
     )
     mi = report["motor_imitation"]
     assert mi is not None and mi["trial_count"] == 1
@@ -649,6 +894,7 @@ def test_motor_imitation_end_to_end_self_subtraction_report_shape(tmp_path) -> N
         motor_imitation_out_dir=str(tmp_path),
         motor_imitation_volume_db=12.0,
         latency_anchor_ms=0.8,
+        bounded_playback_authorized=True,
     )
 
     mi = report["motor_imitation"]

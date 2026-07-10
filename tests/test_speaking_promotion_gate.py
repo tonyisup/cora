@@ -1,6 +1,10 @@
 """Promotion gate for the simulation-only M8 speaking-policy ladder."""
 
-from cora_infans.speaking_simulator import run_speaking_policy_promotion_gate
+from cora_infans.conversation_tracker import ConversationEvent
+from cora_infans.speaking_simulator import (
+    ConversationEpisode,
+    run_speaking_policy_promotion_gate,
+)
 
 
 def test_speaking_policy_promotion_gate_promotes_canonical_episodes() -> None:
@@ -27,19 +31,21 @@ def test_speaking_policy_promotion_gate_holds_when_reward_threshold_is_impossibl
     assert report["live_playback_allowed"] is False
 
 
-def test_promotion_target_reward_is_derived_from_canonical_episodes() -> None:
-    # target_reward must not be a floating magic number: it should equal the sum
-    # of canonical episode rewards so the gate is stable when episodes change.
-    from cora_infans.speaking_simulator import (
-        canonical_speaking_policy_episodes,
-        run_conversation_episode,
+def test_promotion_target_is_independent_and_negative_reward_cannot_promote() -> None:
+    episode = ConversationEpisode(
+        episode_id="negative_candidate",
+        events=(ConversationEvent(timestamp_ms=0, kind="overlap_detected"),),
+        decision_times_ms=(100,),
+        expected_reward=1.0,
     )
 
-    report = run_speaking_policy_promotion_gate()
-    canonical_total = sum(
-        float(run_conversation_episode(ep)["summary"]["total_reward"])
-        for ep in canonical_speaking_policy_episodes()
+    report = run_speaking_policy_promotion_gate(
+        episodes=(episode,),
+        min_reward_ratio=-2.0,
     )
 
-    assert report["summary"]["target_reward"] == round(canonical_total, 6)
-    assert report["summary"]["total_reward"] == round(canonical_total, 6)
+    assert report["summary"]["total_reward"] == -1.5
+    assert report["summary"]["target_reward"] == 1.0
+    assert report["summary"]["reward_ratio"] == -1.5
+    assert report["criteria"]["reward_threshold"]["passed"] is False
+    assert report["verdict"] == "hold"

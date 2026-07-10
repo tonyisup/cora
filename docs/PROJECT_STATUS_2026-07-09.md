@@ -1,5 +1,48 @@
 # Project Status — 2026-07-09
 
+## Correctness review correction — supersedes historical live-evidence claims below
+
+The 2026-07-09 correctness review found that the original latency smoke completed
+capture before starting playback, while the original motor-imitation path completed
+playback before starting its corollary capture. Consequently, the historical
+device-2/device-3 latency anchors and Task 6/near-field results below did **not**
+measure synchronized direct playback capture. They are retained as historical debug
+records only and must not be used for calibration, promotion, or claims about room
+acoustics:
+
+- `/tmp/cora_nf/latency.json` — quarantined;
+- `/tmp/cora_nf/latency_dev3.json` — quarantined;
+- Task 6 and near-field run artifacts — quarantined.
+
+In particular, the earlier conclusions that loopback latency was stably measured,
+that the subtraction metrics represented synchronized real efference, and that “the
+room is the limiting factor” are retracted. The data did not establish those claims.
+
+The deterministic repair now:
+
+- overlaps capture and playback and reports timing provenance;
+- rejects real/unknown captures that end before playback starts;
+- rejects silent, unrelated, and room-tone-dominated latency evidence;
+- reads channel-aware WAV frames and carries the actual source sample rate;
+- uses one gain-applied, quantized 48 kHz efference artifact for playback and fitting;
+- scores prediction/residual error in unclipped float space;
+- requires explicit bounded-live authorization in addition to simulation readiness;
+- keeps live self-subtraction at `tag_only` unless stable calibration, synchronized
+  world-reference evidence, and multiple held-out trials all exist;
+- uses one timestamp domain for acoustic and motor scheduler events;
+- repairs tracker/reward/simulator state and makes promotion reward targets independent
+  of candidate results.
+
+No replacement hardware calibration has been run. The current coordinator requires an
+explicit capture-ready signal, verifies that capture spans the full playback interval,
+and aligns fitting/tags to the playback-onset frame measured from a live raw-PCM byte
+count. The raw stream is converted to WAV only after capture completes, avoiding WAV
+header/startup ambiguity. This is still not a backend-reported audio-device onset
+timestamp. Fresh device-2/device-3 calibration remains required before any new hardware
+claim. Capture-readiness timeout now returns promptly and cooperatively cancels the
+production ffmpeg process. Full deterministic verification after the temporal-evidence
+repair: `pytest tests -q` → **236 passed**.
+
 ## Current focus
 
 Cora-Infans is moving from simulation-only self-prediction/corollary-discharge

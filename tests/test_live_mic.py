@@ -50,6 +50,33 @@ def test_dominant_frequency_reports_zero_on_silence() -> None:
     assert LiveMicArray._dominant_frequency_hz(silent, sr) == 0.0
 
 
+def test_capture_retains_actual_pcm_sample_rate(monkeypatch) -> None:
+    import wave
+
+    def fake_run(cmd, **kwargs):
+        pcm = np.zeros((4800, 2), dtype="<i2")
+        with wave.open(cmd[-1], "wb") as wav:
+            wav.setnchannels(2)
+            wav.setsampwidth(2)
+            wav.setframerate(48000)
+            wav.writeframes(pcm.tobytes())
+
+        class Result:
+            returncode = 0
+            stderr = ""
+
+        return Result()
+
+    monkeypatch.setattr("cora_infans.io.live_mic.subprocess.run", fake_run)
+    array = LiveMicArray(sample_rate=48000)
+
+    array.capture_frame(duration_ms=100)
+
+    assert array.last_pcm_sample_rate == 48000
+    assert array.last_pcm is not None
+    assert len(array.last_pcm) == 4800
+
+
 @pytest.mark.skipif(shutil.which("ffmpeg") is None, reason="ffmpeg not available")
 def test_live_capture_runs_end_to_end_if_device_present() -> None:
     """Skips (does not fake) when the board is not connected."""

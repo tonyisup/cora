@@ -78,6 +78,18 @@ def test_repair_and_clarification_counts_are_tracked() -> None:
     assert features.clarification_count == 1
 
 
+def test_repair_clears_deferred_output_state() -> None:
+    tracker = ConversationTracker()
+    tracker.observe(ConversationEvent(timestamp_ms=0, kind="agent_output_queued"))
+    tracker.observe(ConversationEvent(timestamp_ms=100, kind="agent_speech_start"))
+    tracker.observe(ConversationEvent(timestamp_ms=200, kind="overlap_detected"))
+
+    tracker.observe(ConversationEvent(timestamp_ms=300, kind="repair_issued"))
+
+    features = tracker.get_conversation_features(now_ms=300)
+    assert features.has_deferred_output is False
+
+
 def test_tracker_reset_clears_state() -> None:
     tracker = ConversationTracker()
     tracker.observe(ConversationEvent(timestamp_ms=100, kind="user_speech_start"))

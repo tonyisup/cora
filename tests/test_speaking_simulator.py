@@ -54,6 +54,41 @@ def test_simulator_scores_yield_then_repair_episode() -> None:
     assert report["summary"]["total_reward"] > 0
 
 
+def test_simulator_enacts_yield_by_stopping_speech_and_deferring_output() -> None:
+    episode = ConversationEpisode(
+        episode_id="yield_then_repair_without_scripted_stop",
+        events=(
+            ConversationEvent(timestamp_ms=0, kind="agent_output_queued"),
+            ConversationEvent(timestamp_ms=100, kind="agent_speech_start"),
+            ConversationEvent(timestamp_ms=200, kind="overlap_detected"),
+        ),
+        decision_times_ms=(200, 300),
+    )
+
+    report = run_conversation_episode(episode, policy=HeuristicSpeakingPolicy())
+
+    assert [step["action"] for step in report["steps"]] == ["yield", "repair"]
+    assert report["steps"][1]["features"]["is_agent_speaking"] is False
+    assert report["steps"][1]["features"]["has_deferred_output"] is True
+
+
+def test_overlap_while_not_speaking_repairs_then_releases_queued_output() -> None:
+    episode = ConversationEpisode(
+        episode_id="queued_overlap_before_speech",
+        events=(
+            ConversationEvent(timestamp_ms=0, kind="user_speech_end"),
+            ConversationEvent(timestamp_ms=0, kind="agent_output_queued"),
+            ConversationEvent(timestamp_ms=100, kind="overlap_detected"),
+        ),
+        decision_times_ms=(100, 200, 2200),
+    )
+
+    report = run_conversation_episode(episode, policy=HeuristicSpeakingPolicy())
+
+    assert [step["action"] for step in report["steps"]] == ["repair", "wait", "speak"]
+    assert report["steps"][2]["features"]["queued_output"] is True
+
+
 def test_simulator_orders_events_before_decision_at_same_timestamp() -> None:
     episode = ConversationEpisode(
         episode_id="same_timestamp_queue",
@@ -68,6 +103,23 @@ def test_simulator_orders_events_before_decision_at_same_timestamp() -> None:
 
     assert report["steps"][0]["features"]["queued_output"] is True
     assert report["steps"][0]["action"] == "speak"
+
+
+def test_simulator_enacts_speak_once_by_consuming_queue_and_starting_speech() -> None:
+    episode = ConversationEpisode(
+        episode_id="speak_once",
+        events=(
+            ConversationEvent(timestamp_ms=0, kind="user_speech_end"),
+            ConversationEvent(timestamp_ms=2000, kind="agent_output_queued"),
+        ),
+        decision_times_ms=(2000, 2100),
+    )
+
+    report = run_conversation_episode(episode, policy=HeuristicSpeakingPolicy())
+
+    assert [step["action"] for step in report["steps"]] == ["speak", "wait"]
+    assert report["steps"][1]["features"]["is_agent_speaking"] is True
+    assert report["steps"][1]["features"]["queued_output"] is False
 
 
 def test_canonical_episodes_cover_backchannel_and_barge_in() -> None:

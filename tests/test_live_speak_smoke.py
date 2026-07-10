@@ -8,6 +8,12 @@ import numpy as np
 from cora_infans.live_speak_smoke import run_live_speak_smoke_trial
 
 
+def _publish_capture_position(ready_event, capture_timeline, frames: int = 0) -> None:
+    capture_timeline["frame_position_fn"] = lambda: frames
+    capture_timeline["position_source"] = "synthetic_frame_count"
+    ready_event.set()
+
+
 def _fake_playback(path: str) -> dict[str, object]:
     assert Path(path).exists()
     return {"backend": "fake_playback", "started": True, "completed": True}
@@ -140,9 +146,29 @@ def test_real_io_refuses_without_promoted_readiness_gate(tmp_path) -> None:
     assert calls == []  # no I/O happened
 
 
-def test_real_io_runs_with_promoted_gate_using_injected_fakes(tmp_path) -> None:
-    # With a promoted gate, the helper performs the wired playback/capture (here
-    # injected fakes) and reports real_hardware=true with a finite latency.
+def test_real_io_refuses_simulation_promotion_without_bounded_authorization(tmp_path) -> None:
+    from cora_infans.live_speak_smoke import run_real_io_speak_trial
+
+    calls: list[str] = []
+    report = run_real_io_speak_trial(
+        out_dir=str(tmp_path),
+        playback_fn=lambda path: calls.append("play") or {"completed": True},
+        capture_fn=lambda path, **kwargs: calls.append("capture") or {"completed": True},
+        readiness_gate_fn=lambda: {
+            "verdict": "promote_simulation_only",
+            "live_playback_allowed": False,
+        },
+    )
+
+    assert report["verdict"] == "blocked_bounded_live_io_not_authorized"
+    assert report["live_playback"] is False
+    assert calls == []
+
+
+def test_real_io_rejects_silent_capture_as_unusable_measurement(tmp_path) -> None:
+    # A completed I/O cycle is not a usable latency measurement when capture is silent.
+    import threading
+
     import numpy as np
 
     from cora_infans.live_speak_smoke import run_real_io_speak_trial
@@ -150,10 +176,15 @@ def test_real_io_runs_with_promoted_gate_using_injected_fakes(tmp_path) -> None:
     def _gate() -> dict[str, object]:
         return {"verdict": "promote_simulation_only", "live_playback_allowed": False}
 
+    playback_done = threading.Event()
+
     def _play(path: str) -> dict[str, object]:
+        playback_done.set()
         return {"backend": "fake", "device_index": 2, "completed": True}
 
-    def _capture(path: str, *, sample_rate: int, duration_ms: int) -> dict[str, object]:
+    def _capture(
+        path: str, *, sample_rate: int, duration_ms: int, ready_event, capture_timeline
+    ) -> dict[str, object]:
         import wave
 
         samples = int(sample_rate * duration_ms / 1000)
@@ -163,6 +194,8 @@ def test_real_io_runs_with_promoted_gate_using_injected_fakes(tmp_path) -> None:
             w.setsampwidth(2)
             w.setframerate(sample_rate)
             w.writeframes(pcm.tobytes())
+        _publish_capture_position(ready_event, capture_timeline)
+        assert playback_done.wait(timeout=1.0)
         return {"backend": "fake", "device": ":0", "frames": samples, "completed": True}
 
     report = run_real_io_speak_trial(
@@ -172,15 +205,17 @@ def test_real_io_runs_with_promoted_gate_using_injected_fakes(tmp_path) -> None:
         capture_fn=_capture,
         readiness_gate_fn=_gate,
         sample_rate=16000,
+        capture_preroll_ms=0,
+        bounded_live_io_authorized=True,
     )
 
-    assert report["verdict"] == "real_io_complete"
+    assert report["verdict"] == "measurement_rejected"
     assert report["real_hardware"] is True
     assert report["live_playback"] is True
     assert report["live_playback_allowed"] is False
     assert report["artifacts"]["captured_wav"] is not None
-    assert report["latency_aligned_ms"] is not None
-    assert isinstance(report["latency_aligned_ms"], (int, float))
+    assert report["latency_aligned_ms"] is None
+    assert report["usable"] is False
     # Frame tags present and ordered.
     states = [t["speak_state"] for t in report["frame_tags"]]
     assert states[0] == "READY_TO_SPEAK"
@@ -191,6 +226,8 @@ def test_real_io_trials_aggregate_latency_stats_with_stable_estimator(tmp_path) 
     # Multi-trial harness: runs N real trials and reports latency mean/std/min/max.
     # With a deterministic injected estimator the spread is zero and the harness
     # flags latency_stable=True (the precondition for any later subtraction).
+    import time
+
     import numpy as np
 
     from cora_infans.live_speak_smoke import run_real_io_speak_trials
@@ -201,7 +238,9 @@ def test_real_io_trials_aggregate_latency_stats_with_stable_estimator(tmp_path) 
     def _fake_play(path: str) -> dict[str, object]:
         return {"backend": "fake", "completed": True}
 
-    def _fake_capture(path: str, *, sample_rate: int, duration_ms: int) -> dict[str, object]:
+    def _fake_capture(
+        path: str, *, sample_rate: int, duration_ms: int, ready_event, capture_timeline
+    ) -> dict[str, object]:
         samples = int(sample_rate * duration_ms / 1000)
         pcm = np.zeros(samples, dtype="<i2")
         with wave.open(path, "wb") as w:
@@ -209,6 +248,8 @@ def test_real_io_trials_aggregate_latency_stats_with_stable_estimator(tmp_path) 
             w.setsampwidth(2)
             w.setframerate(sample_rate)
             w.writeframes(pcm.tobytes())
+        _publish_capture_position(ready_event, capture_timeline)
+        time.sleep(0.01)
         return {"backend": "fake", "completed": True}
 
     def _est(*, efference_pcm: object, captured_pcm: object, sample_rate: int) -> float:
@@ -224,6 +265,8 @@ def test_real_io_trials_aggregate_latency_stats_with_stable_estimator(tmp_path) 
         trials=4,
         sample_rate=16000,
         save_calibration=str(tmp_path / "cal.json"),
+        capture_preroll_ms=0,
+        bounded_live_io_authorized=True,
     )
 
     assert report["verdict"] == "trials_complete"
@@ -259,6 +302,8 @@ def test_real_io_trials_aggregate_latency_stats_with_stable_estimator(tmp_path) 
 def test_real_io_trials_flag_unstable_when_spread_exceeds_threshold(tmp_path) -> None:
     # If the per-trial latency varies beyond the jitter threshold, the harness must
     # NOT claim stability — honest precondition for signal-level subtraction.
+    import time
+
     import numpy as np
 
     from cora_infans.live_speak_smoke import run_real_io_speak_trials
@@ -269,7 +314,9 @@ def test_real_io_trials_flag_unstable_when_spread_exceeds_threshold(tmp_path) ->
     def _fake_play(path: str) -> dict[str, object]:
         return {"backend": "fake", "completed": True}
 
-    def _fake_capture(path: str, *, sample_rate: int, duration_ms: int) -> dict[str, object]:
+    def _fake_capture(
+        path: str, *, sample_rate: int, duration_ms: int, ready_event
+    ) -> dict[str, object]:
         samples = int(sample_rate * duration_ms / 1000)
         pcm = np.zeros(samples, dtype="<i2")
         with wave.open(path, "wb") as w:
@@ -277,6 +324,8 @@ def test_real_io_trials_flag_unstable_when_spread_exceeds_threshold(tmp_path) ->
             w.setsampwidth(2)
             w.setframerate(sample_rate)
             w.writeframes(pcm.tobytes())
+        ready_event.set()
+        time.sleep(0.01)
         return {"backend": "fake", "completed": True}
 
     _vals = {"n": 0}
@@ -295,6 +344,8 @@ def test_real_io_trials_flag_unstable_when_spread_exceeds_threshold(tmp_path) ->
         trials=4,
         latency_jitter_ms=2.0,
         sample_rate=16000,
+        capture_preroll_ms=0,
+        bounded_live_io_authorized=True,
     )
 
     assert report["trials_ok"] == 4
@@ -349,11 +400,9 @@ def test_synthesize_tone_and_chirp_are_bounded_unit_waveforms() -> None:
         assert len(sig) == int(0.2 * 16000)
 
 
-def test_causal_window_rejects_reverb_false_peaks_under_weak_signal() -> None:
-    # Under heavy room-tone (weak playback in strong noise), the free lag search
-    # locks onto reverb false peaks (large std). Restricting the search to a causal
-    # window around the known onset (t=0) recovers the true delay stably. This is
-    # the M3/Corollary technique that makes latency estimation repeatable.
+def test_latency_estimator_rejects_room_tone_dominated_trials() -> None:
+    # A 5%-strength playback buried in full-scale room noise is not legitimate
+    # calibration evidence, even when a causal search window is available.
     import numpy as np
 
     from cora_infans.io.motor_plan import synthesize_chirp
@@ -386,9 +435,8 @@ def test_causal_window_rejects_reverb_false_peaks_under_weak_signal() -> None:
 
     free = _estimates(None)
     windowed = _estimates(8.0)
-    # The windowed estimator must be markedly more stable than the free search.
-    assert np.std(windowed) < np.std(free)
-    assert np.std(windowed) <= 6.0  # tight window excludes reverb false peaks
+    assert free == []
+    assert windowed == []
 
 
 def test_real_playback_passes_volume_db_to_ffmpeg(monkeypatch) -> None:
@@ -406,12 +454,333 @@ def test_real_playback_passes_volume_db_to_ffmpeg(monkeypatch) -> None:
 
     def _fake_popen(cmd, **kw):  # type: ignore[no-untyped-def]
         captured["cmd"] = cmd
+        captured["kwargs"] = kw
         return _FakePopen()
 
     monkeypatch.setattr(sm.subprocess, "Popen", _fake_popen)
     sm.play_wav_to_device("/tmp/x.wav", device_index=2, volume_db=-6.0)
     assert captured["waited"]
     assert any("volume=-6.0dB" in str(c) for c in captured["cmd"])
+    assert captured["kwargs"]["stdout"] is sm.subprocess.DEVNULL
+    assert captured["kwargs"]["stderr"] is sm.subprocess.DEVNULL
+
+
+def test_real_playback_raises_when_ffmpeg_fails(monkeypatch) -> None:
+    import pytest
+
+    import cora_infans.live_speak_smoke as sm
+
+    class _FailedPopen:
+        returncode = 1
+
+        def wait(self) -> None:
+            return None
+
+    monkeypatch.setattr(sm.subprocess, "Popen", lambda *args, **kwargs: _FailedPopen())
+
+    with pytest.raises(RuntimeError, match="playback failed"):
+        sm.play_wav_to_device("/tmp/x.wav", device_index=2)
+
+
+def test_capture_to_wav_signals_ready_after_raw_pcm_frames(tmp_path, monkeypatch) -> None:
+    import threading
+
+    import cora_infans.live_speak_smoke as sm
+
+    path = tmp_path / "capture.wav"
+    raw_path = Path(f"{path}.capture.raw")
+    path.write_bytes(b"stale" * 20)
+    raw_path.write_bytes(b"stale")
+
+    class _FakeCaptureProcess:
+        returncode = None
+
+        def poll(self):
+            return self.returncode
+
+        def wait(self):
+            self.returncode = 0
+
+    def fake_popen(cmd, **kwargs):
+        assert not path.exists()
+        assert not raw_path.exists()
+        raw_path.write_bytes(np.zeros(8, dtype="<i2").tobytes())
+        return _FakeCaptureProcess()
+
+    monkeypatch.setattr(sm.subprocess, "Popen", fake_popen)
+    ready = threading.Event()
+    timeline: dict[str, object] = {}
+
+    result = sm.capture_to_wav(
+        str(path),
+        device=":0",
+        sample_rate=48000,
+        duration_ms=100,
+        ready_event=ready,
+        capture_timeline=timeline,
+    )
+
+    assert ready.is_set()
+    assert result["completed"] is True
+    assert path.exists()
+
+
+def test_capture_to_wav_honors_startup_cancellation(tmp_path, monkeypatch) -> None:
+    import threading
+
+    import pytest
+
+    import cora_infans.live_speak_smoke as sm
+
+    path = tmp_path / "capture.wav"
+
+    class FakeProcess:
+        returncode = None
+        killed = False
+
+        def poll(self):
+            return None
+
+        def kill(self):
+            self.killed = True
+            self.returncode = -9
+
+        def wait(self):
+            return self.returncode
+
+    process = FakeProcess()
+    monkeypatch.setattr(sm.subprocess, "Popen", lambda *args, **kwargs: process)
+    cancelled = threading.Event()
+    cancelled.set()
+
+    with pytest.raises(RuntimeError, match="live capture .* was cancelled"):
+        sm.capture_to_wav(
+            str(path),
+            device=":0",
+            duration_ms=100,
+            cancel_event=cancelled,
+            startup_timeout_ms=20,
+        )
+
+    assert process.killed is True
+    assert not Path(f"{path}.capture.raw").exists()
+
+
+def test_latency_estimator_rejects_silent_capture() -> None:
+    from cora_infans.live_speak_smoke import estimate_playback_latency_ms
+
+    sample_rate = 16000
+    phase = np.arange(1600, dtype=np.float64)
+    reference = np.sin(phase * 0.1)
+
+    assert (
+        estimate_playback_latency_ms(
+            efference_pcm=reference,
+            captured_pcm=np.zeros_like(reference),
+            sample_rate=sample_rate,
+            causal_window_ms=4.0,
+        )
+        is None
+    )
+
+
+def test_latency_estimator_rejects_unrelated_non_silent_capture() -> None:
+    from cora_infans.live_speak_smoke import estimate_playback_latency_ms
+
+    rng = np.random.default_rng(7)
+    reference = rng.normal(size=8000).astype(np.float32)
+    unrelated = rng.normal(size=8000).astype(np.float32)
+
+    latency = estimate_playback_latency_ms(
+        efference_pcm=reference,
+        captured_pcm=unrelated,
+        sample_rate=16000,
+        causal_window_ms=20.0,
+    )
+
+    assert latency is None
+
+
+def test_latency_estimator_rejects_peak_at_search_boundary() -> None:
+    from cora_infans.live_speak_smoke import estimate_playback_latency_ms
+
+    sample_rate = 16000
+    boundary_samples = 320  # 20 ms
+    rng = np.random.default_rng(11)
+    reference = rng.normal(size=4000).astype(np.float32)
+    captured = np.zeros_like(reference)
+    captured[boundary_samples:] = reference[:-boundary_samples]
+
+    assert (
+        estimate_playback_latency_ms(
+            efference_pcm=reference,
+            captured_pcm=captured,
+            sample_rate=sample_rate,
+            causal_window_ms=20.0,
+        )
+        is None
+    )
+
+
+def test_read_wav_mono_float32_downmixes_real_stereo_frames(tmp_path) -> None:
+    from cora_infans.live_speak_smoke import _read_wav_mono_float32
+
+    path = tmp_path / "stereo.wav"
+    stereo = np.asarray([[32767, -32768], [16384, -16384]], dtype="<i2")
+    with wave.open(str(path), "wb") as wav:
+        wav.setnchannels(2)
+        wav.setsampwidth(2)
+        wav.setframerate(48000)
+        wav.writeframes(stereo.tobytes())
+
+    pcm, sample_rate = _read_wav_mono_float32(str(path))
+
+    assert sample_rate == 48000
+    assert pcm.shape == (2,)
+    assert np.allclose(pcm, [-1.0 / 65536.0, 0.0], atol=1e-7)
+
+
+def test_capture_during_playback_overlaps_and_joins_capture(tmp_path) -> None:
+    import threading
+
+    from cora_infans.live_speak_smoke import _capture_during_playback
+
+    capture_active = threading.Event()
+    playback_finished = threading.Event()
+    order: list[str] = []
+
+    def capture(
+        path: str, *, sample_rate: int, duration_ms: int, ready_event
+    ) -> dict[str, object]:
+        order.append("capture_start")
+        capture_active.set()
+        ready_event.set()
+        assert playback_finished.wait(timeout=1.0)
+        order.append("capture_end")
+        return {"completed": True}
+
+    def playback(path: str) -> dict[str, object]:
+        assert capture_active.wait(timeout=1.0)
+        order.append("playback")
+        playback_finished.set()
+        return {"completed": True}
+
+    result = _capture_during_playback(
+        capture_path=str(tmp_path / "captured.wav"),
+        playback_path=str(tmp_path / "efference.wav"),
+        sample_rate=48000,
+        capture_duration_ms=400,
+        capture_fn=capture,
+        playback_fn=playback,
+        capture_preroll_ms=0,
+    )
+
+    assert order == ["capture_start", "playback", "capture_end"]
+    assert result["playback"]["completed"] is True
+    assert result["capture"]["completed"] is True
+    assert result["playback_onset_ms"] >= result["capture_start_ms"]
+
+
+def test_capture_coordinator_waits_for_explicit_readiness(tmp_path) -> None:
+    import threading
+    import time
+
+    from cora_infans.live_speak_smoke import _capture_during_playback
+
+    release = threading.Event()
+    order: list[str] = []
+    capture_started = time.monotonic()
+
+    def capture(path, *, sample_rate, duration_ms, ready_event, capture_timeline):
+        capture_timeline["frame_position_fn"] = lambda: int(
+            (time.monotonic() - capture_started) * sample_rate
+        )
+        capture_timeline["position_source"] = "synthetic_frame_count"
+        time.sleep(0.05)
+        order.append("capture_ready")
+        ready_event.set()
+        assert release.wait(timeout=1.0)
+        return {"completed": True}
+
+    def playback(path):
+        order.append("playback")
+        release.set()
+        return {"completed": True}
+
+    result = _capture_during_playback(
+        capture_path=str(tmp_path / "capture.wav"),
+        playback_path=str(tmp_path / "playback.wav"),
+        sample_rate=48000,
+        capture_duration_ms=400,
+        capture_fn=capture,
+        playback_fn=playback,
+        capture_preroll_ms=100,
+    )
+
+    assert order == ["capture_ready", "playback"]
+    assert result["overlap_verified"] is True
+    assert result["timestamp_source"] == "synthetic_frame_count"
+    assert 140 <= result["playback_offset_from_capture_ms"] <= 180
+
+
+def test_capture_coordinator_readiness_timeout_returns_promptly(tmp_path) -> None:
+    import threading
+    import time
+
+    import pytest
+
+    from cora_infans.live_speak_smoke import _capture_during_playback
+
+    cancelled = threading.Event()
+
+    def capture(path, *, sample_rate, duration_ms, ready_event, cancel_event):
+        assert cancel_event.wait(timeout=1.0)
+        cancelled.set()
+        return {"completed": True}
+
+    started = time.monotonic()
+    with pytest.raises(RuntimeError, match="capture did not become ready before timeout"):
+        _capture_during_playback(
+            capture_path=str(tmp_path / "capture.wav"),
+            playback_path=str(tmp_path / "playback.wav"),
+            sample_rate=48000,
+            capture_duration_ms=400,
+            capture_fn=capture,
+            playback_fn=lambda path: {"completed": True},
+            capture_preroll_ms=0,
+            capture_ready_timeout_ms=20,
+        )
+    elapsed = time.monotonic() - started
+    assert elapsed < 0.1
+    assert cancelled.wait(timeout=0.1)
+
+
+def test_capture_coordinator_rejects_capture_ending_before_playback(tmp_path) -> None:
+    import time
+
+    import pytest
+
+    from cora_infans.live_speak_smoke import _capture_during_playback
+
+    def capture(path, *, sample_rate, duration_ms, ready_event):
+        ready_event.set()
+        time.sleep(0.01)
+        return {"completed": True}
+
+    def playback(path):
+        time.sleep(0.04)
+        return {"completed": True}
+
+    with pytest.raises(RuntimeError, match="capture ended before playback finished"):
+        _capture_during_playback(
+            capture_path=str(tmp_path / "capture.wav"),
+            playback_path=str(tmp_path / "playback.wav"),
+            sample_rate=48000,
+            capture_duration_ms=400,
+            capture_fn=capture,
+            playback_fn=playback,
+            capture_preroll_ms=0,
+        )
 
 
 def test_save_latency_calibration_writes_artifact(tmp_path) -> None:
@@ -431,6 +800,7 @@ def test_save_latency_calibration_writes_artifact(tmp_path) -> None:
         sample_rate=48000,
         trials=6,
         std_ms=0.83,
+        synchronized_capture=True,
     )
     assert returned == path
     cal = _json.loads(open(path).read())

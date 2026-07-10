@@ -324,7 +324,12 @@ def listen_live(args: list[str] | None = None) -> dict[str, object]:
         import json
 
         with open(latency_anchor_path, encoding="utf-8") as fh:
-            latency_anchor_ms = float(json.load(fh)["latency_ms"])
+            calibration = json.load(fh)
+        if calibration.get("synchronized_capture") is not True:
+            raise ValueError(
+                "latency anchor is missing synchronized-capture provenance; recalibrate"
+            )
+        latency_anchor_ms = float(calibration["latency_ms"])
 
     # Real-io wiring: inject the actual ffmpeg playback/capture fns and consult
     # the speaking readiness gate. Without --real-io, motor imitation stays
@@ -344,7 +349,13 @@ def listen_live(args: list[str] | None = None) -> dict[str, object]:
             path, device_index=imitation_device_index, sample_rate=48000, volume_db=volume_db
         )
         capture_fn = lambda path, **kw: capture_to_wav(  # type: ignore[misc]
-            path, device=device, sample_rate=48000, duration_ms=kw.get("duration_ms", 400)
+            path,
+            device=device,
+            sample_rate=48000,
+            duration_ms=kw.get("duration_ms", 400),
+            ready_event=kw.get("ready_event"),
+            cancel_event=kw.get("cancel_event"),
+            capture_timeline=kw.get("capture_timeline"),
         )
     elif with_self_subtraction:
         # Self-subtraction requires real capture to fit+subtract the loopback;
@@ -377,6 +388,7 @@ def listen_live(args: list[str] | None = None) -> dict[str, object]:
         motor_imitation_volume_db=volume_db,
         latency_anchor_ms=latency_anchor_ms,
         do_self_subtraction=with_self_subtraction,
+        bounded_playback_authorized=use_real_io,
     )
 
 
@@ -1020,9 +1032,23 @@ def speak_live_smoke_cli(args: list[str]) -> dict[str, object]:
                 volume_db=volume_db,
             )
 
-        def _real_capture(path: str, *, sample_rate: int, duration_ms: int) -> dict[str, object]:
+        def _real_capture(
+            path: str,
+            *,
+            sample_rate: int,
+            duration_ms: int,
+            ready_event,
+            cancel_event,
+            capture_timeline,
+        ) -> dict[str, object]:
             return capture_to_wav(
-                path, device=input_device, sample_rate=sample_rate, duration_ms=duration_ms
+                path,
+                device=input_device,
+                sample_rate=sample_rate,
+                duration_ms=duration_ms,
+                ready_event=ready_event,
+                cancel_event=cancel_event,
+                capture_timeline=capture_timeline,
             )
 
         if trials > 1:
@@ -1039,6 +1065,7 @@ def speak_live_smoke_cli(args: list[str]) -> dict[str, object]:
                 sample_rate=48000,
                 duration_ms=duration_ms,
                 max_capture_ms=max_capture_ms,
+                bounded_live_io_authorized=True,
             )
 
         return run_real_io_speak_trial(
@@ -1051,6 +1078,7 @@ def speak_live_smoke_cli(args: list[str]) -> dict[str, object]:
             sample_rate=48000,
             duration_ms=duration_ms,
             max_capture_ms=max_capture_ms,
+            bounded_live_io_authorized=True,
         )
 
     if use_fake_io:

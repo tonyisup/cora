@@ -63,6 +63,8 @@ def motor_bin_of(theta_ms: int, gamma_ms: int) -> int:
 @dataclass
 class ThetaCycle:
     index: int
+    theta_ms: int
+    gamma_ms: int
     events: list = field(default_factory=list)
 
     @property
@@ -70,7 +72,7 @@ class ThetaCycle:
         bins: set[int] = set()
         for ev in self.events:
             ts = int(ev.workspace_state["timestamp_ms"])
-            bins.add((ts % DEFAULT_THETA_MS) // DEFAULT_GAMMA_MS)
+            bins.add((ts % self.theta_ms) // self.gamma_ms)
         return len(bins)
 
     @property
@@ -144,7 +146,11 @@ class ThetaGammaScheduler:
         cycle_idx = self._cycle_of(ts)
         if self._active is None or cycle_idx != self._active.index:
             self._consolidate_active()
-            self._active = ThetaCycle(index=cycle_idx)
+            self._active = ThetaCycle(
+                index=cycle_idx,
+                theta_ms=self.theta_ms,
+                gamma_ms=self.gamma_ms,
+            )
         self._active.events.append(event)
         # Corollary discharge / sensory suppression (SCHEDULING-LEVEL PROXY): a
         # self-generated motor intention in a gamma bin suppresses any concurrent

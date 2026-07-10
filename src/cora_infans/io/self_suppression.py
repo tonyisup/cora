@@ -71,7 +71,7 @@ def predict_self_pcm(
     if echo_start < len(out):
         out[echo_start:] += attenuation * echo_decay * eff[: len(out) - echo_start]
 
-    return np.clip(out, -1.0, 1.0).astype(np.float32)
+    return out.astype(np.float32)
 
 
 def mix_observed(
@@ -110,7 +110,7 @@ def spectral_subtract(
     residual = obs - pred
     if floor > 0:
         residual = np.where(np.abs(residual) < floor * np.abs(obs), 0.0, residual)
-    return np.clip(residual, -1.0, 1.0).astype(np.float32)
+    return residual.astype(np.float32)
 
 
 def rms(pcm: np.ndarray) -> float:
