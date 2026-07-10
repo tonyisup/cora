@@ -496,6 +496,13 @@ def _run_real_structured_protocol(
         capture_duration_ms = int(
             math.ceil(len(rendered_trial.pcm) * 1000.0 / config.sample_rate)
         ) + 1000
+        playback_started = False
+
+        def _tracked_playback(path: str) -> dict[str, object]:
+            nonlocal playback_started
+            playback_started = True
+            return playback_fn(path)
+
         try:
             io_report = _capture_during_playback(
                 capture_path=str(captured_path),
@@ -503,7 +510,7 @@ def _run_real_structured_protocol(
                 sample_rate=config.sample_rate,
                 capture_duration_ms=capture_duration_ms,
                 capture_fn=capture_fn,
-                playback_fn=playback_fn,
+                playback_fn=_tracked_playback,
                 capture_preroll_ms=100,
             )
             playback_report = io_report["playback"]
@@ -551,7 +558,7 @@ def _run_real_structured_protocol(
                 **manifest,
                 "verdict": "real_io_failed",
                 "real_hardware": real_hardware_claim,
-                "live_playback": True,
+                "live_playback": playback_started,
                 "geometry": geometry,
                 "failed_trial_id": trial.trial_id,
                 "completed_trial_count": len(artifacts),

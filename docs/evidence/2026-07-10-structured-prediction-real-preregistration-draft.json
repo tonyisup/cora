@@ -1,25 +1,39 @@
 {
   "experiment": "structured_continuous_prediction_real_hardware",
   "date": "2026-07-10",
-  "status": "acceptance_frozen_geometry_and_operator_authorization_pending",
+  "status": "fully_preregistered_before_first_real_capture",
   "protocol": "2026-07-10-structured-prediction-protocol.json",
   "protocol_sha256": "2b56bdfab508b1d0f456037845bc75d4c0da511dcde8daa921045dea4d2e16ab",
   "implementation_sha256": "51307274e9582885470b2ed81950da137a93cebfc7e5add5aa9ec42c1707093c",
   "device_boundary": {
-    "target_input": "XVF3800 two fused CoreAudio channels",
+    "target_input": "XVF3800 input :0, two fused CoreAudio channels",
+    "target_output": "CoreAudio output device index 2",
     "maximum_playback_gain_db": -18.0,
     "trial_count": 12,
     "maximum_total_playback_seconds": 75.6,
     "one_trial_at_a_time": true,
     "no_automatic_retry_after_failure": true
   },
-  "operator_fields_required_before_run": [
-    "confirmed XVF3800 input device",
-    "confirmed output device",
-    "speaker-to-microphone distance and orientation",
-    "quiet-room confirmation",
-    "explicit bounded playback and capture authorization"
-  ],
+  "frozen_physical_geometry": {
+    "speaker_count": 2,
+    "speaker_arrangement": "small left and right speakers stacked vertically with both acoustic centers on the board's 180 degree radial axis",
+    "speaker_aim": "both speakers facing the XVF3800 microphone array center",
+    "speaker_distance_cm": 50.0,
+    "distance_reference": "speaker grilles to XVF3800 board center",
+    "board_azimuth_degrees": 180,
+    "hardware_volume_knob": "maximum",
+    "software_playback_gain_db": -18.0
+  },
+  "room_condition": {
+    "operator_description": "semi-quiet room",
+    "known_background_source": "laptop fan",
+    "accepted_as_fixed_run_condition": true
+  },
+  "operator_authorization": {
+    "bounded_playback_and_capture_authorized": true,
+    "authorized_date": "2026-07-10",
+    "scope": "one fixed 12-trial protocol run only, capped at 75.6 seconds total playback, with no automatic retry"
+  },
   "frozen_acceptance_rule_each_family": {
     "required_development_trials": 3,
     "required_held_out_trials": 3,

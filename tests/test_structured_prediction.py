@@ -49,7 +49,12 @@ def test_frozen_protocol_and_implementation_hashes_match_source() -> None:
         "docs/evidence/"
         "2026-07-10-structured-prediction-real-preregistration-draft.json"
     )
+    retry_preregistration_path = root / (
+        "docs/evidence/"
+        "2026-07-10-structured-prediction-real-attempt-2-preregistration.json"
+    )
     implementation_path = root / "src/cora_infans/structured_prediction.py"
+    io_runner_path = root / "src/cora_infans/live_speak_smoke.py"
     stored = json.loads(protocol_path.read_text())
     generated = json.loads(json.dumps(build_structured_protocol_manifest()))
 
@@ -59,10 +64,46 @@ def test_frozen_protocol_and_implementation_hashes_match_source() -> None:
     implementation_hash = hashlib.sha256(implementation_path.read_bytes()).hexdigest()
     fake_result = json.loads(fake_result_path.read_text())
     preregistration = json.loads(preregistration_path.read_text())
+    retry_preregistration = json.loads(retry_preregistration_path.read_text())
     assert fake_result["protocol_sha256"] == protocol_hash
     assert preregistration["protocol_sha256"] == protocol_hash
-    assert fake_result["implementation_sha256"] == implementation_hash
-    assert preregistration["implementation_sha256"] == implementation_hash
+    historical_implementation_hash = (
+        "51307274e9582885470b2ed81950da137a93cebfc7e5add5aa9ec42c1707093c"
+    )
+    # Historical artifacts remain immutable after the pre-playback I/O fix.
+    assert fake_result["implementation_sha256"] == historical_implementation_hash
+    assert preregistration["implementation_sha256"] == historical_implementation_hash
+    assert retry_preregistration["protocol_sha256"] == protocol_hash
+    assert retry_preregistration["predictor_implementation_sha256"] == implementation_hash
+    assert retry_preregistration["io_runner_sha256"] == hashlib.sha256(
+        io_runner_path.read_bytes()
+    ).hexdigest()
+
+
+def test_real_runner_reports_whether_playback_actually_started(tmp_path) -> None:
+    playback_calls = 0
+
+    def playback(path: str) -> dict[str, object]:
+        nonlocal playback_calls
+        playback_calls += 1
+        return {"backend": "injected_playback"}
+
+    def capture(path: str, **kwargs) -> dict[str, object]:
+        raise RuntimeError("capture unavailable")
+
+    report = run_structured_prediction_protocol(
+        out_dir=tmp_path,
+        real_io=True,
+        bounded_playback_authorized=True,
+        playback_fn=playback,
+        capture_fn=capture,
+        geometry={"test_double": True},
+        real_hardware_claim=False,
+    )
+
+    assert report["verdict"] == "real_io_failed"
+    assert report["live_playback"] is False
+    assert playback_calls == 0
 
 
 def test_structured_protocol_default_and_real_gate_touch_no_io(tmp_path) -> None:

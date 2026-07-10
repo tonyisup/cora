@@ -213,7 +213,10 @@ python3 -m cora_infans --evaluate-structured-prediction \
 Fake success cannot promote predictive evidence. Real execution requires an
 explicit authorization flag plus recorded input/output devices, speaker
 distance/orientation, and quiet-room confirmation. The frozen protocol and
-acceptance draft are under `docs/evidence/2026-07-10-structured-*`.
+acceptance artifacts are under `docs/evidence/2026-07-10-structured-*`. The
+first real-I/O attempt stopped before playback on a diagnosed ffmpeg buffering
+issue; the fixed runner's separately frozen retry still requires explicit
+operator authorization.
 
 Replay retained Corollary real-capture arrays without copying them:
 

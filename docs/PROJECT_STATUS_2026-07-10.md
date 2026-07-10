@@ -239,9 +239,13 @@ research contract and implements the first vertical evidence path.
   chirp alignment, and hashes every efference/capture artifact.
 - A noiseless injected runner test exposed and fixed an absolute FFT-floor bug
   that had made state geometry depend on background noise.
-- Real acceptance thresholds and the exact manifest are hash-frozen. The only
-  missing inputs are confirmed devices/geometry, quiet-room state, and operator
-  authorization. No real playback occurred in this checkpoint.
+- Real acceptance thresholds, manifest, and geometry were hash-frozen. The
+  first authorized attempt stopped before playback with zero completed trials:
+  ffmpeg's raw muxer buffered the XVF3800 stream beyond the readiness deadline.
+- The runner now flushes raw packets so byte count is a live stream position.
+  A microphone-only synchronized diagnostic verified readiness at 128 ms and
+  verified overlap. Attempt 1 and its original hashes are retained; attempt 2
+  is separately frozen and awaits explicit retry authorization.
 
 ### Prior-art real-capture replay
 

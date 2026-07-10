@@ -74,3 +74,17 @@ evidence artifact must freeze the exact manifest and acceptance thresholds.
 A real pass would support locally learned transition prediction for these two
 structured acoustic families. It would not pass H2 for unconstrained speech;
 that requires a later natural-stream transfer test.
+
+## First real-I/O attempt
+
+The first authorized attempt stopped on `tones_dev_1103` before speaker
+playback. AVFoundation was recording, but ffmpeg's raw muxer buffered less than
+roughly 256 KiB, so the raw-file byte count remained zero until after the
+three-second readiness deadline. No trial completed, no capture was retained,
+and no held-out observation was spent.
+
+The I/O runner now requests per-packet flushing. A microphone-only synchronized
+diagnostic publishes 2,048 frames after 128 ms and verifies overlap using the
+raw byte count. The failed attempt and fix are retained separately; the fixed
+runner has a new preregistration and cannot execute the protocol again without
+fresh explicit retry authorization.
