@@ -353,6 +353,43 @@ def test_real_io_trials_flag_unstable_when_spread_exceeds_threshold(tmp_path) ->
     assert report["latency_stable"] is False
 
 
+def test_real_io_trials_tolerate_one_device_startup_outlier(tmp_path) -> None:
+    import time
+    import wave
+
+    import numpy as np
+
+    from cora_infans.live_speak_smoke import run_real_io_speak_trials
+
+    values = iter([347.3, 347.5, 343.6, 358.4, 346.9, 346.6])
+
+    def capture(path, *, sample_rate, duration_ms, ready_event, **kwargs):
+        with wave.open(path, "wb") as wav:
+            wav.setnchannels(1)
+            wav.setsampwidth(2)
+            wav.setframerate(sample_rate)
+            wav.writeframes(np.zeros(sample_rate, dtype="<i2").tobytes())
+        ready_event.set()
+        time.sleep(0.01)
+        return {"completed": True}
+
+    report = run_real_io_speak_trials(
+        out_dir=str(tmp_path),
+        playback_fn=lambda path: {"completed": True},
+        capture_fn=capture,
+        readiness_gate_fn=lambda: {"verdict": "promote_simulation_only"},
+        latency_estimator=lambda **kwargs: next(values),
+        trials=6,
+        latency_jitter_ms=2.0,
+        capture_preroll_ms=0,
+        bounded_live_io_authorized=True,
+    )
+
+    assert report["latency_stable"] is True
+    assert report["rejected_latency_outliers"] == 1
+    assert report["latency_stats"]["n"] == 5
+
+
 def test_chirp_latency_is_recovered_deterministically_at_clean_snr() -> None:
     # The chirp probe recovers a known injected delay exactly (no spread) when the
     # captured signal is clean — the precondition for a stable real-world latency.
@@ -753,6 +790,31 @@ def test_capture_coordinator_readiness_timeout_returns_promptly(tmp_path) -> Non
     elapsed = time.monotonic() - started
     assert elapsed < 0.1
     assert cancelled.wait(timeout=0.1)
+
+
+def test_capture_default_ready_timeout_allows_slow_device_startup(tmp_path) -> None:
+    """AVFoundation can take just over a second to publish its first frame."""
+    import time
+
+    from cora_infans.live_speak_smoke import _capture_during_playback
+
+    def slow_capture(path, *, ready_event, **kwargs):
+        time.sleep(1.05)
+        ready_event.set()
+        time.sleep(0.05)
+        return {"completed": True}
+
+    result = _capture_during_playback(
+        capture_path=str(tmp_path / "capture.wav"),
+        playback_path=str(tmp_path / "playback.wav"),
+        sample_rate=48000,
+        capture_duration_ms=1500,
+        capture_fn=slow_capture,
+        playback_fn=lambda path: {"completed": True},
+        capture_preroll_ms=0,
+    )
+
+    assert result["overlap_verified"] is True
 
 
 def test_capture_coordinator_rejects_capture_ending_before_playback(tmp_path) -> None:

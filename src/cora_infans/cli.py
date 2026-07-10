@@ -350,8 +350,10 @@ def listen_live(args: list[str] | None = None) -> dict[str, object]:
     capture_fn = None
     if use_real_io and with_motor_imitation:
         from .live_speak_smoke import (
+            StimulusSpec,
             capture_to_wav,
             play_wav_to_device,
+            run_real_io_speak_trials,
             run_speaking_readiness_gate,
         )
 
@@ -368,6 +370,57 @@ def listen_live(args: list[str] | None = None) -> dict[str, object]:
             cancel_event=kw.get("cancel_event"),
             capture_timeline=kw.get("capture_timeline"),
         )
+
+        # A latency measurement is specific to the current device/room/session.
+        # When no legacy anchor was explicitly supplied, measure it now and keep
+        # it in memory rather than requiring a separately generated JSON file.
+        if latency_anchor_path is None:
+            import tempfile
+
+            calibration = run_real_io_speak_trials(
+                out_dir=tempfile.mkdtemp(prefix="cora_calibration_"),
+                playback_fn=lambda path: play_wav_to_device(
+                    path,
+                    device_index=output_device_index,
+                    sample_rate=48000,
+                    volume_db=24.0,
+                ),
+                capture_fn=lambda path, **kw: capture_to_wav(
+                    path,
+                    device=device,
+                    sample_rate=kw.get("sample_rate", 48000),
+                    duration_ms=kw.get("duration_ms", 1500),
+                    ready_event=kw.get("ready_event"),
+                    cancel_event=kw.get("cancel_event"),
+                    capture_timeline=kw.get("capture_timeline"),
+                ),
+                trials=6,
+                stimulus=StimulusSpec(kind="chirp", f0_hz=200.0, f1_hz=4000.0),
+                # Include CoreAudio device-open latency. Repeatability across the
+                # six trials, rather than a preselected 4 ms window, rejects noise.
+                causal_window_ms=500.0,
+                volume_db=24.0,
+                max_capture_ms=3000,
+                bounded_live_io_authorized=True,
+            )
+            if (
+                calibration.get("latency_stable") is not True
+                or calibration.get("synchronized_capture") is not True
+                or calibration.get("latency_aligned_ms") is None
+            ):
+                failures = [
+                    str(trial.get("error") or trial.get("verdict"))
+                    for trial in calibration.get("per_trial", [])
+                    if isinstance(trial, dict) and trial.get("verdict") != "real_io_complete"
+                ]
+                detail = f" First failure: {failures[0]}" if failures else ""
+                raise RuntimeError(
+                    "session latency calibration failed: synchronized stable latency was not measured."
+                    f" Successful trials: {calibration.get('trials_ok', 0)}/6;"
+                    f" stats: {calibration.get('latency_stats')}.{detail}"
+                )
+            latency_anchor_ms = float(calibration["latency_aligned_ms"])
+            stable_calibration = True
     elif with_self_subtraction:
         # Self-subtraction requires real capture to fit+subtract the loopback;
         # it is meaningless without --real-io.

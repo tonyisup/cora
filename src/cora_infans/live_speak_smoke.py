@@ -155,6 +155,35 @@ def estimate_playback_latency_ms(
     cap = np.asarray(captured_pcm, dtype=np.float64)
     if ref.size == 0 or cap.size == 0:
         return None
+    # A real capture is longer than the probe. Search the probe across that
+    # complete timeline instead of truncating the capture to probe length (which
+    # discarded delayed playback whenever device startup exceeded the probe).
+    if cap.size >= ref.size and causal_window_ms is not None:
+        ref_centered = ref - ref.mean()
+        ref_norm = float(np.linalg.norm(ref_centered))
+        if ref_norm <= 1e-12:
+            return None
+        center = int(round(expected_onset_ms / 1000.0 * sample_rate))
+        half = int(round(causal_window_ms / 1000.0 * sample_rate))
+        min_lag = max(0, center - half)
+        max_lag = min(cap.size - ref.size, center + half)
+        if max_lag <= min_lag:
+            return None
+        correlations = np.correlate(cap, ref_centered, mode="valid")
+        sums = np.concatenate(([0.0], np.cumsum(cap)))
+        sums_sq = np.concatenate(([0.0], np.cumsum(cap * cap)))
+        count = float(ref.size)
+        window_sums = sums[ref.size:] - sums[:-ref.size]
+        window_sums_sq = sums_sq[ref.size:] - sums_sq[:-ref.size]
+        window_norms = np.sqrt(np.maximum(window_sums_sq - window_sums**2 / count, 0.0))
+        scores = correlations[min_lag : max_lag + 1] / np.maximum(
+            ref_norm * window_norms[min_lag : max_lag + 1], 1e-12
+        )
+        best_offset = int(np.argmax(scores))
+        best_lag = min_lag + best_offset
+        if float(scores[best_offset]) < min_peak_correlation or best_lag in (min_lag, max_lag):
+            return None
+        return round(best_lag / float(sample_rate) * 1000.0, 3)
     n = min(ref.size, cap.size)
     ref = ref[:n]
     cap = cap[:n]
@@ -296,7 +325,7 @@ def capture_to_wav(
     ready_event: Event | None = None,
     cancel_event: Event | None = None,
     capture_timeline: dict[str, object] | None = None,
-    startup_timeout_ms: int = 1000,
+    startup_timeout_ms: int = 3000,
 ) -> dict[str, object]:
     """Capture a bounded window from an input device to WAV via ffmpeg avfoundation.
 
@@ -404,7 +433,7 @@ def _capture_during_playback(
     capture_fn: CaptureFn,
     playback_fn: PlaybackFn,
     capture_preroll_ms: int = 100,
-    capture_ready_timeout_ms: int = 1000,
+    capture_ready_timeout_ms: int = 3500,
 ) -> dict[str, object]:
     """Run capture around the full playback interval using an explicit ready signal."""
     if capture_preroll_ms < 0 or capture_ready_timeout_ms <= 0:
@@ -726,18 +755,21 @@ def run_real_io_speak_trial(
                 f"capture sample rate mismatch: expected {sample_rate}, got {captured_sample_rate}"
             )
         onset_samples = int(round(float(playback_offset_ms) * sample_rate / 1000.0))
-        captured_pcm = captured_pcm[max(0, onset_samples) :]
         if latency_estimator is not None:
+            captured_pcm = captured_pcm[max(0, onset_samples) :]
             latency_aligned_ms = latency_estimator(
                 efference_pcm=pcm, captured_pcm=captured_pcm, sample_rate=sample_rate
             )
         else:
-            latency_aligned_ms = _default_latency_estimator(
+            detected_onset_ms = estimate_playback_latency_ms(
                 efference_pcm=pcm,
                 captured_pcm=captured_pcm,
                 sample_rate=sample_rate,
+                expected_onset_ms=float(playback_offset_ms),
                 causal_window_ms=causal_window_ms,
             )
+            if detected_onset_ms is not None:
+                latency_aligned_ms = round(detected_onset_ms - float(playback_offset_ms), 3)
         if latency_aligned_ms is None:
             verdict = "measurement_rejected"
     except Exception as exc:  # noqa: BLE001
@@ -847,18 +879,33 @@ def run_real_io_speak_trials(
     stats: dict[str, object] = {"n": len(latencies), "mean": None, "std": None, "min": None, "max": None}
     stable = False
     canonical_latency_ms: float | None = None
+    rejected_latency_outliers = 0
     if latencies:
         arr = _np.asarray(latencies, dtype=_np.float64)
-        stats = {
+        raw_stats = {
             "n": int(arr.size),
             "mean": round(float(arr.mean()), 3),
             "std": round(float(arr.std()), 3),
             "min": round(float(arr.min()), 3),
             "max": round(float(arr.max()), 3),
         }
-        # Stable only if repeatable across trials AND within the jitter bound.
-        stable = len(latencies) >= 2 and float(arr.std()) <= latency_jitter_ms
+        stats = raw_stats
+        # CoreAudio occasionally contributes one device-open outlier. Accept a
+        # calibration only when at least two thirds of trials form a tight cluster
+        # around the median; a broadly scattered run still fails the gate.
+        median = float(_np.median(arr))
+        inliers = arr[_np.abs(arr - median) <= 2.0 * latency_jitter_ms]
+        required_inliers = max(2, int(_np.ceil(arr.size * 2.0 / 3.0)))
+        stable = inliers.size >= required_inliers and float(inliers.std()) <= latency_jitter_ms
         if stable:
+            rejected_latency_outliers = int(arr.size - inliers.size)
+            stats = {
+                "n": int(inliers.size),
+                "mean": round(float(inliers.mean()), 3),
+                "std": round(float(inliers.std()), 3),
+                "min": round(float(inliers.min()), 3),
+                "max": round(float(inliers.max()), 3),
+            }
             canonical_latency_ms = float(stats["mean"])  # type: ignore[arg-type]
     # Only publish a canonical tag set when latency is genuinely stable. This is
     # the measured, repeatable playback->capture delay that frame tagging (and
@@ -923,7 +970,9 @@ def run_real_io_speak_trials(
         "trials_run": trials,
         "trials_ok": trials_ok,
         "latency_stats": stats,
+        "rejected_latency_outliers": rejected_latency_outliers,
         "latency_stable": stable,
+        "synchronized_capture": synchronized_capture,
         "latency_aligned_ms": canonical_latency_ms,
         "latency_jitter_ms": latency_jitter_ms,
         "causal_window_ms": causal_window_ms,

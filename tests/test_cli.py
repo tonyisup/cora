@@ -745,6 +745,58 @@ def test_listen_live_rejects_anchor_without_synchronized_provenance(tmp_path) ->
         listen_live(["--listen-live", "--latency-anchor", str(anchor)])
 
 
+def test_listen_live_calibrates_real_imitation_session_without_anchor(monkeypatch) -> None:
+    import cora_infans.cli as cli
+    import cora_infans.live_speak_smoke as smoke
+
+    observed = {}
+    playback_calls = []
+
+    class _FakeListener:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def listen(self, **kwargs):
+            observed["listen"] = kwargs
+            return {"motor_imitation": None}
+
+    def _fake_calibration(**kwargs):
+        observed["calibration"] = kwargs
+        kwargs["playback_fn"]("probe.wav")
+        return {
+            "latency_stable": True,
+            "synchronized_capture": True,
+            "latency_aligned_ms": 1.25,
+        }
+
+    monkeypatch.setattr(cli, "LiveListener", _FakeListener)
+    monkeypatch.setattr(cli, "LiveMicArray", lambda device: object())
+    monkeypatch.setattr(smoke, "run_real_io_speak_trials", _fake_calibration)
+    monkeypatch.setattr(
+        smoke,
+        "play_wav_to_device",
+        lambda path, **kwargs: playback_calls.append(kwargs) or {"completed": True},
+    )
+
+    cli.listen_live(
+        [
+            "--listen-live",
+            "--with-motor-imitation",
+            "--real-io",
+            "--duration-ms",
+            "1",
+        ]
+    )
+
+    assert observed["calibration"]["trials"] == 6
+    assert observed["calibration"]["stimulus"].kind == "chirp"
+    assert observed["calibration"]["max_capture_ms"] == 3000
+    assert observed["calibration"]["causal_window_ms"] == 500.0
+    assert playback_calls[0]["device_index"] == 2
+    assert observed["listen"]["latency_anchor_ms"] == 1.25
+    assert observed["listen"]["self_subtraction_stable_calibration"] is True
+
+
 def test_listen_live_cli_real_io_path_invokes_playback_fn() -> None:
     # Regression: the --real-io playback/capture lambdas must accept the kwargs
     # play_efference_if_authorized forwards (device_index/sample_rate/volume_db).
@@ -1025,4 +1077,3 @@ def test_listen_live_cli_parses_with_self_subtraction_flag() -> None:
     assert trial["played"] is True
     # Self-subtraction path executed: world_residual is computed per trial.
     assert trial.get("world_residual") is not None
-
