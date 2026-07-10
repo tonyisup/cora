@@ -11,6 +11,9 @@ import pytest
 
 from cora_infans.cli import structured_prediction_cli
 from cora_infans.structured_prediction import (
+    CALIBRATED_V2_DEVELOPMENT_SEEDS,
+    CALIBRATED_V2_HELD_OUT_SEEDS,
+    CALIBRATED_V2_STD_FLOOR,
     DEVELOPMENT_SEEDS,
     HELD_OUT_SEEDS,
     LocalAcousticCodebook,
@@ -37,6 +40,26 @@ def test_structured_manifest_has_disjoint_fixed_trials() -> None:
         )
 
 
+def test_calibrated_v2_manifest_uses_fresh_disjoint_seeds() -> None:
+    prior = set(DEVELOPMENT_SEEDS) | set(HELD_OUT_SEEDS)
+    fresh = set(CALIBRATED_V2_DEVELOPMENT_SEEDS) | set(
+        CALIBRATED_V2_HELD_OUT_SEEDS
+    )
+    manifest = build_structured_protocol_manifest(
+        development_seeds=CALIBRATED_V2_DEVELOPMENT_SEEDS,
+        held_out_seeds=CALIBRATED_V2_HELD_OUT_SEEDS,
+        protocol_variant="calibrated_v2",
+        calibration_normalization_std_floor=CALIBRATED_V2_STD_FLOOR,
+    )
+
+    assert prior.isdisjoint(fresh)
+    assert set(CALIBRATED_V2_DEVELOPMENT_SEEDS).isdisjoint(
+        CALIBRATED_V2_HELD_OUT_SEEDS
+    )
+    assert manifest["protocol_variant"] == "calibrated_v2"
+    assert manifest["representation"]["standard_deviation_floor"] == 0.30
+
+
 def test_frozen_protocol_and_implementation_hashes_match_source() -> None:
     root = Path(__file__).resolve().parents[1]
     protocol_path = (
@@ -53,15 +76,12 @@ def test_frozen_protocol_and_implementation_hashes_match_source() -> None:
         "docs/evidence/"
         "2026-07-10-structured-prediction-real-attempt-2-preregistration.json"
     )
-    implementation_path = root / "src/cora_infans/structured_prediction.py"
-    io_runner_path = root / "src/cora_infans/live_speak_smoke.py"
     stored = json.loads(protocol_path.read_text())
     generated = json.loads(json.dumps(build_structured_protocol_manifest()))
 
     for key, value in generated.items():
         assert stored[key] == value
     protocol_hash = hashlib.sha256(protocol_path.read_bytes()).hexdigest()
-    implementation_hash = hashlib.sha256(implementation_path.read_bytes()).hexdigest()
     fake_result = json.loads(fake_result_path.read_text())
     preregistration = json.loads(preregistration_path.read_text())
     retry_preregistration = json.loads(retry_preregistration_path.read_text())
@@ -74,10 +94,52 @@ def test_frozen_protocol_and_implementation_hashes_match_source() -> None:
     assert fake_result["implementation_sha256"] == historical_implementation_hash
     assert preregistration["implementation_sha256"] == historical_implementation_hash
     assert retry_preregistration["protocol_sha256"] == protocol_hash
-    assert retry_preregistration["predictor_implementation_sha256"] == implementation_hash
-    assert retry_preregistration["io_runner_sha256"] == hashlib.sha256(
-        io_runner_path.read_bytes()
-    ).hexdigest()
+    assert retry_preregistration["predictor_implementation_sha256"] == (
+        "04d40123872c9af3d73697f39d3915002366d08a3ef061efbd16a125e126d264"
+    )
+    assert retry_preregistration["io_runner_sha256"] == (
+        "1cf10155c49dc32406b4936504f5af452be335ea73ee08f2d7a6fc7437f3f34b"
+    )
+
+
+def test_calibrated_v2_preregistration_matches_frozen_code_and_protocol(
+    tmp_path,
+) -> None:
+    root = Path(__file__).resolve().parents[1]
+    evidence = root / "docs/evidence"
+    protocol_path = evidence / "2026-07-10-calibrated-structured-protocol.json"
+    audit_path = evidence / (
+        "2026-07-10-calibrated-structured-representation-audit.json"
+    )
+    fake_path = evidence / "2026-07-10-calibrated-structured-fake-result.json"
+    preregistration = json.loads(
+        (
+            evidence
+            / "2026-07-10-calibrated-structured-real-preregistration.json"
+        ).read_text()
+    )
+    generated = run_structured_prediction_protocol(
+        out_dir=tmp_path,
+        development_seeds=CALIBRATED_V2_DEVELOPMENT_SEEDS,
+        held_out_seeds=CALIBRATED_V2_HELD_OUT_SEEDS,
+        protocol_variant="calibrated_v2",
+        calibration_normalization_std_floor=CALIBRATED_V2_STD_FLOOR,
+        acceptance_profile="h2_predictive_advantage_v2",
+    )
+
+    assert json.loads(protocol_path.read_text()) == json.loads(json.dumps(generated))
+    for field, path in (
+        ("design_audit_sha256", audit_path),
+        ("protocol_sha256", protocol_path),
+        ("fake_result_sha256", fake_path),
+        (
+            "predictor_implementation_sha256",
+            root / "src/cora_infans/structured_prediction.py",
+        ),
+        ("cli_implementation_sha256", root / "src/cora_infans/cli.py"),
+        ("io_runner_sha256", root / "src/cora_infans/live_speak_smoke.py"),
+    ):
+        assert preregistration[field] == hashlib.sha256(path.read_bytes()).hexdigest()
 
 
 def test_retained_real_result_has_complete_hashed_artifacts() -> None:
@@ -100,6 +162,33 @@ def test_retained_real_result_has_complete_hashed_artifacts() -> None:
     for artifact in result["artifacts"]:
         assert artifact["playback"]["backend"] == "ffmpeg_audiotoolbox"
         assert artifact["capture"]["backend"] == "ffmpeg_avfoundation"
+        assert artifact["io_timing"]["stream_position_verified"] is True
+        for kind in ("efference", "captured"):
+            retained = artifact_root / Path(artifact[f"{kind}_wav"]).name
+            assert retained.exists()
+            assert hashlib.sha256(retained.read_bytes()).hexdigest() == artifact[
+                f"{kind}_sha256"
+            ]
+
+
+def test_calibrated_v2_retained_real_result_passes_with_hashed_artifacts() -> None:
+    root = Path(__file__).resolve().parents[1]
+    evidence = root / "docs/evidence"
+    result = json.loads(
+        (evidence / "2026-07-10-calibrated-structured-real-result.json").read_text()
+    )
+    artifact_root = evidence / "2026-07-10-calibrated-structured-real-artifacts"
+
+    assert result["verdict"] == "real_io_acceptance_passed"
+    assert result["all_acceptance_gates_passed"] is True
+    assert result["protocol_variant"] == "calibrated_v2"
+    assert len(result["artifacts"]) == 12
+    assert all(
+        all(family_gates.values())
+        for family_gates in result["acceptance"].values()
+    )
+    assert result["family_reports"]["vowels"]["accuracy_improvement"] >= 0.20
+    for artifact in result["artifacts"]:
         assert artifact["io_timing"]["stream_position_verified"] is True
         for kind in ("efference", "captured"):
             retained = artifact_root / Path(artifact[f"{kind}_wav"]).name
@@ -195,6 +284,30 @@ def test_fake_structured_protocol_exercises_measured_transition_path(tmp_path) -
         assert family["accuracy_improvement"] >= 0.2
         assert family["top_down_prediction_consumed"] is True
         assert family["bounded_state_scalars"] == 68
+
+
+def test_calibrated_v2_fake_path_uses_fresh_manifest_and_predictive_gates(
+    tmp_path,
+) -> None:
+    report = structured_prediction_cli(
+        [
+            "--evaluate-structured-prediction",
+            "--out-dir",
+            str(tmp_path),
+            "--variant",
+            "calibrated_v2",
+            "--fake-io",
+        ]
+    )
+
+    assert report["verdict"] == "fake_io_plumbing_passed"
+    assert report["protocol_variant"] == "calibrated_v2"
+    assert report["development_seeds"] == list(CALIBRATED_V2_DEVELOPMENT_SEEDS)
+    assert report["held_out_seeds"] == list(CALIBRATED_V2_HELD_OUT_SEEDS)
+    for family in report["family_reports"].values():
+        assert family["held_out_codebook_occupancy"] == 4
+        assert family["accuracy_improvement"] >= 0.20
+        assert family["minimum_trial_improvement"] >= 0.15
 
 
 def test_local_codebook_updates_only_nearest_bounded_centroid() -> None:

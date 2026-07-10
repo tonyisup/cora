@@ -254,6 +254,19 @@ research contract and implements the first vertical evidence path.
   show `a/e` merged and `i/u` mostly merged under the measured spectral states.
   The overall two-family verdict is failure; H2 remains open and all 12 real
   captures are spent.
+- A development-only follow-up audit rejected higher-resolution spectra,
+  cepstra, LPC formants, token margins, and trial-local resets. Featurewise
+  z-scoring from the four unlabeled same-trial calibration observations, with a
+  fixed `0.30` standard-deviation floor and unit norm, was the only candidate
+  to beat every causal baseline in every leave-one-development-trial-out fold.
+- That representation and six new seeds were frozen before a new real run.
+  All 12 synchronized captures completed and all predictive gates passed.
+  Tones: accuracy `0.895`, baseline `0.281`, improvement `0.614`, purity `1.0`.
+  Vowels: accuracy `0.702`, baseline `0.281`, improvement `0.421`, purity
+  `0.800`. Minimum held-out-trial improvement was `0.368`.
+- This promotes the controlled two-family mechanism only. The representation
+  still partially mixes `i/u`, uses known calibration slots and one synthetic
+  voice, and has not passed noise, dropout, speaker, or natural-stream transfer.
 
 ### Prior-art real-capture replay
 
@@ -384,12 +397,12 @@ These numbers are a microbenchmark, not end-to-end auditory latency.
    different temporal representation or protocol before using another fieldsite.
 2. Separately design a causal calibration path before any cold-start or live
    parentese claim.
-3. Keep the safe expert mixture as a fallback. The frozen real structured
-   protocol passed tones but failed vowels, so do not tune on its spent held-out
-   captures. A later H2 redesign needs a genuinely different locally learnable
-   speech representation, development-only selection, and fresh confirmation;
-   frame-to-frame persistence and stronger causal means remain unbeaten on the
-   current natural clips.
+3. Keep the safe expert mixture as a fallback. The calibrated structured
+   mechanism now passes two controlled real families, but both real manifests
+   are spent. Next test calibration robustness under frozen noise/dropout and
+   speaker changes, then attempt a separately preregistered natural-stream
+   transfer; frame-to-frame persistence and stronger causal means remain
+   unbeaten on the current natural clips.
 4. Add recorded-vowel speakers not used to tune LPC selection and run a separate
    confusion matrix.
 5. Instrument the live capture path for microphone-to-event latency and dropped

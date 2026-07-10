@@ -1,0 +1,698 @@
+{
+  "mode": "structured_continuous_prediction_protocol",
+  "config": {
+    "sample_rate": 16000,
+    "token_duration_ms": 200,
+    "gap_duration_ms": 50,
+    "alignment_chirp_ms": 120,
+    "alignment_silence_ms": 180,
+    "grammar_token_count": 20,
+    "fake_delay_ms": 30,
+    "fake_attenuation": 0.35,
+    "fake_echo_delay_ms": 18,
+    "fake_echo_attenuation": 0.08,
+    "fake_noise_rms": 0.002,
+    "maximum_real_playback_db": -18
+  },
+  "families": {
+    "tones": [
+      300,
+      500,
+      800,
+      1200
+    ],
+    "vowels": [
+      "a",
+      "e",
+      "i",
+      "u"
+    ]
+  },
+  "development_seeds": [
+    7703,
+    8807,
+    9901
+  ],
+  "held_out_seeds": [
+    10103,
+    11213,
+    12323
+  ],
+  "trial_count": 12,
+  "seconds_per_trial": 6.3,
+  "maximum_total_playback_seconds": 75.6,
+  "trials": [
+    {
+      "trial_id": "tones_dev_7703",
+      "family": "tones",
+      "split": "dev",
+      "seed": 7703,
+      "calibration_sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "grammar_sequence": [
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2,
+        0
+      ]
+    },
+    {
+      "trial_id": "tones_dev_8807",
+      "family": "tones",
+      "split": "dev",
+      "seed": 8807,
+      "calibration_sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "grammar_sequence": [
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2
+      ]
+    },
+    {
+      "trial_id": "tones_dev_9901",
+      "family": "tones",
+      "split": "dev",
+      "seed": 9901,
+      "calibration_sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "grammar_sequence": [
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        0
+      ]
+    },
+    {
+      "trial_id": "tones_held_out_10103",
+      "family": "tones",
+      "split": "held_out",
+      "seed": 10103,
+      "calibration_sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "grammar_sequence": [
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        3,
+        0
+      ]
+    },
+    {
+      "trial_id": "tones_held_out_11213",
+      "family": "tones",
+      "split": "held_out",
+      "seed": 11213,
+      "calibration_sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "grammar_sequence": [
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2
+      ]
+    },
+    {
+      "trial_id": "tones_held_out_12323",
+      "family": "tones",
+      "split": "held_out",
+      "seed": 12323,
+      "calibration_sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "grammar_sequence": [
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2,
+        0,
+        1
+      ]
+    },
+    {
+      "trial_id": "vowels_dev_7703",
+      "family": "vowels",
+      "split": "dev",
+      "seed": 7703,
+      "calibration_sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "grammar_sequence": [
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2,
+        0
+      ]
+    },
+    {
+      "trial_id": "vowels_dev_8807",
+      "family": "vowels",
+      "split": "dev",
+      "seed": 8807,
+      "calibration_sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "grammar_sequence": [
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2
+      ]
+    },
+    {
+      "trial_id": "vowels_dev_9901",
+      "family": "vowels",
+      "split": "dev",
+      "seed": 9901,
+      "calibration_sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "grammar_sequence": [
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        0
+      ]
+    },
+    {
+      "trial_id": "vowels_held_out_10103",
+      "family": "vowels",
+      "split": "held_out",
+      "seed": 10103,
+      "calibration_sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "grammar_sequence": [
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        3,
+        0
+      ]
+    },
+    {
+      "trial_id": "vowels_held_out_11213",
+      "family": "vowels",
+      "split": "held_out",
+      "seed": 11213,
+      "calibration_sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "grammar_sequence": [
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2
+      ]
+    },
+    {
+      "trial_id": "vowels_held_out_12323",
+      "family": "vowels",
+      "split": "held_out",
+      "seed": 12323,
+      "calibration_sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "grammar_sequence": [
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2,
+        0,
+        1
+      ]
+    }
+  ],
+  "label_boundary": "scheduled token identities are post-hoc ground truth only and do not enter codebook or transition fitting",
+  "real_io_requires_explicit_authorization": true,
+  "protocol_variant": "calibrated_v2",
+  "representation": {
+    "base": "12_band_log_geometric_spectrum",
+    "unlabeled_trial_calibration": "featurewise_zscore_then_unit_norm",
+    "calibration_observation_count": 4,
+    "standard_deviation_floor": 0.3,
+    "selection_boundary": "selected on attempt-2 development captures only"
+  },
+  "verdict": "fake_io_plumbing_passed",
+  "evidence_class": "synthetic_fake_io",
+  "promotion_allowed": false,
+  "real_hardware": false,
+  "live_playback": false,
+  "family_reports": {
+    "tones": {
+      "family": "tones",
+      "development_trial_count": 3,
+      "held_out_trial_count": 3,
+      "codebook_state_count": 4,
+      "held_out_codebook_occupancy": 4,
+      "post_hoc_token_cluster_purity": 1,
+      "transition_accuracy": 0.8947368421052632,
+      "best_baseline_accuracy": 0.2807017543859649,
+      "accuracy_improvement": 0.6140350877192983,
+      "minimum_trial_improvement": 0.5789473684210527,
+      "bounded_state_scalars": 68,
+      "top_down_prediction_consumed": true,
+      "reports": [
+        {
+          "trial_id": "tones_held_out_10103",
+          "seed": 10103,
+          "transition_accuracy": 0.9473684210526315,
+          "baselines": {
+            "persistence": 0,
+            "development_unigram": 0.3157894736842105,
+            "causal_moving_state": 0
+          },
+          "best_baseline_accuracy": 0.3157894736842105,
+          "accuracy_improvement": 0.631578947368421,
+          "prediction_count": 19,
+          "prediction_residual_count": 1
+        },
+        {
+          "trial_id": "tones_held_out_11213",
+          "seed": 11213,
+          "transition_accuracy": 0.8947368421052632,
+          "baselines": {
+            "persistence": 0,
+            "development_unigram": 0.2631578947368421,
+            "causal_moving_state": 0
+          },
+          "best_baseline_accuracy": 0.2631578947368421,
+          "accuracy_improvement": 0.631578947368421,
+          "prediction_count": 19,
+          "prediction_residual_count": 2
+        },
+        {
+          "trial_id": "tones_held_out_12323",
+          "seed": 12323,
+          "transition_accuracy": 0.8421052631578947,
+          "baselines": {
+            "persistence": 0,
+            "development_unigram": 0.2631578947368421,
+            "causal_moving_state": 0
+          },
+          "best_baseline_accuracy": 0.2631578947368421,
+          "accuracy_improvement": 0.5789473684210527,
+          "prediction_count": 19,
+          "prediction_residual_count": 3
+        }
+      ]
+    },
+    "vowels": {
+      "family": "vowels",
+      "development_trial_count": 3,
+      "held_out_trial_count": 3,
+      "codebook_state_count": 4,
+      "held_out_codebook_occupancy": 4,
+      "post_hoc_token_cluster_purity": 1,
+      "transition_accuracy": 0.8947368421052632,
+      "best_baseline_accuracy": 0.2807017543859649,
+      "accuracy_improvement": 0.6140350877192983,
+      "minimum_trial_improvement": 0.5789473684210527,
+      "bounded_state_scalars": 68,
+      "top_down_prediction_consumed": true,
+      "reports": [
+        {
+          "trial_id": "vowels_held_out_10103",
+          "seed": 10103,
+          "transition_accuracy": 0.9473684210526315,
+          "baselines": {
+            "persistence": 0,
+            "development_unigram": 0.3157894736842105,
+            "causal_moving_state": 0
+          },
+          "best_baseline_accuracy": 0.3157894736842105,
+          "accuracy_improvement": 0.631578947368421,
+          "prediction_count": 19,
+          "prediction_residual_count": 1
+        },
+        {
+          "trial_id": "vowels_held_out_11213",
+          "seed": 11213,
+          "transition_accuracy": 0.8947368421052632,
+          "baselines": {
+            "persistence": 0,
+            "development_unigram": 0.2631578947368421,
+            "causal_moving_state": 0
+          },
+          "best_baseline_accuracy": 0.2631578947368421,
+          "accuracy_improvement": 0.631578947368421,
+          "prediction_count": 19,
+          "prediction_residual_count": 2
+        },
+        {
+          "trial_id": "vowels_held_out_12323",
+          "seed": 12323,
+          "transition_accuracy": 0.8421052631578947,
+          "baselines": {
+            "persistence": 0,
+            "development_unigram": 0.2631578947368421,
+            "causal_moving_state": 0
+          },
+          "best_baseline_accuracy": 0.2631578947368421,
+          "accuracy_improvement": 0.5789473684210527,
+          "prediction_count": 19,
+          "prediction_residual_count": 3
+        }
+      ]
+    }
+  },
+  "artifacts": [
+    {
+      "trial_id": "tones_dev_7703",
+      "efference_wav": "/private/tmp/cora-calibrated-v2-freeze-fake/tones_dev_7703_efference.wav",
+      "efference_sha256": "1be3c10c2798b20517a6668bb667990dc0019ed6c9de3a33459772c0dcbe6f98",
+      "captured_wav": "/private/tmp/cora-calibrated-v2-freeze-fake/tones_dev_7703_fake_capture.wav",
+      "captured_sha256": "474970c38d3c935d41eb06a21bbfc9035f5d16506a7c6ab8afb9eee1eed231c0",
+      "capture_provenance": "synthetic_fake_acoustic_channel",
+      "alignment_samples": 480
+    },
+    {
+      "trial_id": "tones_dev_8807",
+      "efference_wav": "/private/tmp/cora-calibrated-v2-freeze-fake/tones_dev_8807_efference.wav",
+      "efference_sha256": "a239df2a7ad60cd7a6bc606fee15b3a123472ec30ca82fdac93efccb648cbf4f",
+      "captured_wav": "/private/tmp/cora-calibrated-v2-freeze-fake/tones_dev_8807_fake_capture.wav",
+      "captured_sha256": "eb4c4b22ccb60a12af2b7def38618a45a9eb9a1e3c9bf3f42bd9472acfa0c9ab",
+      "capture_provenance": "synthetic_fake_acoustic_channel",
+      "alignment_samples": 480
+    },
+    {
+      "trial_id": "tones_dev_9901",
+      "efference_wav": "/private/tmp/cora-calibrated-v2-freeze-fake/tones_dev_9901_efference.wav",
+      "efference_sha256": "f981051197cb6cc415b94c94af078596a631a4337a62346429e2e27c41745e71",
+      "captured_wav": "/private/tmp/cora-calibrated-v2-freeze-fake/tones_dev_9901_fake_capture.wav",
+      "captured_sha256": "76d4179c4c7c0c1a9b55d18365c85a387fbf8dd64835acb7991d8713aff9cda9",
+      "capture_provenance": "synthetic_fake_acoustic_channel",
+      "alignment_samples": 480
+    },
+    {
+      "trial_id": "tones_held_out_10103",
+      "efference_wav": "/private/tmp/cora-calibrated-v2-freeze-fake/tones_held_out_10103_efference.wav",
+      "efference_sha256": "7e942aee02196c24813422f1f13e69a6656ec217bc476a31e5407b345e249376",
+      "captured_wav": "/private/tmp/cora-calibrated-v2-freeze-fake/tones_held_out_10103_fake_capture.wav",
+      "captured_sha256": "bf2552b75b8dab28a3a281db05d3d239af61007bcce149db3d6c330f4f883451",
+      "capture_provenance": "synthetic_fake_acoustic_channel",
+      "alignment_samples": 480
+    },
+    {
+      "trial_id": "tones_held_out_11213",
+      "efference_wav": "/private/tmp/cora-calibrated-v2-freeze-fake/tones_held_out_11213_efference.wav",
+      "efference_sha256": "4e27e8dd46943b53ba4fddf9adb7b10938aa73e6e07a88d8bd357418154b1b1c",
+      "captured_wav": "/private/tmp/cora-calibrated-v2-freeze-fake/tones_held_out_11213_fake_capture.wav",
+      "captured_sha256": "a74254897342ef7accacc0384910484df87c7befb00aee49431892643bff7461",
+      "capture_provenance": "synthetic_fake_acoustic_channel",
+      "alignment_samples": 480
+    },
+    {
+      "trial_id": "tones_held_out_12323",
+      "efference_wav": "/private/tmp/cora-calibrated-v2-freeze-fake/tones_held_out_12323_efference.wav",
+      "efference_sha256": "c9009279c2fc1b40df010bddec842df3dbfddf298d1bd69d1183d43db6d8482d",
+      "captured_wav": "/private/tmp/cora-calibrated-v2-freeze-fake/tones_held_out_12323_fake_capture.wav",
+      "captured_sha256": "a7e92ffd259d530799328f6733129d80756e2bcdaed3fa0d4c7730f73c925f1d",
+      "capture_provenance": "synthetic_fake_acoustic_channel",
+      "alignment_samples": 480
+    },
+    {
+      "trial_id": "vowels_dev_7703",
+      "efference_wav": "/private/tmp/cora-calibrated-v2-freeze-fake/vowels_dev_7703_efference.wav",
+      "efference_sha256": "755d8ceec5162dd2f091f1a752832b14d9687bc278db5d27fe1d4eaba28dafb2",
+      "captured_wav": "/private/tmp/cora-calibrated-v2-freeze-fake/vowels_dev_7703_fake_capture.wav",
+      "captured_sha256": "225baa82983fce4740650de0a4b7fe4a0ad228071599b9535488bff908cd71b2",
+      "capture_provenance": "synthetic_fake_acoustic_channel",
+      "alignment_samples": 480
+    },
+    {
+      "trial_id": "vowels_dev_8807",
+      "efference_wav": "/private/tmp/cora-calibrated-v2-freeze-fake/vowels_dev_8807_efference.wav",
+      "efference_sha256": "7481ce76b38b4d192976b1ed6bcadccb01ef5a4975d5173c2319bddd30b1a393",
+      "captured_wav": "/private/tmp/cora-calibrated-v2-freeze-fake/vowels_dev_8807_fake_capture.wav",
+      "captured_sha256": "0adb093de5d501a15b23f3b1fe8af4febee72cb101c5b369e3c64e1dd7356f1f",
+      "capture_provenance": "synthetic_fake_acoustic_channel",
+      "alignment_samples": 480
+    },
+    {
+      "trial_id": "vowels_dev_9901",
+      "efference_wav": "/private/tmp/cora-calibrated-v2-freeze-fake/vowels_dev_9901_efference.wav",
+      "efference_sha256": "b9070d45175f2eb3bf7b6dc360300e8d1eb1ddddba2bb209fb479b62053a1f26",
+      "captured_wav": "/private/tmp/cora-calibrated-v2-freeze-fake/vowels_dev_9901_fake_capture.wav",
+      "captured_sha256": "70ad152200348c6eef5474a9d844bdedebd25d671da3eac6f61a7cfb48a9dfa0",
+      "capture_provenance": "synthetic_fake_acoustic_channel",
+      "alignment_samples": 480
+    },
+    {
+      "trial_id": "vowels_held_out_10103",
+      "efference_wav": "/private/tmp/cora-calibrated-v2-freeze-fake/vowels_held_out_10103_efference.wav",
+      "efference_sha256": "406891840dd9edf8963a4a661b0c5955b32cd9421ca040b9942a92ca6ccdbb9f",
+      "captured_wav": "/private/tmp/cora-calibrated-v2-freeze-fake/vowels_held_out_10103_fake_capture.wav",
+      "captured_sha256": "cc735e5a1110fc36aa0913bd5b3724ad1ae009cd3bc3a02363cb594eebd4d125",
+      "capture_provenance": "synthetic_fake_acoustic_channel",
+      "alignment_samples": 480
+    },
+    {
+      "trial_id": "vowels_held_out_11213",
+      "efference_wav": "/private/tmp/cora-calibrated-v2-freeze-fake/vowels_held_out_11213_efference.wav",
+      "efference_sha256": "12191540ea75355eaf6a87ec27b117b8fd7551b5bc9316bf7e0f26cff13f46ad",
+      "captured_wav": "/private/tmp/cora-calibrated-v2-freeze-fake/vowels_held_out_11213_fake_capture.wav",
+      "captured_sha256": "85229f33d44c4c0b53a8f11b691836e55cba6762bfec37c48734eaec3e7e6f83",
+      "capture_provenance": "synthetic_fake_acoustic_channel",
+      "alignment_samples": 480
+    },
+    {
+      "trial_id": "vowels_held_out_12323",
+      "efference_wav": "/private/tmp/cora-calibrated-v2-freeze-fake/vowels_held_out_12323_efference.wav",
+      "efference_sha256": "15cee5c5aa2470c66b9eea44305ae918fed35ea404362fc58f9dbee4f97426ae",
+      "captured_wav": "/private/tmp/cora-calibrated-v2-freeze-fake/vowels_held_out_12323_fake_capture.wav",
+      "captured_sha256": "f98c8c8a6435b5f40022fa3dcd14876376e3744a70e15ad2010b58025cfcd0a0",
+      "capture_provenance": "synthetic_fake_acoustic_channel",
+      "alignment_samples": 480
+    }
+  ]
+}
+

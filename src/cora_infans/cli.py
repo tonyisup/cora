@@ -64,7 +64,12 @@ from .speaking_simulator import (
     run_speaking_policy_promotion_gate,
     run_speaking_readiness_gate,
 )
-from .structured_prediction import run_structured_prediction_protocol
+from .structured_prediction import (
+    CALIBRATED_V2_DEVELOPMENT_SEEDS,
+    CALIBRATED_V2_HELD_OUT_SEEDS,
+    CALIBRATED_V2_STD_FLOOR,
+    run_structured_prediction_protocol,
+)
 from .live_speak_smoke import (
     StimulusSpec,
     capture_to_wav,
@@ -883,6 +888,7 @@ def structured_prediction_cli(args: list[str]) -> dict[str, object]:
     speaker_distance_cm: float | None = None
     speaker_orientation: str | None = None
     quiet_room_confirmed = False
+    variant = "original"
     i = 1
     while i < len(args):
         option = args[i]
@@ -913,6 +919,7 @@ def structured_prediction_cli(args: list[str]) -> dict[str, object]:
             "--output-device-index",
             "--speaker-distance-cm",
             "--speaker-orientation",
+            "--variant",
         }:
             if i + 1 >= len(args):
                 raise ValueError(f"missing value for {option}")
@@ -929,8 +936,12 @@ def structured_prediction_cli(args: list[str]) -> dict[str, object]:
                     speaker_distance_cm = float(value)
                 except ValueError as exc:
                     raise ValueError("invalid speaker distance") from exc
-            else:
+            elif option == "--speaker-orientation":
                 speaker_orientation = value
+            else:
+                if value not in {"original", "calibrated_v2"}:
+                    raise ValueError("unknown structured protocol variant")
+                variant = value
             i += 2
             continue
         raise ValueError(f"unknown option: {option}")
@@ -965,6 +976,7 @@ def structured_prediction_cli(args: list[str]) -> dict[str, object]:
             device=input_device,
             **kwargs,
         )
+    calibrated = variant == "calibrated_v2"
     return run_structured_prediction_protocol(
         out_dir=out_dir,
         fake_io=fake_io,
@@ -974,6 +986,15 @@ def structured_prediction_cli(args: list[str]) -> dict[str, object]:
         capture_fn=capture_fn,
         geometry=geometry,
         real_hardware_claim=bool(real_io and bounded_playback_authorized),
+        development_seeds=(CALIBRATED_V2_DEVELOPMENT_SEEDS if calibrated else None),
+        held_out_seeds=(CALIBRATED_V2_HELD_OUT_SEEDS if calibrated else None),
+        protocol_variant=(variant if calibrated else None),
+        calibration_normalization_std_floor=(
+            CALIBRATED_V2_STD_FLOOR if calibrated else None
+        ),
+        acceptance_profile=(
+            "h2_predictive_advantage_v2" if calibrated else "original"
+        ),
     )
 
 
@@ -1946,7 +1967,7 @@ def main(argv: list[str] | None = None) -> int:
         "[--fit-register-scorer --source ROOT::LABEL_CSV [--source ROOT::LABEL_CSV] --out MODEL.json] "
         "[--eval-register-scorer --model MODEL.json --root DIR --label-csv FILE] "
         "[--eval-register-pipeline --model MODEL.json --vocal-root DIR --vocal-label-csv FILE --environmental-root DIR --environmental-label-csv FILE] "
-        "[--evaluate-structured-prediction --out-dir DIR [--fake-io | --real-io --authorize-bounded-playback --input-device :0 --output-device-index 2 --speaker-distance-cm N --speaker-orientation TEXT --quiet-room-confirmed]] "
+        "[--evaluate-structured-prediction --out-dir DIR [--variant original|calibrated_v2] [--fake-io | --real-io --authorize-bounded-playback --input-device :0 --output-device-index 2 --speaker-distance-cm N --speaker-orientation TEXT --quiet-room-confirmed]] "
         "[--simulate-self-suppression [--vowel a|e|i|o|u] [--world-vowel a|e|i|o|u] [--world-gain F] [--duration-ms N] [--sample-rate N]] "
         "[--learn-self-forward-model [--vowel a|e|i|o|u] [--observed-delay-ms F] [--observed-attenuation F] [--observed-echo-decay F] [--world-vowel a|e|i|o|u] [--world-gain F]] "
         "[--sweep-self-forward-model [--vowel a|e|i|o|u] [--delay-errors-ms csv] [--attenuation-scales csv] [--echo-decay-scales csv] [--world-vowel a|e|i|o|u] [--world-gain F]] "

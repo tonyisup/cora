@@ -234,10 +234,11 @@ Current environmental-control result:
 
 ### Stage 3 — Predictive hierarchy
 
-Status: mixed and not promoted. Phase-template evidence remains positive in
-bounded settings; a safer online learner passed a fresh-fieldsite regret gate
-but failed superiority. The real structured-stream mechanism passed tones but
-failed synthesized vowels and therefore failed its two-family promotion rule.
+Status: controlled mechanism gate passed; H2 remains open for natural transfer.
+Phase-template evidence remains positive in bounded settings, and a safer
+online learner passed a fresh-fieldsite regret gate but failed superiority. The
+first real structured-stream mechanism passed tones but failed vowels; a
+development-only calibrated representation then passed a fresh two-family run.
 
 Required evidence:
 
@@ -304,6 +305,23 @@ Current evidence:
 - because both families were required to pass, the preregistered verdict is
   failure and H2 remains open. All 12 real captures are spent and cannot confirm
   a revised representation or predictor.
+- a spent-development audit rejected higher-resolution bands, cepstra, LPC
+  vectors, window changes, and trial-local resets. One candidate advanced:
+  featurewise normalization from four unlabeled same-trial calibration
+  observations, with a fixed `0.30` scale floor and unit norm;
+- that design beat the best causal baseline in all three leave-one-development-
+  trial-out folds by at least `0.211`, so a new manifest with six fresh seeds
+  was frozen before another real run;
+- the fresh calibrated run completed 12 synchronized captures and passed every
+  predictive-advantage gate. Tones reached accuracy `0.895` versus baseline
+  `0.281` (`+0.614`); vowels reached `0.702` versus `0.281` (`+0.421`). Every
+  held-out trial improved by at least `0.368`, all four states were occupied,
+  top-down predictions were consumed, and state remained bounded at 68 scalars;
+- vowel purity was `0.800`: calibration eliminated the prior `a/e` collapse,
+  while `i/u` remained partially mixed. This passes the controlled two-family
+  mechanism gate, not natural or semantic speech prediction;
+- the calibrated-v2 captures are spent. H2 still requires stability under
+  noise/dropout/speaker change and transfer to an unconstrained natural stream.
 
 Promotion criterion:
 

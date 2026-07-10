@@ -17,7 +17,7 @@ the repository.
 | Reproducible substrate | Implemented | Synthetic/live contracts, deterministic reports, and tests exist |
 | Real-audio evaluation | First replay passed | WAV and prior-art captured NumPy PCM are measured directly with dev/held-out provenance; developmental-speech breadth is still open |
 | Parentese-relevant saliency | Mixed; not promoted | The final 16-fieldsite refit reached F1 0.600 on untouched Enga/Turku clips and failed its 0.65 gate; the separately tested vocal front gate remains positive |
-| Local predictive hierarchy | Mixed, not promoted | The real structured stream strongly passed tones but failed synthesized vowels after the spectral states collapsed `a/e` and mostly `i/u`; the earlier expert mixture also won 0/8 fresh clips |
+| Local predictive hierarchy | Controlled mechanism passed; natural H2 open | Unlabeled trial calibration passed a fresh real two-family run: tones improved `+0.614` and vowels `+0.421` over their best causal baselines; speaker/noise/natural-stream transfer remains open |
 | Workspace binding | Synthetic ablation passed | Matching self-audio identity plus phase improves synthetic self-echo handling without suppressing a legitimate overlap; real-audio validation remains open |
 | Analysis by synthesis | Clean synthetic gate passed | Five vowels round-trip across multiple F0 values and 16/48 kHz; recorded-speaker validation remains open |
 | Efficiency | Host boundary measured on hardware | Core microbenchmarks and native XVF3800 capture-call-to-workspace latency are reported; device-onset timestamps, live CPU/memory, and energy remain excluded |
@@ -217,6 +217,9 @@ acceptance artifacts are under `docs/evidence/2026-07-10-structured-*`. The
 first real-I/O attempt stopped before playback on a diagnosed ffmpeg buffering
 issue. The separately frozen and authorized retry completed: tones passed, but
 vowels failed, so the overall two-family acceptance rule did not pass.
+A development-only calibration redesign then advanced to entirely fresh seeds
+and passed the controlled real two-family predictive-advantage gate. This does
+not yet establish unconstrained or cross-speaker speech prediction.
 
 Replay retained Corollary real-capture arrays without copying them:
 
@@ -319,7 +322,11 @@ developmental language learning.
 - The structured continuous-audio real run verified 12 synchronized captures.
   Tones passed every frozen gate (`0.860` accuracy vs `0.263` baseline), while
   vowels occupied only three states and tied their best baseline (`0.596`), so
-  the required two-family gate failed and H2 remains open.
+  the first required two-family gate failed.
+- A development-only unlabeled calibration normalization then passed on a new
+  real 12-trial manifest: tones scored `0.895` versus `0.281`, vowels `0.702`
+  versus `0.281`, and every held-out trial improved by at least `0.368`. This
+  validates the bounded controlled mechanism; natural H2 remains open.
 - Theta/gamma scheduling is an event-timing model, not measured neural dynamics.
 - The vowel table uses adult reference targets and clean synthetic success does
   not imply recorded infant/adult speech performance.

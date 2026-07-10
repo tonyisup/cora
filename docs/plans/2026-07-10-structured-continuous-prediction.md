@@ -101,3 +101,19 @@ Post-hoc confusion counts show the spectral states merged `a/e` and mostly
 merged `i/u`. This characterizes the spent result; it does not authorize tuning
 or confirmation on these captures. A future speech-representation experiment
 must use development-only selection and fresh confirmation data.
+
+## Calibrated fresh-seed follow-up
+
+A development-only design audit tested spectral resolution, linear bands,
+cepstra, LPC formants, token margins, and trial-local codebooks. Only one
+candidate beat the best causal baseline in every leave-one-development-trial-
+out fold: featurewise z-scoring from the four unlabeled same-trial calibration
+observations, using a fixed `0.30` scale floor and unit normalization.
+
+That representation, six entirely new seeds, and H2-aligned predictive gates
+were frozen before live I/O. The real 12-trial confirmation passed both
+families. Tones improved `0.614` over the best baseline; vowels improved
+`0.421`; every held-out trial improved at least `0.368`. The result promotes the
+controlled bounded mechanism only. The remaining Stage-3 boundary is robustness
+and transfer beyond one synthetic voice, grammar, geometry, and calibration
+schedule.

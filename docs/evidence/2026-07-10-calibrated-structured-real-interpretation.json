@@ -1,0 +1,55 @@
+{
+  "experiment": "calibrated_structured_continuous_prediction_real_hardware",
+  "date": "2026-07-10",
+  "evidence_class": "fresh_seed_real_synchronized_playback_capture",
+  "verdict": "real_io_acceptance_passed",
+  "preregistration_sha256": "6e5aa6af9cfa4d3e7603f61e48499ee137c870a266a3fe23c3cb9a4f6c61bf70",
+  "result_sha256": "02b1950619dee02f082efbb8914aa6d0215d692af7111898a537cb53ae512d39",
+  "artifact_hash_list_sha256": "f4eb4e4a27761232687e3b0ea4f68bc14df549c9ce30672b0a806005008a4057",
+  "integrity": {
+    "completed_trial_count": 12,
+    "wav_artifact_count": 24,
+    "verified_artifact_hash_count": 24,
+    "artifact_hash_mismatch_count": 0,
+    "all_alignments_finite": true,
+    "alignment_onset_ms_range": [397.812, 468.812],
+    "all_stream_positions_verified": true,
+    "playback_backend": "ffmpeg_audiotoolbox",
+    "capture_backend": "ffmpeg_avfoundation",
+    "capture_channels": 2
+  },
+  "tones": {
+    "passed_all_preregistered_gates": true,
+    "held_out_codebook_occupancy": 4,
+    "post_hoc_token_cluster_purity": 1.0,
+    "transition_accuracy": 0.8947368421052632,
+    "best_baseline_accuracy": 0.2807017543859649,
+    "accuracy_improvement": 0.6140350877192983,
+    "minimum_trial_improvement": 0.5789473684210527,
+    "held_out_token_by_state_counts": [
+      [19, 0, 0, 0],
+      [0, 18, 0, 0],
+      [0, 0, 17, 0],
+      [0, 0, 0, 6]
+    ]
+  },
+  "vowels": {
+    "passed_all_preregistered_gates": true,
+    "held_out_codebook_occupancy": 4,
+    "post_hoc_token_cluster_purity": 0.8,
+    "transition_accuracy": 0.7017543859649122,
+    "best_baseline_accuracy": 0.2807017543859649,
+    "accuracy_improvement": 0.42105263157894735,
+    "minimum_trial_improvement": 0.3684210526315789,
+    "held_out_token_by_state_counts": [
+      [19, 0, 0, 0],
+      [0, 18, 0, 0],
+      [0, 1, 9, 7],
+      [0, 0, 4, 2]
+    ],
+    "diagnosis": "Unlabeled per-trial calibration eliminated the prior a/e collapse and kept four states occupied. Tokens i/u remain partially mixed, which bounds the representation claim despite strong predictive advantage."
+  },
+  "mechanism_claim": "A 68-scalar locally updated acoustic codebook and transition predictor, with top-down predictions consumed by the lower level, beat persistence, development-unigram, and causal-moving-state baselines on every held-out trial in two controlled acoustic families after real room transfer.",
+  "promotion_boundary": "This passes the controlled two-family structured-stream mechanism gate. It does not complete VISION H2 because the protocol uses known calibration slots, one synthetic voice, one geometry, and controlled grammar. Noise, dropout, speaker transfer, and unconstrained natural streams remain unproven.",
+  "data_reuse_boundary": "All calibrated-v2 development and held-out captures are spent. They may support diagnostics and regression integrity only, not confirmation of another representation, threshold, grammar, or predictor."
+}
