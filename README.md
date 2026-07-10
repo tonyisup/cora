@@ -17,7 +17,7 @@ the repository.
 | Reproducible substrate | Implemented | Synthetic/live contracts, deterministic reports, and tests exist |
 | Real-audio evaluation | First replay passed | WAV and prior-art captured NumPy PCM are measured directly with dev/held-out provenance; developmental-speech breadth is still open |
 | Parentese-relevant saliency | Mixed; not promoted | The final 16-fieldsite refit reached F1 0.600 on untouched Enga/Turku clips and failed its 0.65 gate; the separately tested vocal front gate remains positive |
-| Local predictive hierarchy | Safe but not superior | The expert mixture won 0/8 fresh clips; four longer-timescale candidates then failed a 200-clip spent-data design audit, including correction of a spectral-flux boundary artifact |
+| Local predictive hierarchy | Mixed, not promoted | The real structured stream strongly passed tones but failed synthesized vowels after the spectral states collapsed `a/e` and mostly `i/u`; the earlier expert mixture also won 0/8 fresh clips |
 | Workspace binding | Synthetic ablation passed | Matching self-audio identity plus phase improves synthetic self-echo handling without suppressing a legitimate overlap; real-audio validation remains open |
 | Analysis by synthesis | Clean synthetic gate passed | Five vowels round-trip across multiple F0 values and 16/48 kHz; recorded-speaker validation remains open |
 | Efficiency | Host boundary measured on hardware | Core microbenchmarks and native XVF3800 capture-call-to-workspace latency are reported; device-onset timestamps, live CPU/memory, and energy remain excluded |
@@ -215,8 +215,8 @@ explicit authorization flag plus recorded input/output devices, speaker
 distance/orientation, and quiet-room confirmation. The frozen protocol and
 acceptance artifacts are under `docs/evidence/2026-07-10-structured-*`. The
 first real-I/O attempt stopped before playback on a diagnosed ffmpeg buffering
-issue; the fixed runner's separately frozen retry still requires explicit
-operator authorization.
+issue. The separately frozen and authorized retry completed: tones passed, but
+vowels failed, so the overall two-family acceptance rule did not pass.
 
 Replay retained Corollary real-capture arrays without copying them:
 
@@ -316,9 +316,10 @@ developmental language learning.
   regret gate, but it still has zero real-clip wins. Only the onset-phase
   template has a held-out advantage, and that advantage excludes a later
   duration-normalized flux result retracted as a warm-up/clip-boundary artifact.
-- The structured continuous-audio learner and real runner are implemented, but
-  only fake and injected-I/O results exist. No real structured playback/capture
-  evidence is claimed.
+- The structured continuous-audio real run verified 12 synchronized captures.
+  Tones passed every frozen gate (`0.860` accuracy vs `0.263` baseline), while
+  vowels occupied only three states and tied their best baseline (`0.596`), so
+  the required two-family gate failed and H2 remains open.
 - Theta/gamma scheduling is an event-timing model, not measured neural dynamics.
 - The vowel table uses adult reference targets and clean synthetic success does
   not imply recorded infant/adult speech performance.

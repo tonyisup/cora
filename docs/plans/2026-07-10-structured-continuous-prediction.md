@@ -88,3 +88,16 @@ diagnostic publishes 2,048 frames after 128 ms and verifies overlap using the
 raw byte count. The failed attempt and fix are retained separately; the fixed
 runner has a new preregistration and cannot execute the protocol again without
 fresh explicit retry authorization.
+
+## Authorized retry result
+
+The separately frozen retry completed all 12 trials with real synchronized
+playback/capture and 24 verified WAV hashes. Tones passed every preregistered
+gate (`0.860` transition accuracy versus `0.263` for the best baseline), but
+vowels failed (`0.596` tied the best baseline, three occupied states, purity
+`0.600`). The required two-family verdict is therefore failure.
+
+Post-hoc confusion counts show the spectral states merged `a/e` and mostly
+merged `i/u`. This characterizes the spent result; it does not authorize tuning
+or confirmation on these captures. A future speech-representation experiment
+must use development-only selection and fresh confirmation data.

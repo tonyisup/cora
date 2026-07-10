@@ -245,7 +245,15 @@ research contract and implements the first vertical evidence path.
 - The runner now flushes raw packets so byte count is a live stream position.
   A microphone-only synchronized diagnostic verified readiness at 128 ms and
   verified overlap. Attempt 1 and its original hashes are retained; attempt 2
-  is separately frozen and awaits explicit retry authorization.
+  was separately frozen and explicitly authorized.
+- Attempt 2 completed all 12 real synchronized trials and retained 24 hashed
+  WAVs. Tones passed every gate: occupancy `4`, purity `0.967`, transition
+  accuracy `0.860` versus best baseline `0.263`, and improvement `0.596`.
+- Vowels failed: occupancy `3`, purity `0.600`, transition accuracy `0.596`,
+  best baseline `0.596`, and improvement `0.000`. Post-hoc confusion counts
+  show `a/e` merged and `i/u` mostly merged under the measured spectral states.
+  The overall two-family verdict is failure; H2 remains open and all 12 real
+  captures are spent.
 
 ### Prior-art real-capture replay
 
@@ -376,8 +384,10 @@ These numbers are a microbenchmark, not end-to-end auditory latency.
    different temporal representation or protocol before using another fieldsite.
 2. Separately design a causal calibration path before any cold-start or live
    parentese claim.
-3. Keep the safe expert mixture as a fallback. Run the frozen structured
-   continuous-audio protocol on named real I/O before another H2 redesign;
+3. Keep the safe expert mixture as a fallback. The frozen real structured
+   protocol passed tones but failed vowels, so do not tune on its spent held-out
+   captures. A later H2 redesign needs a genuinely different locally learnable
+   speech representation, development-only selection, and fresh confirmation;
    frame-to-frame persistence and stronger causal means remain unbeaten on the
    current natural clips.
 4. Add recorded-vowel speakers not used to tune LPC selection and run a separate

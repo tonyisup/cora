@@ -80,6 +80,35 @@ def test_frozen_protocol_and_implementation_hashes_match_source() -> None:
     ).hexdigest()
 
 
+def test_retained_real_result_has_complete_hashed_artifacts() -> None:
+    root = Path(__file__).resolve().parents[1]
+    result_path = root / (
+        "docs/evidence/"
+        "2026-07-10-structured-prediction-real-attempt-2-result.json"
+    )
+    artifact_root = root / (
+        "docs/evidence/"
+        "2026-07-10-structured-prediction-real-attempt-2-artifacts"
+    )
+    result = json.loads(result_path.read_text())
+
+    assert result["verdict"] == "real_io_acceptance_failed"
+    assert result["all_acceptance_gates_passed"] is False
+    assert len(result["artifacts"]) == 12
+    assert all(result["acceptance"]["tones"].values())
+    assert not all(result["acceptance"]["vowels"].values())
+    for artifact in result["artifacts"]:
+        assert artifact["playback"]["backend"] == "ffmpeg_audiotoolbox"
+        assert artifact["capture"]["backend"] == "ffmpeg_avfoundation"
+        assert artifact["io_timing"]["stream_position_verified"] is True
+        for kind in ("efference", "captured"):
+            retained = artifact_root / Path(artifact[f"{kind}_wav"]).name
+            assert retained.exists()
+            assert hashlib.sha256(retained.read_bytes()).hexdigest() == artifact[
+                f"{kind}_sha256"
+            ]
+
+
 def test_real_runner_reports_whether_playback_actually_started(tmp_path) -> None:
     playback_calls = 0
 

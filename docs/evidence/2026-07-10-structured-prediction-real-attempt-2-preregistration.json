@@ -2,7 +2,7 @@
   "experiment": "structured_continuous_prediction_real_hardware",
   "attempt": 2,
   "date": "2026-07-10",
-  "status": "frozen_retry_authorization_pending",
+  "status": "fully_preregistered_retry_authorized",
   "protocol": "2026-07-10-structured-prediction-protocol.json",
   "protocol_sha256": "2b56bdfab508b1d0f456037845bc75d4c0da511dcde8daa921045dea4d2e16ab",
   "predictor_implementation_sha256": "04d40123872c9af3d73697f39d3915002366d08a3ef061efbd16a125e126d264",
@@ -36,7 +36,8 @@
     "accepted_as_fixed_run_condition": true
   },
   "operator_authorization": {
-    "bounded_playback_and_capture_authorized": false,
+    "bounded_playback_and_capture_authorized": true,
+    "authorized_date": "2026-07-10",
     "scope_if_authorized": "one fixed 12-trial retry only, capped at 75.6 seconds total playback, with no automatic retry"
   },
   "frozen_acceptance_rule_each_family": {

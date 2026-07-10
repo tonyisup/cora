@@ -234,8 +234,10 @@ Current environmental-control result:
 
 ### Stage 3 — Predictive hierarchy
 
-Status: phase-template evidence remains positive in bounded settings. A safer
-online learner passed a fresh-fieldsite regret gate but failed superiority.
+Status: mixed and not promoted. Phase-template evidence remains positive in
+bounded settings; a safer online learner passed a fresh-fieldsite regret gate
+but failed superiority. The real structured-stream mechanism passed tones but
+failed synthesized vowels and therefore failed its two-family promotion rule.
 
 Required evidence:
 
@@ -290,10 +292,18 @@ Current evidence:
   observation scaffold: disjoint development/held-out tone and synthesized-
   vowel sequences, label-blind spectral states, a locally updated four-state
   codebook, and local transition counts with explicit top-down consumption;
-- deterministic fake and injected-I/O paths pass their plumbing gates, but
-  `real_hardware=false` and promotion is forbidden. The exact 12-trial manifest
-  and real acceptance rules are frozen while device geometry and explicit
-  bounded-playback authorization remain pending.
+- the frozen 12-trial protocol then completed on real synchronized playback and
+  XVF3800 capture. All 24 WAV hashes, stream positions, and chirp alignments
+  verified;
+- tones passed every gate: four occupied states, purity `0.967`, transition
+  accuracy `0.860` versus best-baseline accuracy `0.263`, and minimum per-trial
+  improvement `0.526`;
+- vowels failed: only three states were occupied, purity was `0.600`, and
+  transition accuracy `0.596` tied the best baseline. Post-hoc analysis shows
+  the measured state representation merged `a/e` and mostly merged `i/u`;
+- because both families were required to pass, the preregistered verdict is
+  failure and H2 remains open. All 12 real captures are spent and cannot confirm
+  a revised representation or predictor.
 
 Promotion criterion:
 
