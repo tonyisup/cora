@@ -64,6 +64,7 @@ from .speaking_simulator import (
     run_speaking_policy_promotion_gate,
     run_speaking_readiness_gate,
 )
+from .structured_prediction import run_structured_prediction_protocol
 from .live_speak_smoke import (
     StimulusSpec,
     capture_to_wav,
@@ -119,6 +120,8 @@ def describe() -> dict[str, object]:
             "joint_register_pipeline_falsification",
             "expanded_register_refit_falsification",
             "safe_online_predictor_regret_gate",
+            "structured_prediction_fake_harness",
+            "structured_prediction_real_runner",
             "synthetic_workspace_ablation",
             "phase_template_top_down_prediction",
         ],
@@ -128,6 +131,7 @@ def describe() -> dict[str, object]:
             "environmental_pass_through_policy",
             "cold_start_parentese_detection",
             "cross_cultural_parentese_robustness",
+            "structured_prediction_real_capture_evidence",
             "cross_protocol_predictive_generalization",
             "device_timestamped_latency",
             "energy_benchmark",
@@ -865,6 +869,112 @@ def eval_register_pipeline_cli(args: list[str]) -> dict[str, object]:
         Path(values["--environmental-label-csv"]).resolve()
     )
     return report
+
+
+def structured_prediction_cli(args: list[str]) -> dict[str, object]:
+    """Plan or run the explicitly non-real structured prediction harness."""
+
+    out_dir: str | None = None
+    fake_io = False
+    real_io = False
+    bounded_playback_authorized = False
+    input_device = ":0"
+    output_device_index = 2
+    speaker_distance_cm: float | None = None
+    speaker_orientation: str | None = None
+    quiet_room_confirmed = False
+    i = 1
+    while i < len(args):
+        option = args[i]
+        if option == "--fake-io":
+            fake_io = True
+            i += 1
+            continue
+        if option == "--real-io":
+            real_io = True
+            i += 1
+            continue
+        if option == "--authorize-bounded-playback":
+            bounded_playback_authorized = True
+            i += 1
+            continue
+        if option == "--quiet-room-confirmed":
+            quiet_room_confirmed = True
+            i += 1
+            continue
+        if option == "--out-dir":
+            if i + 1 >= len(args):
+                raise ValueError("missing value for --out-dir")
+            out_dir = args[i + 1]
+            i += 2
+            continue
+        if option in {
+            "--input-device",
+            "--output-device-index",
+            "--speaker-distance-cm",
+            "--speaker-orientation",
+        }:
+            if i + 1 >= len(args):
+                raise ValueError(f"missing value for {option}")
+            value = args[i + 1]
+            if option == "--input-device":
+                input_device = value
+            elif option == "--output-device-index":
+                try:
+                    output_device_index = int(value)
+                except ValueError as exc:
+                    raise ValueError("invalid output device index") from exc
+            elif option == "--speaker-distance-cm":
+                try:
+                    speaker_distance_cm = float(value)
+                except ValueError as exc:
+                    raise ValueError("invalid speaker distance") from exc
+            else:
+                speaker_orientation = value
+            i += 2
+            continue
+        raise ValueError(f"unknown option: {option}")
+    if out_dir is None:
+        raise ValueError("--out-dir is required")
+    geometry: dict[str, object] | None = None
+    playback_fn = None
+    capture_fn = None
+    if real_io and bounded_playback_authorized:
+        if speaker_distance_cm is None or speaker_distance_cm <= 0.0:
+            raise ValueError("real structured I/O requires --speaker-distance-cm")
+        if not speaker_orientation:
+            raise ValueError("real structured I/O requires --speaker-orientation")
+        if not quiet_room_confirmed:
+            raise ValueError("real structured I/O requires --quiet-room-confirmed")
+        geometry = {
+            "input_device": input_device,
+            "output_device_index": output_device_index,
+            "speaker_distance_cm": speaker_distance_cm,
+            "speaker_orientation": speaker_orientation,
+            "quiet_room_confirmed": True,
+            "host_channel_count": 2,
+        }
+        playback_fn = lambda path: play_wav_to_device(
+            path,
+            device_index=output_device_index,
+            sample_rate=16000,
+            volume_db=-18.0,
+        )
+        capture_fn = lambda path, **kwargs: capture_to_wav(
+            path,
+            device=input_device,
+            **kwargs,
+        )
+    return run_structured_prediction_protocol(
+        out_dir=out_dir,
+        fake_io=fake_io,
+        real_io=real_io,
+        bounded_playback_authorized=bounded_playback_authorized,
+        playback_fn=playback_fn,
+        capture_fn=capture_fn,
+        geometry=geometry,
+        real_hardware_claim=bool(real_io and bounded_playback_authorized),
+    )
 
 
 def synthesize_vowel_cli(args: list[str] | None = None) -> dict[str, object]:
@@ -1711,6 +1821,13 @@ def main(argv: list[str] | None = None) -> int:
         except (ValueError, OSError, json.JSONDecodeError) as exc:
             print(str(exc), file=sys.stderr)
             return 2
+    if args and args[0] == "--evaluate-structured-prediction":
+        try:
+            print(json.dumps(structured_prediction_cli(args)))
+            return 0
+        except (ValueError, OSError) as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
     if args and args[0] == "--synthesize-vowel":
         try:
             print(json.dumps(synthesize_vowel_cli(args)))
@@ -1829,6 +1946,7 @@ def main(argv: list[str] | None = None) -> int:
         "[--fit-register-scorer --source ROOT::LABEL_CSV [--source ROOT::LABEL_CSV] --out MODEL.json] "
         "[--eval-register-scorer --model MODEL.json --root DIR --label-csv FILE] "
         "[--eval-register-pipeline --model MODEL.json --vocal-root DIR --vocal-label-csv FILE --environmental-root DIR --environmental-label-csv FILE] "
+        "[--evaluate-structured-prediction --out-dir DIR [--fake-io | --real-io --authorize-bounded-playback --input-device :0 --output-device-index 2 --speaker-distance-cm N --speaker-orientation TEXT --quiet-room-confirmed]] "
         "[--simulate-self-suppression [--vowel a|e|i|o|u] [--world-vowel a|e|i|o|u] [--world-gain F] [--duration-ms N] [--sample-rate N]] "
         "[--learn-self-forward-model [--vowel a|e|i|o|u] [--observed-delay-ms F] [--observed-attenuation F] [--observed-echo-decay F] [--world-vowel a|e|i|o|u] [--world-gain F]] "
         "[--sweep-self-forward-model [--vowel a|e|i|o|u] [--delay-errors-ms csv] [--attenuation-scales csv] [--echo-decay-scales csv] [--world-vowel a|e|i|o|u] [--world-gain F]] "

@@ -1,0 +1,36 @@
+{
+  "experiment": "structured_continuous_prediction_fake_io",
+  "date": "2026-07-10",
+  "protocol": "2026-07-10-structured-prediction-protocol.json",
+  "protocol_sha256": "2b56bdfab508b1d0f456037845bc75d4c0da511dcde8daa921045dea4d2e16ab",
+  "implementation_sha256": "51307274e9582885470b2ed81950da137a93cebfc7e5add5aa9ec42c1707093c",
+  "verdict": "fake_io_plumbing_passed_non_evidence",
+  "evidence_class": "synthetic_fake_io",
+  "promotion_allowed": false,
+  "trial_count": 12,
+  "artifact_count": 12,
+  "artifact_set_sha256": "e1e6b0634c363641bc54e7bed15a76fb55b0e7ebdad4db87c83ff5d0d2933f32",
+  "family_reports": {
+    "tones": {
+      "held_out_codebook_occupancy": 4,
+      "post_hoc_token_cluster_purity": 1.0,
+      "transition_accuracy": 0.9122807017543859,
+      "best_baseline_accuracy": 0.2807017543859649,
+      "accuracy_improvement": 0.631578947368421,
+      "minimum_trial_improvement": 0.631578947368421,
+      "bounded_state_scalars": 68,
+      "top_down_prediction_consumed": true
+    },
+    "vowels": {
+      "held_out_codebook_occupancy": 4,
+      "post_hoc_token_cluster_purity": 1.0,
+      "transition_accuracy": 0.9122807017543859,
+      "best_baseline_accuracy": 0.2807017543859649,
+      "accuracy_improvement": 0.631578947368421,
+      "minimum_trial_improvement": 0.631578947368421,
+      "bounded_state_scalars": 68,
+      "top_down_prediction_consumed": true
+    }
+  },
+  "interpretation": "The deterministic fake acoustic channel proves synthesis, capture artifact handling, label-blind spectral codebook learning, local transition prediction, top-down consumption, baselines, and report plumbing. It is not real-audio evidence and cannot promote H2."
+}

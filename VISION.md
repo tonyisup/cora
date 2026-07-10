@@ -286,11 +286,23 @@ Current evidence:
 - no candidate cleared the design gate, so no fresh fieldsite was consumed.
   H2 now requires a different observation protocol or locally learnable
   representation rather than another predictor tuned to these clips.
+- a bounded structured-stream protocol is now implemented as that next
+  observation scaffold: disjoint development/held-out tone and synthesized-
+  vowel sequences, label-blind spectral states, a locally updated four-state
+  codebook, and local transition counts with explicit top-down consumption;
+- deterministic fake and injected-I/O paths pass their plumbing gates, but
+  `real_hardware=false` and promotion is forbidden. The exact 12-trial manifest
+  and real acceptance rules are frozen while device geometry and explicit
+  bounded-playback authorization remain pending.
 
 Promotion criterion:
 
 - statistically or practically meaningful held-out error reduction across more
   than one recording or synthetic family, without unbounded state growth.
+
+Controlled structured-stream success, if obtained on real playback/capture,
+would validate the mechanism on those families only. H2 still requires a later
+transfer to an unconstrained natural acoustic stream.
 
 ### Stage 4 — Workspace binding
 

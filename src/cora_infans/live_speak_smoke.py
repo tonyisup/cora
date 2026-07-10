@@ -26,8 +26,6 @@ from typing import Callable
 
 import numpy as np
 
-from dataclasses import dataclass
-
 from .io.motor_plan import (
     Vowel,
     synthesize_chirp,

@@ -218,6 +218,31 @@ research contract and implements the first vertical evidence path.
   support another justified predictor iteration. Stage 3 needs a different
   observation protocol or locally learnable representation.
 
+### Structured continuous-audio prerequisite
+
+- Added a fixed 12-trial protocol spanning tone and synthesized-vowel families,
+  with three development and three held-out seeds per family.
+- Each continuous trial contains an alignment chirp, four unlabeled codebook
+  calibration observations, and 20 grammar observations. Scheduled token
+  identities are available only for post-hoc purity scoring.
+- Added a bounded four-state competitive spectral codebook and smoothed local
+  transition counts. The higher-level next-state prediction is consumed by the
+  lower level and produces an explicit one-hot residual.
+- Baselines are state persistence, development unigram, and a causal moving
+  state distribution.
+- The fake acoustic channel passes deterministically for both families:
+  transition accuracy `0.912` versus best-baseline accuracy `0.281`, with four
+  occupied states and purity `1.0`. This is synthetic plumbing, not evidence.
+- The synchronized real runner is implemented through injected playback/capture
+  interfaces. It requires explicit bounded authorization and complete geometry
+  before CLI wiring touches devices, stops after the first failure, recovers a
+  chirp alignment, and hashes every efference/capture artifact.
+- A noiseless injected runner test exposed and fixed an absolute FFT-floor bug
+  that had made state geometry depend on background noise.
+- Real acceptance thresholds and the exact manifest are hash-frozen. The only
+  missing inputs are confirmed devices/geometry, quiet-room state, and operator
+  authorization. No real playback occurred in this checkpoint.
+
 ### Prior-art real-capture replay
 
 - `AGENTS.md` identified the Corollary project as prior art. Its archived M2
@@ -326,7 +351,7 @@ research contract and implements the first vertical evidence path.
 
 ```text
 pytest tests -q
-278 passed in 17.38s
+285 passed in 21.75s
 ```
 
 Representative 100-iteration event-core run on the current host:
@@ -347,9 +372,10 @@ These numbers are a microbenchmark, not end-to-end auditory latency.
    different temporal representation or protocol before using another fieldsite.
 2. Separately design a causal calibration path before any cold-start or live
    parentese claim.
-3. Keep the safe expert mixture as a fallback. Before another H2 attempt, choose
-   a new structured continuous-audio protocol; frame-to-frame persistence and
-   stronger causal means remain unbeaten on the current clips.
+3. Keep the safe expert mixture as a fallback. Run the frozen structured
+   continuous-audio protocol on named real I/O before another H2 redesign;
+   frame-to-frame persistence and stronger causal means remain unbeaten on the
+   current natural clips.
 4. Add recorded-vowel speakers not used to tune LPC selection and run a separate
    confusion matrix.
 5. Instrument the live capture path for microphone-to-event latency and dropped

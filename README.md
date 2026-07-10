@@ -194,6 +194,27 @@ The safety report compares every clip with persistence and EMA, reporting mean
 and worst RMSE regret separately from strict win rate. Passing safety does not
 count as predictive advantage.
 
+Plan the next structured continuous-audio experiment without touching audio
+devices:
+
+```bash
+python3 -m cora_infans --evaluate-structured-prediction \
+  --out-dir /tmp/cora-structured
+```
+
+Exercise its complete synthetic fake-I/O path:
+
+```bash
+python3 -m cora_infans --evaluate-structured-prediction \
+  --out-dir /tmp/cora-structured-fake \
+  --fake-io
+```
+
+Fake success cannot promote predictive evidence. Real execution requires an
+explicit authorization flag plus recorded input/output devices, speaker
+distance/orientation, and quiet-room confirmation. The frozen protocol and
+acceptance draft are under `docs/evidence/2026-07-10-structured-*`.
+
 Replay retained Corollary real-capture arrays without copying them:
 
 ```bash
@@ -292,6 +313,9 @@ developmental language learning.
   regret gate, but it still has zero real-clip wins. Only the onset-phase
   template has a held-out advantage, and that advantage excludes a later
   duration-normalized flux result retracted as a warm-up/clip-boundary artifact.
+- The structured continuous-audio learner and real runner are implemented, but
+  only fake and injected-I/O results exist. No real structured playback/capture
+  evidence is claimed.
 - Theta/gamma scheduling is an event-timing model, not measured neural dynamics.
 - The vowel table uses adult reference targets and clean synthetic success does
   not imply recorded infant/adult speech performance.
@@ -304,6 +328,7 @@ developmental language learning.
 - `io/recorded_frames.py` — retained real-capture arrays and prior-art manifests
 - `io/offline_eval.py` — confusion metrics and dev/held-out baseline comparison
 - `predictive_learning.py` — bounded local hierarchy and baseline evaluation
+- `structured_prediction.py` — gated continuous-stream protocol and local state transitions
 - `register_saliency.py` — long-window vocal, speech/song, and adaptive IDS gates
 - `io/motor_plan.py` — source-filter synthesis, LPC perception, and vowel gate
 - `benchmark.py` — explicit-boundary event-pipeline microbenchmark

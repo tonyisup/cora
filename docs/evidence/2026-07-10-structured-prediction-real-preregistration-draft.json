@@ -1,0 +1,44 @@
+{
+  "experiment": "structured_continuous_prediction_real_hardware",
+  "date": "2026-07-10",
+  "status": "acceptance_frozen_geometry_and_operator_authorization_pending",
+  "protocol": "2026-07-10-structured-prediction-protocol.json",
+  "protocol_sha256": "2b56bdfab508b1d0f456037845bc75d4c0da511dcde8daa921045dea4d2e16ab",
+  "implementation_sha256": "51307274e9582885470b2ed81950da137a93cebfc7e5add5aa9ec42c1707093c",
+  "device_boundary": {
+    "target_input": "XVF3800 two fused CoreAudio channels",
+    "maximum_playback_gain_db": -18.0,
+    "trial_count": 12,
+    "maximum_total_playback_seconds": 75.6,
+    "one_trial_at_a_time": true,
+    "no_automatic_retry_after_failure": true
+  },
+  "operator_fields_required_before_run": [
+    "confirmed XVF3800 input device",
+    "confirmed output device",
+    "speaker-to-microphone distance and orientation",
+    "quiet-room confirmation",
+    "explicit bounded playback and capture authorization"
+  ],
+  "frozen_acceptance_rule_each_family": {
+    "required_development_trials": 3,
+    "required_held_out_trials": 3,
+    "required_codebook_occupancy": 4,
+    "minimum_post_hoc_token_cluster_purity": 0.85,
+    "minimum_pooled_transition_accuracy": 0.75,
+    "minimum_accuracy_improvement_over_best_baseline": 0.20,
+    "minimum_each_held_out_trial_improvement": 0.10,
+    "maximum_bounded_state_scalars": 68,
+    "top_down_prediction_must_be_consumed": true
+  },
+  "global_acceptance_rule": {
+    "both_tone_and_vowel_families_must_pass": true,
+    "all_trials_must_have_synchronized_real_capture": true,
+    "all_alignment_and_acoustic_features_must_be_finite": true,
+    "every_efference_and_capture_artifact_must_have_sha256": true,
+    "scheduled_token_labels_may_only_score_post_hoc_purity": true,
+    "no_hyperparameter_or_manifest_change_after_first_real_capture": true
+  },
+  "failure_policy": "Any failed gate is retained. No threshold, seed, grammar, token, or feature change may reuse the captured held-out trials as confirmation.",
+  "claim_boundary": "A pass supports locally learned next-state prediction for two controlled acoustic families after one named playback/capture geometry. It does not support unconstrained or semantic speech prediction and does not complete H2 by itself."
+}
