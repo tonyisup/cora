@@ -54,11 +54,14 @@ significance.
 
 The local hierarchy is evaluated prequentially: it predicts the next feature
 before observing it, records the residual, then applies local updates. It retains
-a fixed five scalar state values regardless of sequence length.
+a fixed ten scalar state values regardless of sequence length.
 
-The lower level is a bounded local trend predictor. The higher level estimates
-the clipped residual trend with a local update. Its prediction becomes a
-top-down correction consumed by the lower level on the next frame.
+The lower level combines persistence, an EMA level, and a bounded trend as local
+experts. Their weights update from their own prequential squared errors. The
+higher level estimates the clipped residual trend and supplies the next trend
+expert's top-down correction. This conservative mixture was introduced after
+always-on trend correction regressed on every developmental-speech held-out
+clip.
 
 Every report compares the hierarchy with:
 

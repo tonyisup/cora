@@ -24,17 +24,27 @@ class LocalPredictionStep:
     prediction: float
     residual: float
     top_down_correction: float
+    expert_weights: dict[str, float]
 
 
 class LocalPredictiveHierarchy:
-    """Two coupled, bounded, locally updated predictive levels."""
+    """Bounded local prediction with error-weighted conservative experts.
+
+    Persistence is difficult to beat on noisy frame features. An always-on
+    trend correction therefore creates avoidable regressions. This hierarchy
+    keeps persistence, an EMA level, and a top-down-corrected trend as local
+    experts, then updates their weights from prequential squared error. The
+    trend and residual levels still learn only from adjacent local errors; no
+    sequence is retained and no gradient crosses the hierarchy.
+    """
 
     def __init__(
         self,
         *,
-        lower_learning_rate: float = 0.2,
-        higher_learning_rate: float = 0.25,
-        top_down_gain: float = 0.5,
+        lower_learning_rate: float = 0.05,
+        higher_learning_rate: float = 0.2,
+        top_down_gain: float = 0.25,
+        expert_learning_rate: float = 0.4,
     ) -> None:
         if not 0.0 < lower_learning_rate <= 1.0:
             raise ValueError("lower_learning_rate must be in (0, 1]")
@@ -42,20 +52,26 @@ class LocalPredictiveHierarchy:
             raise ValueError("higher_learning_rate must be in (0, 1]")
         if not 0.0 <= top_down_gain <= 1.0:
             raise ValueError("top_down_gain must be in [0, 1]")
+        if expert_learning_rate <= 0.0:
+            raise ValueError("expert_learning_rate must be positive")
         self.lower_learning_rate = lower_learning_rate
         self.higher_learning_rate = higher_learning_rate
         self.top_down_gain = top_down_gain
+        self.expert_learning_rate = expert_learning_rate
         self._previous: float | None = None
-        self._previous_delta = 0.0
+        self._ema = 0.0
         self._trend_prediction = 0.0
         self._predicted_residual = 0.0
+        self._variation_scale = 0.0
+        self._loss_scale = 1e-18
+        self._expert_log_weights = np.zeros(3, dtype=np.float64)
         self._index = 0
 
     @property
     def state_size(self) -> int:
         """Number of scalar state values retained independent of sequence length."""
 
-        return 5
+        return 10
 
     def update(self, observed: float) -> LocalPredictionStep | None:
         value = float(observed)
@@ -63,20 +79,50 @@ class LocalPredictiveHierarchy:
             raise ValueError("observation must be finite")
         if self._previous is None:
             self._previous = value
+            self._ema = value
             self._index += 1
             return None
 
-        correction_limit = max(1.0, abs(self._previous) * 0.25)
+        correction_limit = max(
+            1e-12,
+            abs(self._previous) * 0.25,
+            self._variation_scale * 2.0,
+        )
         top_down = self.top_down_gain * self._predicted_residual
-        combined_correction = float(
+        trend_correction = float(
             np.clip(
                 self._trend_prediction + top_down,
                 -correction_limit,
                 correction_limit,
             )
         )
-        prediction = self._previous + combined_correction
+        expert_predictions = np.asarray(
+            [
+                self._previous,
+                self._ema,
+                self._previous + trend_correction,
+            ],
+            dtype=np.float64,
+        )
+        shifted_weights = self._expert_log_weights - float(
+            np.max(self._expert_log_weights)
+        )
+        weights = np.exp(shifted_weights)
+        weights /= float(np.sum(weights))
+        prediction = float(np.dot(weights, expert_predictions))
         residual = value - prediction
+
+        expert_errors = (value - expert_predictions) ** 2
+        current_loss_scale = max(float(np.mean(expert_errors)), 1e-18)
+        self._loss_scale = 0.9 * self._loss_scale + 0.1 * current_loss_scale
+        normalized_losses = np.clip(
+            expert_errors / self._loss_scale,
+            0.0,
+            20.0,
+        )
+        self._expert_log_weights -= self.expert_learning_rate * normalized_losses
+        self._expert_log_weights -= float(np.max(self._expert_log_weights))
+        self._expert_log_weights = np.maximum(self._expert_log_weights, -8.0)
 
         observed_delta = value - self._previous
         clipped_delta = float(
@@ -95,6 +141,10 @@ class LocalPredictiveHierarchy:
         self._predicted_residual += self.higher_learning_rate * (
             clipped_residual - self._predicted_residual
         )
+        self._variation_scale = 0.9 * self._variation_scale + 0.1 * abs(
+            observed_delta
+        )
+        self._ema += 0.5 * (value - self._ema)
 
         step = LocalPredictionStep(
             index=self._index,
@@ -102,8 +152,12 @@ class LocalPredictiveHierarchy:
             prediction=prediction,
             residual=residual,
             top_down_correction=top_down,
+            expert_weights={
+                "persistence": float(weights[0]),
+                "exponential_moving_average": float(weights[1]),
+                "top_down_trend": float(weights[2]),
+            },
         )
-        self._previous_delta = observed_delta
         self._previous = value
         self._index += 1
         return step
@@ -169,6 +223,114 @@ def evaluate_predictor_sequence(
             else 0.0
         ),
         "steps": hierarchy_steps,
+    }
+
+
+def evaluate_online_predictor_safety(
+    clips: list[CorpusClip],
+    frames_for: FrameProvider,
+    *,
+    features: tuple[str, ...],
+    frame_ms: int = 250,
+    maximum_mean_regret_fraction: float = 0.05,
+    maximum_clip_regret_fraction: float = 0.15,
+) -> dict[str, object]:
+    """Evaluate conservative online prediction on every supplied clip.
+
+    Unlike the phase-template report, this learner resets at each clip and does
+    not consume development data. Safety (bounded regret) is reported separately
+    from superiority (strictly beating the best transparent baseline).
+    """
+
+    if not clips:
+        raise ValueError("online safety evaluation requires at least one clip")
+    if not features:
+        raise ValueError("online safety evaluation requires at least one feature")
+    if maximum_mean_regret_fraction < 0.0:
+        raise ValueError("maximum mean regret must be non-negative")
+    if maximum_clip_regret_fraction < 0.0:
+        raise ValueError("maximum clip regret must be non-negative")
+    frames_by_clip = {clip.clip_id: frames_for(clip, frame_ms) for clip in clips}
+    feature_reports: dict[str, object] = {}
+    for feature in features:
+        per_clip: list[dict[str, object]] = []
+        for clip in clips:
+            observations = [
+                frame
+                for frame in frames_by_clip[clip.clip_id]
+                if isinstance(frame, FrameObservation)
+            ]
+            values = [
+                float(frame.features[feature])
+                for frame in observations
+                if frame.features
+                and frame.features.get(feature) is not None
+                and math.isfinite(float(frame.features[feature]))
+            ]
+            if len(values) < 2:
+                per_clip.append(
+                    {
+                        "clip_id": clip.clip_id,
+                        "status": "insufficient_observations",
+                        "observation_count": len(values),
+                    }
+                )
+                continue
+            report = evaluate_predictor_sequence(values)
+            regret = -float(report["rmse_improvement_fraction"])
+            per_clip.append(
+                {
+                    "clip_id": clip.clip_id,
+                    "status": "evaluated",
+                    "observation_count": report["observation_count"],
+                    "regret_fraction": regret,
+                    "beats_best_baseline": report[
+                        "hierarchy_beats_best_baseline"
+                    ],
+                    "best_baseline_rmse": min(
+                        float(summary["rmse"])
+                        for summary in report["baselines"].values()  # type: ignore[union-attr]
+                    ),
+                    "learner_rmse": report["local_predictive_hierarchy"]["rmse"],  # type: ignore[index]
+                }
+            )
+        evaluated = [item for item in per_clip if item["status"] == "evaluated"]
+        if not evaluated:
+            raise ValueError(f"no clip had enough observations for {feature}")
+        regrets = [float(item["regret_fraction"]) for item in evaluated]
+        wins = sum(bool(item["beats_best_baseline"]) for item in evaluated)
+        mean_regret = sum(regrets) / len(regrets)
+        worst_regret = max(regrets)
+        feature_reports[feature] = {
+            "evaluated_clip_count": len(evaluated),
+            "mean_regret_fraction": mean_regret,
+            "worst_regret_fraction": worst_regret,
+            "win_count": wins,
+            "win_rate": wins / len(evaluated),
+            "safety_passed": (
+                all(math.isfinite(regret) for regret in regrets)
+                and mean_regret <= maximum_mean_regret_fraction
+                and worst_regret <= maximum_clip_regret_fraction
+            ),
+            "superiority_passed": wins / len(evaluated) > 0.5,
+            "clips": per_clip,
+        }
+    return {
+        "mode": "online_predictor_safety_evaluation",
+        "frame_ms": frame_ms,
+        "features": list(features),
+        "clip_ids": [clip.clip_id for clip in clips],
+        "maximum_mean_regret_fraction": maximum_mean_regret_fraction,
+        "maximum_clip_regret_fraction": maximum_clip_regret_fraction,
+        "all_feature_safety_passed": all(
+            bool(report["safety_passed"])  # type: ignore[index]
+            for report in feature_reports.values()
+        ),
+        "any_feature_superiority_passed": any(
+            bool(report["superiority_passed"])  # type: ignore[index]
+            for report in feature_reports.values()
+        ),
+        "feature_reports": feature_reports,
     }
 
 

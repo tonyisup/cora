@@ -28,6 +28,8 @@ def test_describe_command_prints_json_summary() -> None:
     assert "offline_corpus_evaluation" in payload["implemented_subsystems"]
     assert "prior_art_capture_replay" in payload["implemented_subsystems"]
     assert "participant_disjoint_parentese_confirmation" in payload["implemented_subsystems"]
+    assert "cross_fieldsite_parentese_falsification" in payload["implemented_subsystems"]
+    assert "safe_online_predictor_regret_gate" in payload["implemented_subsystems"]
     assert "cross_cultural_parentese_robustness" in payload["planned_subsystems"]
     assert "motor_plan_synthesis" in payload["implemented_subsystems"]
     assert "simulation_only_forward_model_robustness_sweep" in payload["implemented_subsystems"]

@@ -1,0 +1,55 @@
+{
+  "experiment": "safe_local_expert_predictor_fresh_fieldsite",
+  "date": "2026-07-10",
+  "preregistration": "2026-07-10-safe-online-predictor-preregistration.json",
+  "verdict": "safety_passed_superiority_failed",
+  "fieldsite": "LIM",
+  "participant_count": 4,
+  "clip_count": 8,
+  "frame_ms": 250,
+  "learner": "bounded local error-weighted persistence/EMA/top-down-trend experts",
+  "state_scalars": 10,
+  "features": {
+    "peak_rms": {
+      "mean_regret_fraction": 0.02679746358858352,
+      "worst_regret_fraction": 0.10396332076722288,
+      "win_count": 0,
+      "safety_passed": true,
+      "superiority_passed": false
+    },
+    "pitch_confidence": {
+      "mean_regret_fraction": 0.039014675534720135,
+      "worst_regret_fraction": 0.09357583572710973,
+      "win_count": 0,
+      "safety_passed": true,
+      "superiority_passed": false
+    },
+    "spectral_centroid_hz": {
+      "mean_regret_fraction": 0.04471033479905922,
+      "worst_regret_fraction": 0.13666081005683026,
+      "win_count": 0,
+      "safety_passed": true,
+      "superiority_passed": false
+    },
+    "spectral_flux": {
+      "mean_regret_fraction": 0.023877208428714276,
+      "worst_regret_fraction": 0.046980152088072415,
+      "win_count": 0,
+      "safety_passed": true,
+      "superiority_passed": false
+    }
+  },
+  "all_feature_safety_passed": true,
+  "any_feature_superiority_passed": false,
+  "interpretation": "The redesign prevents catastrophic scale-dependent corrections on fresh speech but does not outperform persistence or EMA. It is a safer scaffold, not positive evidence for online predictive advantage.",
+  "selected_file_sha256": {
+    "LIM02B.wav": "c2cedbe7b8c407cccf569d7765e654f409a9ee0ee50a9dd7e5fca9fd35589167",
+    "LIM02D.wav": "0e5dfc79d5a5bab4ee0f6ab0294b4e44c9a809cf5fedb1106727b48a75f9df9d",
+    "LIM03B.wav": "8e61c41449da0eac4424c13d1e430ac247ef7a8b0b19a138a32c628fadef47e4",
+    "LIM03D.wav": "13ed686e9c46b36fed8c2e1759f55c8c61ba21b13c131a3f7ceda54fb71730be",
+    "LIM04B.wav": "fae603324c6cf236aa8d1cdea0ce889e00e02ebdb0e4a380efec47ab27fbec7e",
+    "LIM04D.wav": "f28fc186e6b3020ac782300db194e2c5f1beacb6a03e364f1fa073c17ce3721e",
+    "LIM05B.wav": "a71cd574a359a503e7d373f2ca6cbd7bff1776bfdadf80eb79ab012e6e1911d2",
+    "LIM05D.wav": "db5837f5d3e04d68f96387153d56287a29164c9b87560da0a833727ea2141946"
+  }
+}

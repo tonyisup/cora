@@ -6,14 +6,18 @@ learning, bounded event memory, active attention, and analysis by synthesis.
 The governing research contract is [VISION.md](VISION.md). It distinguishes
 implemented mechanisms from measured and validated capabilities.
 
+External corpus use follows [docs/DATA_POLICY.md](docs/DATA_POLICY.md): Cora is
+a personal, non-commercial research project, and third-party audio stays outside
+the repository.
+
 ## Current evidence status
 
 | Stage | Status | Honest interpretation |
 |---|---|---|
 | Reproducible substrate | Implemented | Synthetic/live contracts, deterministic reports, and tests exist |
 | Real-audio evaluation | First replay passed | WAV and prior-art captured NumPy PCM are measured directly with dev/held-out provenance; developmental-speech breadth is still open |
-| Parentese-relevant saliency | Narrow confirmation passed | On fresh Beijing participants, pitch confidence beat RMS by 0.065 F1 while staying within the fixed +0.05 FPR ceiling; cross-cultural/noise robustness remains open |
-| Local predictive hierarchy | Mixed cross-protocol evidence | The phase prior transported to variable-length speech and one cross-site feature; the online local learner still lost every held-out clip |
+| Parentese-relevant saliency | Cross-fieldsite gate failed | The Beijing result did not transport to Krakow or Mbendjele; song activated the pitch gate on 76–92% of frames |
+| Local predictive hierarchy | Safe but not superior | The redesigned local expert mixture passed fresh-fieldsite regret limits but won 0/8 clips; the phase prior remains the only positive predictor evidence |
 | Workspace binding | Synthetic ablation passed | Matching self-audio identity plus phase improves synthetic self-echo handling without suppressing a legitimate overlap; real-audio validation remains open |
 | Analysis by synthesis | Clean synthetic gate passed | Five vowels round-trip across multiple F0 values and 16/48 kHz; recorded-speaker validation remains open |
 | Efficiency | Host boundary measured on hardware | Core microbenchmarks and native XVF3800 capture-call-to-workspace latency are reported; device-onset timestamps, live CPU/memory, and energy remain excluded |
@@ -121,14 +125,32 @@ confidence passed narrowly: held-out F1 `0.575` versus RMS `0.510`, with FPR
 `docs/evidence/2026-07-10-ids-confirmation.json`. It supports a one-fieldsite,
 participant-disjoint result—not a robust universal parentese detector.
 
+That limitation is now measured rather than hypothetical. A preregistered test
+froze the Beijing thresholds and added paired song controls for unseen Krakow
+and Mbendjele BaYaka speakers. Both fieldsites failed. See
+`docs/evidence/2026-07-10-cross-fieldsite-result.json`.
+
 Evaluate prequential prediction on held-out acoustic observations:
 
 ```bash
 python3 -m cora_infans --eval-corpus \
   --root ./corpus \
   --label-csv ./corpus/labels.csv \
-  --evaluate-prediction dominant_frequency_hz
+    --evaluate-prediction dominant_frequency_hz
 ```
+
+Evaluate the bounded online learner's safety separately from superiority:
+
+```bash
+python3 -m cora_infans --eval-corpus \
+  --root ./corpus \
+  --label-csv ./corpus/labels.csv \
+  --evaluate-online-safety peak_rms,pitch_confidence,spectral_centroid_hz,spectral_flux
+```
+
+The safety report compares every clip with persistence and EMA, reporting mean
+and worst RMSE regret separately from strict win rate. Passing safety does not
+count as predictive advantage.
 
 Replay retained Corollary real-capture arrays without copying them:
 
@@ -214,12 +236,14 @@ developmental language learning.
 ## Important limitations
 
 - Licensed developmental-speech audio has been evaluated from external
-  temporary subsets. The fresh-participant gate passed narrowly, but absolute
-  false-positive rates remain high and the CC BY-NC-SA audio is not checked in.
+  temporary subsets. A same-fieldsite gate passed narrowly but failed on both
+  unseen fieldsites; the CC BY-NC-SA audio is not checked in.
+- The current pitch-confidence threshold confuses song with IDS and cannot be
+  called a cross-cultural parentese detector.
 - The current saliency gate is a loudness baseline, not a parentese detector.
-- The online local predictor is bounded and coupled but has not beaten simple
-  baselines on real captures. Only the aligned phase-template predictor has a
-  held-out advantage, and cross-protocol generalization remains open.
+- The online local predictor is now conservatively bounded and passed its fresh
+  regret gate, but it still has zero real-clip wins. Only the onset-phase
+  template has a held-out advantage.
 - Theta/gamma scheduling is an event-timing model, not measured neural dynamics.
 - The vowel table uses adult reference targets and clean synthetic success does
   not imply recorded infant/adult speech performance.

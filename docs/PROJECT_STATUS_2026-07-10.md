@@ -81,6 +81,22 @@ research contract and implements the first vertical evidence path.
 - This is not broad validation: both absolute FPRs are high, all confirmatory
   speakers are from one fieldsite, and music/noise controls are absent.
 
+### Cross-fieldsite saliency falsification
+
+- Wrote the protocol before fetching new audio, then held the Beijing RMS and
+  pitch-confidence thresholds fixed.
+- Fetched 24 clips from six unseen participants across Krakow and Mbendjele
+  BaYaka: paired infant/adult speech plus infant/adult song.
+- Krakow: pitch F1 `0.3121` versus RMS `0.3836`; pitch FPR `0.8244` versus RMS
+  `0.9979`. Gate failed.
+- Mbendjele: pitch F1 `0.1265` versus RMS `0.1492`; pitch FPR `0.8643` versus RMS
+  `0.9982`. Gate failed.
+- Pitch-confidence activation on song ranged from `75.8%` to `91.7%` depending
+  on fieldsite and direction. The feature is voiced/prosodic, not register-
+  specific.
+- Conclusion: the narrow Beijing confirmation does not transport. A useful
+  scorer needs site normalization and explicit speech-vs-song structure.
+
 ### Developmental-speech predictive probe
 
 - On the fresh Beijing protocol, the development-trained phase template beat
@@ -94,6 +110,20 @@ research contract and implements the first vertical evidence path.
 - Interpretation: onset-relative acoustic structure sometimes transfers, but
   simple amplitude features are not normalized across collection sites and the
   evidence is not semantic or free-running prediction.
+
+### Safe online predictor redesign
+
+- Replaced always-on local trend correction with a bounded ten-scalar mixture
+  of persistence, EMA, and top-down trend experts. Each weight updates from its
+  own prequential squared error.
+- Fixed a scale bug: the old minimum correction bound of `1.0` was enormous for
+  RMS and spectral-flux values near `0.01`, causing avoidable overshoot.
+- Registered the safety criterion before fetching eight rural-Poland IDS/ADS
+  clips from four new participants.
+- All four features passed: mean regret against the best baseline was `2.38%`
+  to `4.47%`; worst single-clip regret was `13.67%`, below the `15%` ceiling.
+- Every feature still won `0/8` clips. The redesign validates safe degradation,
+  not H2 predictive superiority.
 
 ### Prior-art real-capture replay
 
@@ -203,7 +233,7 @@ research contract and implements the first vertical evidence path.
 
 ```text
 pytest tests -q
-266 passed in 17.41s
+268 passed in 17.77s
 ```
 
 Representative 100-iteration event-core run on the current host:
@@ -219,11 +249,11 @@ These numbers are a microbenchmark, not end-to-end auditory latency.
 
 ## Next evidence required
 
-1. Repeat the fixed parentese criterion across additional fieldsites without
-   reusing pilot or confirmatory participants.
-2. Add music, impulsive noise, and diffuse-background negative controls.
-3. Replace or materially rethink the online local predictor, which loses to
-   persistence/EMA on every current held-out developmental-speech clip.
+1. Replace the single pitch threshold with a site-normalized, explicitly
+   speech-vs-song-aware scorer, then freeze it before another fresh fieldsite.
+2. Add impulsive-noise and diffuse-background negative controls.
+3. Keep the safe expert mixture as a fallback, but seek predictive structure at
+   a longer timescale; frame-to-frame persistence remains unbeaten.
 4. Add recorded-vowel speakers not used to tune LPC selection and run a separate
    confusion matrix.
 5. Instrument the live capture path for microphone-to-event latency and dropped

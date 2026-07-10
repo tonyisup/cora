@@ -28,7 +28,10 @@ from .simulation import (
     build_sequence_report_with_scheduling,
     build_simulation_report,
 )
-from .predictive_learning import evaluate_predictive_corpus
+from .predictive_learning import (
+    evaluate_online_predictor_safety,
+    evaluate_predictive_corpus,
+)
 from .workspace_ablation import run_workspace_ablation
 from .io.motor_plan import (  # noqa: E402
     ANALYSIS_BY_SYNTHESIS_TABLE,
@@ -99,6 +102,8 @@ def describe() -> dict[str, object]:
             "ids_corpus_manifest_builder",
             "external_ids_real_audio_evaluation",
             "participant_disjoint_parentese_confirmation",
+            "cross_fieldsite_parentese_falsification",
+            "safe_online_predictor_regret_gate",
             "synthetic_workspace_ablation",
             "phase_template_top_down_prediction",
         ],
@@ -509,7 +514,9 @@ def eval_corpus(args: list[str] | None = None) -> dict[str, object]:
     Usage: --eval-corpus --root DIR --label-csv FILE [--saliency-threshold F]
            [--frame-ms N] [--score-mode peak_rms|spatial_contrast]
            [--input-mode wav|recorded_npy|synthetic_fixture] [--compare-baselines]
-           [--evaluate-prediction FEATURE] [--positive-label LABEL[,LABEL]]
+           [--evaluate-prediction FEATURE]
+           [--evaluate-online-safety FEATURE[,FEATURE]]
+           [--positive-label LABEL[,LABEL]]
 
     Real uncompressed WAV decoding is the default and is the only WAV mode
     reported as real evidence. The synthetic fixture mode exists solely for
@@ -524,6 +531,7 @@ def eval_corpus(args: list[str] | None = None) -> dict[str, object]:
     input_mode = "wav"
     compare_baselines = False
     predictive_feature: str | None = None
+    safety_features: tuple[str, ...] | None = None
     positive_labels: set[str] | None = None
     i = 1
     while i < len(parsed):
@@ -559,6 +567,13 @@ def eval_corpus(args: list[str] | None = None) -> dict[str, object]:
             input_mode = value
         elif option == "--evaluate-prediction":
             predictive_feature = value
+        elif option == "--evaluate-online-safety":
+            parsed_features = tuple(
+                feature.strip() for feature in value.split(",") if feature.strip()
+            )
+            if not parsed_features:
+                raise ValueError("online safety feature list must not be empty")
+            safety_features = parsed_features
         elif option == "--positive-label":
             parsed_labels = {label.strip() for label in value.split(",") if label.strip()}
             if not parsed_labels:
@@ -587,9 +602,12 @@ def eval_corpus(args: list[str] | None = None) -> dict[str, object]:
         from .io.synthetic_stream import build_synthetic_corpus_frames
 
         frame_provider = build_synthetic_corpus_frames
-    if compare_baselines and predictive_feature is not None:
+    selected_evaluations = sum(
+        (compare_baselines, predictive_feature is not None, safety_features is not None)
+    )
+    if selected_evaluations > 1:
         raise ValueError(
-            "--compare-baselines and --evaluate-prediction are mutually exclusive"
+            "baseline, predictive, and online-safety evaluations are mutually exclusive"
         )
     if predictive_feature is not None:
         if input_mode not in ("wav", "recorded_npy"):
@@ -599,6 +617,15 @@ def eval_corpus(args: list[str] | None = None) -> dict[str, object]:
             frame_provider,
             frame_ms=frame_ms,
             feature=predictive_feature,
+        )
+    elif safety_features is not None:
+        if input_mode not in ("wav", "recorded_npy"):
+            raise ValueError("online safety evidence requires real audio input")
+        report = evaluate_online_predictor_safety(
+            clips,
+            frame_provider,
+            frame_ms=frame_ms,
+            features=safety_features,
         )
     elif compare_baselines:
         report = compare_saliency_baselines(
@@ -1546,7 +1573,7 @@ def main(argv: list[str] | None = None) -> int:
         "[--family sweep|zigzag|gap|multi_gap|delayed_recovery] [--with-scheduling] "
         "[--capture-live [--device :0] [--duration-ms N]] "
         "[--listen-live [--duration-ms N] [--frame-ms N] [--capture-backend auto|native|ffmpeg] [--with-stimulus] [--with-attention] [--with-scheduling] [--saliency-threshold F] [--with-motor-imitation [--real-io [--output-device-index 2] [--imitation-device-index 3] [--with-self-subtraction] [--volume-db F] [--latency-anchor PATH]]]] "
-        "[--eval-corpus --root DIR --label-csv FILE [--saliency-threshold F] [--frame-ms N] [--score-mode peak_rms|spatial_contrast] [--input-mode wav|recorded_npy|synthetic_fixture] [--compare-baselines] [--evaluate-prediction FEATURE] [--positive-label LABEL[,LABEL]]] "
+        "[--eval-corpus --root DIR --label-csv FILE [--saliency-threshold F] [--frame-ms N] [--score-mode peak_rms|spatial_contrast] [--input-mode wav|recorded_npy|synthetic_fixture] [--compare-baselines] [--evaluate-prediction FEATURE] [--evaluate-online-safety FEATURE[,FEATURE]] [--positive-label LABEL[,LABEL]]] "
         "[--synthesize-vowel a|e|i|o|u --out PATH.wav [--duration-ms N] [--sample-rate N] [--f0-hz F] [--analyze]] "
         "[--evaluate-vowel-loop [--duration-ms N] [--minimum-accuracy F]] "
         "[--benchmark-core [--iterations N] [--frame-ms N]] "

@@ -122,7 +122,7 @@ Promotion criterion:
 ### Stage 2 — Parentese-relevant saliency
 
 Status: narrow participant-disjoint IDS-vs-ADS confirmation passed within one
-fieldsite; cross-cultural and environmental robustness remain open.
+fieldsite; the preregistered cross-fieldsite test with song controls failed.
 
 Required evidence:
 
@@ -167,10 +167,24 @@ Current confirmation:
 - this passes the narrow participant-disjoint rule, but the high absolute false-
   positive rates and single-fieldsite scope prohibit a general parentese claim.
 
+Current cross-fieldsite result:
+
+- Beijing thresholds were frozen before fetching 24 clips from six unseen
+  Krakow and Mbendjele BaYaka participants;
+- paired infant/adult speech and infant/adult song made song an explicit
+  negative control;
+- pitch-confidence F1 fell below peak RMS by `0.071` in Krakow and `0.023` in
+  Mbendjele, so both fieldsites failed the preregistered gate;
+- pitch-confidence activated on `76–92%` of song frames, while the frozen RMS
+  threshold activated on essentially every negative frame;
+- the supported conclusion is that a single absolute threshold is not a
+  cross-cultural parentese detector. Register evidence must separate speech
+  from song and normalize collection-site effects.
+
 ### Stage 3 — Predictive hierarchy
 
-Status: in-domain phase-template evidence passed on a repeated real-capture
-protocol; free-running and cross-corpus generalization remain open.
+Status: phase-template evidence remains positive in bounded settings. A safer
+online learner passed a fresh-fieldsite regret gate but failed superiority.
 
 Required evidence:
 
@@ -200,6 +214,14 @@ Current evidence:
   failed the win-rate gate and RMS suffered severe recording-level shift;
 - the online local trend/residual learner won 0/4 throughout. The evidence is
   for a bounded onset-phase prior, not a successful free-running local learner.
+- after that failure, the always-on trend was replaced by a ten-scalar local
+  mixture of persistence, EMA, and top-down trend experts weighted by their own
+  recent errors;
+- on eight fresh rural-Poland clips, every feature passed the preregistered
+  safety rule: mean regret versus the best baseline was `2.4–4.5%` and worst
+  single-clip regret was `13.7%`;
+- it won `0/8` clips for every feature. This validates conservative bounded
+  behavior, not predictive advantage, and H2 remains open.
 
 Promotion criterion:
 
