@@ -97,6 +97,7 @@ from .structured_workspace_binding import (
 )
 from .natural_speech_workspace_binding import (
     build_natural_speech_protocol,
+    run_natural_speech_acquisition,
     run_spent_natural_speech_design_gate,
 )
 from .live_speak_smoke import (
@@ -1294,15 +1295,93 @@ def structured_workspace_binding_cli(args: list[str]) -> dict[str, object]:
 
 
 def natural_speech_workspace_binding_cli(args: list[str]) -> dict[str, object]:
-    """Plan or run the non-promoting spent-speech H3 design gate."""
+    """Plan, audit spent speech, or run the gated natural-speech H3 task."""
 
     if args == ["--evaluate-natural-speech-workspace-binding"]:
         return build_natural_speech_protocol()
     if len(args) == 4 and args[1] == "--spent-design" and args[2] == "--root":
         return run_spent_natural_speech_design_gate(args[3])
-    raise ValueError(
-        "natural-speech workspace binding accepts no options or "
-        "--spent-design --root DIR"
+    if "--real-io" not in args:
+        raise ValueError(
+            "natural-speech workspace binding accepts no options, "
+            "--spent-design --root DIR, or the gated --real-io route"
+        )
+
+    values: dict[str, str] = {}
+    authorized = False
+    index = 1
+    while index < len(args):
+        option = args[index]
+        if option == "--real-io":
+            index += 1
+            continue
+        if option == "--authorize-bounded-playback":
+            authorized = True
+            index += 1
+            continue
+        if option in {"--root", "--out-dir", "--preregistration"}:
+            if index + 1 >= len(args):
+                raise ValueError(f"{option} requires a value")
+            values[option] = args[index + 1]
+            index += 2
+            continue
+        raise ValueError(f"unknown natural-speech workspace option: {option}")
+    for required in ("--root", "--out-dir", "--preregistration"):
+        if required not in values:
+            raise ValueError(f"natural-speech workspace real I/O requires {required}")
+
+    preregistration_path = Path(values["--preregistration"])
+    preregistration = json.loads(preregistration_path.read_text())
+    project_root = Path(__file__).resolve().parents[2]
+    hash_paths = {
+        "implementation_sha256": project_root
+        / "src/cora_infans/natural_speech_workspace_binding.py",
+        "cli_sha256": project_root / "src/cora_infans/cli.py",
+        "io_sha256": project_root / "src/cora_infans/live_speak_smoke.py",
+        "design_preregistration_sha256": project_root
+        / "docs/evidence/2026-07-11-natural-speech-workspace-design-preregistration.json",
+        "design_result_sha256": project_root
+        / "docs/evidence/2026-07-11-natural-speech-workspace-design-result.json",
+    }
+    current_hashes = {
+        name: hashlib.sha256(path.read_bytes()).hexdigest()
+        for name, path in hash_paths.items()
+    }
+    hardware = preregistration.get("hardware")
+    if not isinstance(hardware, dict):
+        raise ValueError("natural-speech workspace hardware mapping is missing")
+    input_route = hardware.get("input")
+    self_route = hardware.get("self_source")
+    world_route = hardware.get("world_source")
+    if not all(isinstance(route, dict) for route in (input_route, self_route, world_route)):
+        raise ValueError("natural-speech workspace routes are missing")
+    assert isinstance(input_route, dict)
+    assert isinstance(self_route, dict)
+    assert isinstance(world_route, dict)
+    return run_natural_speech_acquisition(
+        root=values["--root"],
+        out_dir=values["--out-dir"],
+        self_playback=lambda path: play_wav_to_device(
+            path,
+            device_index=int(self_route["output_device_index"]),
+            sample_rate=16000,
+            volume_db=float(self_route["playback_gain_db"]),
+        ),
+        world_playback=lambda path: play_wav_to_device(
+            path,
+            device_index=int(world_route["output_device_index"]),
+            sample_rate=16000,
+            volume_db=float(world_route["playback_gain_db"]),
+        ),
+        capture_fn=lambda path, **kwargs: capture_to_wav(
+            path,
+            device=str(input_route["avfoundation_device"]),
+            **kwargs,
+        ),
+        real_hardware_claim=True,
+        bounded_playback_authorized=authorized,
+        hardware_preregistration=preregistration,
+        current_hashes=current_hashes,
     )
 
 
@@ -2360,7 +2439,7 @@ def main(argv: list[str] | None = None) -> int:
         "[--evaluate-real-workspace-design --root COROLLARY_M2_BASELINE_DIR] "
         "[--evaluate-recorded-vowels --root VOCALSET_SUBSET_DIR --manifest FILE] "
         "[--evaluate-structured-workspace-binding [--fake-io | --real-io --out-dir DIR --preregistration FILE --authorize-bounded-playback]] "
-        "[--evaluate-natural-speech-workspace-binding [--spent-design --root DIR]] "
+        "[--evaluate-natural-speech-workspace-binding [--spent-design --root DIR | --real-io --root DIR --out-dir DIR --preregistration FILE --authorize-bounded-playback]] "
         "[--simulate-self-suppression [--vowel a|e|i|o|u] [--world-vowel a|e|i|o|u] [--world-gain F] [--duration-ms N] [--sample-rate N]] "
         "[--learn-self-forward-model [--vowel a|e|i|o|u] [--observed-delay-ms F] [--observed-attenuation F] [--observed-echo-decay F] [--world-vowel a|e|i|o|u] [--world-gain F]] "
         "[--sweep-self-forward-model [--vowel a|e|i|o|u] [--delay-errors-ms csv] [--attenuation-scales csv] [--echo-decay-scales csv] [--world-vowel a|e|i|o|u] [--world-gain F]] "
