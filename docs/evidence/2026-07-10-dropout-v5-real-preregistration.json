@@ -1,0 +1,61 @@
+{
+  "experiment": "efference_masked_dropout_real_room_transfer",
+  "date": "2026-07-10",
+  "status": "fully_preregistered_before_live_playback",
+  "protocol_sha256": "11eb881e5c7114c4dd9eb0389bce79e4d1c703f3ae36e1010a5c199224a1977f",
+  "fresh_synthetic_result_sha256": "2302a26ff52b3895462dd7e0b082b10beca91c108492b28bd6ec01073e3d6f20",
+  "predictor_implementation_sha256": "4fd7afca9545a6ed31225b177edf64c656987ab011d06b52633e44657d530fda",
+  "real_io_cli_sha256": "f5a65b7ed84208956a5de968713433194a77f54b8c2629be5dadc85a8a804701",
+  "authorization": {
+    "bounded_playback_and_capture_authorized": true,
+    "standing_live_audio_run_authorization": true,
+    "project_use": "personal non-commercial research"
+  },
+  "fixed_geometry": {
+    "input_device": ":0",
+    "input_hardware": "XVF3800 fused two-channel USB capture",
+    "output_device_index": 2,
+    "speakers": "two small speakers vertically stacked at the board 180-degree mark and facing the microphone array",
+    "distance_cm": 50,
+    "hardware_volume": "maximum",
+    "software_playback_cap_db": -18,
+    "room": "semi-quiet with laptop fan in background",
+    "quiet_room_flag_confirmed": true
+  },
+  "bounded_execution": {
+    "trial_count": 12,
+    "seconds_per_trial": 6.3,
+    "maximum_total_playback_seconds": 75.6,
+    "development_seeds": [14101, 14107, 14109],
+    "held_out_seeds": [14111, 14117, 14123],
+    "expected_wav_artifact_count": 24,
+    "artifact_directory": "2026-07-10-dropout-v5-real-artifacts"
+  },
+  "fixed_conditions": {
+    "development_vowel_f0_hz": [115, 145, 175],
+    "held_out_vowel_f0_hz": 205,
+    "held_out_dropout_fractions": [0.10, 0.15, 0.20],
+    "dropout_burst_ms": 5,
+    "dropout_scope": "grammar tokens only; calibration remains clean",
+    "missingness_mask": "source-sample erasures known to motor/efference path; token labels are not consumed"
+  },
+  "fixed_acceptance_rule_for_each_tone_and_vowel_family": {
+    "held_out_codebook_occupancy": 4,
+    "minimum_pooled_accuracy_improvement": 0.20,
+    "minimum_each_trial_accuracy_improvement": 0.15,
+    "each_named_condition_state_occupancy": 4,
+    "required_named_condition_count": 3,
+    "maximum_bounded_state_scalars": 68,
+    "top_down_prediction_must_be_consumed": true
+  },
+  "integrity_requirements": {
+    "playback_backend": "ffmpeg_audiotoolbox",
+    "capture_backend": "ffmpeg_avfoundation",
+    "capture_channels": 2,
+    "alignment_chirp_required_every_trial": true,
+    "stream_position_verification_required": true,
+    "sha256_required_for_every_efference_and_capture_wav": true
+  },
+  "failure_and_retry_policy": "Retain any acceptance or integrity failure. If execution fails before the first playback starts, one mechanical retry with unchanged code, geometry, seeds, and thresholds is allowed after diagnosis. Once playback begins, do not rerun this confirmatory manifest to replace a result.",
+  "claim_boundary": "A pass supports representation stability and predictive advantage under known self-generated 10/15/20% source erasures after one fixed real speaker-room-microphone transfer. It does not infer arbitrary-world missingness, establish semantic prediction, or generalize to unknown dropout timing or geometry."
+}

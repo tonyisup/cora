@@ -973,10 +973,6 @@ def structured_prediction_cli(args: list[str]) -> dict[str, object]:
         raise ValueError(
             "dropout_v4 failed its fresh synthetic design gate; real I/O is prohibited"
         )
-    if variant == "dropout_v5" and real_io:
-        raise ValueError(
-            "dropout_v5 fresh synthetic gate is pending; real I/O is prohibited"
-        )
     geometry: dict[str, object] | None = None
     playback_fn = None
     capture_fn = None

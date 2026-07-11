@@ -532,7 +532,7 @@ def test_mask_aware_dropout_signature_passes_spent_v4_matrix(tmp_path) -> None:
     assert vowels["minimum_trial_improvement"] >= 0.15
 
 
-def test_dropout_v5_plan_is_fresh_and_real_io_stays_blocked(tmp_path) -> None:
+def test_dropout_v5_plan_is_fresh_and_real_io_requires_authorization(tmp_path) -> None:
     prior = set(DROPOUT_V4_DEVELOPMENT_SEEDS) | set(DROPOUT_V4_HELD_OUT_SEEDS)
     planned = structured_prediction_cli(
         [
@@ -552,23 +552,18 @@ def test_dropout_v5_plan_is_fresh_and_real_io_stays_blocked(tmp_path) -> None:
     assert planned["representation"]["signature_mode"] == (
         "efference_masked_mean_30_5"
     )
-    with pytest.raises(ValueError, match="fresh synthetic gate is pending"):
-        structured_prediction_cli(
-            [
-                "--evaluate-structured-prediction",
-                "--out-dir",
-                str(tmp_path / "real"),
-                "--variant",
-                "dropout_v5",
-                "--real-io",
-                "--authorize-bounded-playback",
-                "--speaker-distance-cm",
-                "50",
-                "--speaker-orientation",
-                "180deg",
-                "--quiet-room-confirmed",
-            ]
-        )
+    blocked = structured_prediction_cli(
+        [
+            "--evaluate-structured-prediction",
+            "--out-dir",
+            str(tmp_path / "real"),
+            "--variant",
+            "dropout_v5",
+            "--real-io",
+        ]
+    )
+    assert blocked["verdict"] == "blocked_bounded_live_io_not_authorized"
+    assert blocked["live_playback"] is False
 
 
 def test_retained_dropout_v5_fresh_synthetic_gate_passed() -> None:
