@@ -55,3 +55,11 @@ shared geometric closure: combined acoustic/equivalence agreement was `0.40`,
 and target-to-final F1/F2/F3 MAE was `16/54/142 Hz`. The result therefore fails
 both forward and closure gates. Same-point capacity, threshold, or search-step
 tuning is prohibited.
+
+The retained
+[post-hoc analysis](evidence/2026-07-11-h4-option-g-failure-analysis.json)
+does not select new thresholds. Held-out error correlated with constriction
+magnitude (`r=0.415`) and was higher near hard prototype boundaries: mean error
+fell from `0.332` in the lowest boundary-margin quartile to `0.265` in the
+highest. This supports a future smooth partition-of-unity local mechanism on
+disjoint points, not a larger Option G codebook or gate relaxation.
