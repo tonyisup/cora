@@ -1,0 +1,201 @@
+{
+  "experiment": "natural_event_prediction_component_ablations",
+  "date": "2026-07-10",
+  "evidence_class": "post_confirmation_spent_real_audio",
+  "parent_confirmation": "2026-07-10-natural-event-cross-fieldsite-result.json",
+  "source_hashes": {
+    "src/cora_infans/natural_event_prediction.py": "d44754a5dd06095f2767de62755da5b5255b66b3648894ede3b0479c077d6418",
+    "src/cora_infans/cli.py": "0ad4e411f89ae284db3fdb3ef22375b293d93614bb92ce754bc5e2f53387d53c",
+    "docs/evidence/2026-07-10-natural-event-cross-fieldsite-result.json": "25f05865c9f984081a3fbdb8005577827f067f070430c836d2d0003c7240882e"
+  },
+  "report": {
+    "mode": "natural_event_prediction_component_ablations",
+    "evidence_class": "post_confirmation_spent_real_audio",
+    "config": {
+      "frame_ms": 50,
+      "calibration_ms": 2000,
+      "quiet_quantile": 0.4,
+      "novelty_quantile": 0.75
+    },
+    "development_participants": [
+      "BEJ06",
+      "BEJ07",
+      "BEJ11",
+      "BEJ21"
+    ],
+    "evaluation_participants": [
+      "WEL01",
+      "WEL02",
+      "WEL03",
+      "WEL04"
+    ],
+    "participant_overlap_count": 0,
+    "same_four_state_target_for_every_strategy": true,
+    "summaries": {
+      "full_current_event_top_down": {
+        "mean_clip_accuracy": 0.7599678308684203,
+        "minimum_clip_accuracy": 0.5588235294117647,
+        "state_scalars": 16,
+        "full_wins": null
+      },
+      "no_bottom_up_event_workspace": {
+        "mean_clip_accuracy": 0.24314669944462125,
+        "minimum_clip_accuracy": 0.023166023166023165,
+        "state_scalars": 4,
+        "full_wins": 8
+      },
+      "no_top_down_prediction_consumption": {
+        "mean_clip_accuracy": 0.6843527885478174,
+        "minimum_clip_accuracy": 0.4117647058823529,
+        "state_scalars": 0,
+        "full_wins": 8
+      },
+      "quiet_saliency_event_hidden": {
+        "mean_clip_accuracy": 0.6688309740720387,
+        "minimum_clip_accuracy": 0.40468227424749165,
+        "state_scalars": 16,
+        "full_wins": 7
+      }
+    },
+    "criteria": {
+      "full_beats_no_bottom_up_on_at_least_six_clips": true,
+      "full_beats_no_top_down_on_at_least_six_clips": true,
+      "quiet_event_improves_mean_accuracy": true,
+      "bounded_full_state": true
+    },
+    "all_component_criteria_passed": true,
+    "clips": [
+      {
+        "clip_id": "WEL01B",
+        "prediction_count": 162,
+        "accuracies": {
+          "full_current_event_top_down": 0.8827160493827161,
+          "no_bottom_up_event_workspace": 0.24691358024691357,
+          "no_top_down_prediction_consumption": 0.8395061728395061,
+          "quiet_saliency_event_hidden": 0.7283950617283951
+        },
+        "full_minus_ablated_accuracy": {
+          "no_bottom_up_event_workspace": 0.6358024691358025,
+          "no_top_down_prediction_consumption": 0.04320987654320996,
+          "quiet_saliency_event_hidden": 0.154320987654321
+        }
+      },
+      {
+        "clip_id": "WEL01D",
+        "prediction_count": 374,
+        "accuracies": {
+          "full_current_event_top_down": 0.8689839572192514,
+          "no_bottom_up_event_workspace": 0.05614973262032086,
+          "no_top_down_prediction_consumption": 0.8582887700534759,
+          "quiet_saliency_event_hidden": 0.8636363636363636
+        },
+        "full_minus_ablated_accuracy": {
+          "no_bottom_up_event_workspace": 0.8128342245989305,
+          "no_top_down_prediction_consumption": 0.010695187165775444,
+          "quiet_saliency_event_hidden": 0.005347593582887722
+        }
+      },
+      {
+        "clip_id": "WEL02B",
+        "prediction_count": 125,
+        "accuracies": {
+          "full_current_event_top_down": 0.8,
+          "no_bottom_up_event_workspace": 0.064,
+          "no_top_down_prediction_consumption": 0.776,
+          "quiet_saliency_event_hidden": 0.784
+        },
+        "full_minus_ablated_accuracy": {
+          "no_bottom_up_event_workspace": 0.736,
+          "no_top_down_prediction_consumption": 0.02400000000000002,
+          "quiet_saliency_event_hidden": 0.016000000000000014
+        }
+      },
+      {
+        "clip_id": "WEL02D",
+        "prediction_count": 91,
+        "accuracies": {
+          "full_current_event_top_down": 0.6043956043956044,
+          "no_bottom_up_event_workspace": 0.24175824175824176,
+          "no_top_down_prediction_consumption": 0.4945054945054945,
+          "quiet_saliency_event_hidden": 0.5714285714285714
+        },
+        "full_minus_ablated_accuracy": {
+          "no_bottom_up_event_workspace": 0.36263736263736257,
+          "no_top_down_prediction_consumption": 0.10989010989010983,
+          "quiet_saliency_event_hidden": 0.03296703296703296
+        }
+      },
+      {
+        "clip_id": "WEL03B",
+        "prediction_count": 34,
+        "accuracies": {
+          "full_current_event_top_down": 0.5588235294117647,
+          "no_bottom_up_event_workspace": 0.35294117647058826,
+          "no_top_down_prediction_consumption": 0.4117647058823529,
+          "quiet_saliency_event_hidden": 0.5294117647058824
+        },
+        "full_minus_ablated_accuracy": {
+          "no_bottom_up_event_workspace": 0.20588235294117646,
+          "no_top_down_prediction_consumption": 0.1470588235294118,
+          "quiet_saliency_event_hidden": 0.02941176470588236
+        }
+      },
+      {
+        "clip_id": "WEL03D",
+        "prediction_count": 259,
+        "accuracies": {
+          "full_current_event_top_down": 0.918918918918919,
+          "no_bottom_up_event_workspace": 0.023166023166023165,
+          "no_top_down_prediction_consumption": 0.9034749034749034,
+          "quiet_saliency_event_hidden": 0.9266409266409267
+        },
+        "full_minus_ablated_accuracy": {
+          "no_bottom_up_event_workspace": 0.8957528957528959,
+          "no_top_down_prediction_consumption": 0.015444015444015524,
+          "quiet_saliency_event_hidden": -0.007722007722007707
+        }
+      },
+      {
+        "clip_id": "WEL04B",
+        "prediction_count": 212,
+        "accuracies": {
+          "full_current_event_top_down": 0.6933962264150944,
+          "no_bottom_up_event_workspace": 0.41509433962264153,
+          "no_top_down_prediction_consumption": 0.5424528301886793,
+          "quiet_saliency_event_hidden": 0.5424528301886793
+        },
+        "full_minus_ablated_accuracy": {
+          "no_bottom_up_event_workspace": 0.2783018867924528,
+          "no_top_down_prediction_consumption": 0.15094339622641506,
+          "quiet_saliency_event_hidden": 0.15094339622641506
+        }
+      },
+      {
+        "clip_id": "WEL04D",
+        "prediction_count": 299,
+        "accuracies": {
+          "full_current_event_top_down": 0.7525083612040134,
+          "no_bottom_up_event_workspace": 0.5451505016722408,
+          "no_top_down_prediction_consumption": 0.6488294314381271,
+          "quiet_saliency_event_hidden": 0.40468227424749165
+        },
+        "full_minus_ablated_accuracy": {
+          "no_bottom_up_event_workspace": 0.20735785953177266,
+          "no_top_down_prediction_consumption": 0.10367892976588633,
+          "quiet_saliency_event_hidden": 0.3478260869565218
+        }
+      }
+    ],
+    "claim_boundary": "Descriptive component evidence on now-spent Wellington confirmation audio; not a new held-out promotion and not an H3 workspace test."
+  },
+  "interpretation": {
+    "bottom_up_current_event_is_material": true,
+    "learned_top_down_transition_is_material": true,
+    "quiet_saliency_event_is_material": true,
+    "full_mean_accuracy": 0.7599678308684203,
+    "full_minus_quiet_hidden_mean_accuracy": 0.09113685679638162,
+    "promotion_allowed": false
+  },
+  "decision": "Retain the complete natural-event mechanism for the next independent confirmation. Do not remove current-event context, learned top-down transition consumption, or the quiet event.",
+  "claim_boundary": "These ablations explain the already-passed Wellington result. Because they were designed after observing that confirmation and reuse its audio, they do not independently promote H2 and do not test the separate H3 bounded-workspace hypothesis."
+}

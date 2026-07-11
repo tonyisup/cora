@@ -245,6 +245,18 @@ python3 -m cora_infans --evaluate-natural-event-transfer \
 The retained preregistration and result record all external WAV hashes. The
 learner and scoring never consume the B/D condition labels.
 
+Post-confirmation component ablations are also available:
+
+```bash
+python3 -m cora_infans --evaluate-natural-event-ablations \
+  --development-root /path/to/beijing-development-wavs \
+  --development-participants BEJ06,BEJ07,BEJ11,BEJ21 \
+  --held-out-root /path/to/spent-wellington-wavs \
+  --held-out-participants WEL01,WEL02,WEL03,WEL04
+```
+
+These explain the retained result; they cannot promote it again.
+
 Replay retained Corollary real-capture arrays without copying them:
 
 ```bash
@@ -368,6 +380,12 @@ developmental language learning.
   improvement `+0.0107`, and at least three occupied states per clip. This is
   positive cross-fieldsite event-dynamics evidence, not content, semantic, or
   IDS/ADS prediction.
+- Post-confirmation ablations on the now-spent Wellington clips support the
+  mechanism's parts: the full model beat removal of bottom-up event context and
+  removal of learned top-down transition use on `8/8` clips each. Hiding the
+  quiet/saliency event reduced mean accuracy from `0.7600` to `0.6688`. These
+  are descriptive component results, not another held-out promotion or an H3
+  workspace test.
 - Theta/gamma scheduling is an event-timing model, not measured neural dynamics.
 - The vowel table uses adult reference targets and clean synthetic success does
   not imply recorded infant/adult speech performance.

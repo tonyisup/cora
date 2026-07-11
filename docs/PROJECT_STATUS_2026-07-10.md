@@ -302,6 +302,12 @@ research contract and implements the first vertical evidence path.
 - This is positive cross-fieldsite natural event-dynamics evidence. It does not
   establish semantic/content prediction, IDS/ADS recognition, arbitrary-
   language transfer, or repair the separate controlled-dropout collapse.
+- On the now-spent Wellington confirmation clips, post-confirmation component
+  ablations retained the original four-state target. The full mechanism beat
+  no bottom-up event context and no learned top-down consumption on `8/8` clips
+  each. Hiding quiet/saliency context reduced mean accuracy from `0.7600` to
+  `0.6688`, with the full path winning `7/8`. This supports causal anatomy only;
+  it is not another promotion and does not stand in for H3 workspace evidence.
 
 ### Prior-art real-capture replay
 

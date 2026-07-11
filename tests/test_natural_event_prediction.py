@@ -10,6 +10,7 @@ from cora_infans.io.motor_plan import write_wav
 from cora_infans.natural_event_prediction import (
     NaturalEventConfig,
     audit_natural_event_grid,
+    evaluate_natural_event_ablations,
     evaluate_natural_event_cross_fieldsite,
     evaluate_natural_event_leave_one_participant_out,
     extract_natural_event_states,
@@ -98,6 +99,26 @@ def test_event_grid_and_cross_fieldsite_reports_are_deterministic(tmp_path) -> N
         "natural_event_transfer_passed",
         "natural_event_transfer_failed",
     }
+
+
+def test_event_component_ablations_share_target_and_are_bounded(tmp_path) -> None:
+    development = ("D01", "D02", "D03", "D04")
+    held_out = ("H01", "H02", "H03", "H04")
+    _write_event_clips(tmp_path, development + held_out)
+
+    report = evaluate_natural_event_ablations(
+        development_root=tmp_path,
+        development_participants=development,
+        evaluation_root=tmp_path,
+        evaluation_participants=held_out,
+        config=NaturalEventConfig(),
+    )
+
+    assert report["same_four_state_target_for_every_strategy"] is True
+    assert report["participant_overlap_count"] == 0
+    assert report["summaries"]["full_current_event_top_down"]["state_scalars"] == 16
+    assert report["summaries"]["no_bottom_up_event_workspace"]["state_scalars"] == 4
+    assert len(report["clips"]) == 8
 
 
 def test_retained_cross_fieldsite_evidence_matches_preregistration() -> None:

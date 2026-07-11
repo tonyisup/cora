@@ -80,6 +80,7 @@ from .natural_prediction_audit import audit_natural_prediction_grid
 from .natural_event_prediction import (
     NaturalEventConfig,
     audit_natural_event_grid,
+    evaluate_natural_event_ablations,
     evaluate_natural_event_cross_fieldsite,
 )
 from .live_speak_smoke import (
@@ -1098,14 +1099,30 @@ def natural_event_cli(args: list[str]) -> dict[str, object]:
     }
     if required - values.keys():
         raise ValueError("development and held-out roots/participants are required")
-    return evaluate_natural_event_cross_fieldsite(
-        development_root=values["--development-root"],
-        development_participants=tuple(
+    evaluator = (
+        evaluate_natural_event_ablations
+        if command == "--evaluate-natural-event-ablations"
+        else evaluate_natural_event_cross_fieldsite
+    )
+    evaluation_arguments = {
+        "development_root": values["--development-root"],
+        "development_participants": tuple(
             values["--development-participants"].split(",")
         ),
+        "config": NaturalEventConfig(),
+    }
+    if command == "--evaluate-natural-event-ablations":
+        return evaluator(
+            **evaluation_arguments,
+            evaluation_root=values["--held-out-root"],
+            evaluation_participants=tuple(
+                values["--held-out-participants"].split(",")
+            ),
+        )
+    return evaluator(
+        **evaluation_arguments,
         held_out_root=values["--held-out-root"],
         held_out_participants=tuple(values["--held-out-participants"].split(",")),
-        config=NaturalEventConfig(),
     )
 
 
@@ -1970,6 +1987,7 @@ def main(argv: list[str] | None = None) -> int:
     if args and args[0] in {
         "--evaluate-natural-event-design",
         "--evaluate-natural-event-transfer",
+        "--evaluate-natural-event-ablations",
     }:
         try:
             print(json.dumps(natural_event_cli(args)))
@@ -2099,6 +2117,7 @@ def main(argv: list[str] | None = None) -> int:
         "[--evaluate-natural-prediction-design --root DIR --participants ID,ID,ID] "
         "[--evaluate-natural-event-design --root DIR --participants ID,ID,ID] "
         "[--evaluate-natural-event-transfer --development-root DIR --development-participants ID,ID --held-out-root DIR --held-out-participants ID,ID] "
+        "[--evaluate-natural-event-ablations --development-root DIR --development-participants ID,ID --held-out-root DIR --held-out-participants ID,ID] "
         "[--simulate-self-suppression [--vowel a|e|i|o|u] [--world-vowel a|e|i|o|u] [--world-gain F] [--duration-ms N] [--sample-rate N]] "
         "[--learn-self-forward-model [--vowel a|e|i|o|u] [--observed-delay-ms F] [--observed-attenuation F] [--observed-echo-decay F] [--world-vowel a|e|i|o|u] [--world-gain F]] "
         "[--sweep-self-forward-model [--vowel a|e|i|o|u] [--delay-errors-ms csv] [--attenuation-scales csv] [--echo-decay-scales csv] [--world-vowel a|e|i|o|u] [--world-gain F]] "

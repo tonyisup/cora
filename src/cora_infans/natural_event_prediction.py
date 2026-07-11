@@ -86,6 +86,143 @@ def _accuracy(actual: list[int], predicted: list[int]) -> float:
     return sum(a == p for a, p in zip(actual, predicted)) / len(actual)
 
 
+def _fit_mapped_transition(
+    sequences: list[list[int]], input_map: tuple[int, int, int, int]
+) -> np.ndarray:
+    counts = np.full((4, 4), 0.5, dtype=np.float64)
+    for states in sequences:
+        for current, following in zip(states, states[1:]):
+            counts[input_map[current], following] += 1.0
+    return counts
+
+
+def evaluate_natural_event_ablations(
+    *,
+    development_root: str | Path,
+    development_participants: Iterable[str],
+    evaluation_root: str | Path,
+    evaluation_participants: Iterable[str],
+    config: NaturalEventConfig,
+    condition_suffixes: tuple[str, ...] = ("B", "D"),
+) -> dict[str, object]:
+    """Post-confirmation component ablations on already-spent natural audio.
+
+    Every strategy predicts the same original four-state next-event target. The
+    ablations remove the current bottom-up event, ignore the learned top-down
+    prediction, or hide quiet observations from the transition context.
+    """
+
+    development_ids = tuple(development_participants)
+    evaluation_ids = tuple(evaluation_participants)
+    if set(development_ids) & set(evaluation_ids):
+        raise ValueError("natural event ablation participants must be disjoint")
+    development_sequences = [
+        extract_natural_event_states(
+            Path(development_root) / f"{participant}{suffix}.wav", config
+        )[0]
+        for participant in development_ids
+        for suffix in condition_suffixes
+    ]
+    development_states = [
+        state for sequence in development_sequences for state in sequence
+    ]
+    unigram = int(np.argmax(np.bincount(development_states, minlength=4)))
+    full_counts = _fit_mapped_transition(development_sequences, (0, 1, 2, 3))
+    quiet_hidden_counts = _fit_mapped_transition(
+        development_sequences, (2, 1, 2, 3)
+    )
+
+    clips = []
+    for participant in evaluation_ids:
+        for suffix in condition_suffixes:
+            states, _thresholds = extract_natural_event_states(
+                Path(evaluation_root) / f"{participant}{suffix}.wav", config
+            )
+            current = states[:-1]
+            actual = states[1:]
+            predictions = {
+                "full_current_event_top_down": [
+                    int(np.argmax(full_counts[state])) for state in current
+                ],
+                "no_bottom_up_event_workspace": [unigram] * len(actual),
+                "no_top_down_prediction_consumption": current,
+                "quiet_saliency_event_hidden": [
+                    int(np.argmax(quiet_hidden_counts[2 if state == 0 else state]))
+                    for state in current
+                ],
+            }
+            accuracies = {
+                name: _accuracy(actual, predicted)
+                for name, predicted in predictions.items()
+            }
+            full = accuracies["full_current_event_top_down"]
+            clips.append(
+                {
+                    "clip_id": f"{participant}{suffix}",
+                    "prediction_count": len(actual),
+                    "accuracies": accuracies,
+                    "full_minus_ablated_accuracy": {
+                        name: full - accuracy
+                        for name, accuracy in accuracies.items()
+                        if name != "full_current_event_top_down"
+                    },
+                }
+            )
+
+    strategies = tuple(clips[0]["accuracies"])
+    summaries = {}
+    full_name = "full_current_event_top_down"
+    for name in strategies:
+        accuracies = [float(clip["accuracies"][name]) for clip in clips]
+        summaries[name] = {
+            "mean_clip_accuracy": float(np.mean(accuracies)),
+            "minimum_clip_accuracy": min(accuracies),
+            "state_scalars": 16 if name in {
+                full_name,
+                "quiet_saliency_event_hidden",
+            } else (4 if name == "no_bottom_up_event_workspace" else 0),
+            "full_wins": (
+                None
+                if name == full_name
+                else sum(
+                    float(clip["accuracies"][full_name])
+                    > float(clip["accuracies"][name])
+                    for clip in clips
+                )
+            ),
+        }
+    criteria = {
+        "full_beats_no_bottom_up_on_at_least_six_clips": (
+            summaries["no_bottom_up_event_workspace"]["full_wins"] >= 6
+        ),
+        "full_beats_no_top_down_on_at_least_six_clips": (
+            summaries["no_top_down_prediction_consumption"]["full_wins"] >= 6
+        ),
+        "quiet_event_improves_mean_accuracy": (
+            summaries[full_name]["mean_clip_accuracy"]
+            > summaries["quiet_saliency_event_hidden"]["mean_clip_accuracy"]
+        ),
+        "bounded_full_state": summaries[full_name]["state_scalars"] <= 16,
+    }
+    return {
+        "mode": "natural_event_prediction_component_ablations",
+        "evidence_class": "post_confirmation_spent_real_audio",
+        "config": asdict(config),
+        "development_participants": list(development_ids),
+        "evaluation_participants": list(evaluation_ids),
+        "participant_overlap_count": 0,
+        "same_four_state_target_for_every_strategy": True,
+        "summaries": summaries,
+        "criteria": criteria,
+        "all_component_criteria_passed": all(criteria.values()),
+        "clips": clips,
+        "claim_boundary": (
+            "Descriptive component evidence on now-spent Wellington confirmation "
+            "audio; not a new held-out promotion and not an H3 workspace test."
+        ),
+    }
+
+
 def _fit_event_model(
     *,
     root: Path,

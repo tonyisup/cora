@@ -373,6 +373,14 @@ Current evidence:
   materially supports H2's core bounded local-prediction claim on natural audio,
   but it is not semantic prediction, IDS/ADS discrimination, arbitrary-language
   generality, or evidence that the separate controlled-dropout failure is fixed.
+- post-confirmation ablations on the now-spent Wellington clips kept the same
+  four-state target. The full mechanism beat removing current bottom-up event
+  context and ignoring learned top-down transition predictions on all `8/8`
+  clips; hiding the quiet/saliency event reduced mean accuracy from `0.7600` to
+  `0.6688` and lost on `7/8` clips;
+- those ablations support the component data flow but cannot promote the result
+  again, and their event-context proxy is not evidence for H3's bounded event
+  workspace.
 
 Promotion criterion:
 
@@ -381,8 +389,9 @@ Promotion criterion:
 
 The controlled mechanism and one preregistered Beijing-to-Wellington natural
 event transfer are now positive. Full Stage 3 promotion still requires the
-specified hierarchy/workspace/saliency ablations and evidence that the result
-is not confined to this event definition and fieldsite pair.
+separate H3 workspace evidence and evidence that the result is not confined to
+this event definition and fieldsite pair. The H2 bottom-up/top-down/saliency
+component ablations are positive but post-confirmation.
 
 ### Stage 4 — Workspace binding
 
