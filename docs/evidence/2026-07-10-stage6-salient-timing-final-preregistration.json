@@ -1,0 +1,28 @@
+{
+  "experiment": "stage6_callback_salient_workload_timing_final_attempt",
+  "date": "2026-07-10",
+  "status": "frozen_before_final_attempt_playback_capture",
+  "parents": [
+    "docs/evidence/2026-07-10-stage6-salient-timing-preregistration.json",
+    "docs/evidence/2026-07-10-stage6-salient-timing-retry-preregistration.json",
+    "docs/evidence/2026-07-10-stage6-salient-timing-retry-1-audit.json"
+  ],
+  "single_changed_variable": {
+    "stimulus_playback_gain_db": {
+      "from": -6.0,
+      "to": -12.0
+    }
+  },
+  "rationale": "The -6 dB attempt reduced clipping by 98.16% while retaining 49 salient frames. A final 6 dB reduction is a bounded capture-quality correction, not threshold tuning.",
+  "unchanged": [
+    "three 10-second replicates of 400 frames each",
+    "XVF3800 callback input at 16 kHz and 25 ms frames",
+    "external-world device 2, 180 degrees, 50 cm, hardware volume maximum",
+    "stimulus contour and duration",
+    "saliency threshold 0.02 and minimum 20 emitted salient frames per run",
+    "all timing, capture-quality, resource, and provenance criteria"
+  ],
+  "command": ".venv/bin/python -m cora_infans --listen-live --duration-ms 10000 --frame-ms 25 --sample-rate 16000 --capture-backend callback --with-stimulus --stimulus-volume-db -12",
+  "attempt_limit": 1,
+  "stop_rule": "If any final-attempt run clips, fails to emit 20 salient frames, or fails another frozen criterion, retain the failure and stop this stimulus series without another gain or threshold change."
+}

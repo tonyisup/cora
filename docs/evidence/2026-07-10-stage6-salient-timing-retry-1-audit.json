@@ -1,0 +1,20 @@
+{
+  "experiment": "stage6_callback_salient_workload_timing_retry_1",
+  "date": "2026-07-10",
+  "status": "capture_clipping_gate_failed",
+  "stimulus_playback_gain_db": -6.0,
+  "frame_count": 400,
+  "salient_frame_count": 49,
+  "salient_adc_frame_end_to_workspace_p95_ms": 10.18508339766413,
+  "salient_device_operational_deadline_miss_rate": 0.0,
+  "capture_peak_absolute": 1.0,
+  "captured_sample_count": 320000,
+  "clipped_sample_count": 107,
+  "clipped_sample_fraction": 0.000334375,
+  "clipping_reduction_from_plus_12_db_percent": 98.1646655231561,
+  "input_overflow_count": 0,
+  "callback_status_count": 0,
+  "timestamp_discontinuity_count": 0,
+  "promotion_allowed": false,
+  "disposition": "Stop retry 1 after its first run. A final -12 dB attempt may change only digital playback gain; no further gain retry is allowed."
+}
