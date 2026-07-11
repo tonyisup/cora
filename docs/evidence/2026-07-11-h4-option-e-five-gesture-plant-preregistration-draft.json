@@ -1,0 +1,92 @@
+{
+  "experiment": "h4_option_e_factorized_five_gesture_plant",
+  "date": "2026-07-11",
+  "status": "design_draft_not_execution_ready",
+  "authorization": {
+    "basis": "User selected the recommended expanded one-dimensional area-function plant.",
+    "authorized_scope": "design and preregistration of a synthetic-only plant-expressivity candidate",
+    "candidate_metric_execution_authorized": false,
+    "forward_learning_authorized": false,
+    "inverse_search_authorized": false,
+    "recorded_audio_authorized": false,
+    "protected_data_access_authorized": false
+  },
+  "parent_result": "docs/evidence/2026-07-11-h4-option-d-synthetic-result.json",
+  "design_memo": "docs/H4_OPTION_E_FACTORIZED_FIVE_GESTURE_PLANT.md",
+  "research_question": "Can a factorized five-coordinate area-function plant provide five distinct, locally robust a/e/i/o/u regions before any learner or inverse optimizer is introduced?",
+  "causal_revision": {
+    "retained": "bounded one-dimensional lossy transmission-line solver",
+    "replaced": "three coupled aperture/constriction/lip-length coordinates",
+    "new": "independent jaw aperture, constriction magnitude, constriction position, lip aperture, and lip protrusion controls"
+  },
+  "motor": {
+    "coordinates": [
+      "functional_jaw_aperture",
+      "constriction_magnitude",
+      "constriction_position",
+      "lip_aperture",
+      "lip_protrusion_length"
+    ],
+    "bounds_each": [0.0, 1.0],
+    "anatomical_measurement_claimed": false
+  },
+  "controlled_solver": {
+    "section_count": 10,
+    "air_density_kg_m3": 1.14,
+    "sound_speed_cm_s": 35000.0,
+    "propagation_attenuation_per_cm": "0.002+0.00001*f_hz",
+    "lip_termination": "same equation as frozen Option D unless the final preregistration documents a change",
+    "sample_rate_hz": 16000,
+    "duration_ms": 160,
+    "f0_conditions_hz": [90.0, 110.0, 140.0, 180.0],
+    "analytic_formant_grid_hz": [80.0, 3500.0, 5.0],
+    "waveform_peak": 0.95
+  },
+  "plant_mapping_unresolved": {
+    "neutral_area_cm2": null,
+    "jaw_spatial_weights_and_gain": null,
+    "constriction_depth_range": null,
+    "constriction_center_range": null,
+    "constriction_width": null,
+    "lip_aperture_weights_and_gain": null,
+    "lip_protrusion_area_effect": null,
+    "tract_length_equation_cm": null,
+    "area_bounds_cm2": null
+  },
+  "data_isolation": {
+    "sequence": "five-dimensional Halton sequence in bases 2,3,5,7,11",
+    "option_d_indices_reused_as_evidence": false,
+    "all_option_e_indices_minimum": 4097,
+    "design_indices_inclusive": null,
+    "confirmation_indices_inclusive": null,
+    "confirmation_unopened_until_coefficients_frozen": true,
+    "design_attempts_retained": true
+  },
+  "plant_gates_unresolved": {
+    "target_selection_rule": null,
+    "local_neighborhood_offsets": null,
+    "canonical_identity_rule": "existing post-hoc nearest a/e/i/o/u reference-formant identity",
+    "maximum_relative_formant_rmse": null,
+    "maximum_f1_mae_hz": null,
+    "maximum_f2_mae_hz": null,
+    "maximum_f3_mae_hz": null,
+    "minimum_pairwise_region_separation": null,
+    "minimum_valid_neighborhood_fraction_per_vowel": null,
+    "all_numerical_and_physical_contracts_required": true
+  },
+  "stage_rule": "Run plant expressivity before babbling. A failed frozen plant confirmation stops the workflow. A full pass permits drafting, but not executing, a separate local-forward and inverse preregistration.",
+  "recorded_data_boundary": {
+    "recorded_audio_access_under_this_protocol": false,
+    "vocalset_protected": ["female6", "female7", "female9", "male9", "male11"],
+    "cmu_protected_confirmation": ["rms", "awb", "axb", "eey", "ljm"],
+    "cmu_protected_reserve": ["aew", "ahw", "aup", "fem", "gka", "lnh", "rxr", "slp"]
+  },
+  "unresolved_fields": [
+    "plant mapping coefficients",
+    "design and confirmation Halton ranges",
+    "target selection and neighborhood construction",
+    "formant and region-separation thresholds"
+  ],
+  "execution_ready": false,
+  "promotion_allowed": false
+}

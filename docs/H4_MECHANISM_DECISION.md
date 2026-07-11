@@ -164,3 +164,17 @@ Following the failed Option B candidate:
 The completed Option B workflow followed a preregistration over already-spent
 development data. Its failure is not permission to access protected
 confirmation audio.
+
+## Subsequent plant direction
+
+After retaining the Option D failure, the user selected an expanded
+one-dimensional area-function plant as the next design direction. The
+[Option E memo](H4_OPTION_E_FACTORIZED_FIVE_GESTURE_PLANT.md) separates jaw
+aperture, constriction magnitude, constriction position, lip aperture, and lip
+protrusion. Its first protocol is plant-only: expressivity must pass before any
+babbling or inverse learner is considered.
+
+The companion
+[preregistration draft](evidence/2026-07-11-h4-option-e-five-gesture-plant-preregistration-draft.json)
+contains unresolved coefficients and gates and is not execution-ready. This
+design decision does not authorize a candidate run or recorded audio.
