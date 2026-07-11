@@ -27,6 +27,7 @@ def main() -> int:
     parser.add_argument("--root", required=True)
     parser.add_argument("--per-vowel", type=int, default=20)
     parser.add_argument("--minimum-duration-ms", type=float, default=120.0)
+    parser.add_argument("--exclude-label", action="append", default=[])
     args = parser.parse_args()
     root = Path(args.root)
     label_manifest = json.loads((root / "manifest.json").read_text())
@@ -37,12 +38,19 @@ def main() -> int:
 
     all_tokens = []
     wav_records = []
+    exclusions: dict[str, set[str]] = {speaker: set() for speaker in DEVELOPMENT_SPEAKERS}
+    for value in args.exclude_label:
+        speaker, separator, name = value.partition(":")
+        if separator != ":" or speaker not in exclusions or not name.endswith(".lab"):
+            raise ValueError("--exclude-label must be frozen-speaker:label.lab")
+        exclusions[speaker].add(name)
     minimum_duration_seconds = args.minimum_duration_ms / 1000.0
     for speaker in DEVELOPMENT_SPEAKERS:
         tokens = select_tokens(
             root / speaker / "lab",
             per_vowel=args.per_vowel,
             minimum_duration_seconds=minimum_duration_seconds,
+            excluded_label_names=exclusions[speaker],
         )
         for token in tokens:
             token["speaker"] = speaker
@@ -78,6 +86,11 @@ def main() -> int:
             "per_vowel_per_speaker": args.per_vowel,
             "minimum_duration_ms": args.minimum_duration_ms,
             "ordering": "label filename lexical, then segment order",
+            "source_integrity_exclusions": {
+                speaker: sorted(names)
+                for speaker, names in exclusions.items()
+                if names
+            },
         },
         "tokens": all_tokens,
         "wav_files": wav_records,

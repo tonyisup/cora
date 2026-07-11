@@ -47,3 +47,11 @@ def test_select_tokens_is_lexical_balanced_and_duration_bounded(tmp_path) -> Non
     assert {token["vowel"] for token in selected} == set("aeiou")
     assert {token["label_name"] for token in selected} == {"arctic_a0001.lab"}
     assert all(float(token["duration_seconds"]) >= 0.12 for token in selected)
+
+    replacement = select_tokens(
+        tmp_path,
+        per_vowel=1,
+        minimum_duration_seconds=0.12,
+        excluded_label_names={"arctic_a0001.lab"},
+    )
+    assert {token["label_name"] for token in replacement} == {"arctic_a0002.lab"}

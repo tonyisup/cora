@@ -66,12 +66,16 @@ def select_tokens(
     *,
     per_vowel: int,
     minimum_duration_seconds: float,
+    excluded_label_names: set[str] | None = None,
 ) -> list[dict[str, object]]:
     if per_vowel <= 0 or minimum_duration_seconds <= 0.0:
         raise ValueError("token selection limits must be positive")
     counts = {vowel: 0 for vowel in TARGET_PHONE_TO_VOWEL.values()}
     selected: list[dict[str, object]] = []
+    excluded = excluded_label_names or set()
     for label_path in sorted(Path(label_dir).glob("arctic_[ab][0-9][0-9][0-9][0-9].lab")):
+        if label_path.name in excluded:
+            continue
         for segment_index, segment in enumerate(
             parse_phone_labels(label_path.read_text())
         ):
