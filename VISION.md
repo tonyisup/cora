@@ -513,9 +513,10 @@ Current structured Cora protocol:
 - the concrete CLI route now exists but is fail-closed before output creation or
   callbacks. It requires an explicit bounded-playback flag and a committed
   preregistration matching the exact runner, CLI, I/O, protocol, and standing-
-  geometry hashes. The self source is now frozen centered directly below the
-  array at -90 degrees elevation and 100% system volume, but its center-to-
-  center distance remains null, so no hardware playback can occur yet.
+  geometry hashes. The final preregistration freezes the self source centered
+  directly below the array at a 4 cm center-to-center distance, -90 degrees
+  elevation, and 100% system volume. This preregistration is committed before
+  the first bounded hardware execution.
 
 ### Stage 5 — Perception-production closure
 

@@ -1,3 +1,4 @@
+import hashlib
 import json
 from pathlib import Path
 from threading import Barrier, Event
@@ -308,6 +309,39 @@ def test_workspace_preregistration_audit_requires_hashes_and_complete_self_geome
     assert "self source elevation must remain -90 degrees" in blocked["blockers"]
     assert "frozen hash mismatch: cli_sha256" in blocked["blockers"]
     assert "acceptance criteria do not match the frozen H3 gate" in blocked["blockers"]
+
+
+def test_final_workspace_preregistration_matches_current_code_and_geometry() -> None:
+    root = Path(__file__).resolve().parents[1]
+    preregistration = json.loads(
+        (
+            root
+            / "docs/evidence/2026-07-10-structured-workspace-real-preregistration.json"
+        ).read_text()
+    )
+    paths = {
+        "implementation_sha256": root
+        / "src/cora_infans/structured_workspace_binding.py",
+        "cli_sha256": root / "src/cora_infans/cli.py",
+        "io_sha256": root / "src/cora_infans/live_speak_smoke.py",
+        "protocol_sha256": root
+        / "docs/evidence/2026-07-10-structured-workspace-binding-protocol.json",
+        "standing_world_geometry_sha256": root
+        / "docs/evidence/2026-07-10-h3-standing-world-geometry.json",
+        "standing_self_placement_sha256": root
+        / "docs/evidence/2026-07-10-h3-standing-self-placement.json",
+    }
+    current_hashes = {
+        name: hashlib.sha256(path.read_bytes()).hexdigest()
+        for name, path in paths.items()
+    }
+
+    audit = audit_workspace_binding_preregistration(
+        preregistration, current_hashes=current_hashes
+    )
+
+    assert audit == {"verdict": "preregistration_ready", "ready": True, "blockers": []}
+    assert preregistration["hardware"]["self_source"]["vertical_distance_cm"] == 4
 
 
 def test_real_workspace_acquisition_rejects_unverified_backend_provenance(tmp_path) -> None:

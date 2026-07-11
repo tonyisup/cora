@@ -1,0 +1,72 @@
+{
+  "mode": "structured_workspace_binding_real_preregistration",
+  "date": "2026-07-10",
+  "status": "preregistered_before_live_execution",
+  "bounded_playback_capture_authorized": true,
+  "authorization_source": "user authorized repeated bounded live audio runs",
+  "frozen_hashes": {
+    "implementation_sha256": "945b58579dbe9bfd0dcfce9dcd890ecd3e4b0403683c6bb9c50832f208103347",
+    "cli_sha256": "7711d6759b56c157f1e5955918c6b84b6ba6899d046163823a26349d6f3851a2",
+    "io_sha256": "1cf10155c49dc32406b4936504f5af452be335ea73ee08f2d7a6fc7437f3f34b",
+    "protocol_sha256": "5b4be8f2ecc97a23e20f576ffd0110f9551762abad0422877040de7cc55df3dd",
+    "standing_world_geometry_sha256": "ba5d882c544c72ada6e43442df4bc41a71b1ae53de5ef0aa68bf8ad70218cd83",
+    "standing_self_placement_sha256": "05418cb52a8ac9e9a1aebb064bede69667ff181d8766afb68e8fbb5d56358a8b"
+  },
+  "hardware": {
+    "input": {
+      "avfoundation_device": ":0",
+      "device": "reSpeaker XVF3800 4-Mic Array",
+      "channels": 2,
+      "sample_rate": 16000
+    },
+    "self_source": {
+      "output_device_index": 3,
+      "output_device": "Mac mini Speakers",
+      "placement": "centered_directly_below_xvf3800",
+      "horizontal_offset_cm": 0,
+      "elevation_degrees": -90,
+      "vertical_distance_cm": 4,
+      "distance_reference": "XVF3800 array center to Mac mini chassis center",
+      "system_volume_percent": 100,
+      "playback_gain_db": 0.0
+    },
+    "world_source": {
+      "output_device_index": 2,
+      "output_device": "External Headphones",
+      "angle_degrees": 180,
+      "distance_cm": 50,
+      "hardware_volume": "max",
+      "playback_gain_db": 0.0
+    },
+    "environment": {
+      "room": "semi-quiet",
+      "known_background": "laptop fan"
+    }
+  },
+  "bounds": {
+    "trial_count": 15,
+    "per_trial_playback_seconds_max": 2.0,
+    "total_playback_seconds_max": 25.0,
+    "total_capture_seconds_max": 45.0,
+    "planned_playback_seconds": 19.5,
+    "planned_capture_seconds": 28.5
+  },
+  "acceptance": {
+    "selected_capacity": 3,
+    "scheduled_f1_min": 0.9,
+    "scheduled_minus_flat_f1_min": 0.2,
+    "scheduled_world_recall_min": 0.9,
+    "scheduled_self_suppression_specificity_min": 0.9,
+    "fixed_window_world_recall_must_be_below_scheduled": true,
+    "capacity_one_f1_must_be_below_capacity_three": true,
+    "capacity_three_f1_must_equal_capacity_four": true,
+    "all_15_captures_and_alignments_required": true
+  },
+  "execution": {
+    "command": "python3 -m cora_infans --evaluate-structured-workspace-binding --real-io --out-dir docs/evidence/2026-07-10-structured-workspace-real-artifacts --preregistration docs/evidence/2026-07-10-structured-workspace-real-preregistration.json --authorize-bounded-playback",
+    "fail_closed_before_callbacks": true,
+    "retry_policy": "retain each failed attempt and preregister any protocol change before retry"
+  },
+  "unresolved_fields": [],
+  "claim_boundary": "This preregistration is committed before live execution. Promotion requires every frozen real-capture acceptance criterion; a completed run alone is not success."
+}

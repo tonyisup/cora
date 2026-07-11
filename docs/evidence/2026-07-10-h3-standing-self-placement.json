@@ -10,11 +10,11 @@
     "horizontal_offset_cm": 0,
     "plan_view_azimuth": "undefined_at_zero_horizontal_offset",
     "elevation_degrees": -90,
-    "vertical_distance_cm": null,
+    "vertical_distance_cm": 4,
     "distance_reference": "XVF3800 array center to Mac mini chassis center",
     "system_volume_percent": 100,
     "playback_gain_db": 0.0
   },
   "interpretation": "The 0/90/180/270 diagram describes plan-view direction. A source directly below the array has no plan-view azimuth; representing it as 0 or 180 degrees would invent geometry. Elevation and zero horizontal offset preserve the confirmed physical relationship.",
-  "remaining": "Measure or set the vertical center-to-center distance before final preregistration."
+  "remaining": null
 }

@@ -326,12 +326,10 @@ The protocol uses held-out self/world frequency bands, self-only/world-only/
 overlap conditions, flat and fixed-window baselines, and a 1–4 binding-slot
 sweep. Generic dual-track concurrency and chirp-aligned two-channel capture
 evaluation are tested. A real-I/O CLI path is now wired behind a fail-closed,
-hash-bound preregistration gate; the committed draft deliberately has null Mac
-mini distance. Its self source is otherwise frozen centered directly below the
-array at -90 degrees elevation and 100% system volume. The missing distance
-prevents it from invoking audio callbacks or creating a run directory. Once it
-is supplied and the preregistration is finalized, the bounded command uses
-device 3 for self, device 2 for world, and XVF3800 input `:0`.
+hash-bound preregistration gate. The final preregistration freezes the self
+source centered directly below the array at 4 cm, -90 degrees elevation, and
+100% system volume. It also freezes device 3 for self, device 2 for world, and
+XVF3800 input `:0`. It was committed before the first live H3 execution.
 
 The ablation compares flat, fixed-window, and theta-gamma handling on aligned
 self echo and legitimate world/motor overlap. Scheduling suppression requires
