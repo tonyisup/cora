@@ -43,6 +43,18 @@ class SameSourceForwardModel:
         self._path_signature = np.zeros(12, dtype=np.float64)
         self._count = 0
 
+    @classmethod
+    def from_frozen(
+        cls, path_signature: np.ndarray, *, calibration_count: int
+    ) -> SameSourceForwardModel:
+        signature = _feature_vector(path_signature)
+        if calibration_count <= 0:
+            raise ValueError("frozen calibration count must be positive")
+        model = cls()
+        model._path_signature = signature.copy()
+        model._count = calibration_count
+        return model
+
     @property
     def count(self) -> int:
         return self._count
