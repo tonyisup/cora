@@ -1,0 +1,1342 @@
+{
+  "mode": "h4_option_h_smooth_exemplar_local_closure",
+  "evidence_scope": "synthetic_only",
+  "babbling": {
+    "babbling_count": 2048,
+    "interpolation_hop_count": 5934,
+    "maximum_coordinate_delta_per_hop": 0.1999850978882466,
+    "training_state_scalars": 71680,
+    "retained_state_scalars": 71680,
+    "neighbor_count": 64
+  },
+  "forward_generalization": {
+    "held_out_count": 512,
+    "median_unit_vector_distance": 0.29302313763657517,
+    "p95_unit_vector_distance": 0.5379348966957631,
+    "strict_win_fraction": {
+      "neutral": 0.966796875,
+      "nearest_exemplar": 0.478515625,
+      "persistence": 0.974609375
+    },
+    "baseline_median_distances": {
+      "neutral": 1.0472857313332726,
+      "nearest_exemplar": 0.2782481371336938,
+      "persistence": 1.0358305949773825
+    },
+    "orthant_mean_distance": {
+      "00000": 0.2512068636313181,
+      "00001": 0.22850835621349477,
+      "00010": 0.24319562510058443,
+      "00011": 0.23666720384701745,
+      "00100": 0.23563941484000964,
+      "00101": 0.19485841484910593,
+      "00110": 0.27071286742882417,
+      "00111": 0.24411274969403454,
+      "01000": 0.34459007636789,
+      "01001": 0.3432643335608936,
+      "01010": 0.39831927507239523,
+      "01011": 0.3719039220555204,
+      "01100": 0.3930868101479141,
+      "01101": 0.3607279330547849,
+      "01110": 0.4286462959292296,
+      "01111": 0.40284444081479925,
+      "10000": 0.2722468495148667,
+      "10001": 0.22210256348886806,
+      "10010": 0.24838335092259092,
+      "10011": 0.27197883179471993,
+      "10100": 0.24382408648325468,
+      "10101": 0.1896831178995269,
+      "10110": 0.2419391947510693,
+      "10111": 0.24851816612522065,
+      "11000": 0.352621424260826,
+      "11001": 0.3302202625013117,
+      "11010": 0.39930120101191624,
+      "11011": 0.383309774798138,
+      "11100": 0.402471032305101,
+      "11101": 0.362177172455435,
+      "11110": 0.4091880830137613,
+      "11111": 0.42078078657548323
+    },
+    "criteria": {
+      "strict_win_vs_neutral_at_least_0_75": true,
+      "strict_win_vs_nearest_exemplar_at_least_0_75": false,
+      "strict_win_vs_persistence_at_least_0_75": true,
+      "median_distance_at_most_0_18": false,
+      "all_32_orthants_reported": true,
+      "state_bounds_hold": true
+    },
+    "gate_passed": false
+  },
+  "inverse_closure": {
+    "trial_count": 20,
+    "identity_accuracy": 1.0,
+    "combined_agreement_fraction": 0.4,
+    "formant_mae_hz": {
+      "f1": 15.0,
+      "f2": 90.0,
+      "f3": 163.0
+    },
+    "confusion_matrix": {
+      "a": {
+        "a": 4,
+        "e": 0,
+        "i": 0,
+        "o": 0,
+        "u": 0
+      },
+      "e": {
+        "a": 0,
+        "e": 4,
+        "i": 0,
+        "o": 0,
+        "u": 0
+      },
+      "i": {
+        "a": 0,
+        "e": 0,
+        "i": 4,
+        "o": 0,
+        "u": 0
+      },
+      "o": {
+        "a": 0,
+        "e": 0,
+        "i": 0,
+        "o": 4,
+        "u": 0
+      },
+      "u": {
+        "a": 0,
+        "e": 0,
+        "i": 0,
+        "o": 0,
+        "u": 4
+      }
+    },
+    "maximum_forward_predictions": 21,
+    "criteria": {
+      "identity_at_least_0_95": true,
+      "combined_agreement_at_least_0_90": false,
+      "f1_mae_at_most_30_hz": true,
+      "f2_mae_at_most_30_hz": false,
+      "f3_mae_at_most_30_hz": false,
+      "all_losses_no_worse_than_initial": true,
+      "all_bounds_hold": true,
+      "maximum_predictions_at_most_23": true,
+      "labels_absent_from_learning_and_search": true
+    },
+    "gate_passed": false,
+    "rows": [
+      {
+        "expected_vowel": "a",
+        "f0_hz": 90.0,
+        "target_halton_index": 37301,
+        "target_motor": [
+          0.6778717041015625,
+          0.8316990973598196,
+          0.22216960000000002,
+          0.7505971151476001,
+          0.025215614929432292
+        ],
+        "initial_motor": [
+          0.621795654296875,
+          0.6924926755745229,
+          0.1833088,
+          0.864529235267618,
+          0.3178185792078285
+        ],
+        "final_motor": [
+          0.531795654296875,
+          0.9624926755745228,
+          0.1833088,
+          0.7745292352676181,
+          0.13781857920782853
+        ],
+        "target_formants_hz": [
+          740.0,
+          1080.0,
+          2685.0
+        ],
+        "final_formants_hz": [
+          725.0,
+          980.0,
+          2545.0
+        ],
+        "formant_errors_hz": [
+          15.0,
+          100.0,
+          140.0
+        ],
+        "predicted_vowel": "a",
+        "correct_identity": true,
+        "projected_motor_error": 0.17989615777642096,
+        "acoustic_cycle_distance": 0.10769240897249206,
+        "jacobian_rank": 4,
+        "singular_values": [
+          3.3152252418723767,
+          1.507200611560548,
+          0.8638799738601345,
+          0.435712747272361,
+          0.007513233181575939
+        ],
+        "rank_threshold": 0.033152252418723764,
+        "combined_agreement": false,
+        "initial_loss": 0.24935180870712995,
+        "final_loss": 0.17122215244849667,
+        "forward_prediction_count": 20,
+        "accepted_update_count": 5,
+        "geometry_within_bounds": true
+      },
+      {
+        "expected_vowel": "a",
+        "f0_hz": 110.0,
+        "target_halton_index": 37301,
+        "target_motor": [
+          0.6778717041015625,
+          0.8316990973598196,
+          0.22216960000000002,
+          0.7505971151476001,
+          0.025215614929432292
+        ],
+        "initial_motor": [
+          0.621795654296875,
+          0.6924926755745229,
+          0.1833088,
+          0.864529235267618,
+          0.3178185792078285
+        ],
+        "final_motor": [
+          0.531795654296875,
+          0.9624926755745228,
+          0.1833088,
+          0.7745292352676181,
+          0.13781857920782853
+        ],
+        "target_formants_hz": [
+          740.0,
+          1080.0,
+          2685.0
+        ],
+        "final_formants_hz": [
+          725.0,
+          980.0,
+          2545.0
+        ],
+        "formant_errors_hz": [
+          15.0,
+          100.0,
+          140.0
+        ],
+        "predicted_vowel": "a",
+        "correct_identity": true,
+        "projected_motor_error": 0.17989615777642096,
+        "acoustic_cycle_distance": 0.10769240897249206,
+        "jacobian_rank": 4,
+        "singular_values": [
+          3.3152252418723767,
+          1.507200611560548,
+          0.8638799738601345,
+          0.435712747272361,
+          0.007513233181575939
+        ],
+        "rank_threshold": 0.033152252418723764,
+        "combined_agreement": false,
+        "initial_loss": 0.24935180870712995,
+        "final_loss": 0.17122215244849667,
+        "forward_prediction_count": 20,
+        "accepted_update_count": 5,
+        "geometry_within_bounds": true
+      },
+      {
+        "expected_vowel": "a",
+        "f0_hz": 140.0,
+        "target_halton_index": 37301,
+        "target_motor": [
+          0.6778717041015625,
+          0.8316990973598196,
+          0.22216960000000002,
+          0.7505971151476001,
+          0.025215614929432292
+        ],
+        "initial_motor": [
+          0.621795654296875,
+          0.6924926755745229,
+          0.1833088,
+          0.864529235267618,
+          0.3178185792078285
+        ],
+        "final_motor": [
+          0.531795654296875,
+          0.9624926755745228,
+          0.1833088,
+          0.7745292352676181,
+          0.13781857920782853
+        ],
+        "target_formants_hz": [
+          740.0,
+          1080.0,
+          2685.0
+        ],
+        "final_formants_hz": [
+          725.0,
+          980.0,
+          2545.0
+        ],
+        "formant_errors_hz": [
+          15.0,
+          100.0,
+          140.0
+        ],
+        "predicted_vowel": "a",
+        "correct_identity": true,
+        "projected_motor_error": 0.17989615777642096,
+        "acoustic_cycle_distance": 0.10769240897249206,
+        "jacobian_rank": 4,
+        "singular_values": [
+          3.3152252418723767,
+          1.507200611560548,
+          0.8638799738601345,
+          0.435712747272361,
+          0.007513233181575939
+        ],
+        "rank_threshold": 0.033152252418723764,
+        "combined_agreement": false,
+        "initial_loss": 0.24935180870712995,
+        "final_loss": 0.17122215244849667,
+        "forward_prediction_count": 20,
+        "accepted_update_count": 5,
+        "geometry_within_bounds": true
+      },
+      {
+        "expected_vowel": "a",
+        "f0_hz": 180.0,
+        "target_halton_index": 37301,
+        "target_motor": [
+          0.6778717041015625,
+          0.8316990973598196,
+          0.22216960000000002,
+          0.7505971151476001,
+          0.025215614929432292
+        ],
+        "initial_motor": [
+          0.621795654296875,
+          0.6924926755745229,
+          0.1833088,
+          0.864529235267618,
+          0.3178185792078285
+        ],
+        "final_motor": [
+          0.531795654296875,
+          0.9624926755745228,
+          0.1833088,
+          0.7745292352676181,
+          0.13781857920782853
+        ],
+        "target_formants_hz": [
+          740.0,
+          1080.0,
+          2685.0
+        ],
+        "final_formants_hz": [
+          725.0,
+          980.0,
+          2545.0
+        ],
+        "formant_errors_hz": [
+          15.0,
+          100.0,
+          140.0
+        ],
+        "predicted_vowel": "a",
+        "correct_identity": true,
+        "projected_motor_error": 0.17989615777642096,
+        "acoustic_cycle_distance": 0.10769240897249206,
+        "jacobian_rank": 4,
+        "singular_values": [
+          3.3152252418723767,
+          1.507200611560548,
+          0.8638799738601345,
+          0.435712747272361,
+          0.007513233181575939
+        ],
+        "rank_threshold": 0.033152252418723764,
+        "combined_agreement": false,
+        "initial_loss": 0.24935180870712995,
+        "final_loss": 0.17122215244849667,
+        "forward_prediction_count": 20,
+        "accepted_update_count": 5,
+        "geometry_within_bounds": true
+      },
+      {
+        "expected_vowel": "e",
+        "f0_hz": 90.0,
+        "target_halton_index": 37698,
+        "target_motor": [
+          0.2608795166015625,
+          0.23773476265474436,
+          0.7777536000000002,
+          0.48862293772152754,
+          0.14317203867098002
+        ],
+        "initial_motor": [
+          0.537322998046875,
+          0.21695540991380038,
+          0.7797888000000002,
+          0.3414138666711999,
+          0.03224444430646193
+        ],
+        "final_motor": [
+          0.627322998046875,
+          0.21695540991380038,
+          0.7797888000000002,
+          0.6114138666711998,
+          0.21224444430646192
+        ],
+        "target_formants_hz": [
+          535.0,
+          1760.0,
+          2505.0
+        ],
+        "final_formants_hz": [
+          545.0,
+          1735.0,
+          2465.0
+        ],
+        "formant_errors_hz": [
+          10.0,
+          25.0,
+          40.0
+        ],
+        "predicted_vowel": "e",
+        "correct_identity": true,
+        "projected_motor_error": 0.1305471042425572,
+        "acoustic_cycle_distance": 0.07353479357599522,
+        "jacobian_rank": 4,
+        "singular_values": [
+          3.867433169365189,
+          2.541771990870751,
+          1.4958244711623556,
+          0.9371006202271634,
+          0.01854390786031924
+        ],
+        "rank_threshold": 0.03867433169365189,
+        "combined_agreement": true,
+        "initial_loss": 0.17955887170928686,
+        "final_loss": 0.11552433451985691,
+        "forward_prediction_count": 20,
+        "accepted_update_count": 4,
+        "geometry_within_bounds": true
+      },
+      {
+        "expected_vowel": "e",
+        "f0_hz": 110.0,
+        "target_halton_index": 37698,
+        "target_motor": [
+          0.2608795166015625,
+          0.23773476265474436,
+          0.7777536000000002,
+          0.48862293772152754,
+          0.14317203867098002
+        ],
+        "initial_motor": [
+          0.537322998046875,
+          0.21695540991380038,
+          0.7797888000000002,
+          0.3414138666711999,
+          0.03224444430646193
+        ],
+        "final_motor": [
+          0.627322998046875,
+          0.21695540991380038,
+          0.7797888000000002,
+          0.6114138666711998,
+          0.21224444430646192
+        ],
+        "target_formants_hz": [
+          535.0,
+          1760.0,
+          2505.0
+        ],
+        "final_formants_hz": [
+          545.0,
+          1735.0,
+          2465.0
+        ],
+        "formant_errors_hz": [
+          10.0,
+          25.0,
+          40.0
+        ],
+        "predicted_vowel": "e",
+        "correct_identity": true,
+        "projected_motor_error": 0.1305471042425572,
+        "acoustic_cycle_distance": 0.07353479357599522,
+        "jacobian_rank": 4,
+        "singular_values": [
+          3.867433169365189,
+          2.541771990870751,
+          1.4958244711623556,
+          0.9371006202271634,
+          0.01854390786031924
+        ],
+        "rank_threshold": 0.03867433169365189,
+        "combined_agreement": true,
+        "initial_loss": 0.17955887170928686,
+        "final_loss": 0.11552433451985691,
+        "forward_prediction_count": 20,
+        "accepted_update_count": 4,
+        "geometry_within_bounds": true
+      },
+      {
+        "expected_vowel": "e",
+        "f0_hz": 140.0,
+        "target_halton_index": 37698,
+        "target_motor": [
+          0.2608795166015625,
+          0.23773476265474436,
+          0.7777536000000002,
+          0.48862293772152754,
+          0.14317203867098002
+        ],
+        "initial_motor": [
+          0.537322998046875,
+          0.21695540991380038,
+          0.7797888000000002,
+          0.3414138666711999,
+          0.03224444430646193
+        ],
+        "final_motor": [
+          0.627322998046875,
+          0.21695540991380038,
+          0.7797888000000002,
+          0.6114138666711998,
+          0.21224444430646192
+        ],
+        "target_formants_hz": [
+          535.0,
+          1760.0,
+          2505.0
+        ],
+        "final_formants_hz": [
+          545.0,
+          1735.0,
+          2465.0
+        ],
+        "formant_errors_hz": [
+          10.0,
+          25.0,
+          40.0
+        ],
+        "predicted_vowel": "e",
+        "correct_identity": true,
+        "projected_motor_error": 0.1305471042425572,
+        "acoustic_cycle_distance": 0.07353479357599522,
+        "jacobian_rank": 4,
+        "singular_values": [
+          3.867433169365189,
+          2.541771990870751,
+          1.4958244711623556,
+          0.9371006202271634,
+          0.01854390786031924
+        ],
+        "rank_threshold": 0.03867433169365189,
+        "combined_agreement": true,
+        "initial_loss": 0.17955887170928686,
+        "final_loss": 0.11552433451985691,
+        "forward_prediction_count": 20,
+        "accepted_update_count": 4,
+        "geometry_within_bounds": true
+      },
+      {
+        "expected_vowel": "e",
+        "f0_hz": 180.0,
+        "target_halton_index": 37698,
+        "target_motor": [
+          0.2608795166015625,
+          0.23773476265474436,
+          0.7777536000000002,
+          0.48862293772152754,
+          0.14317203867098002
+        ],
+        "initial_motor": [
+          0.537322998046875,
+          0.21695540991380038,
+          0.7797888000000002,
+          0.3414138666711999,
+          0.03224444430646193
+        ],
+        "final_motor": [
+          0.627322998046875,
+          0.21695540991380038,
+          0.7797888000000002,
+          0.6114138666711998,
+          0.21224444430646192
+        ],
+        "target_formants_hz": [
+          535.0,
+          1760.0,
+          2505.0
+        ],
+        "final_formants_hz": [
+          545.0,
+          1735.0,
+          2465.0
+        ],
+        "formant_errors_hz": [
+          10.0,
+          25.0,
+          40.0
+        ],
+        "predicted_vowel": "e",
+        "correct_identity": true,
+        "projected_motor_error": 0.1305471042425572,
+        "acoustic_cycle_distance": 0.07353479357599522,
+        "jacobian_rank": 4,
+        "singular_values": [
+          3.867433169365189,
+          2.541771990870751,
+          1.4958244711623556,
+          0.9371006202271634,
+          0.01854390786031924
+        ],
+        "rank_threshold": 0.03867433169365189,
+        "combined_agreement": true,
+        "initial_loss": 0.17955887170928686,
+        "final_loss": 0.11552433451985691,
+        "forward_prediction_count": 20,
+        "accepted_update_count": 4,
+        "geometry_within_bounds": true
+      },
+      {
+        "expected_vowel": "i",
+        "f0_hz": 90.0,
+        "target_halton_index": 37709,
+        "target_motor": [
+          0.6983795166015625,
+          0.941438466358448,
+          0.8657536000000001,
+          0.10086783568071125,
+          0.15143650148089738
+        ],
+        "initial_motor": [
+          0.605682373046875,
+          0.985130992904198,
+          0.8821888000000001,
+          0.08485409990735153,
+          0.34479140148151827
+        ],
+        "final_motor": [
+          0.605682373046875,
+          0.8051309929041981,
+          0.8821888000000001,
+          0.08485409990735153,
+          0.25479140148151824
+        ],
+        "target_formants_hz": [
+          280.0,
+          2035.0,
+          2685.0
+        ],
+        "final_formants_hz": [
+          290.0,
+          1915.0,
+          2705.0
+        ],
+        "formant_errors_hz": [
+          10.0,
+          120.0,
+          20.0
+        ],
+        "predicted_vowel": "i",
+        "correct_identity": true,
+        "projected_motor_error": 0.17687837623539374,
+        "acoustic_cycle_distance": 0.0845906216368069,
+        "jacobian_rank": 4,
+        "singular_values": [
+          8.741270649852027,
+          1.668685386036958,
+          0.9539011102217548,
+          0.20370230720725344,
+          0.02658744583056619
+        ],
+        "rank_threshold": 0.08741270649852027,
+        "combined_agreement": true,
+        "initial_loss": 0.18208709294870776,
+        "final_loss": 0.13235252640178644,
+        "forward_prediction_count": 18,
+        "accepted_update_count": 2,
+        "geometry_within_bounds": true
+      },
+      {
+        "expected_vowel": "i",
+        "f0_hz": 110.0,
+        "target_halton_index": 37709,
+        "target_motor": [
+          0.6983795166015625,
+          0.941438466358448,
+          0.8657536000000001,
+          0.10086783568071125,
+          0.15143650148089738
+        ],
+        "initial_motor": [
+          0.605682373046875,
+          0.985130992904198,
+          0.8821888000000001,
+          0.08485409990735153,
+          0.34479140148151827
+        ],
+        "final_motor": [
+          0.605682373046875,
+          0.8051309929041981,
+          0.8821888000000001,
+          0.08485409990735153,
+          0.25479140148151824
+        ],
+        "target_formants_hz": [
+          280.0,
+          2035.0,
+          2685.0
+        ],
+        "final_formants_hz": [
+          290.0,
+          1915.0,
+          2705.0
+        ],
+        "formant_errors_hz": [
+          10.0,
+          120.0,
+          20.0
+        ],
+        "predicted_vowel": "i",
+        "correct_identity": true,
+        "projected_motor_error": 0.17687837623539374,
+        "acoustic_cycle_distance": 0.0845906216368069,
+        "jacobian_rank": 4,
+        "singular_values": [
+          8.741270649852027,
+          1.668685386036958,
+          0.9539011102217548,
+          0.20370230720725344,
+          0.02658744583056619
+        ],
+        "rank_threshold": 0.08741270649852027,
+        "combined_agreement": true,
+        "initial_loss": 0.18208709294870776,
+        "final_loss": 0.13235252640178644,
+        "forward_prediction_count": 18,
+        "accepted_update_count": 2,
+        "geometry_within_bounds": true
+      },
+      {
+        "expected_vowel": "i",
+        "f0_hz": 140.0,
+        "target_halton_index": 37709,
+        "target_motor": [
+          0.6983795166015625,
+          0.941438466358448,
+          0.8657536000000001,
+          0.10086783568071125,
+          0.15143650148089738
+        ],
+        "initial_motor": [
+          0.605682373046875,
+          0.985130992904198,
+          0.8821888000000001,
+          0.08485409990735153,
+          0.34479140148151827
+        ],
+        "final_motor": [
+          0.605682373046875,
+          0.8051309929041981,
+          0.8821888000000001,
+          0.08485409990735153,
+          0.25479140148151824
+        ],
+        "target_formants_hz": [
+          280.0,
+          2035.0,
+          2685.0
+        ],
+        "final_formants_hz": [
+          290.0,
+          1915.0,
+          2705.0
+        ],
+        "formant_errors_hz": [
+          10.0,
+          120.0,
+          20.0
+        ],
+        "predicted_vowel": "i",
+        "correct_identity": true,
+        "projected_motor_error": 0.17687837623539374,
+        "acoustic_cycle_distance": 0.0845906216368069,
+        "jacobian_rank": 4,
+        "singular_values": [
+          8.741270649852027,
+          1.668685386036958,
+          0.9539011102217548,
+          0.20370230720725344,
+          0.02658744583056619
+        ],
+        "rank_threshold": 0.08741270649852027,
+        "combined_agreement": true,
+        "initial_loss": 0.18208709294870776,
+        "final_loss": 0.13235252640178644,
+        "forward_prediction_count": 18,
+        "accepted_update_count": 2,
+        "geometry_within_bounds": true
+      },
+      {
+        "expected_vowel": "i",
+        "f0_hz": 180.0,
+        "target_halton_index": 37709,
+        "target_motor": [
+          0.6983795166015625,
+          0.941438466358448,
+          0.8657536000000001,
+          0.10086783568071125,
+          0.15143650148089738
+        ],
+        "initial_motor": [
+          0.605682373046875,
+          0.985130992904198,
+          0.8821888000000001,
+          0.08485409990735153,
+          0.34479140148151827
+        ],
+        "final_motor": [
+          0.605682373046875,
+          0.8051309929041981,
+          0.8821888000000001,
+          0.08485409990735153,
+          0.25479140148151824
+        ],
+        "target_formants_hz": [
+          280.0,
+          2035.0,
+          2685.0
+        ],
+        "final_formants_hz": [
+          290.0,
+          1915.0,
+          2705.0
+        ],
+        "formant_errors_hz": [
+          10.0,
+          120.0,
+          20.0
+        ],
+        "predicted_vowel": "i",
+        "correct_identity": true,
+        "projected_motor_error": 0.17687837623539374,
+        "acoustic_cycle_distance": 0.0845906216368069,
+        "jacobian_rank": 4,
+        "singular_values": [
+          8.741270649852027,
+          1.668685386036958,
+          0.9539011102217548,
+          0.20370230720725344,
+          0.02658744583056619
+        ],
+        "rank_threshold": 0.08741270649852027,
+        "combined_agreement": true,
+        "initial_loss": 0.18208709294870776,
+        "final_loss": 0.13235252640178644,
+        "forward_prediction_count": 18,
+        "accepted_update_count": 2,
+        "geometry_within_bounds": true
+      },
+      {
+        "expected_vowel": "o",
+        "f0_hz": 90.0,
+        "target_halton_index": 37211,
+        "target_motor": [
+          0.8536529541015625,
+          0.7905468339853341,
+          0.30856960000000005,
+          0.9080315174799616,
+          0.8673712053945645
+        ],
+        "initial_motor": [
+          0.545623779296875,
+          0.68151873867466,
+          0.2908288,
+          0.7945583897865685,
+          0.930891456743516
+        ],
+        "final_motor": [
+          0.45562377929687503,
+          0.8615187386746599,
+          0.2908288,
+          0.7945583897865685,
+          0.7508914567435161
+        ],
+        "target_formants_hz": [
+          545.0,
+          860.0,
+          2390.0
+        ],
+        "final_formants_hz": [
+          545.0,
+          840.0,
+          2440.0
+        ],
+        "formant_errors_hz": [
+          0.0,
+          20.0,
+          50.0
+        ],
+        "predicted_vowel": "o",
+        "correct_identity": true,
+        "projected_motor_error": 0.18528177189304243,
+        "acoustic_cycle_distance": 0.053582474416517575,
+        "jacobian_rank": 4,
+        "singular_values": [
+          3.001334075427117,
+          1.954959151602081,
+          0.6536206471536513,
+          0.3613249852043406,
+          0.0077874120375237225
+        ],
+        "rank_threshold": 0.03001334075427117,
+        "combined_agreement": false,
+        "initial_loss": 0.2282106969031821,
+        "final_loss": 0.1432032894869517,
+        "forward_prediction_count": 21,
+        "accepted_update_count": 4,
+        "geometry_within_bounds": true
+      },
+      {
+        "expected_vowel": "o",
+        "f0_hz": 110.0,
+        "target_halton_index": 37211,
+        "target_motor": [
+          0.8536529541015625,
+          0.7905468339853341,
+          0.30856960000000005,
+          0.9080315174799616,
+          0.8673712053945645
+        ],
+        "initial_motor": [
+          0.545623779296875,
+          0.68151873867466,
+          0.2908288,
+          0.7945583897865685,
+          0.930891456743516
+        ],
+        "final_motor": [
+          0.45562377929687503,
+          0.8615187386746599,
+          0.2908288,
+          0.7945583897865685,
+          0.7508914567435161
+        ],
+        "target_formants_hz": [
+          545.0,
+          860.0,
+          2390.0
+        ],
+        "final_formants_hz": [
+          545.0,
+          840.0,
+          2440.0
+        ],
+        "formant_errors_hz": [
+          0.0,
+          20.0,
+          50.0
+        ],
+        "predicted_vowel": "o",
+        "correct_identity": true,
+        "projected_motor_error": 0.18528177189304243,
+        "acoustic_cycle_distance": 0.053582474416517575,
+        "jacobian_rank": 4,
+        "singular_values": [
+          3.001334075427117,
+          1.954959151602081,
+          0.6536206471536513,
+          0.3613249852043406,
+          0.0077874120375237225
+        ],
+        "rank_threshold": 0.03001334075427117,
+        "combined_agreement": false,
+        "initial_loss": 0.2282106969031821,
+        "final_loss": 0.1432032894869517,
+        "forward_prediction_count": 21,
+        "accepted_update_count": 4,
+        "geometry_within_bounds": true
+      },
+      {
+        "expected_vowel": "o",
+        "f0_hz": 140.0,
+        "target_halton_index": 37211,
+        "target_motor": [
+          0.8536529541015625,
+          0.7905468339853341,
+          0.30856960000000005,
+          0.9080315174799616,
+          0.8673712053945645
+        ],
+        "initial_motor": [
+          0.545623779296875,
+          0.68151873867466,
+          0.2908288,
+          0.7945583897865685,
+          0.930891456743516
+        ],
+        "final_motor": [
+          0.45562377929687503,
+          0.8615187386746599,
+          0.2908288,
+          0.7945583897865685,
+          0.7508914567435161
+        ],
+        "target_formants_hz": [
+          545.0,
+          860.0,
+          2390.0
+        ],
+        "final_formants_hz": [
+          545.0,
+          840.0,
+          2440.0
+        ],
+        "formant_errors_hz": [
+          0.0,
+          20.0,
+          50.0
+        ],
+        "predicted_vowel": "o",
+        "correct_identity": true,
+        "projected_motor_error": 0.18528177189304243,
+        "acoustic_cycle_distance": 0.053582474416517575,
+        "jacobian_rank": 4,
+        "singular_values": [
+          3.001334075427117,
+          1.954959151602081,
+          0.6536206471536513,
+          0.3613249852043406,
+          0.0077874120375237225
+        ],
+        "rank_threshold": 0.03001334075427117,
+        "combined_agreement": false,
+        "initial_loss": 0.2282106969031821,
+        "final_loss": 0.1432032894869517,
+        "forward_prediction_count": 21,
+        "accepted_update_count": 4,
+        "geometry_within_bounds": true
+      },
+      {
+        "expected_vowel": "o",
+        "f0_hz": 180.0,
+        "target_halton_index": 37211,
+        "target_motor": [
+          0.8536529541015625,
+          0.7905468339853341,
+          0.30856960000000005,
+          0.9080315174799616,
+          0.8673712053945645
+        ],
+        "initial_motor": [
+          0.545623779296875,
+          0.68151873867466,
+          0.2908288,
+          0.7945583897865685,
+          0.930891456743516
+        ],
+        "final_motor": [
+          0.45562377929687503,
+          0.8615187386746599,
+          0.2908288,
+          0.7945583897865685,
+          0.7508914567435161
+        ],
+        "target_formants_hz": [
+          545.0,
+          860.0,
+          2390.0
+        ],
+        "final_formants_hz": [
+          545.0,
+          840.0,
+          2440.0
+        ],
+        "formant_errors_hz": [
+          0.0,
+          20.0,
+          50.0
+        ],
+        "predicted_vowel": "o",
+        "correct_identity": true,
+        "projected_motor_error": 0.18528177189304243,
+        "acoustic_cycle_distance": 0.053582474416517575,
+        "jacobian_rank": 4,
+        "singular_values": [
+          3.001334075427117,
+          1.954959151602081,
+          0.6536206471536513,
+          0.3613249852043406,
+          0.0077874120375237225
+        ],
+        "rank_threshold": 0.03001334075427117,
+        "combined_agreement": false,
+        "initial_loss": 0.2282106969031821,
+        "final_loss": 0.1432032894869517,
+        "forward_prediction_count": 21,
+        "accepted_update_count": 4,
+        "geometry_within_bounds": true
+      },
+      {
+        "expected_vowel": "u",
+        "f0_hz": 90.0,
+        "target_halton_index": 37751,
+        "target_motor": [
+          0.9327545166015625,
+          0.7850598655354026,
+          0.2033536,
+          0.06338345417300614,
+          0.9944117080924676
+        ],
+        "initial_motor": [
+          0.574920654296875,
+          0.8900235397720537,
+          0.5673088000000001,
+          0.02487908949502333,
+          0.9128599015218782
+        ],
+        "final_motor": [
+          0.7549206542968749,
+          0.9800235397720537,
+          0.38730880000000006,
+          0.11487908949502332,
+          0.9128599015218782
+        ],
+        "target_formants_hz": [
+          320.0,
+          850.0,
+          2230.0
+        ],
+        "final_formants_hz": [
+          360.0,
+          665.0,
+          2795.0
+        ],
+        "formant_errors_hz": [
+          40.0,
+          185.0,
+          565.0
+        ],
+        "predicted_vowel": "u",
+        "correct_identity": true,
+        "projected_motor_error": 0.2940479358119002,
+        "acoustic_cycle_distance": 0.23402513677190817,
+        "jacobian_rank": 4,
+        "singular_values": [
+          4.4433897282069,
+          1.5958806710259066,
+          0.8938144679995618,
+          0.3748375905667242,
+          0.020901505981086484
+        ],
+        "rank_threshold": 0.044433897282069,
+        "combined_agreement": false,
+        "initial_loss": 0.17464588844060763,
+        "final_loss": 0.1020616016787872,
+        "forward_prediction_count": 17,
+        "accepted_update_count": 5,
+        "geometry_within_bounds": true
+      },
+      {
+        "expected_vowel": "u",
+        "f0_hz": 110.0,
+        "target_halton_index": 37751,
+        "target_motor": [
+          0.9327545166015625,
+          0.7850598655354026,
+          0.2033536,
+          0.06338345417300614,
+          0.9944117080924676
+        ],
+        "initial_motor": [
+          0.574920654296875,
+          0.8900235397720537,
+          0.5673088000000001,
+          0.02487908949502333,
+          0.9128599015218782
+        ],
+        "final_motor": [
+          0.7549206542968749,
+          0.9800235397720537,
+          0.38730880000000006,
+          0.11487908949502332,
+          0.9128599015218782
+        ],
+        "target_formants_hz": [
+          320.0,
+          850.0,
+          2230.0
+        ],
+        "final_formants_hz": [
+          360.0,
+          665.0,
+          2795.0
+        ],
+        "formant_errors_hz": [
+          40.0,
+          185.0,
+          565.0
+        ],
+        "predicted_vowel": "u",
+        "correct_identity": true,
+        "projected_motor_error": 0.2940479358119002,
+        "acoustic_cycle_distance": 0.23402513677190817,
+        "jacobian_rank": 4,
+        "singular_values": [
+          4.4433897282069,
+          1.5958806710259066,
+          0.8938144679995618,
+          0.3748375905667242,
+          0.020901505981086484
+        ],
+        "rank_threshold": 0.044433897282069,
+        "combined_agreement": false,
+        "initial_loss": 0.17464588844060763,
+        "final_loss": 0.1020616016787872,
+        "forward_prediction_count": 17,
+        "accepted_update_count": 5,
+        "geometry_within_bounds": true
+      },
+      {
+        "expected_vowel": "u",
+        "f0_hz": 140.0,
+        "target_halton_index": 37751,
+        "target_motor": [
+          0.9327545166015625,
+          0.7850598655354026,
+          0.2033536,
+          0.06338345417300614,
+          0.9944117080924676
+        ],
+        "initial_motor": [
+          0.574920654296875,
+          0.8900235397720537,
+          0.5673088000000001,
+          0.02487908949502333,
+          0.9128599015218782
+        ],
+        "final_motor": [
+          0.7549206542968749,
+          0.9800235397720537,
+          0.38730880000000006,
+          0.11487908949502332,
+          0.9128599015218782
+        ],
+        "target_formants_hz": [
+          320.0,
+          850.0,
+          2230.0
+        ],
+        "final_formants_hz": [
+          360.0,
+          665.0,
+          2795.0
+        ],
+        "formant_errors_hz": [
+          40.0,
+          185.0,
+          565.0
+        ],
+        "predicted_vowel": "u",
+        "correct_identity": true,
+        "projected_motor_error": 0.2940479358119002,
+        "acoustic_cycle_distance": 0.23402513677190817,
+        "jacobian_rank": 4,
+        "singular_values": [
+          4.4433897282069,
+          1.5958806710259066,
+          0.8938144679995618,
+          0.3748375905667242,
+          0.020901505981086484
+        ],
+        "rank_threshold": 0.044433897282069,
+        "combined_agreement": false,
+        "initial_loss": 0.17464588844060763,
+        "final_loss": 0.1020616016787872,
+        "forward_prediction_count": 17,
+        "accepted_update_count": 5,
+        "geometry_within_bounds": true
+      },
+      {
+        "expected_vowel": "u",
+        "f0_hz": 180.0,
+        "target_halton_index": 37751,
+        "target_motor": [
+          0.9327545166015625,
+          0.7850598655354026,
+          0.2033536,
+          0.06338345417300614,
+          0.9944117080924676
+        ],
+        "initial_motor": [
+          0.574920654296875,
+          0.8900235397720537,
+          0.5673088000000001,
+          0.02487908949502333,
+          0.9128599015218782
+        ],
+        "final_motor": [
+          0.7549206542968749,
+          0.9800235397720537,
+          0.38730880000000006,
+          0.11487908949502332,
+          0.9128599015218782
+        ],
+        "target_formants_hz": [
+          320.0,
+          850.0,
+          2230.0
+        ],
+        "final_formants_hz": [
+          360.0,
+          665.0,
+          2795.0
+        ],
+        "formant_errors_hz": [
+          40.0,
+          185.0,
+          565.0
+        ],
+        "predicted_vowel": "u",
+        "correct_identity": true,
+        "projected_motor_error": 0.2940479358119002,
+        "acoustic_cycle_distance": 0.23402513677190817,
+        "jacobian_rank": 4,
+        "singular_values": [
+          4.4433897282069,
+          1.5958806710259066,
+          0.8938144679995618,
+          0.3748375905667242,
+          0.020901505981086484
+        ],
+        "rank_threshold": 0.044433897282069,
+        "combined_agreement": false,
+        "initial_loss": 0.17464588844060763,
+        "final_loss": 0.1020616016787872,
+        "forward_prediction_count": 17,
+        "accepted_update_count": 5,
+        "geometry_within_bounds": true
+      }
+    ]
+  },
+  "all_synthetic_gates_passed": false,
+  "recorded_audio_accessed": false,
+  "protected_data_accessed": false,
+  "promotion_allowed": false,
+  "provenance": {
+    "preregistration": "docs/evidence/2026-07-11-h4-option-h-smooth-local-closure-preregistration.json",
+    "preregistration_sha256": "606ac6b2788ec633480bb881009e9dc4ae86a33ae7909f72eab491f9474d9b1e",
+    "preregistration_commit": "22bc25f",
+    "implementation_commit": "f9c2136"
+  }
+}

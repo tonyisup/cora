@@ -221,3 +221,16 @@ The Option G failure analysis supports one distinct local alternative:
 Gaussian-weighted affine tangent from the 64 nearest babbling exemplars at each
 query. Its [preregistration](evidence/2026-07-11-h4-option-h-smooth-local-closure-preregistration.json)
 uses entirely disjoint points and retains the same closure gates.
+
+The [Option H result](evidence/2026-07-11-h4-option-h-smooth-local-closure-result.json)
+also failed. Median forward distance worsened to `0.293`, the smooth model beat
+nearest-exemplar on only `0.479` of points, combined agreement remained `0.40`,
+and F1/F2/F3 MAE was `15/90/163 Hz`. Perfect vowel identity in both Options G
+and H is insufficient because the continuous shared representation did not
+close.
+
+This reaches a governance boundary. Another local capacity, density, kernel,
+or search retry would tune the failed family. A global nonlinear encoder,
+supervised articulatory inversion, or relaxed continuous-closure claim would
+materially revise [VISION.md](../VISION.md) and requires an explicit user
+decision. Active H4 experimentation stops here meanwhile.

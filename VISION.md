@@ -680,6 +680,11 @@ Current recorded-human result:
   It nevertheless failed continuous closure: median forward distance was
   `0.264` versus `0.18`, combined agreement `0.40` versus `0.90`, and F1/F2/F3
   reconstruction MAE `16/54/142 Hz` versus `30 Hz` each.
+- a disjoint smooth exemplar-local candidate also retained `20/20` identities
+  but worsened median forward error to `0.293`, beat nearest-exemplar on only
+  `0.479` of points, held combined agreement at `0.40`, and produced
+  `15/90/163 Hz` F1/F2/F3 MAE. Further local density/kernel/search retries are
+  blocked as same-family tuning.
 
 H4 remains open, but the fixed-formant, continuous acoustic-coordinate, and
 first geometric/local-forward candidates are retained failures; the factorized

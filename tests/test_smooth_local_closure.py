@@ -1,5 +1,8 @@
 """Contracts for H4 Option H smooth exemplar-local closure."""
 
+import json
+from pathlib import Path
+
 import numpy as np
 import pytest
 
@@ -33,3 +36,21 @@ def test_smooth_inverse_is_bounded(smooth_model) -> None:
     assert result.final_loss <= result.initial_loss
     assert np.all(result.final_motor >= 0.0)
     assert np.all(result.final_motor <= 1.0)
+
+
+def test_retained_option_h_result_preserves_failed_boundary() -> None:
+    root = Path(__file__).resolve().parents[1]
+    result = json.loads(
+        (
+            root
+            / "docs/evidence/2026-07-11-h4-option-h-smooth-local-closure-result.json"
+        ).read_text()
+    )
+
+    assert result["forward_generalization"]["gate_passed"] is False
+    assert result["inverse_closure"]["gate_passed"] is False
+    assert result["inverse_closure"]["identity_accuracy"] == 1.0
+    assert result["all_synthetic_gates_passed"] is False
+    assert result["recorded_audio_accessed"] is False
+    assert result["protected_data_accessed"] is False
+    assert result["provenance"]["implementation_commit"] == "f9c2136"
