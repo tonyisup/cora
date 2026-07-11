@@ -1,0 +1,30 @@
+{
+  "mode": "spent_template_v2_spectral_v3_design_audit",
+  "verdict": "spent_design_gate_passed",
+  "self_probe_distances": [
+    0.06083882179336804,
+    0.06173062652068651,
+    0.061914422816294175,
+    0.03275634185400779,
+    0.038249264585327215,
+    0.03481149430434154
+  ],
+  "overlap_distances": [
+    0.5189363164716991,
+    0.23236936354395304,
+    0.46197273092655466
+  ],
+  "frozen_threshold": 0.07895991087871712,
+  "criteria": {
+    "all_six_self_probes_below_threshold": true,
+    "all_three_overlaps_at_or_above_threshold": true,
+    "clean_spent_gap": true
+  },
+  "promotion_allowed": false,
+  "preregistration": {
+    "path": "docs/evidence/2026-07-11-natural-speech-workspace-spectral-v3-design-preregistration.json",
+    "sha256": "b92c1b97f08dbcc6a4a73294ea50c88936d9d656413d2bb8c858164a3e06288d",
+    "commit": "aee79a5"
+  },
+  "implementation_commit": "e619316"
+}
