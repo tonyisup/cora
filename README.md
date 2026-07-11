@@ -16,7 +16,7 @@ the repository.
 |---|---|---|
 | Reproducible substrate | Implemented | Synthetic/live contracts, deterministic reports, and tests exist |
 | Real-audio evaluation | First replay passed | WAV and prior-art captured NumPy PCM are measured directly with dev/held-out provenance; developmental-speech breadth is still open |
-| Parentese-relevant saliency | Mixed; not promoted | Cohort alignment remains the best development candidate at F1 0.681. A later locally learned nonlinear temporal codebook was healthy but reached only F1 0.535. The vocal front gate remains positive; reserved confirmation fieldsites remain untouched |
+| Parentese-relevant saliency | Broad register detection falsified | Absolute, adaptive, temporal, predictive, cohort, and local nonlinear mechanisms failed reliable cross-cultural IDS/ADS detection. The vocal front gate and relational cohort effect remain narrow evidence; active Stage 2 work is stopped and USD/TOR untouched |
 | Local predictive hierarchy | H2 supported within tested boundaries | Natural event transfer replicated across Wellington and MEN; a separate real room run with known efference masks retained four states through 10/15/20% dropout while improving vowels `+0.614` and tones `+0.474`. Unknown-timing world dropout and semantics remain outside scope |
 | Workspace binding | H3 supported within tested boundaries | Structured tones and exact-utterance natural speech passed at zero clipping. A later no-replay same-source forward model failed on three unseen commands at F1/recall/specificity `0.727/0.667/0.667`, so the exact-efference boundary remains |
 | Analysis by synthesis | Bounded-local H4 family falsified | Hard and smooth local learners both preserved `20/20` vowel identities but failed continuous closure. The user selected the conservative disposition: stop active H4 work, retain the plant as infrastructure, and do not substitute categorical identity or a global model without revising VISION |
@@ -151,7 +151,8 @@ The composed, hash-pinned artifact is
 Vanuatu/ESC-50 fold-4 test retained 12/12 vocals and rejected 16/16
 environmental clips, but the register scorer fell to F1 `0.400` and failed its
 frozen `0.65` criterion. The vocal front gate generalized; IDS/ADS scoring did
-not. Stage 2 therefore remains unpromoted.
+not. The final governance decision records broad cross-cultural Stage 2
+detection as falsified while retaining the front gate as narrow evidence.
 
 A grouped-training threshold revision then reached F1 `0.857` on fresh
 Nyangatom clips but failed the strict song-control ceiling by promoting one of

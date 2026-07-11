@@ -12,9 +12,9 @@ For acronyms, corpus codes, metrics, and common report fields, see the
 
 - Stages 0 and 1 are implemented and supported by reproducible real-audio
   evaluation.
-- Stage 2 is mixed and not promoted. The vocal front gate has bounded positive
-  evidence, but four families of cross-cultural register models failed to
-  generalize reliably.
+- Broad cross-cultural Stage 2 register detection is falsified within tested
+  scope. The vocal front gate and relational cohort effect remain narrow
+  evidence; active register work is stopped.
 - H2, H3, and H5 are supported only inside their measured boundaries.
 - The tested bounded-local H4 representation family is formally falsified
   within scope. Active H4 work is stopped; the passed plant is infrastructure
@@ -29,7 +29,7 @@ For acronyms, corpus codes, metrics, and common report fields, see the
 |---|---|---|---|
 | 0 — Reproducible substrate | Implemented | Deterministic unit/integration suite; explicit synthetic/live contracts; fail-loud real I/O; hash-pinned external-data runners | Passing plumbing is not empirical promotion |
 | 1 — Real-audio evaluation | Passed in bounded corpora | [prior-art replay](evidence/2026-07-10-prior-art-replay.json), Music Lab PCM/float WAV evaluation, participant/fieldsite manifests | Broader devices, rooms, ages, and spontaneous conditions remain open |
-| 2 — Parentese-relevant saliency | Mixed; not promoted | [narrow Beijing confirmation](evidence/2026-07-10-ids-confirmation.json), [Mentawai/Toposa mode-scoped pass](evidence/2026-07-10-mode-scoped-register-result.json), [vocal front-gate pass](evidence/2026-07-10-yin-vocal-gate-v2-result.json) | [final paired-summary failure](evidence/2026-07-10-expanded-register-v6-result.json), [six-phase failure](evidence/2026-07-11-temporal-register-development-result.json), [predictive-dynamics failure](evidence/2026-07-11-predictive-register-dynamics-result.json), [cohort-adaptive failure](evidence/2026-07-11-cohort-adaptive-register-result.json), and [nonlinear-codebook failure](evidence/2026-07-11-nonlinear-predictive-codebook-result.json) block general promotion |
+| 2 — Parentese-relevant saliency | Broad register detection falsified | [vocal front-gate pass](evidence/2026-07-10-yin-vocal-gate-v2-result.json) and cohort alignment's low FPR remain narrow evidence | [Final disposition](evidence/2026-07-11-stage2-broad-register-disposition.json) stops active Stage 2 after absolute, adaptive, temporal, predictive, cohort, and local nonlinear failures; USD/TOR remain untouched |
 | 3 — Predictive hierarchy | H2 supported within tested boundaries | Natural transfer replicated on Wellington and MEN; controlled real known-efference dropout retained four states and improved tone/vowel prediction | Unknown dropout timing, arbitrary missing world input, semantics, and room transfer remain outside the claim |
 | 4 — Workspace binding | H3 supported within structured-tone and exact-efference speech boundaries | [structured attempt 3](evidence/2026-07-10-structured-workspace-real-attempt-3-result.json) and the [fresh spectral-template v3 run](evidence/2026-07-11-natural-speech-workspace-spectral-v3-real-result.json) both passed scheduled F1/recall/specificity and zero-clipping gates | A [no-replay same-source extension](evidence/2026-07-11-h3-same-source-forward-model-real-result.json) failed at F1/recall/specificity `0.727/0.667/0.667`; the supported natural result still requires a prior replay of the exact utterance and does not establish generalized self voice, semantics, transfer, or neural dynamics |
 | 5 — Perception-production closure | Bounded-local H4 family falsified | Option F passed the plant; Options G and H each preserved `20/20` identities | [Final disposition](evidence/2026-07-11-h4-bounded-local-family-disposition.json) stops active H4 after failed continuous closure; global/nonlocal or categorical alternatives require a future VISION revision |
@@ -61,7 +61,7 @@ maximum self was `-0.1488`. The retained
 does not select a new threshold. Same-data normalization or threshold tuning is
 blocked. H3 remains supported only at its earlier exact-efference boundary.
 
-## Stage 2 disposition pending
+## Stage 2 final disposition
 
 The authorized predictive redesign used every ordered 50 ms prosodic state and
 four class-conditional first-order linear-Gaussian dynamics. On 200 already-
@@ -121,6 +121,14 @@ shows that nonlinear and linear speech/IDS score rankings correlated about
 rescued four linear false negatives but lost four linear true positives and
 added two net false positives. It therefore did not reveal a complementary
 cross-fieldsite invariant hidden by the linear readout.
+
+The user selected the conservative final disposition: reliable broad cross-
+cultural IDS/ADS register detection is falsified for the tested mechanism
+families. Active Stage 2 work is stopped. The vocal front gate remains a narrow
+environmental-control result, and the cohort result remains descriptive
+relational evidence; neither is promoted to general register detection. Deep or
+global sequence learning, a narrowed false-positive-control claim, same-family
+tuning, and USD/TOR access remain unauthorized.
 
 ## H4 continuous inverse-synthesis outcome
 
@@ -282,13 +290,11 @@ include:
 - `22bc25f` — frozen Option H smooth-local preregistration.
 - `f9c2136` — frozen Option H implementation before metrics.
 
-## Decision required before further Stage 2 empirical work
+## Final governance state
 
-1. Decide whether Stage 2 should now record broad cross-cultural register
-   detection as falsified or authorize a deep/global mechanism outside the
-   current local-learning contract.
-
-The H4 decision is complete: the bounded-local family is falsified and active
-H4 work is stopped. Until the Stage 2 decision is made, no pristine USD/TOR or
-additional WEL confirmation data should be fetched and no same-family threshold,
-representation, or hyperparameter retry should be run.
+The Stage 2 and H4 decisions are complete. Broad cross-cultural register
+detection and the bounded-local H4 representation family are falsified within
+their tested scopes; active work on both is stopped. No pristine USD/TOR,
+protected H4 confirmation data, or additional WEL material should be fetched.
+Deep/global replacements, narrowed claims, and same-family retries require a
+future explicit VISION revision.

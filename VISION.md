@@ -127,10 +127,10 @@ Promotion criterion:
 
 ### Stage 2 — Parentese-relevant saliency
 
-Status: mixed and not promoted. A five-second, speaker-and-mode batch-calibrated
-scorer passed on two fresh fieldsites but failed a later joint untouched
-Vanuatu test. The environmental front gate has repeated positive evidence;
-cold-start, causal, and robust cross-fieldsite register operation remain open.
+Status: broad cross-cultural register detection falsified within tested scope;
+active Stage 2 register work stopped by explicit governance decision. The
+environmental vocal front gate and relational cohort effects remain narrow
+positive evidence, not general parentese detection.
 
 Required evidence:
 
@@ -280,6 +280,20 @@ Current environmental-control result:
   underperformed the same-data linear predictive parent (`0.545`) and remained
   far below readiness. This mechanism is falsified without accessing USD/TOR;
   its stop rule blocks codebook or readout tuning.
+
+Final disposition:
+
+- the project records reliable broad cross-cultural IDS/ADS register detection
+  as falsified for the tested absolute, adaptive, temporal, predictive,
+  cohort-adaptive, and bounded nonlinear mechanisms;
+- the vocal-activity front gate remains supported only for its tested five-
+  second environmental-control conditions;
+- cohort alignment's low false-positive rate remains descriptive evidence that
+  register is relational, but its poor recall and fieldsite failures prohibit
+  substituting false-positive control for detection;
+- active Stage 2 register experimentation is stopped. Deep/global sequence
+  learning, a narrowed claim, same-family tuning, and USD/TOR access are not
+  authorized under this vision.
 
 ### Stage 3 — Predictive hierarchy
 

@@ -50,6 +50,12 @@ def test_consolidated_status_links_exist_and_preserve_pending_decisions() -> Non
             / "docs/evidence/2026-07-11-h4-bounded-local-family-disposition.json"
         ).read_text()
     )
+    stage2_disposition = json.loads(
+        (
+            root
+            / "docs/evidence/2026-07-11-stage2-broad-register-disposition.json"
+        ).read_text()
+    )
 
     assert predictive["development_candidate_ready"] is False
     assert predictive["confirmation_audio_or_metadata_accessed"] is False
@@ -79,5 +85,16 @@ def test_consolidated_status_links_exist_and_preserve_pending_decisions() -> Non
     assert h4_disposition["disposition"]["active_h4_experimentation_stopped"] is True
     assert h4_disposition["disposition"]["global_nonlinear_representation_authorized"] is False
     assert h4_disposition["protected_data_accessed_by_decision"] is False
-    assert "Stage 2 disposition pending" in text
+    assert stage2_disposition["user_selection"]["option"] == 1
+    assert stage2_disposition["disposition"][
+        "broad_cross_cultural_register_detection_falsified_within_tested_scope"
+    ] is True
+    assert stage2_disposition["disposition"][
+        "active_stage2_register_experimentation_stopped"
+    ] is True
+    assert stage2_disposition["disposition"][
+        "deep_or_global_sequence_model_authorized"
+    ] is False
+    assert stage2_disposition["protected_data_accessed_by_decision"] is False
+    assert "Stage 2 final disposition" in text
     assert "H4 continuous inverse-synthesis outcome" in text
