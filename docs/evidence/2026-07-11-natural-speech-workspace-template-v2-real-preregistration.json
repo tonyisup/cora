@@ -1,0 +1,82 @@
+{
+  "mode": "natural_speech_workspace_template_v2_real_preregistration",
+  "date": "2026-07-11",
+  "status": "preregistered_before_live_execution",
+  "bounded_playback_capture_authorized": true,
+  "authorization_basis": "Standing authorization covers as many bounded live audio runs as necessary; the user explicitly approved natural-speech workspace binding and fixed the physical self/world geometry until instructed otherwise.",
+  "spent_design_gate_passed": true,
+  "spent_design_result": {
+    "path": "docs/evidence/2026-07-11-natural-speech-workspace-template-v2-design-result.json",
+    "verdict": "spent_design_gate_passed",
+    "promotion_allowed": false,
+    "selected_capacity_three_f1": 1.0,
+    "selected_capacity_three_world_recall": 1.0,
+    "selected_capacity_three_self_suppression_specificity": 1.0
+  },
+  "implementation_commit": "db19e7a",
+  "frozen_hashes": {
+    "implementation_sha256": "78d200263f819be0f86d2857747265b253140add401ae03cfe997d993d915fbe",
+    "cli_sha256": "56493d867a3e72c2374819a658d11bfd531afbe6aeacaec27f903b86a528d4d5",
+    "io_sha256": "1cf10155c49dc32406b4936504f5af452be335ea73ee08f2d7a6fc7437f3f34b",
+    "design_preregistration_sha256": "f97cc8d2cdc6ff8d5cb8540bdc831a705de066c2d1a3736363aae99dde92b9e0",
+    "design_result_sha256": "279da27c9635defcab03c261e91781bf008c6bd84b116536e02f947d9913fe98"
+  },
+  "hardware": {
+    "input": {"avfoundation_device": ":0", "device": "reSpeaker XVF3800 4-Mic Array", "channels": 2, "sample_rate": 16000},
+    "self_source": {"output_device_index": 3, "output_device": "Mac mini Speakers", "placement": "centered_directly_below_xvf3800", "vertical_distance_cm": 4, "system_volume_percent": 100, "playback_gain_db": -24.0},
+    "world_source": {"output_device_index": 2, "output_device": "External Headphones", "angle_degrees": 180, "distance_cm": 50, "hardware_volume": "approximately_50_percent_mechanical_travel", "playback_gain_db": 0.0},
+    "environment": {"room": "semi-quiet", "known_background": "laptop fan"}
+  },
+  "level_change_from_v1": {
+    "self_software_gain_db": {"v1": -18.0, "v2": -24.0},
+    "world_software_gain_db": {"v1": -18.0, "v2": 0.0},
+    "physical_controls_changed": false,
+    "derivation": "Compensate the spent v1 speech-window path-gain ranges after RMS-normalizing source excerpts; no held-out v2 capture or label informed the levels.",
+    "calibrated_spl_claimed": false
+  },
+  "stimuli": {
+    "root": "/private/tmp/cora-ids-spent-200",
+    "pair_and_hash_manifest": "docs/evidence/2026-07-11-natural-speech-workspace-template-v2-design-preregistration.json",
+    "hash_correction": "docs/evidence/2026-07-11-natural-speech-workspace-template-v2-attempt-2-design-preregistration.json",
+    "all_12_corrected_source_hashes_verified_before_output_creation": true,
+    "v1_sources_reused": false,
+    "held_out_overlap_used_for_selection": false,
+    "labels_consumed_by_runtime": false
+  },
+  "frozen_representation": {
+    "name": "prior_self_replay_template_residual_ratio",
+    "self_template_source": "earlier self_calibration capture with the same efference identity",
+    "gain_scalar_source": "current and stored aligned chirp windows",
+    "speech_template_ms": 600,
+    "workspace_template_slots": 3,
+    "cross_session_template_growth": false,
+    "threshold_rule": "maximum development self-probe residual ratio plus 10 percent of the clean gap to minimum development world-only ratio",
+    "strategies": ["flat", "fixed_self_window", "scheduled_identity_plus_template_residual"],
+    "capacity_sweep": [1, 2, 3, 4]
+  },
+  "bounds": {
+    "trial_count": 21,
+    "per_trial_playback_seconds_max": 2.0,
+    "total_playback_seconds_max": 25.0,
+    "total_capture_seconds_max": 45.0,
+    "planned_playback_seconds": 19.32,
+    "planned_capture_seconds": 31.92
+  },
+  "acceptance": {
+    "selected_capacity": 3,
+    "scheduled_f1_min": 0.9,
+    "scheduled_minus_flat_f1_min": 0.2,
+    "scheduled_world_recall_min": 0.9,
+    "scheduled_self_suppression_specificity_min": 0.9,
+    "fixed_window_world_recall_must_be_below_scheduled": true,
+    "capacity_one_f1_must_be_below_capacity_three": true,
+    "capacity_three_f1_must_equal_capacity_four": true,
+    "all_21_captures_and_alignments_required": true,
+    "no_clipped_capture_samples_required": true
+  },
+  "run_policy": "Run all 21 trials once in implementation order. A device-open or source-start failure before playback may be retried unchanged. Once playback begins, retain the result and do not replace a failed alignment, development gap, classification, or clipping result. Any material template, normalization, source, level, or geometry change requires a new preregistration.",
+  "command": ".venv/bin/python -m cora_infans --evaluate-natural-speech-workspace-template-v2 --real-io --root /private/tmp/cora-ids-spent-200 --out-dir docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts --preregistration docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-preregistration.json --authorize-bounded-playback",
+  "interpretation_rule": "A full pass supports H3 for exact-efference natural-speech sensory binding after one prior replay at this fixed geometry. A failure is retained and leaves the structured-tone H3 result intact.",
+  "claim_boundary": "This tests an exact commanded utterance after one prior sensory calibration, not generalized self-voice prediction, Cora-generated language, semantics, biological corollary discharge, or calibrated SPL. The episodic PCM templates are bounded to three workspace slots but are not compact learned speech representations.",
+  "unresolved_fields": []
+}
