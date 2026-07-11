@@ -446,7 +446,8 @@ within its measured boundary. H3's workspace claim remains separate.
 
 ### Stage 4 — Workspace binding
 
-Status: synthetic identity-aware ablation passed; real-audio task not demonstrated.
+Status: spent real-capture task and bounded candidate designed; fresh Cora
+synchronized confirmation not yet demonstrated.
 
 Required evidence:
 
@@ -462,6 +463,25 @@ Current synthetic result:
 - this improves aligned self-echo F1 over flat/windowed handling while preserving
   legitimate-overlap recall in deterministic ablations;
 - promotion still requires the same result from synchronized real audio.
+
+Current spent real-capture design result:
+
+- two Corollary self-only/mixed capture families selected thresholds; a third
+  paired family plus a world-only control was held out. All 19 underlying real
+  PCM hashes are retained;
+- flat admission scored F1 `0.727` because it preserved all world audio but also
+  admitted every self-only event;
+- identity-only binding exposed the required collision failure: it suppressed
+  self but reduced legitimate world/overlap recall to `0.25`;
+- a three-slot workspace combining matching efference identity with independent
+  bottom-up world-speech evidence reached F1 `1.0`, world recall `1.0`, and self-
+  suppression specificity `1.0` on the held-out family;
+- capacity `1/2/3/4` produced F1 `0.800/0.889/1.000/1.000`, demonstrating a
+  bounded capacity requirement and plateau rather than unbounded growth;
+- this is design evidence only. The speech/self features were produced upstream
+  by Corollary and are not a recomputed Cora signal residual. A fresh Cora task
+  must freeze the metric and compare flat, fixed-window, and scheduled binding
+  under synchronized self-only, world-only, and overlap playback.
 
 ### Stage 5 — Perception-production closure
 

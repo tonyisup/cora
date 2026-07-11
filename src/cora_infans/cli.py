@@ -86,6 +86,7 @@ from .natural_event_prediction import (
     evaluate_natural_event_ablations,
     evaluate_natural_event_cross_fieldsite,
 )
+from .real_workspace_binding import evaluate_real_workspace_binding_design
 from .live_speak_smoke import (
     StimulusSpec,
     capture_to_wav,
@@ -1142,6 +1143,14 @@ def natural_event_cli(args: list[str]) -> dict[str, object]:
     )
 
 
+def real_workspace_design_cli(args: list[str]) -> dict[str, object]:
+    """Run the spent Corollary H3 binding/interference design audit."""
+
+    if len(args) != 3 or args[1] != "--root":
+        raise ValueError("--evaluate-real-workspace-design requires --root DIR")
+    return evaluate_real_workspace_binding_design(root=args[2])
+
+
 def synthesize_vowel_cli(args: list[str] | None = None) -> dict[str, object]:
     """Option C CLI: synthesize a vowel (motor-plan production) to a WAV file.
 
@@ -2011,6 +2020,13 @@ def main(argv: list[str] | None = None) -> int:
         except (ValueError, OSError) as exc:
             print(str(exc), file=sys.stderr)
             return 2
+    if args and args[0] == "--evaluate-real-workspace-design":
+        try:
+            print(json.dumps(real_workspace_design_cli(args)))
+            return 0
+        except (ValueError, OSError, json.JSONDecodeError) as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
     if args and args[0] == "--synthesize-vowel":
         try:
             print(json.dumps(synthesize_vowel_cli(args)))
@@ -2134,6 +2150,7 @@ def main(argv: list[str] | None = None) -> int:
         "[--evaluate-natural-event-design --root DIR --participants ID,ID,ID] "
         "[--evaluate-natural-event-transfer --development-root DIR --development-participants ID,ID --held-out-root DIR --held-out-participants ID,ID] "
         "[--evaluate-natural-event-ablations --development-root DIR --development-participants ID,ID --held-out-root DIR --held-out-participants ID,ID] "
+        "[--evaluate-real-workspace-design --root COROLLARY_M2_BASELINE_DIR] "
         "[--simulate-self-suppression [--vowel a|e|i|o|u] [--world-vowel a|e|i|o|u] [--world-gain F] [--duration-ms N] [--sample-rate N]] "
         "[--learn-self-forward-model [--vowel a|e|i|o|u] [--observed-delay-ms F] [--observed-attenuation F] [--observed-echo-decay F] [--world-vowel a|e|i|o|u] [--world-gain F]] "
         "[--sweep-self-forward-model [--vowel a|e|i|o|u] [--delay-errors-ms csv] [--attenuation-scales csv] [--echo-decay-scales csv] [--world-vowel a|e|i|o|u] [--world-gain F]] "

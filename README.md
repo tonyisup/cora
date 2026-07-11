@@ -18,7 +18,7 @@ the repository.
 | Real-audio evaluation | First replay passed | WAV and prior-art captured NumPy PCM are measured directly with dev/held-out provenance; developmental-speech breadth is still open |
 | Parentese-relevant saliency | Mixed; not promoted | The final 16-fieldsite refit reached F1 0.600 on untouched Enga/Turku clips and failed its 0.65 gate; the separately tested vocal front gate remains positive |
 | Local predictive hierarchy | H2 supported within tested boundaries | Natural event transfer replicated across Wellington and MEN; a separate real room run with known efference masks retained four states through 10/15/20% dropout while improving vowels `+0.614` and tones `+0.474`. Unknown-timing world dropout and semantics remain outside scope |
-| Workspace binding | Synthetic ablation passed | Matching self-audio identity plus phase improves synthetic self-echo handling without suppressing a legitimate overlap; real-audio validation remains open |
+| Workspace binding | Spent real-capture design gate passed | A three-slot identity-plus-world-evidence candidate reached F1 1.0 on a held-out Corollary capture family versus 0.727 flat; identity-only recall collapsed to 0.25, exposing the overlap failure. Fresh Cora synchronized confirmation remains open |
 | Analysis by synthesis | Clean synthetic gate passed | Five vowels round-trip across multiple F0 values and 16/48 kHz; recorded-speaker validation remains open |
 | Efficiency | Host boundary measured on hardware | Core microbenchmarks and native XVF3800 capture-call-to-workspace latency are reported; device-onset timestamps, live CPU/memory, and energy remain excluded |
 
@@ -303,6 +303,18 @@ Run the workspace strategy ablation:
 python3 -m cora_infans --evaluate-workspace-ablation
 ```
 
+Run the non-promoting real-capture H3 design audit against external retained
+Corollary artifacts:
+
+```bash
+python3 -m cora_infans --evaluate-real-workspace-design \
+  --root /path/to/corollary/archive/data/m2_baseline
+```
+
+This consumes Corollary-produced self-presence and speech summary features plus
+verifies the underlying real PCM hashes. It does not recompute a signal residual
+or replace a fresh Cora synchronized binding task.
+
 The ablation compares flat, fixed-window, and theta-gamma handling on aligned
 self echo and legitimate world/motor overlap. Scheduling suppression requires
 verified self-audio identity; temporal coincidence by itself is insufficient.
@@ -413,6 +425,13 @@ developmental language learning.
   baseline; mean improvement was `+0.1106`, worst improvement `+0.0654`, and
   minimum occupancy `3`. This independently replicates natural speaker/
   fieldsite transfer for the event target.
+- A spent real-capture H3 design audit selected thresholds on two Corollary
+  families and held out a third. At three binding slots, flat admission scored
+  F1 `0.727`; identity-only suppression preserved self specificity but reduced
+  legitimate-world recall to `0.25`; combining bound self identity with bottom-
+  up world-speech evidence scored F1 `1.0`. Capacity 1/2/3 improved
+  `0.800/0.889/1.000` and plateaued at 4. This is design evidence over upstream
+  summary features, not promoted H3 or fresh Cora audio.
 - Theta/gamma scheduling is an event-timing model, not measured neural dynamics.
 - The vowel table uses adult reference targets and clean synthetic success does
   not imply recorded infant/adult speech performance.
@@ -428,6 +447,7 @@ developmental language learning.
 - `structured_prediction.py` — gated continuous-stream protocol and local state transitions
 - `natural_prediction_audit.py` — participant-held-out, label-blind natural-stream design audit
 - `natural_event_prediction.py` — causal quiet/onset/stable/change states and cross-fieldsite transfer
+- `real_workspace_binding.py` — bounded self/world binding design audit over retained real captures
 - `register_saliency.py` — long-window vocal, speech/song, and adaptive IDS gates
 - `io/motor_plan.py` — source-filter synthesis, LPC perception, and vowel gate
 - `benchmark.py` — explicit-boundary event-pipeline microbenchmark

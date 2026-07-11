@@ -388,6 +388,25 @@ research contract and implements the first vertical evidence path.
 - Held-out corpus reports expose clip win rate and do not auto-promote from a
   synthetic test.
 
+### Real-capture workspace binding design
+
+- Added a bounded efference-binding workspace and a reproducible, non-promoting
+  H3 audit over retained Corollary real captures. Two paired self-only/mixed
+  families select self-presence and world-speech thresholds; a third paired
+  family plus a world-only control is held out. All 19 observed PCM hashes are
+  recorded.
+- Flat admission scored F1 `0.727` with zero self-suppression specificity.
+  Identity-only binding achieved perfect self suppression but only `0.25`
+  legitimate-world recall, exposing the collision failure.
+- Combining a matching bounded efference identity with independent bottom-up
+  world-speech evidence scored F1, world recall, and self specificity `1.0` at
+  capacity 3. Capacity `1/2/3/4` scored `0.800/0.889/1.000/1.000`, showing a
+  bounded requirement and plateau.
+- Scope: design evidence from upstream Corollary summary features over verified
+  real PCM. It is not a Cora-computed signal residual and cannot promote H3.
+  Fresh synchronized self-only/world-only/overlap capture must compare flat,
+  fixed-window, and scheduled strategies under a frozen metric.
+
 ### Analysis-by-synthesis repair
 
 - Replaced smoothed-FFT peak picking with LPC pole estimation.
