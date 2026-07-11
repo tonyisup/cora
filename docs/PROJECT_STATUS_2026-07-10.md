@@ -279,6 +279,16 @@ research contract and implements the first vertical evidence path.
   failed before hardware: pooled vowel improvement `0.193`; `15%` and `20%`
   dropout improved only `0.105`. The CLI blocks real I/O for this variant. No
   new live capture was spent, and short-window/dropout-percentage tuning stops.
+- Implemented a genuinely different explicit-missingness candidate for the
+  self-generated protocol. The renderer retains a label-blind efference validity
+  mask; perception averages only 30 ms frames at a 5 ms hop that do not overlap
+  intentional erasures. There is no interpolation fallback.
+- On the already-spent dropout-v4 synthetic matrix, the candidate retained four
+  tone and vowel states at 10/15/20% dropout. Vowel improvements were `0.579`,
+  `0.526`, and `0.526`; pooled tone improvement was `0.667`. Full-spectrum and
+  interpolation controls collapsed to at most two vowel states. This is design
+  evidence only, limited to known self-generated erasures; fresh synthetic and
+  separately preregistered real gates remain mandatory.
 - Added a reproducible label-blind natural-stream design harness and reacquired
   only eight already-spent Beijing development clips by corrected ZIP64 byte
   ranges; every SHA-256 matched the earlier evidence.

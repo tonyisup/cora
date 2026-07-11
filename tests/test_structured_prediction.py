@@ -22,6 +22,7 @@ from cora_infans.structured_prediction import (
     ROBUST_V3_HELD_OUT_SEEDS,
     LocalAcousticCodebook,
     StructuredTrialPlan,
+    build_dropout_v4_trial_conditions,
     build_structured_protocol_manifest,
     build_robust_v3_trial_conditions,
     render_structured_trial,
@@ -118,10 +119,12 @@ def test_robust_v3_dropout_leaves_calibration_clean_and_masks_grammar() -> None:
 
     for start, end in clean.token_windows[:4]:
         assert np.array_equal(clean.pcm[start:end], dropout.pcm[start:end])
+    assert all(bool(np.all(mask)) for mask in dropout.token_valid_masks[:4])
     assert any(
         not np.array_equal(clean.pcm[start:end], dropout.pcm[start:end])
         for start, end in clean.token_windows[4:]
     )
+    assert any(not bool(np.all(mask)) for mask in dropout.token_valid_masks[4:])
 
 
 def test_frozen_protocol_and_implementation_hashes_match_source() -> None:
@@ -504,6 +507,27 @@ def test_dropout_v4_fake_design_failure_blocks_real_io(tmp_path) -> None:
                 "--quiet-room-confirmed",
             ]
         )
+
+
+def test_mask_aware_dropout_signature_passes_spent_v4_matrix(tmp_path) -> None:
+    report = run_structured_prediction_protocol(
+        out_dir=tmp_path,
+        fake_io=True,
+        development_seeds=DROPOUT_V4_DEVELOPMENT_SEEDS,
+        held_out_seeds=DROPOUT_V4_HELD_OUT_SEEDS,
+        protocol_variant="dropout_mask_design_spent_v4",
+        calibration_normalization_std_floor=CALIBRATED_V2_STD_FLOOR,
+        acceptance_profile="h2_condition_robustness_v3",
+        trial_conditions=build_dropout_v4_trial_conditions(),
+        signature_mode="efference_masked_mean_30_5",
+        representation_selection_boundary="spent dropout-v4 synthetic matrix only",
+    )
+
+    assert report["verdict"] == "fake_io_plumbing_passed"
+    vowels = report["family_reports"]["vowels"]
+    assert all(trial["state_occupancy"] == 4 for trial in vowels["reports"])
+    assert vowels["accuracy_improvement"] >= 0.20
+    assert vowels["minimum_trial_improvement"] >= 0.15
 
 
 def test_local_codebook_updates_only_nearest_bounded_centroid() -> None:

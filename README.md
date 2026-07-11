@@ -370,6 +370,11 @@ developmental language learning.
 - A temporal-median dropout revision passed development folds but failed a
   fresh synthetic gate (`+0.193` pooled; `+0.105` at 15–20% dropout), so its
   real-I/O path is blocked and no additional live evidence was consumed.
+- A later genuinely different candidate uses the motor/efference path's known
+  erasure mask and averages only fully observed 30 ms frames. On the spent v4
+  synthetic matrix it retained four states through 10/15/20% dropout and
+  improved vowels by `+0.579/+0.526/+0.526`. This is design evidence only; a
+  fresh synthetic gate and separate real preregistration are still required.
 - A label-blind natural-stream audit over eight spent Beijing speech clips then
   tested 18 frame/horizon variants. None advanced; the best won `2/8` clips,
   mean improvement was only `+0.0036`, and worst-clip regret was `9.9%`.

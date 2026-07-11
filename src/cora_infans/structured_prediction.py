@@ -160,6 +160,7 @@ class RenderedStructuredTrial:
     plan: StructuredTrialPlan
     pcm: np.ndarray
     token_windows: tuple[tuple[int, int], ...]
+    token_valid_masks: tuple[np.ndarray, ...]
     calibration_count: int
 
 
@@ -387,6 +388,7 @@ def render_structured_trial(
     chunks: list[np.ndarray] = [chirp, silence]
     cursor = len(chirp) + len(silence)
     windows: list[tuple[int, int]] = []
+    valid_masks: list[np.ndarray] = []
     sequence = (*plan.calibration_sequence, *plan.grammar_sequence)
     for observation_index, token in enumerate(sequence):
         token_pcm = _token_pcm(
@@ -395,6 +397,7 @@ def render_structured_trial(
             config=config,
             vowel_f0_hz=vowel_f0_hz,
         )
+        valid_mask = np.ones(len(token_pcm), dtype=bool)
         rng = np.random.default_rng(plan.seed * 1000 + observation_index + 43)
         if noise_snr is not None:
             signal_rms = math.sqrt(float(np.mean(token_pcm * token_pcm)))
@@ -420,16 +423,19 @@ def render_structured_trial(
             token_pcm = token_pcm.copy()
             for dropout_start in starts:
                 token_pcm[dropout_start : dropout_start + burst] = 0.0
+                valid_mask[dropout_start : dropout_start + burst] = False
         token_pcm = np.clip(token_pcm, -1.0, 1.0).astype(np.float32)
         start = cursor
         end = start + len(token_pcm)
         windows.append((start, end))
+        valid_masks.append(valid_mask)
         chunks.extend((token_pcm, gap))
         cursor = end + len(gap)
     return RenderedStructuredTrial(
         plan=plan,
         pcm=np.concatenate(chunks).astype(np.float32),
         token_windows=tuple(windows),
+        token_valid_masks=tuple(valid_masks),
         calibration_count=len(plan.calibration_sequence),
     )
 
@@ -501,6 +507,35 @@ def _temporal_median_spectral_signature(
     return signature / max(float(np.std(signature)), 1e-6)
 
 
+def _efference_masked_spectral_signature(
+    segment: np.ndarray,
+    valid_mask: np.ndarray,
+    sample_rate: int,
+) -> np.ndarray:
+    """Average only 30 ms frames known not to overlap an efference erasure.
+
+    This is limited to self-generated trials where the motor/efference path
+    knows which source samples were withheld. It does not infer missing samples
+    from arbitrary world audio or consume token labels.
+    """
+
+    frame = int(round(0.030 * sample_rate))
+    hop = int(round(0.005 * sample_rate))
+    mask = np.asarray(valid_mask, dtype=bool)
+    if len(segment) != len(mask):
+        raise ValueError("efference validity mask must match captured token window")
+    signatures = [
+        _spectral_signature(segment[start : start + frame], sample_rate)
+        for start in range(0, len(segment) - frame + 1, hop)
+        if bool(np.all(mask[start : start + frame]))
+    ]
+    if not signatures:
+        raise ValueError("no fully observed spectral frame remains after dropout")
+    signature = np.mean(np.asarray(signatures, dtype=np.float64), axis=0)
+    signature -= float(np.mean(signature))
+    return signature / max(float(np.std(signature)), 1e-6)
+
+
 def _captured_signatures(
     captured_path: Path,
     trial: RenderedStructuredTrial,
@@ -510,7 +545,7 @@ def _captured_signatures(
 ) -> list[np.ndarray]:
     samples, sample_rate = read_pcm_wav(captured_path)
     signatures = []
-    for start, end in trial.token_windows:
+    for observation_index, (start, end) in enumerate(trial.token_windows):
         aligned_start = alignment_samples + start
         aligned_end = alignment_samples + end
         if aligned_start < 0 or aligned_end > len(samples):
@@ -520,6 +555,12 @@ def _captured_signatures(
             signature = _spectral_signature(segment, sample_rate)
         elif signature_mode == "temporal_median_60_30":
             signature = _temporal_median_spectral_signature(segment, sample_rate)
+        elif signature_mode == "efference_masked_mean_30_5":
+            signature = _efference_masked_spectral_signature(
+                segment,
+                trial.token_valid_masks[observation_index],
+                sample_rate,
+            )
         else:
             raise ValueError(f"unknown structured signature mode: {signature_mode}")
         signatures.append(signature)

@@ -346,6 +346,16 @@ Current evidence:
 - short-window aggregation/dropout-percentage tuning is therefore retired for
   this family. A future dropout design needs explicit missing-observation
   handling or another genuinely different mechanism.
+- that different mechanism is now implemented for the bounded self-generated
+  protocol: the efference path records intentionally erased source samples, and
+  perception averages only 30 ms spectral frames fully outside those erasures;
+- on the already-spent dropout-v4 synthetic matrix, it retained all four states
+  at 10/15/20% dropout and improved vowels by `+0.579/+0.526/+0.526`; the full-
+  spectrum and interpolation controls collapsed to at most two states;
+- this advances a design candidate only. The mask is known because the source
+  is self-generated; it is not arbitrary-world dropout detection. Fresh
+  synthetic falsification and a separately preregistered live run are required
+  before the dropout-stability limitation changes.
 - the calibrated codebook was then audited on eight already-spent continuous
   Beijing speech clips with four participant-held-out folds. The learner saw no
   IDS/ADS labels; 18 fixed frame/horizon/representation candidates were compared
