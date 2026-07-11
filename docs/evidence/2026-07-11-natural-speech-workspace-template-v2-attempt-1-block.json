@@ -1,0 +1,13 @@
+{
+  "experiment": "natural_speech_workspace_binding_template_v2_design",
+  "date": "2026-07-11",
+  "attempt": 1,
+  "verdict": "blocked_before_design_evaluation",
+  "preregistration": "docs/evidence/2026-07-11-natural-speech-workspace-template-v2-design-preregistration.json",
+  "blocker": "The preregistered TSI09D.wav SHA-256 was 62 characters and omitted the two characters c1 at positions 15-16 of the actual 64-character digest.",
+  "preregistered_sha256": "a06c60f533a1c1e2af77687ab2f315b76499b1b4afe88de9f25d9aa0c2848a",
+  "actual_sha256": "a06c60f533a1c1c1e2af77687ab2f315b76499b1b4afe88de9f25d9aa0c2848a",
+  "candidate_metrics_computed": false,
+  "live_io_opened": false,
+  "promotion_allowed": false
+}
