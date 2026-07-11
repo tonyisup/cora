@@ -20,7 +20,7 @@ the repository.
 | Local predictive hierarchy | H2 supported within tested boundaries | Natural event transfer replicated across Wellington and MEN; a separate real room run with known efference masks retained four states through 10/15/20% dropout while improving vowels `+0.614` and tones `+0.474`. Unknown-timing world dropout and semantics remain outside scope |
 | Workspace binding | H3 supported within tested boundaries | The preregistered -18 dB synchronized run passed every classifier and zero-clipping gate: scheduled F1/recall/specificity 1.0/1.0/1.0 versus flat F1 0.8 and fixed-window F1 0.667; capacity improved through three slots and plateaued at four |
 | Analysis by synthesis | Recorded-human gate failed; retry paused | Clean synthesis remained 100%, but the preregistered VocalSet confirmation scored 36%; a disjoint development ladder peaked at 56%, so the reserved confirmation singers remain untouched and H4 stays open |
-| Efficiency | Quiet-path device timing passed | Three callback XVF3800 runs completed 1,200 timestamped frames with zero device-deadline misses; ADC frame-end-to-workspace p95 was 10.19–10.21 ms, CPU below 4.2%, and RSS below 62.3 MiB. Salient timing, XMOS DSP delay, and energy remain open |
+| Efficiency | Quiet and structured-salient timing passed | Three final callback runs emitted 142 salient events with zero clipping or device misses; salient ADC frame-end-to-workspace p95 was 9.94–10.20 ms, CPU below 4.15%, and RSS below 65.2 MiB. Natural speech timing, XMOS DSP delay, and energy remain open |
 
 ## Hardware boundary
 
@@ -368,8 +368,10 @@ python3 -m cora_infans --tune-raw-linear
 
 Every listener report includes host-monotonic capture-call, pipeline-decision,
 deadline-miss, real-time-factor, process CPU, process-lifetime peak RSS, and
-native input-overflow metrics. The boundary is the start of `capture_frame()`
-to the workspace decision—not ADC sample onset or an audio-backend timestamp.
+native input-overflow metrics. Blocking backends measure the start of
+`capture_frame()` to the workspace decision. The callback backend additionally
+preserves PortAudio's ADC-buffer timestamp and reports frame onset/end to the
+workspace decision.
 
 When the native backend provides a nominal input-latency value, the report also
 adds it to the host call measurements as an explicitly estimated
@@ -403,6 +405,12 @@ runs, ADC frame-end-to-workspace p95 was 10.19–10.21 ms with zero 30 ms device
 deadline misses. Frame-onset latency was 35.19–35.21 ms because it correctly
 includes the 25 ms needed to acquire a complete frame. These are backend ADC
 timestamps, not raw CoreAudio timestamps, and they exclude XMOS internal DSP.
+
+The structured-salient retry uses the external-world speaker at 180 degrees and
+50 cm with a fixed pitch contour at -12 dB. Across three final runs it emitted
+142 salient events, clipped zero of 960,000 captured samples, and kept salient
+ADC frame-end-to-workspace p95 between 9.94 and 10.20 ms with zero device
+deadline misses. This is structured-tone timing, not natural-speech timing.
 
 The bounded speaking and self-subtraction paths require explicit real-I/O
 authorization. They must not be treated as evidence of conversational or
@@ -524,8 +532,8 @@ developmental language learning.
   not imply recorded infant/adult speech performance.
 - Process CPU/RSS, native-overflow proxy, host/device-boundary latency, and an
   offline conventional comparison are measured. The quiet-path device timing
-  gate passed; salient live workload timing, raw CoreAudio timestamps, XMOS
-  internal DSP latency, and energy remain open.
+  and structured-salient timing gates passed; natural-speech timing, raw
+  CoreAudio timestamps, XMOS internal DSP latency, and energy remain open.
 
 ## Main modules
 

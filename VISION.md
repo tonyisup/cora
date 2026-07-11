@@ -581,8 +581,8 @@ classification. No motor-learning claim is made.
 ### Stage 6 — Real-time efficiency
 
 Status: offline/live resources and callback ADC-frame timing measured on real
-hardware; the quiet-path device-timestamp gate passed. Salient live timing,
-XMOS internal delay, and energy remain open.
+hardware; quiet and structured-salient device-timestamp gates passed. Natural
+speech timing, XMOS internal delay, and energy remain open.
 
 The native CoreAudio path has a measured sub-40 ms *host capture-call* p95 at a
 25 ms frame size. PortAudio reports an additional nominal input latency near
@@ -620,9 +620,23 @@ passes. One originally scheduled third run stalled during teardown without
 emitting a report; it is retained as incomplete, and its single frozen
 replacement used non-draining PortAudio shutdown.
 
-This closes the device-timestamped quiet-path latency requirement on this
-hardware only. Salient live workload timing, raw CoreAudio `AudioTimeStamp`,
-XMOS internal DSP delay, and energy remain open.
+This first closed the device-timestamped quiet-path latency requirement on this
+hardware; salient timing still required a separate loaded-path gate.
+
+A follow-on structured-salient gate stratified the same device timestamps by
+whether the pipeline actually emitted a workspace event. The initial `+12 dB`
+and first `-6 dB` runs passed timing but failed zero-clipping with `5,830` and
+`107` clipped samples. A final preregistered `-12 dB` attempt retained
+`48/47/47` salient frames across three runs and had zero clipped samples across
+`960,000` captured samples. Salient ADC frame-end-to-workspace p95 was
+`9.94–10.20 ms`; quiet p95 was `10.10–10.29 ms`. There were zero device
+deadline misses, overflows, callback-status events, timestamp discontinuities,
+or fallbacks. CPU remained below `4.15%` and peak RSS below `65.2 MiB`.
+
+The structured-salient timing gate therefore passes within this fixed
+pitch-contour, room, geometry, input, and host boundary. Natural speech timing,
+geometry transfer, raw CoreAudio timestamps, XMOS internal DSP delay, and
+energy remain open.
 
 Required evidence:
 

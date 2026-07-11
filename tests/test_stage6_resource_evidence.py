@@ -66,3 +66,22 @@ def test_retained_device_timestamp_gate_preserves_bounded_pass() -> None:
     ) < 30.0
     assert result["overall_criteria_passed"] is True
     assert result["promotion_allowed"] is True
+
+
+def test_retained_salient_timing_gate_preserves_clipping_free_pass() -> None:
+    root = Path(__file__).resolve().parents[1]
+    result = json.loads(
+        (root / "docs/evidence/2026-07-10-stage6-salient-timing-result.json").read_text()
+    )
+
+    assert result["aggregate"]["frame_count"] == 1200
+    assert result["aggregate"]["salient_frame_count"] == 142
+    assert result["aggregate"]["clipped_sample_count"] == 0
+    assert result["aggregate"]["input_overflow_count"] == 0
+    assert result["aggregate"]["device_deadline_miss_count"] == 0
+    assert max(
+        result["aggregate"]["salient_adc_frame_end_to_workspace_p95_ms_range"]
+    ) < 30.0
+    assert all(result["criteria"].values())
+    assert result["overall_criteria_passed"] is True
+    assert result["promotion_allowed"] is True
