@@ -16,11 +16,11 @@ the repository.
 |---|---|---|
 | Reproducible substrate | Implemented | Synthetic/live contracts, deterministic reports, and tests exist |
 | Real-audio evaluation | First replay passed | WAV and prior-art captured NumPy PCM are measured directly with dev/held-out provenance; developmental-speech breadth is still open |
-| Parentese-relevant saliency | Mixed; not promoted | A predictive linear-dynamics redesign improved over the failed six-phase retry but reached only F1 0.545 with two zero-F1 fieldsites on spent-data development. The vocal front gate remains positive; reserved confirmation fieldsites remain untouched |
+| Parentese-relevant saliency | Mixed; not promoted | Label-free cohort alignment improved the predictive candidate to F1 0.681 and FPR 0.035, but recall was 0.561 and five eligible fieldsites missed the frozen floor. The vocal front gate remains positive; reserved confirmation fieldsites remain untouched |
 | Local predictive hierarchy | H2 supported within tested boundaries | Natural event transfer replicated across Wellington and MEN; a separate real room run with known efference masks retained four states through 10/15/20% dropout while improving vowels `+0.614` and tones `+0.474`. Unknown-timing world dropout and semantics remain outside scope |
 | Workspace binding | H3 supported within tested boundaries | The preregistered -18 dB synchronized run passed every classifier and zero-clipping gate: scheduled F1/recall/specificity 1.0/1.0/1.0 versus flat F1 0.8 and fixed-window F1 0.667; capacity improved through three slots and plateaued at four |
 | Analysis by synthesis | Recorded-human gate failed; mechanism decision required | Clean synthesis remained 100%, but the preregistered VocalSet confirmation scored 36%; disjoint sung and ordinary-speech development peaked at 56% and 57.2%, so both reserved confirmation sets remain untouched and H4 stays open |
-| Efficiency | H5 supported within tested boundary | Quiet, structured-salient, and one lower-hardware-volume natural-speech timing gate passed; natural-speech salient p95 was 10.34–10.42 ms with zero clipping. Same-host energy was 27.36 µJ/frame versus 11.08 µJ/frame for the simpler baseline |
+| Efficiency | H5 supported within tested boundary | A six-fieldsite speech panel kept salient p95 at 10.17–10.38 ms with clean playback intervals, but two runs clipped only in trailing quiet and failed whole-capture integrity. Same-host energy was 27.36 µJ/frame versus 11.08 µJ/frame for the simpler baseline |
 
 ## Hardware boundary
 
@@ -473,6 +473,12 @@ developmental language learning.
   tuning and further WEL/USD/TOR access. San Diego and Toronto remain pristine;
   Wellington is already fieldsite-spent by H2 and cannot serve as pristine
   Stage 2 confirmation.
+- A label-free cohort-adaptive revision aligned held-out transition geometry
+  using at least three target speakers and known vocal-mode grouping. On 198
+  eligible clips it improved selected F1 to `0.681`, precision to `0.865`, and
+  FPR to `0.035`, but recall remained `0.561`; ACO stayed at F1 `0.0` and four
+  other fieldsites missed the frozen floor. The gain is meaningful but does not
+  rescue cross-cultural promotion, and USD/TOR remain untouched.
 - The upstream vocal gate passed selected diffuse and impulsive controls but
   admitted one crackling-fire clip in fold 3; it rejected all selected fold-4
   controls in the later joint test.
@@ -584,9 +590,11 @@ developmental language learning.
   energy is measured. A natural-speech timing attempt passed latency but failed
   capture quality at maximum speaker volume; a separately frozen diagnostic at
   approximately 50% hardware volume then passed every gate across 1,200 frames
-  with per-frame clipping reconciliation. The supported point is uncalibrated
-  and one-utterance only. Raw CoreAudio timestamps, XMOS internal DSP latency,
-  and embodied/paced-live energy remain open.
+  with per-frame clipping reconciliation. A later six-fieldsite panel passed
+  every timing and playback-interval clipping gate at salient p95
+  `10.17–10.38 ms`, but KRA and MES had full-scale events only during trailing
+  quiet, failing the frozen whole-capture rule. Raw CoreAudio timestamps, XMOS
+  internal DSP latency, and embodied/paced-live energy remain open.
 
 ## Main modules
 

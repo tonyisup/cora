@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 from cora_infans.natural_speech_timing_audit import (
     EXPECTED_STIMULUS_SHA256,
@@ -125,4 +126,22 @@ def test_diverse_natural_speech_requires_every_frozen_stimulus_to_pass(tmp_path)
     }
     assert result["criteria"]["clipped_sample_count_each_max_0"] is False
     assert result["failed_stimuli"] == ["SITE4.wav"]
+    assert result["promotion_allowed"] is False
+
+
+def test_retained_diverse_speech_result_preserves_timing_integrity_distinction() -> None:
+    root = Path(__file__).resolve().parents[1]
+    result = json.loads(
+        (
+            root
+            / "docs/evidence/2026-07-11-stage6-diverse-natural-speech-result.json"
+        ).read_text()
+    )
+
+    assert result["panel"]["fieldsite_count"] == 6
+    assert result["aggregate"]["frame_count"] == 4800
+    assert result["aggregate"]["playback_clipped_sample_count"] == 0
+    assert result["aggregate"]["trailing_quiet_clipped_sample_count"] == 71
+    assert result["timing_criteria_passed"] is True
+    assert result["overall_criteria_passed"] is False
     assert result["promotion_allowed"] is False

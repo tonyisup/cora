@@ -29,7 +29,7 @@ are authoritative.
 | 3 — Predictive hierarchy | H2 supported within tested boundaries | Natural transfer replicated on Wellington and MEN; controlled real known-efference dropout retained four states and improved tone/vowel prediction | Unknown dropout timing, arbitrary missing world input, semantics, and room transfer remain outside the claim |
 | 4 — Workspace binding | H3 supported within structured boundary | [real synchronized attempt 3](evidence/2026-07-10-structured-workspace-real-attempt-3-result.json) passed scheduled F1/recall/specificity and zero-clipping gates | Structured tones, fixed geometry, one room; not natural speech or measured neural theta/gamma dynamics |
 | 5 — Perception-production closure | H4 open; current route falsified | Clean synthesis remained perfect | [held-out VocalSet result](evidence/2026-07-11-vocalset-recorded-vowel-result.json) scored 0.36; sung development peaked at 0.56; [CMU Arctic development](evidence/2026-07-11-cmu-arctic-development-result.json) peaked at 0.572 |
-| 6 — Real-time efficiency | H5 supported within measured host boundary | Quiet and structured callback gates passed; [lower-volume natural-speech gate](evidence/2026-07-11-stage6-natural-speech-hardware-volume-diagnostic-result.json) passed at 10.34–10.42 ms salient p95 with zero clipping; [energy result](evidence/2026-07-11-stage6-energy-result.json) is measured | Energy is a 2.47× cost versus the conventional baseline, not a win; natural-speech evidence is one utterance at an uncalibrated knob setting; XMOS internal, wall-plug, acoustic, and cross-device energy remain open |
+| 6 — Real-time efficiency | H5 supported within measured host boundary | Quiet and structured callback gates passed; [lower-volume natural-speech gate](evidence/2026-07-11-stage6-natural-speech-hardware-volume-diagnostic-result.json) passed at 10.34–10.42 ms salient p95; [six-fieldsite timing panel](evidence/2026-07-11-stage6-diverse-natural-speech-result.json) retained 10.17–10.38 ms salient p95 with clean playback intervals; [energy result](evidence/2026-07-11-stage6-energy-result.json) is measured | Two diverse-panel runs clipped only in trailing quiet and failed whole-capture integrity; energy is a 2.47× baseline cost; XMOS internal, wall-plug, acoustic, and cross-device energy remain open |
 
 ## Stage 2 disposition pending
 
@@ -110,9 +110,15 @@ overflows, device misses, callback-status events, timestamp discontinuities, or
 fallbacks. The earlier maximum-volume clipping failure remains part of the
 evidence and bounds this operating point.
 
+The later six-fieldsite breadth panel completed 4,800 frames with zero timing or
+stream-integrity failures and zero clipping during active playback. KRA and MES
+nevertheless contributed `71` full-scale samples during trailing quiet, so the
+strict whole-capture gate failed. Four of six runs were completely clean; the
+telemetry does not identify the source of the two quiet-interval transients.
+
 ## Verification state
 
-At this checkpoint the full test suite reports `375 passed, 3 skipped`. The
+At this checkpoint the full test suite reports `378 passed, 3 skipped`. The
 skips are intentional hardware/environment-dependent tests, not hidden failures.
 The working branch is `codex/vision-evidence`; the latest research checkpoints
 include:
@@ -123,9 +129,11 @@ include:
 - `87636b5` — predictive dynamics falsification;
 - `fb46101` — post-hoc failure decomposition;
 - `b867722` — cohort-adaptive preregistration;
-- `a17fa59` — cohort-adaptive implementation.
+- `a17fa59` — cohort-adaptive implementation;
+- `ec7b4f1` — diverse natural-speech timing preregistration;
+- `9bf73c8` — six-stimulus audit implementation.
 
-## Decisions required before further empirical work
+## Decisions required before further Stage 2 or H4 empirical work
 
 1. Decide whether Stage 2 should now record broad cross-cultural register
    detection as falsified or authorize a materially different mechanism.

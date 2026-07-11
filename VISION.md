@@ -253,6 +253,17 @@ Current environmental-control result:
   no reserved data was newly accessed. San Diego and Toronto remain pristine;
   Wellington remains protected from Stage 2 use but is not fieldsite-pristine
   because of the earlier H2 experiment.
+- a final explicitly authorized cohort-adaptive revision aligned each eligible
+  held-out fieldsite's unlabeled transition covariance to training-cohort
+  geometry, separately for known speech and song batches. ARA was
+  preregistered ineligible because it had only one speaker. Across 198 clips
+  from the remaining 17 fieldsites, selected F1 improved descriptively to
+  `0.681`, precision to `0.865`, and FPR to `0.035`, with zero song false
+  positives. Recall remained `0.561`; ACO stayed at F1 `0.0`, and MBE, PNG,
+  QUE, and VAN also missed the frozen per-fieldsite floor. This supports the
+  narrower idea that relational cohort context helps, but the mechanism still
+  fails confirmation readiness. Its stop rule blocks same-family tuning and
+  USD/TOR access.
 
 ### Stage 3 — Predictive hierarchy
 
@@ -691,6 +702,19 @@ overflows, callback-status events, timestamp discontinuities, or fallbacks.
 Natural-speech timing therefore passes at this lower, uncalibrated hardware
 setting; the maximum-volume failure remains valid and bounds the claim.
 
+A preregistered breadth panel then replayed six purposefully salient,
+already-spent speech recordings from six speakers and fieldsites, balanced
+between infant- and adult-directed speech. All six completed 800 callback
+frames with zero deadline misses, overflows, status events, timestamp
+discontinuities, or fallbacks. Salient ADC frame-end-to-workspace p95 was
+`10.17–10.38 ms`; all playback intervals had zero clipped samples. The strict
+whole-capture gate nevertheless failed: KRA and MES contained `19` and `52`
+clipped samples only after their playback processes ended, while the other
+four runs were clean. The telemetry cannot identify the cause of those
+trailing-quiet full-scale events. This extends timing evidence descriptively
+but is retained as a capture-integrity failure, not a broader natural-speech
+promotion.
+
 The final Stage 6 comparison used three preregistered 10-second trials each of
 Cora, a simpler fixed-threshold/prototype baseline, and idle, sampled by macOS
 `powermetrics` on the same M4 Pro. All nine trials and `20` central power samples
@@ -706,8 +730,8 @@ Together, the named-host latency, RTF, CPU, RSS, overflow/deadline, conventional
 baseline, and estimated energy evidence supports H5 within the sustained
 synthetic/structured host-software boundary. It does not measure wall-plug or
 acoustic energy, XVF3800 consumption, paced live-runtime energy, natural-speech
-timing beyond one utterance and lower-volume operating point, XMOS internal DSP
-delay, or cross-device efficiency.
+whole-capture integrity beyond one clean repeated utterance and four of six
+diverse runs, XMOS internal DSP delay, or cross-device efficiency.
 
 Required evidence:
 
