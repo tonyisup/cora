@@ -360,7 +360,7 @@ verified self-audio identity; temporal coincidence by itself is insufficient.
 ```bash
 python3 -m cora_infans --capture-live --device :0 --duration-ms 250
 python3 -m cora_infans --listen-live --duration-ms 2000 --with-attention
-python3 -m cora_infans --listen-live --duration-ms 1000 --frame-ms 25 --capture-backend native
+python3 -m cora_infans --listen-live --duration-ms 1000 --frame-ms 25 --sample-rate 16000 --capture-backend native
 python3 -m cora_infans --snapshot-firmware
 python3 -m cora_infans --tune-raw-linear
 ```

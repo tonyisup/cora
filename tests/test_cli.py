@@ -975,6 +975,48 @@ def test_listen_live_saliency_threshold_flag_parses() -> None:
     assert captured.get("saliency_threshold") == 0.2
 
 
+def test_listen_live_sample_rate_flag_reaches_mic_array(monkeypatch) -> None:
+    import cora_infans.cli as cli
+
+    captured = {}
+
+    class _FakeArray:
+        channel_count = 2
+
+        def __init__(self, **kwargs):
+            captured.update(kwargs)
+
+    class _FakeListener:
+        def __init__(self, array=None, **kwargs):
+            pass
+
+        def listen(self, **kwargs):
+            return {"frame_count": 0}
+
+    monkeypatch.setattr(cli, "LiveMicArray", _FakeArray)
+    monkeypatch.setattr(cli, "LiveListener", _FakeListener)
+
+    cli.listen_live(
+        [
+            "--listen-live",
+            "--duration-ms",
+            "25",
+            "--frame-ms",
+            "25",
+            "--sample-rate",
+            "16000",
+            "--capture-backend",
+            "native",
+        ]
+    )
+
+    assert captured == {
+        "device": ":0",
+        "sample_rate": 16000,
+        "stream_backend": "native",
+    }
+
+
 def test_listen_live_with_self_subtraction_requires_real_io() -> None:
     # Phase 2 Task 4: --with-self-subtraction is meaningless without --real-io
     # (no capture to fit/subtract); the CLI must refuse.
