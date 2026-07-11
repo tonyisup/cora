@@ -110,12 +110,12 @@ research contract and implements the first vertical evidence path.
 - An extraction audit against the source study found strong agreement for pitch
   median (`r=0.984`) but weak agreement for pitch IQR (`r=0.093`). An
   overlapping FFT-YIN estimator improved pitch-IQR agreement to `r=0.689`.
-- The resulting v2 model still failed on fresh Mescalero/Tsimane' clips: pooled
+- The resulting v2 model still failed on fresh Colombian Mestizo/Tsimane' clips: pooled
   F1 `0.4444`; Tsimane' F1 `0.0`. Those clips were marked spent.
 - Inspection of the published analysis code then exposed a semantic mismatch:
   the source standardized within both speaker and vocal mode. Cora had
   standardized all four speech/song conditions together.
-- The corrected v3 scorer was frozen before fetching six unseen Menominee and
+- The corrected v3 scorer was frozen before fetching six unseen Mentawai and
   Toposa speakers. It passed every preregistered gate: pooled F1 `0.6667`, FPR
   `0.1111`, zero song false positives, and F1 `0.6667` on each fieldsite. The
   better frozen baseline reached only F1 `0.4138`.
@@ -140,14 +140,14 @@ research contract and implements the first vertical evidence path.
 - One crackling-fire clip scored as vocal. The claim is limited to a five-second
   front gate on these conditions; it is not general or frame-level VAD.
 - The confirmed front gate and v3 register scorer are combined in a hash-pinned
-  v4 composition. It preserves the earlier Menominee/Toposa metrics, but the
+  v4 composition. It preserves the earlier Mentawai/Toposa metrics, but the
   two gates were confirmed separately rather than in one untouched joint test.
 - The v4 composition was then frozen before selecting 12 Vanuatu vocal clips
   and 16 ESC-50 fold-4 controls. The vocal surface passed cleanly: recall `1.0`
   and environmental pass-through `0.0` for both diffuse and impulsive groups.
 - The register surface failed: F1 `0.400`, recall `0.333`, FPR `0.111`, with one
   of three IDS clips promoted. This fails the frozen `0.65` F1 gate and blocks
-  Stage-2 promotion despite the earlier Menominee/Toposa pass.
+  Stage-2 promotion despite the earlier Mentawai/Toposa pass.
 - The active weakness is now IDS/ADS generalization rather than environmental
   rejection. All Vanuatu and fold-4 clips are spent.
 - A v5 candidate selected its speech cutoff strictly from the original ten

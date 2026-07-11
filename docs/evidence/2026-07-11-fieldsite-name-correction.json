@@ -1,0 +1,26 @@
+{
+  "correction": "music_lab_fieldsite_name_expansion",
+  "date": "2026-07-11",
+  "status": "documentation_correction_no_metrics_or_provenance_changed",
+  "authoritative_source": {
+    "name": "Human vocalization corpus: recordings of infant-directed and adult-directed speech and song in 21 societies",
+    "doi": "10.5281/zenodo.5525161",
+    "url": "https://doi.org/10.5281/zenodo.5525161"
+  },
+  "corrections": [
+    {
+      "fieldsite_code": "MEN",
+      "incorrect_prior_prose": "Menominee",
+      "official_name": "Mentawai Islanders"
+    },
+    {
+      "fieldsite_code": "MES",
+      "incorrect_prior_prose": "Mescalero",
+      "official_name": "Colombian Mestizos"
+    }
+  ],
+  "scope": "Correct current explanatory documentation and establish the official mapping for future reports. Historical result bytes, selected filenames, labels, hashes, predictions, and metrics are unchanged.",
+  "metric_impact": "none",
+  "data_split_impact": "none",
+  "protected_data_impact": "none"
+}

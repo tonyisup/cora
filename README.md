@@ -22,6 +22,10 @@ the repository.
 | Analysis by synthesis | Recorded-human gate failed; mechanism decision required | Clean synthesis remained 100%, but the preregistered VocalSet confirmation scored 36%; disjoint sung and ordinary-speech development peaked at 56% and 57.2%, so both reserved confirmation sets remain untouched and H4 stays open |
 | Efficiency | H5 supported within tested boundary | A six-fieldsite speech panel kept salient p95 at 10.17–10.38 ms with clean playback intervals, but two runs clipped only in trailing quiet and failed whole-capture integrity. Same-host energy was 27.36 µJ/frame versus 11.08 µJ/frame for the simpler baseline |
 
+New to the terminology? Start with the [data dictionary](docs/DATA_DICTIONARY.md),
+especially the distinction between the classifier **F1 score** and acoustic
+**F1/F2/F3 formants**.
+
 ## Hardware boundary
 
 The XVF3800 board has four physical microphones and performs on-board DSP. The
@@ -134,7 +138,7 @@ The replacement is a transparent long-window pipeline rather than another
 absolute pitch threshold. It first uses YIN voiced-window coverage to reject
 non-vocal clips, then separates speech from song, then compares IDS with ADS
 after unlabeled normalization within speaker and vocal mode. The corrected
-register scorer passed a preregistered 24-clip Menominee/Toposa test with F1
+register scorer passed a preregistered 24-clip Mentawai/Toposa test with F1
 `0.667`, FPR `0.111`, and zero song false positives. Its calibration requires
 two observations from the same speaker and mode, so it is not cold-start or
 strictly causal.

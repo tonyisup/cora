@@ -193,7 +193,7 @@ Current speaker-adaptive register result:
 - inspection of the source analysis exposed the adaptation error: acoustic
   summaries must be standardized within both speaker and vocal mode, rather
   than across speech and song together;
-- that correction was frozen before evaluating 24 clips from six unseen Menominee
+- that correction was frozen before evaluating 24 clips from six unseen Mentawai
   and Toposa speakers. Pooled F1 was `0.667` versus `0.414` for the better frozen
   baseline, FPR was `0.111`, and song FPR was `0.0`; both fieldsites met the
   preregistered F1 floor;
@@ -217,7 +217,7 @@ Current environmental-control result:
 - on a later jointly untouched Vanuatu/ESC-50 fold-4 set, the front gate retained
   all 12 vocal clips and rejected all 16 environmental clips, but register F1
   fell to `0.400` and failed its frozen `0.65` gate;
-- the Menominee/Toposa pass remains bounded evidence. The latest result blocks
+- the Mentawai/Toposa pass remains bounded evidence. The latest result blocks
   Stage-2 cross-cultural promotion and points to IDS/ADS generalization—not
   environmental rejection—as the active failure.
 - a speech cutoff selected only from the original ten-fieldsite grouped

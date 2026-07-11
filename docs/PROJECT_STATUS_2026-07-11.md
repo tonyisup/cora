@@ -5,6 +5,9 @@ It does not supersede preregistrations or promote a failed gate. When a summary
 and a retained artifact disagree, the retained artifact and its frozen protocol
 are authoritative.
 
+For acronyms, corpus codes, metrics, and common report fields, see the
+[data dictionary](DATA_DICTIONARY.md).
+
 ## Executive outcome
 
 - Stages 0 and 1 are implemented and supported by reproducible real-audio
@@ -25,7 +28,7 @@ are authoritative.
 |---|---|---|---|
 | 0 — Reproducible substrate | Implemented | Deterministic unit/integration suite; explicit synthetic/live contracts; fail-loud real I/O; hash-pinned external-data runners | Passing plumbing is not empirical promotion |
 | 1 — Real-audio evaluation | Passed in bounded corpora | [prior-art replay](evidence/2026-07-10-prior-art-replay.json), Music Lab PCM/float WAV evaluation, participant/fieldsite manifests | Broader devices, rooms, ages, and spontaneous conditions remain open |
-| 2 — Parentese-relevant saliency | Mixed; not promoted | [narrow Beijing confirmation](evidence/2026-07-10-ids-confirmation.json), [Menominee/Toposa mode-scoped pass](evidence/2026-07-10-mode-scoped-register-result.json), [vocal front-gate pass](evidence/2026-07-10-yin-vocal-gate-v2-result.json) | [final paired-summary failure](evidence/2026-07-10-expanded-register-v6-result.json), [six-phase failure](evidence/2026-07-11-temporal-register-development-result.json), [predictive-dynamics failure](evidence/2026-07-11-predictive-register-dynamics-result.json), [cohort-adaptive failure](evidence/2026-07-11-cohort-adaptive-register-result.json), and [nonlinear-codebook failure](evidence/2026-07-11-nonlinear-predictive-codebook-result.json) block general promotion |
+| 2 — Parentese-relevant saliency | Mixed; not promoted | [narrow Beijing confirmation](evidence/2026-07-10-ids-confirmation.json), [Mentawai/Toposa mode-scoped pass](evidence/2026-07-10-mode-scoped-register-result.json), [vocal front-gate pass](evidence/2026-07-10-yin-vocal-gate-v2-result.json) | [final paired-summary failure](evidence/2026-07-10-expanded-register-v6-result.json), [six-phase failure](evidence/2026-07-11-temporal-register-development-result.json), [predictive-dynamics failure](evidence/2026-07-11-predictive-register-dynamics-result.json), [cohort-adaptive failure](evidence/2026-07-11-cohort-adaptive-register-result.json), and [nonlinear-codebook failure](evidence/2026-07-11-nonlinear-predictive-codebook-result.json) block general promotion |
 | 3 — Predictive hierarchy | H2 supported within tested boundaries | Natural transfer replicated on Wellington and MEN; controlled real known-efference dropout retained four states and improved tone/vowel prediction | Unknown dropout timing, arbitrary missing world input, semantics, and room transfer remain outside the claim |
 | 4 — Workspace binding | H3 supported within structured boundary | [real synchronized attempt 3](evidence/2026-07-10-structured-workspace-real-attempt-3-result.json) passed scheduled F1/recall/specificity and zero-clipping gates | Structured tones, fixed geometry, one room; not natural speech or measured neural theta/gamma dynamics |
 | 5 — Perception-production closure | H4 open; current route falsified | Clean synthesis remained perfect | [held-out VocalSet result](evidence/2026-07-11-vocalset-recorded-vowel-result.json) scored 0.36; sung development peaked at 0.56; [CMU Arctic development](evidence/2026-07-11-cmu-arctic-development-result.json) peaked at 0.572 |
@@ -53,6 +56,10 @@ among accepting the broad Stage 2 falsification, changing the claim to cohort-
 adaptive operation, or authorizing a more complex nonlinear sequence model.
 The [cross-workflow provenance correction](evidence/2026-07-11-stage2-reserved-fieldsite-provenance-correction.json)
 records why Wellington is protected but not fieldsite-pristine.
+The [fieldsite-name correction](evidence/2026-07-11-fieldsite-name-correction.json)
+records that official corpus code `MEN` means Mentawai Islanders and `MES`
+means Colombian Mestizos; earlier prose used incorrect expansions, but no data,
+labels, predictions, or metrics changed.
 
 The explicitly authorized cohort-adaptive revision then aligned each eligible
 held-out fieldsite's unlabeled transition covariance to training-cohort
@@ -138,7 +145,7 @@ analog/device-front-end transient.
 
 ## Verification state
 
-At this checkpoint the full test suite reports `384 passed, 3 skipped`. The
+At this checkpoint the full test suite reports `386 passed, 3 skipped`. The
 skips are intentional hardware/environment-dependent tests, not hidden failures.
 The working branch is `codex/vision-evidence`; the latest research checkpoints
 include:
