@@ -234,8 +234,9 @@ Current environmental-control result:
 
 ### Stage 3 — Predictive hierarchy
 
-Status: natural event transfer replicated across two held-out fieldsites; H2
-remains open only where the named dropout-stability requirement is not met.
+Status: H2 supported within tested boundaries. Controlled and natural held-out
+prediction, noise, known-efference dropout, speaker/fieldsite transfer, bounded
+state, and bottom-up/top-down flow have positive evidence.
 Phase-template evidence remains positive in bounded settings, and a safer
 online learner passed a fresh-fieldsite regret gate but failed superiority. The
 first real structured-stream mechanism passed tones but failed vowels; a
@@ -362,6 +363,19 @@ Current evidence:
   `+0.579`;
 - synthetic promotion remains prohibited. The result permits one separately
   preregistered real room-transfer run; it does not itself change H2 status.
+- that real run then completed 12 synchronized playback/captures under the
+  frozen geometry. Every artifact hash, alignment, stream position, and gate
+  verified;
+- vowels retained four states at 10/15/20% dropout and improved `+0.614` pooled
+  with `+0.579` minimum trial improvement. Tones retained four states and
+  improved `+0.474` pooled with `+0.368` minimum;
+- together with the prior 10 dB noise/F0 result and the replicated Wellington
+  and MEN natural transfer, this satisfies H2's stated bounded predictive-
+  advantage, bottom-up/top-down, noise, dropout, and speaker-change evidence;
+- the scope remains important: dropout timing came from the bounded self-
+  generated efference path at one geometry. Arbitrary-world missingness,
+  unknown dropout timing, semantics, and universal language transfer are not
+  implied by H2's bounded pass.
 - the calibrated codebook was then audited on eight already-spent continuous
   Beijing speech clips with four participant-held-out folds. The learner saw no
   IDS/ADS labels; 18 fixed frame/horizon/representation candidates were compared
@@ -424,11 +438,11 @@ Promotion criterion:
 - statistically or practically meaningful held-out error reduction across more
   than one recording or synthetic family, without unbounded state growth.
 
-The controlled mechanism and Beijing-to-Wellington and Beijing-to-MEN natural
-event transfers are positive. The H2 bottom-up/top-down/saliency component
-ablations are positive but post-confirmation. H2 is not fully closed because
-the frozen controlled-dropout condition preserved predictive advantage while
-collapsing one represented vowel state. H3's workspace claim remains separate.
+The promotion criterion is met across controlled tones/vowels and two natural
+fieldsite transfers without unbounded state growth. Component ablations are
+positive, and the later mask-aware real run repairs the earlier controlled-
+dropout collapse for known self-generated erasures. H2 is therefore supported
+within its measured boundary. H3's workspace claim remains separate.
 
 ### Stage 4 — Workspace binding
 

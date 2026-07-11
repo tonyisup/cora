@@ -17,7 +17,7 @@ the repository.
 | Reproducible substrate | Implemented | Synthetic/live contracts, deterministic reports, and tests exist |
 | Real-audio evaluation | First replay passed | WAV and prior-art captured NumPy PCM are measured directly with dev/held-out provenance; developmental-speech breadth is still open |
 | Parentese-relevant saliency | Mixed; not promoted | The final 16-fieldsite refit reached F1 0.600 on untouched Enga/Turku clips and failed its 0.65 gate; the separately tested vocal front gate remains positive |
-| Local predictive hierarchy | Natural transfer replicated; dropout stability open | The frozen 16-scalar Beijing-trained event predictor beat every causal baseline on 8/8 Wellington clips (`+0.0751` mean) and independently on 8/8 duration-qualified MEN clips (`+0.1106` mean, `+0.0654` worst); this supports unlabeled event dynamics across speakers/fieldsites, not semantics |
+| Local predictive hierarchy | H2 supported within tested boundaries | Natural event transfer replicated across Wellington and MEN; a separate real room run with known efference masks retained four states through 10/15/20% dropout while improving vowels `+0.614` and tones `+0.474`. Unknown-timing world dropout and semantics remain outside scope |
 | Workspace binding | Synthetic ablation passed | Matching self-audio identity plus phase improves synthetic self-echo handling without suppressing a legitimate overlap; real-audio validation remains open |
 | Analysis by synthesis | Clean synthetic gate passed | Five vowels round-trip across multiple F0 values and 16/48 kHz; recorded-speaker validation remains open |
 | Efficiency | Host boundary measured on hardware | Core microbenchmarks and native XVF3800 capture-call-to-workspace latency are reported; device-onset timestamps, live CPU/memory, and energy remain excluded |
@@ -379,6 +379,12 @@ developmental language learning.
   `+0.614` pooled and vowels `+0.596`, every 10/15/20% condition retained four
   states, and the minimum trial improvement was `+0.579`. This remains
   synthetic evidence; live execution requires a separate frozen protocol.
+- The separately preregistered real run then completed all 12 synchronized
+  playback/captures. Vowels retained four states and improved `+0.614` pooled
+  (`+0.579` minimum trial); tones retained four states and improved `+0.474`
+  (`+0.368` minimum). All 24 WAV hashes, alignments, stream positions, bounded
+  state, and top-down use verified. This closes the tested known-efference
+  dropout gate, not arbitrary-world or unknown-timing dropout.
 - A label-blind natural-stream audit over eight spent Beijing speech clips then
   tested 18 frame/horizon variants. None advanced; the best won `2/8` clips,
   mean improvement was only `+0.0036`, and worst-clip regret was `9.9%`.
@@ -406,8 +412,7 @@ developmental language learning.
   unchanged Beijing-only model, all `8/8` MEN clips beat their strongest causal
   baseline; mean improvement was `+0.1106`, worst improvement `+0.0654`, and
   minimum occupancy `3`. This independently replicates natural speaker/
-  fieldsite transfer for the event target; controlled dropout stability remains
-  open.
+  fieldsite transfer for the event target.
 - Theta/gamma scheduling is an event-timing model, not measured neural dynamics.
 - The vowel table uses adult reference targets and clean synthetic success does
   not imply recorded infant/adult speech performance.

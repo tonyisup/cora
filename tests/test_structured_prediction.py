@@ -582,6 +582,30 @@ def test_retained_dropout_v5_fresh_synthetic_gate_passed() -> None:
     assert result["gate_summary"]["vowels"]["minimum_trial_improvement"] >= 0.15
 
 
+def test_retained_dropout_v5_real_result_and_artifacts_pass() -> None:
+    root = Path(__file__).resolve().parents[1]
+    evidence = root / "docs/evidence"
+    result = json.loads(
+        (evidence / "2026-07-10-dropout-v5-real-result.json").read_text()
+    )
+
+    assert result["verdict"] == "real_io_acceptance_passed"
+    assert result["all_acceptance_gates_passed"] is True
+    assert result["integrity"]["verified_artifact_hash_count"] == 24
+    assert len(result["artifacts"]) == 12
+    for artifact in result["artifacts"]:
+        for kind in ("efference", "captured"):
+            retained = evidence / artifact[f"{kind}_wav"]
+            assert hashlib.sha256(retained.read_bytes()).hexdigest() == artifact[
+                f"{kind}_sha256"
+            ]
+    for family in result["family_reports"].values():
+        assert family["held_out_codebook_occupancy"] == 4
+        assert family["minimum_trial_improvement"] >= 0.15
+        assert family["bounded_state_scalars"] <= 68
+        assert family["top_down_prediction_consumed"] is True
+
+
 def test_local_codebook_updates_only_nearest_bounded_centroid() -> None:
     initial = np.eye(4, dtype=np.float64)
     codebook = LocalAcousticCodebook(initial)

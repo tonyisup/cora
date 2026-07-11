@@ -294,6 +294,19 @@ research contract and implements the first vertical evidence path.
   `0.614`, pooled vowel improvement `0.596`, minimum trial improvement `0.579`,
   and four states in every condition. Promotion remains prohibited because the
   channel is synthetic; a separately frozen real run is the next gate.
+- After committing a separate real-run preregistration, completed all 12 bounded
+  synchronized trials at the fixed 50 cm/180-degree geometry. All 24 WAV hashes,
+  two-channel capture provenance, stream positions, and chirp alignments
+  (`400.562–415.625 ms`) verified.
+- The real v5 gate passed. Vowels retained four states in each 10/15/20%
+  condition and improved `0.614` pooled with `0.579` minimum trial improvement.
+  Tones retained four states and improved `0.474` pooled with `0.368` minimum.
+  State stayed bounded at 68 scalars and top-down prediction was consumed.
+- Combined with real 10 dB noise/F0 stability and independently replicated
+  Wellington/MEN natural transfer, this supports VISION H2 within the tested
+  boundary. Dropout timing is known from self-generated efference at one room
+  geometry; arbitrary-world missingness, semantics, and unknown timing remain
+  outside the claim.
 - Added a reproducible label-blind natural-stream design harness and reacquired
   only eight already-spent Beijing development clips by corrected ZIP64 byte
   ranges; every SHA-256 matched the earlier evidence.
@@ -471,19 +484,12 @@ These numbers are a microbenchmark, not end-to-end auditory latency.
    different temporal representation or protocol before using another fieldsite.
 2. Separately design a causal calibration path before any cold-start or live
    parentese claim.
-3. Keep the safe expert mixture as a fallback. The calibrated structured
-   mechanism passes clean, F0-shift, and noise conditions, but dropout collapses
-   one vowel state despite strong prediction. Any dropout-aware revision must
-   be designed on development/synthetic data and confirmed on fresh conditions;
-   recorded-speaker transfer remains a separate later gate. Natural event-
-   dynamics transfer now passes Beijing-to-Wellington, while the earlier fixed-
-   frame codebook remains retired; the next H2 work should be the required
-   hierarchy/workspace/saliency ablations and a second independent natural
-   context, not threshold retuning on Wellington.
-   The ARA duration-eligibility omission was corrected prospectively and the
-   MEN replacement replication passed. Natural fieldsite transfer no longer
-   needs another immediate corpus; prioritize explicit missing-observation
-   handling for the still-failing controlled-dropout representation.
+3. Treat H2 as supported only within its measured boundary: two natural
+   fieldsite transfers plus controlled real noise, F0, and known-efference
+   dropout. Do not generalize to semantic prediction, arbitrary-world
+   missingness, unknown dropout timing, or new room geometry without new gates.
+   Advance the staged program to H3's real-audio binding/interference task;
+   existing workspace evidence is still synthetic.
 4. Add recorded-vowel speakers not used to tune LPC selection and run a separate
    confusion matrix.
 5. Instrument the live capture path for microphone-to-event latency and dropped
