@@ -187,3 +187,11 @@ the required all-state plant contract because `9/1024` arbitrary motor states
 did not expose three separated resonances in the frozen analysis band. The
 result therefore does not authorize the planned local learner. No recorded or
 protected data was accessed.
+
+The retained failure decomposition located every missing third peak between
+`3525` and `3990 Hz`, rather than finding invalid geometry. Option F therefore
+freezes an expanded `80–5000 Hz` structural readout on disjoint points while
+leaving the plant unchanged. Its
+[preregistration](evidence/2026-07-11-h4-option-f-expanded-band-plant-preregistration.json)
+authorizes one synthetic plant-only confirmation, not learning or recorded
+speech.
