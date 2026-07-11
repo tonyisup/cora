@@ -1,0 +1,18 @@
+{
+  "experiment": "stage6_callback_salient_workload_timing_attempt_1",
+  "date": "2026-07-10",
+  "status": "capture_clipping_gate_failed",
+  "frame_count": 400,
+  "salient_frame_count": 61,
+  "salient_adc_frame_end_to_workspace_p95_ms": 10.355749996961094,
+  "salient_device_operational_deadline_miss_rate": 0.0,
+  "capture_peak_absolute": 1.0,
+  "captured_sample_count": 320000,
+  "clipped_sample_count": 5830,
+  "clipped_sample_fraction": 0.01821875,
+  "input_overflow_count": 0,
+  "callback_status_count": 0,
+  "timestamp_discontinuity_count": 0,
+  "promotion_allowed": false,
+  "disposition": "Stop the original series after run 1. Freeze only playback digital gain from +12 dB to -6 dB; retain geometry, hardware levels, stimulus, thresholds, timing path, criteria, and all other variables."
+}

@@ -135,9 +135,11 @@ class ParenteseStimulus:
         self,
         output_device_index: int = STIMULUS_OUTPUT_DEVICE_INDEX,
         sample_rate: int = DEFAULT_STIMULUS_SAMPLE_RATE,
+        volume_db: float = 12.0,
     ) -> None:
         self.output_device_index = output_device_index
         self.sample_rate = sample_rate
+        self.volume_db = float(volume_db)
 
     def synthesize_wav(
         self,
@@ -208,7 +210,7 @@ class ParenteseStimulus:
         cmd = [
             ffmpeg, "-hide_banner", "-loglevel", "error", "-y",
             "-i", path,
-            "-af", "volume=12dB",
+            "-af", f"volume={self.volume_db:g}dB",
             "-f", "audiotoolbox", "-audio_device_index", str(self.output_device_index),
             sink,
         ]
@@ -1133,6 +1135,15 @@ class LiveListener:
         return {
             "source": "live_xvf3800",
             "with_stimulus": with_stimulus,
+            "stimulus": (
+                {
+                    "output_device_index": self.stimulus.output_device_index,
+                    "sample_rate_hz": self.stimulus.sample_rate,
+                    "volume_db": self.stimulus.volume_db,
+                }
+                if with_stimulus
+                else None
+            ),
             "frame_count": len(frames),
             "salient_frame_count": salient,
             "non_salient_frame_count": non_salient,

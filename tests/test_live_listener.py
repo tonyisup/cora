@@ -285,6 +285,27 @@ def test_parentese_stimulus_synthesizes_nonempty_wav(tmp_path) -> None:
         assert np.std(data) > 0.0
 
 
+def test_parentese_stimulus_playback_gain_is_explicit(monkeypatch) -> None:
+    import cora_infans.io.live_listener as listener_module
+
+    observed = {}
+
+    class FakeProcess:
+        pass
+
+    monkeypatch.setattr(listener_module, "_require_ffmpeg", lambda: "ffmpeg")
+    monkeypatch.setattr(
+        listener_module.subprocess,
+        "Popen",
+        lambda command, **kwargs: observed.setdefault("command", command)
+        and FakeProcess(),
+    )
+
+    ParenteseStimulus(volume_db=-6.0).play("probe.wav")
+
+    assert "volume=-6dB" in observed["command"]
+
+
 def test_corollary_capture_records_latency_anchor(tmp_path) -> None:
     # The corollary-feedback capture records the measured latency anchor and
     # delegates to the injected capture fn (real ffmpeg otherwise).

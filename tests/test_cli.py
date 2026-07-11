@@ -1017,6 +1017,36 @@ def test_listen_live_sample_rate_flag_reaches_mic_array(monkeypatch) -> None:
     }
 
 
+def test_listen_live_stimulus_volume_flag_reaches_stimulus(monkeypatch) -> None:
+    import cora_infans.cli as cli
+
+    captured = {}
+
+    class _FakeListener:
+        def __init__(self, array=None, **kwargs):
+            captured.update(kwargs)
+
+        def listen(self, **kwargs):
+            return {"frame_count": 0}
+
+    monkeypatch.setattr(cli, "LiveListener", _FakeListener)
+    monkeypatch.setattr(cli, "LiveMicArray", lambda **kwargs: object())
+
+    cli.listen_live(
+        [
+            "--listen-live",
+            "--with-stimulus",
+            "--stimulus-volume-db",
+            "-6",
+            "--duration-ms",
+            "25",
+        ]
+    )
+
+    assert captured["stimulus"].volume_db == -6.0
+    assert captured["stimulus"].output_device_index == 2
+
+
 def test_listen_live_with_self_subtraction_requires_real_io() -> None:
     # Phase 2 Task 4: --with-self-subtraction is meaningless without --real-io
     # (no capture to fit/subtract); the CLI must refuse.
