@@ -21,6 +21,7 @@ Honesty boundary (per VISION.md / README.md):
 
 from __future__ import annotations
 
+import hashlib
 import inspect
 import math
 import subprocess
@@ -859,6 +860,7 @@ class LiveListener:
         duration_ms: int = 2000,
         frame_ms: int = 250,
         with_stimulus: bool = False,
+        stimulus_wav_path: str | None = None,
         with_scheduling: bool = True,
         with_attention: bool = False,
         with_motor_imitation: bool = False,
@@ -908,9 +910,19 @@ class LiveListener:
 
         stim_proc = None
         stim_path = None
+        temporary_stimulus = False
+        stimulus_wav_sha256 = None
         if with_stimulus:
-            stim_path = tempfile.mktemp(suffix=".wav")
-            self.stimulus.synthesize_wav(stim_path)
+            if stimulus_wav_path is None:
+                stim_path = tempfile.mktemp(suffix=".wav")
+                temporary_stimulus = True
+                self.stimulus.synthesize_wav(stim_path)
+            else:
+                source_path = Path(stimulus_wav_path).resolve()
+                if not source_path.is_file():
+                    raise ValueError(f"stimulus WAV does not exist: {source_path}")
+                stim_path = str(source_path)
+                stimulus_wav_sha256 = hashlib.sha256(source_path.read_bytes()).hexdigest()
             stim_proc = self.stimulus.play(stim_path)
 
         frames: list[dict[str, object]] = []
@@ -1115,7 +1127,7 @@ class LiveListener:
             except Exception:
                 stim_proc.kill()
             # Unlink only after playback has finished reading the file.
-            if stim_path is not None:
+            if temporary_stimulus and stim_path is not None:
                 import os
 
                 try:
@@ -1140,6 +1152,15 @@ class LiveListener:
                     "output_device_index": self.stimulus.output_device_index,
                     "sample_rate_hz": self.stimulus.sample_rate,
                     "volume_db": self.stimulus.volume_db,
+                    "kind": (
+                        "external_wav" if stimulus_wav_path is not None else "synthetic_contour"
+                    ),
+                    "source_wav_path": (
+                        str(Path(stimulus_wav_path).resolve())
+                        if stimulus_wav_path is not None
+                        else None
+                    ),
+                    "source_wav_sha256": stimulus_wav_sha256,
                 }
                 if with_stimulus
                 else None

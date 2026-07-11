@@ -1060,6 +1060,38 @@ def test_listener_tags_stimulus_flag() -> None:
     assert report["with_stimulus"] is True
 
 
+def test_listener_plays_external_wav_without_deleting_it(tmp_path, monkeypatch) -> None:
+    stimulus_path = tmp_path / "speech.wav"
+    stimulus_path.write_bytes(b"bounded natural speech fixture")
+    played = []
+
+    class FinishedPlayback:
+        def wait(self, timeout):
+            return 0
+
+        def kill(self):
+            raise AssertionError("completed playback must not be killed")
+
+    listener = LiveListener(FakeArray([_frame([0.05, 0.01])]), saliency_threshold=0.02)
+    monkeypatch.setattr(
+        listener.stimulus,
+        "play",
+        lambda path: played.append(path) or FinishedPlayback(),
+    )
+
+    report = listener.listen(
+        duration_ms=200,
+        frame_ms=200,
+        with_stimulus=True,
+        stimulus_wav_path=str(stimulus_path),
+    )
+
+    assert played == [str(stimulus_path.resolve())]
+    assert stimulus_path.exists()
+    assert report["stimulus"]["kind"] == "external_wav"
+    assert report["stimulus"]["source_wav_sha256"] is not None
+
+
 @pytest.mark.skipif(shutil.which("ffmpeg") is None, reason="ffmpeg not available")
 def test_listener_runs_on_real_hardware_if_present() -> None:
     from cora_infans.io.live_mic import LiveMicArray

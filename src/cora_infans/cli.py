@@ -325,6 +325,7 @@ def listen_live(args: list[str] | None = None) -> dict[str, object]:
     sample_rate: int | None = None
     capture_backend = "auto"
     with_stimulus = False
+    stimulus_wav_path: str | None = None
     stimulus_volume_db: float | None = None
     with_scheduling = False
     with_attention = False
@@ -417,6 +418,9 @@ def listen_live(args: list[str] | None = None) -> dict[str, object]:
                 stimulus_volume_db = float(value)
             except ValueError as exc:
                 raise ValueError("invalid stimulus volume db") from exc
+        elif option == "--stimulus-wav":
+            stimulus_wav_path = value
+            with_stimulus = True
         elif option == "--saliency-threshold":
             try:
                 saliency_threshold = float(value)
@@ -567,6 +571,7 @@ def listen_live(args: list[str] | None = None) -> dict[str, object]:
             duration_ms=duration_ms,
             frame_ms=frame_ms,
             with_stimulus=with_stimulus,
+            stimulus_wav_path=stimulus_wav_path,
             with_scheduling=with_scheduling,
             with_attention=with_attention,
             with_motor_imitation=with_motor_imitation,
@@ -2311,7 +2316,7 @@ def main(argv: list[str] | None = None) -> int:
         "[--timestamp-ms N --dominant-frequency-hz F --channel-energies a,b,c,d --initial-prediction-hz F --mic-geometry l0,l1,l2,l3 --saliency-threshold F --output json|pretty] "
         "[--family sweep|zigzag|gap|multi_gap|delayed_recovery] [--with-scheduling] "
         "[--capture-live [--device :0] [--duration-ms N]] "
-        "[--listen-live [--duration-ms N] [--frame-ms N] [--sample-rate N] [--capture-backend auto|native|callback|ffmpeg] [--with-stimulus [--stimulus-volume-db F]] [--with-attention] [--with-scheduling] [--saliency-threshold F] [--with-motor-imitation [--real-io [--output-device-index 2] [--imitation-device-index 3] [--with-self-subtraction] [--volume-db F] [--latency-anchor PATH]]]] "
+        "[--listen-live [--duration-ms N] [--frame-ms N] [--sample-rate N] [--capture-backend auto|native|callback|ffmpeg] [--with-stimulus|--stimulus-wav PATH [--stimulus-volume-db F]] [--with-attention] [--with-scheduling] [--saliency-threshold F] [--with-motor-imitation [--real-io [--output-device-index 2] [--imitation-device-index 3] [--with-self-subtraction] [--volume-db F] [--latency-anchor PATH]]]] "
         "[--eval-corpus --root DIR --label-csv FILE [--saliency-threshold F] [--frame-ms N] [--score-mode peak_rms|spatial_contrast] [--input-mode wav|recorded_npy|synthetic_fixture] [--compare-baselines] [--evaluate-prediction FEATURE] [--evaluate-online-safety FEATURE[,FEATURE]] [--positive-label LABEL[,LABEL]]] "
         "[--synthesize-vowel a|e|i|o|u --out PATH.wav [--duration-ms N] [--sample-rate N] [--f0-hz F] [--analyze]] "
         "[--evaluate-vowel-loop [--duration-ms N] [--minimum-accuracy F]] "
