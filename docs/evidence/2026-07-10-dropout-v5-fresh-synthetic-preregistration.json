@@ -1,0 +1,43 @@
+{
+  "experiment": "efference_masked_dropout_fresh_synthetic_gate",
+  "date": "2026-07-10",
+  "status": "fully_preregistered_before_fresh_seed_execution",
+  "design_audit_sha256": "8009617137c56183c4e85a9dcb07dacb5a3031edc22e03cd1158f665547b4a64",
+  "protocol_sha256": "11eb881e5c7114c4dd9eb0389bce79e4d1c703f3ae36e1010a5c199224a1977f",
+  "implementation_sha256": "4fd7afca9545a6ed31225b177edf64c656987ab011d06b52633e44657d530fda",
+  "cli_sha256": "ba46b2409ca53bd04c8e944dc75eeb935c19f58cfdd62c48bf8d0e621876bd8f",
+  "freshness": {
+    "development_seeds": [14101, 14107, 14109],
+    "held_out_seeds": [14111, 14117, 14123],
+    "all_seeds_absent_from_prior_retained_evidence_before_freeze": true,
+    "fake_acoustic_gate_executed_before_freeze": false
+  },
+  "frozen_conditions": {
+    "development_vowel_f0_hz": [115, 145, 175],
+    "held_out_vowel_f0_hz": 205,
+    "held_out_dropout_fractions": [0.10, 0.15, 0.20],
+    "dropout_burst_ms": 5,
+    "calibration_is_clean": true,
+    "grammar_only_dropout": true
+  },
+  "frozen_representation": {
+    "signature_mode": "efference_masked_mean_30_5",
+    "frame_ms": 30,
+    "hop_ms": 5,
+    "standard_deviation_floor": 0.30,
+    "rule": "average only fully observed frames according to the label-blind efference validity mask",
+    "fallback_if_no_complete_frame": "fail the trial"
+  },
+  "frozen_acceptance_rule_for_each_tone_and_vowel_family": {
+    "held_out_codebook_occupancy": 4,
+    "minimum_pooled_accuracy_improvement": 0.20,
+    "minimum_each_trial_accuracy_improvement": 0.15,
+    "each_named_condition_state_occupancy": 4,
+    "required_named_condition_count": 3,
+    "maximum_bounded_state_scalars": 68,
+    "top_down_prediction_must_be_consumed": true
+  },
+  "failure_policy": "Retain any failed gate. Do not change seeds, F0, dropout fractions, burst size, mask rule, frame/hop, calibration, baselines, or thresholds after execution.",
+  "real_io_policy": "Real I/O is hard-blocked in the frozen CLI regardless of this result. A pass only permits a separately reviewed and preregistered real-run code change; a failure ends this candidate.",
+  "claim_boundary": "A pass supports only prospective synthetic plausibility for known self-generated erasure masks. It cannot establish room-transfer robustness, arbitrary-world missingness detection, or close H2."
+}

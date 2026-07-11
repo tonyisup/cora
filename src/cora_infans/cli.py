@@ -70,10 +70,13 @@ from .structured_prediction import (
     CALIBRATED_V2_STD_FLOOR,
     DROPOUT_V4_DEVELOPMENT_SEEDS,
     DROPOUT_V4_HELD_OUT_SEEDS,
+    DROPOUT_V5_DEVELOPMENT_SEEDS,
+    DROPOUT_V5_HELD_OUT_SEEDS,
     ROBUST_V3_DEVELOPMENT_SEEDS,
     ROBUST_V3_HELD_OUT_SEEDS,
     build_robust_v3_trial_conditions,
     build_dropout_v4_trial_conditions,
+    build_dropout_v5_trial_conditions,
     run_structured_prediction_protocol,
 )
 from .natural_prediction_audit import audit_natural_prediction_grid
@@ -957,6 +960,7 @@ def structured_prediction_cli(args: list[str]) -> dict[str, object]:
                     "calibrated_v2",
                     "robustness_v3",
                     "dropout_v4",
+                    "dropout_v5",
                 }:
                     raise ValueError("unknown structured protocol variant")
                 variant = value
@@ -968,6 +972,10 @@ def structured_prediction_cli(args: list[str]) -> dict[str, object]:
     if variant == "dropout_v4" and real_io:
         raise ValueError(
             "dropout_v4 failed its fresh synthetic design gate; real I/O is prohibited"
+        )
+    if variant == "dropout_v5" and real_io:
+        raise ValueError(
+            "dropout_v5 fresh synthetic gate is pending; real I/O is prohibited"
         )
     geometry: dict[str, object] | None = None
     playback_fn = None
@@ -998,9 +1006,15 @@ def structured_prediction_cli(args: list[str]) -> dict[str, object]:
             device=input_device,
             **kwargs,
         )
-    calibrated = variant in {"calibrated_v2", "robustness_v3", "dropout_v4"}
+    calibrated = variant in {
+        "calibrated_v2",
+        "robustness_v3",
+        "dropout_v4",
+        "dropout_v5",
+    }
     robust = variant == "robustness_v3"
     dropout_robust = variant == "dropout_v4"
+    dropout_masked = variant == "dropout_v5"
     return run_structured_prediction_protocol(
         out_dir=out_dir,
         fake_io=fake_io,
@@ -1011,14 +1025,16 @@ def structured_prediction_cli(args: list[str]) -> dict[str, object]:
         geometry=geometry,
         real_hardware_claim=bool(real_io and bounded_playback_authorized),
         development_seeds=(
-            DROPOUT_V4_DEVELOPMENT_SEEDS
-            if dropout_robust
+            DROPOUT_V5_DEVELOPMENT_SEEDS
+            if dropout_masked
+            else DROPOUT_V4_DEVELOPMENT_SEEDS if dropout_robust
             else ROBUST_V3_DEVELOPMENT_SEEDS if robust
             else CALIBRATED_V2_DEVELOPMENT_SEEDS if calibrated else None
         ),
         held_out_seeds=(
-            DROPOUT_V4_HELD_OUT_SEEDS
-            if dropout_robust
+            DROPOUT_V5_HELD_OUT_SEEDS
+            if dropout_masked
+            else DROPOUT_V4_HELD_OUT_SEEDS if dropout_robust
             else ROBUST_V3_HELD_OUT_SEEDS if robust
             else CALIBRATED_V2_HELD_OUT_SEEDS if calibrated else None
         ),
@@ -1028,20 +1044,24 @@ def structured_prediction_cli(args: list[str]) -> dict[str, object]:
         ),
         acceptance_profile=(
             "h2_condition_robustness_v3"
-            if robust or dropout_robust
+            if robust or dropout_robust or dropout_masked
             else "h2_predictive_advantage_v2" if calibrated else "original"
         ),
         trial_conditions=(
-            build_dropout_v4_trial_conditions()
-            if dropout_robust
+            build_dropout_v5_trial_conditions()
+            if dropout_masked
+            else build_dropout_v4_trial_conditions() if dropout_robust
             else build_robust_v3_trial_conditions() if robust else None
         ),
         signature_mode=(
-            "temporal_median_60_30" if dropout_robust else "full_spectrum"
+            "efference_masked_mean_30_5"
+            if dropout_masked
+            else "temporal_median_60_30" if dropout_robust else "full_spectrum"
         ),
         representation_selection_boundary=(
-            "selected on robustness-v3 development captures only"
-            if dropout_robust
+            "selected on spent dropout-v4 synthetic matrix only"
+            if dropout_masked
+            else "selected on robustness-v3 development captures only" if dropout_robust
             else "selected on attempt-2 development captures only"
         ),
     )
@@ -2113,7 +2133,7 @@ def main(argv: list[str] | None = None) -> int:
         "[--fit-register-scorer --source ROOT::LABEL_CSV [--source ROOT::LABEL_CSV] --out MODEL.json] "
         "[--eval-register-scorer --model MODEL.json --root DIR --label-csv FILE] "
         "[--eval-register-pipeline --model MODEL.json --vocal-root DIR --vocal-label-csv FILE --environmental-root DIR --environmental-label-csv FILE] "
-        "[--evaluate-structured-prediction --out-dir DIR [--variant original|calibrated_v2|robustness_v3|dropout_v4] [--fake-io | --real-io --authorize-bounded-playback --input-device :0 --output-device-index 2 --speaker-distance-cm N --speaker-orientation TEXT --quiet-room-confirmed]] "
+        "[--evaluate-structured-prediction --out-dir DIR [--variant original|calibrated_v2|robustness_v3|dropout_v4|dropout_v5] [--fake-io | --real-io --authorize-bounded-playback --input-device :0 --output-device-index 2 --speaker-distance-cm N --speaker-orientation TEXT --quiet-room-confirmed]] "
         "[--evaluate-natural-prediction-design --root DIR --participants ID,ID,ID] "
         "[--evaluate-natural-event-design --root DIR --participants ID,ID,ID] "
         "[--evaluate-natural-event-transfer --development-root DIR --development-participants ID,ID --held-out-root DIR --held-out-participants ID,ID] "

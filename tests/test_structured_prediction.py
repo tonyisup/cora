@@ -17,6 +17,8 @@ from cora_infans.structured_prediction import (
     DEVELOPMENT_SEEDS,
     DROPOUT_V4_DEVELOPMENT_SEEDS,
     DROPOUT_V4_HELD_OUT_SEEDS,
+    DROPOUT_V5_DEVELOPMENT_SEEDS,
+    DROPOUT_V5_HELD_OUT_SEEDS,
     HELD_OUT_SEEDS,
     ROBUST_V3_DEVELOPMENT_SEEDS,
     ROBUST_V3_HELD_OUT_SEEDS,
@@ -528,6 +530,45 @@ def test_mask_aware_dropout_signature_passes_spent_v4_matrix(tmp_path) -> None:
     assert all(trial["state_occupancy"] == 4 for trial in vowels["reports"])
     assert vowels["accuracy_improvement"] >= 0.20
     assert vowels["minimum_trial_improvement"] >= 0.15
+
+
+def test_dropout_v5_plan_is_fresh_and_real_io_stays_blocked(tmp_path) -> None:
+    prior = set(DROPOUT_V4_DEVELOPMENT_SEEDS) | set(DROPOUT_V4_HELD_OUT_SEEDS)
+    planned = structured_prediction_cli(
+        [
+            "--evaluate-structured-prediction",
+            "--out-dir",
+            str(tmp_path / "plan"),
+            "--variant",
+            "dropout_v5",
+        ]
+    )
+
+    assert planned["verdict"] == "planned_no_io"
+    assert prior.isdisjoint(DROPOUT_V5_DEVELOPMENT_SEEDS)
+    assert prior.isdisjoint(DROPOUT_V5_HELD_OUT_SEEDS)
+    assert planned["development_seeds"] == list(DROPOUT_V5_DEVELOPMENT_SEEDS)
+    assert planned["held_out_seeds"] == list(DROPOUT_V5_HELD_OUT_SEEDS)
+    assert planned["representation"]["signature_mode"] == (
+        "efference_masked_mean_30_5"
+    )
+    with pytest.raises(ValueError, match="fresh synthetic gate is pending"):
+        structured_prediction_cli(
+            [
+                "--evaluate-structured-prediction",
+                "--out-dir",
+                str(tmp_path / "real"),
+                "--variant",
+                "dropout_v5",
+                "--real-io",
+                "--authorize-bounded-playback",
+                "--speaker-distance-cm",
+                "50",
+                "--speaker-orientation",
+                "180deg",
+                "--quiet-room-confirmed",
+            ]
+        )
 
 
 def test_local_codebook_updates_only_nearest_bounded_centroid() -> None:

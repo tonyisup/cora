@@ -42,6 +42,8 @@ ROBUST_V3_DEVELOPMENT_SEEDS = (13001, 13006, 13015)
 ROBUST_V3_HELD_OUT_SEEDS = (13016, 13017, 13023)
 DROPOUT_V4_DEVELOPMENT_SEEDS = (13025, 13039, 13043)
 DROPOUT_V4_HELD_OUT_SEEDS = (13045, 13048, 13051)
+DROPOUT_V5_DEVELOPMENT_SEEDS = (14101, 14107, 14109)
+DROPOUT_V5_HELD_OUT_SEEDS = (14111, 14117, 14123)
 
 PlaybackFn = Callable[[str], dict[str, object]]
 CaptureFn = Callable[..., dict[str, object]]
@@ -110,6 +112,43 @@ def build_dropout_v4_trial_conditions() -> dict[str, dict[str, object]]:
         for split, seeds in (
             ("dev", DROPOUT_V4_DEVELOPMENT_SEEDS),
             ("held_out", DROPOUT_V4_HELD_OUT_SEEDS),
+        )
+        for seed in seeds
+    }
+
+
+def build_dropout_v5_trial_conditions() -> dict[str, dict[str, object]]:
+    """Prospective multi-severity matrix for explicit efference masking."""
+
+    by_seed: dict[int, dict[str, object]] = {
+        14101: {"name": "clean_speaker_f0_115", "vowel_f0_hz": 115.0},
+        14107: {"name": "clean_speaker_f0_145", "vowel_f0_hz": 145.0},
+        14109: {"name": "clean_speaker_f0_175", "vowel_f0_hz": 175.0},
+        14111: {
+            "name": "speaker_shift_f0_205_grammar_dropout_10pct",
+            "vowel_f0_hz": 205.0,
+            "grammar_dropout_fraction": 0.10,
+            "dropout_burst_ms": 5.0,
+        },
+        14117: {
+            "name": "speaker_shift_f0_205_grammar_dropout_15pct",
+            "vowel_f0_hz": 205.0,
+            "grammar_dropout_fraction": 0.15,
+            "dropout_burst_ms": 5.0,
+        },
+        14123: {
+            "name": "speaker_shift_f0_205_grammar_dropout_20pct",
+            "vowel_f0_hz": 205.0,
+            "grammar_dropout_fraction": 0.20,
+            "dropout_burst_ms": 5.0,
+        },
+    }
+    return {
+        f"{family}_{split}_{seed}": dict(by_seed[seed])
+        for family in ("tones", "vowels")
+        for split, seeds in (
+            ("dev", DROPOUT_V5_DEVELOPMENT_SEEDS),
+            ("held_out", DROPOUT_V5_HELD_OUT_SEEDS),
         )
         for seed in seeds
     }
