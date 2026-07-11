@@ -97,6 +97,10 @@ cross-fieldsite invariant hidden by the linear readout.
 
 ## H4 disposition pending
 
+The evidence-backed mechanism fork and recommended continuous inverse-synthesis
+alternative are documented in [H4_MECHANISM_DECISION.md](H4_MECHANISM_DECISION.md).
+That memo does not authorize a new experiment or confirmation-data access.
+
 The current shared fixed-formant route is contradicted in both recorded domains:
 
 - VocalSet held-out confirmation: `9/25 = 0.36`;

@@ -313,6 +313,10 @@ only 13% and 30%. The five CMU Arctic confirmation speakers remain unfetched.
 This makes the next step a mechanism decision, not another parameter sweep:
 adopting a learned speaker-normalized phone model or changing the frozen vowel
 mapping would materially revise H4's analysis-by-synthesis claim.
+The current mechanism fork, protected-data boundary, and recommended continuous
+inverse-synthesis alternative are summarized in
+[docs/H4_MECHANISM_DECISION.md](docs/H4_MECHANISM_DECISION.md). No new H4
+experiment or confirmation-data access is authorized by that memo.
 
 Synthesize and inspect one vowel:
 
