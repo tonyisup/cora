@@ -50,6 +50,7 @@ def test_listener_reports_capture_to_workspace_latency_boundary() -> None:
     assert report["runtime_resources"]["peak_resident_memory_bytes"] > 0
     assert report["runtime_resources"]["average_process_cpu_percent"] >= 0.0
     assert performance["workload_latency_ms"]["salient"]["frame_count"] == 2
+    assert all("clipped_sample_count" in frame for frame in report["frames"])
 
 
 def test_play_efference_requires_passed_gate() -> None:

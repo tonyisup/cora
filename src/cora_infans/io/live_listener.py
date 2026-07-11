@@ -966,6 +966,12 @@ class LiveListener:
             frame_is_salient.append(is_salient)
             frame_view = asdict_public(frame)
             frame_view["stimulus_active"] = with_stimulus
+            frame_view["capture_peak_absolute"] = float(
+                getattr(self.array, "last_frame_peak_absolute", 0.0)
+            )
+            frame_view["clipped_sample_count"] = int(
+                getattr(self.array, "last_frame_clipped_sample_count", 0)
+            )
             frames.append(frame_view)
             if is_salient and event is not None:
                 events.append(asdict_public(event))

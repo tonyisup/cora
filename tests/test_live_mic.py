@@ -177,6 +177,8 @@ def test_callback_stream_reblocks_pcm_and_preserves_adc_timestamp() -> None:
     assert array.capture_peak_absolute == 0.5
     assert array.captured_sample_count == 800
     assert array.clipped_sample_count == 0
+    assert array.last_frame_peak_absolute == 0.5
+    assert array.last_frame_clipped_sample_count == 0
 
 
 def test_callback_stream_uses_non_draining_abort_on_close() -> None:
