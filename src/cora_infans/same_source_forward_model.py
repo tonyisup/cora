@@ -518,7 +518,7 @@ def evaluate_spent_same_source_forward_model(
         "maximum_shared_model_scalars_at_most_13": all(
             fold["model_state_scalars"] <= 13 for fold in fold_reports
         ),
-        "confirmation_audio_accessed": False,
+        "confirmation_audio_not_accessed": True,
     }
     passed = all(criteria.values())
     return {

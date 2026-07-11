@@ -1,5 +1,7 @@
 """Contract tests for the preregistered H3 same-source forward model."""
 
+import inspect
+
 import numpy as np
 import pytest
 
@@ -7,9 +9,17 @@ from cora_infans.same_source_forward_model import (
     SameSourceForwardModel,
     _validate_result_modes,
     centered_log_bands,
+    evaluate_spent_same_source_forward_model,
     forward_distance,
     raw_efference_distance,
 )
+
+
+def test_required_negative_boundary_is_expressed_as_positive_criterion() -> None:
+    source = inspect.getsource(evaluate_spent_same_source_forward_model)
+
+    assert '"confirmation_audio_not_accessed": True' in source
+    assert '"confirmation_audio_accessed": False' not in source
 
 
 def test_running_mean_learns_one_shared_path_signature() -> None:
