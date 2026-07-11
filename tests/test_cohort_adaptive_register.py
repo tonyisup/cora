@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 import numpy as np
 
 from cora_infans.cohort_adaptive_register import (
@@ -119,3 +122,20 @@ def test_alignment_serialization_discloses_batch_sizes() -> None:
     assert payload["source_transition_count"] == 20
     assert payload["target_transition_count"] == 30
     assert len(payload["transform"]) == 10
+
+
+def test_retained_cohort_result_preserves_stop_decision() -> None:
+    root = Path(__file__).resolve().parents[1]
+    result = json.loads(
+        (
+            root / "docs/evidence/2026-07-11-cohort-adaptive-register-result.json"
+        ).read_text()
+    )
+
+    assert result["source"]["evaluated_clip_count"] == 198
+    assert result["source"]["eligible_fieldsite_count"] == 17
+    assert result["out_of_field_threshold_selection"]["f1"] == 0.6808510638297872
+    assert result["out_of_field_threshold_selection"]["minimum_fieldsite_f1"] == 0.0
+    assert result["development_candidate_ready"] is False
+    assert result["confirmation_audio_or_metadata_accessed"] is False
+    assert result["promotion_allowed"] is False
