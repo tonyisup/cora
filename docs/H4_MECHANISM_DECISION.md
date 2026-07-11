@@ -215,3 +215,9 @@ failed both gates. It preserved vowel identity perfectly and beat all three
 forward baselines frequently, but median forward distance was `0.264`, combined
 agreement `0.40`, and F1/F2/F3 reconstruction MAE `16/54/142 Hz`. This supports
 neither H4 promotion nor a same-candidate retry.
+
+The Option G failure analysis supports one distinct local alternative:
+[Option H](H4_OPTION_H_SMOOTH_LOCAL_CLOSURE.md) removes hard regions and fits a
+Gaussian-weighted affine tangent from the 64 nearest babbling exemplars at each
+query. Its [preregistration](evidence/2026-07-11-h4-option-h-smooth-local-closure-preregistration.json)
+uses entirely disjoint points and retains the same closure gates.
