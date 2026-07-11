@@ -1,0 +1,56 @@
+{
+  "experiment": "stage6_natural_speech_hardware_volume_and_clipping_diagnostic",
+  "date": "2026-07-11",
+  "status": "frozen_before_physical_adjustment_implementation_and_live_playback",
+  "parent": "docs/evidence/2026-07-11-stage6-natural-speech-timing-result.json",
+  "motivation": "The maximum-hardware-volume series passed timing but clipped intermittently and non-monotonically across -12 dB and -18 dB software gains. Aggregate clipping could not identify whether peaks occurred during actual file playback or the trailing quiet capture interval.",
+  "single_physical_change": {
+    "external_speaker_hardware_knob": {
+      "from": "maximum",
+      "to": "approximately 50 percent of mechanical travel"
+    }
+  },
+  "required_instrumentation_before_run": [
+    "per-25-ms-frame capture peak absolute value",
+    "per-25-ms-frame clipped sample count",
+    "actual playback-process-active state distinct from the session-level stimulus-present tag",
+    "audit equality between summed frame clipped samples and aggregate clipped samples"
+  ],
+  "unchanged": {
+    "stimulus_filename": "ACO02B.wav",
+    "stimulus_sha256": "c58a46a68782fb318cd885e6c670025104cc844bb3d8e4080b69b1f995c2c410",
+    "stimulus_condition": "infant-directed speech",
+    "stimulus_duration_seconds": 6.833990929705215,
+    "software_playback_gain_db": -18.0,
+    "repeat_within_run": false,
+    "input": "XVF3800 callback device :0, 16 kHz, two fused channels",
+    "world_output": "External Headphones device 2",
+    "bearing_degrees": 180,
+    "distance_cm": 50,
+    "capture_duration_ms": 10000,
+    "frame_ms": 25,
+    "target_frames_each": 400,
+    "replicate_count": 3,
+    "saliency_threshold": 0.02
+  },
+  "acceptance": {
+    "real_capture_each": true,
+    "callback_backend_without_fallback_each": true,
+    "frame_count_each": 400,
+    "minimum_salient_frame_count_each": 20,
+    "maximum_input_overflow_count_each": 0,
+    "maximum_callback_status_count_each": 0,
+    "maximum_timestamp_discontinuity_count_each": 0,
+    "maximum_clipped_sample_count_each": 0,
+    "maximum_salient_adc_frame_end_to_workspace_p95_ms_each": 30.0,
+    "maximum_salient_device_deadline_miss_rate_each": 0.05,
+    "maximum_quiet_adc_frame_end_to_workspace_p95_ms_each": 30.0,
+    "maximum_steady_state_real_time_factor_each": 1.2,
+    "maximum_average_process_cpu_percent_each": 100.0,
+    "maximum_peak_resident_memory_megabytes_each": 512.0,
+    "frame_clipping_sum_equals_aggregate_each": true,
+    "actual_playback_and_trailing_quiet_partitions_nonempty_each": true
+  },
+  "interpretation_rule": "If all gates pass, natural-speech timing is supported only at the new 50-percent hardware setting; the earlier maximum-volume failure remains retained. If clipping recurs, report whether it falls in actual playback or trailing quiet, retain the failure, and stop without another volume or gain change.",
+  "claim_boundary": "One already-spent adult IDS utterance, approximate knob position rather than calibrated SPL, fixed room/geometry, one XVF3800 and M4 Pro host. This diagnostic cannot establish semantic/register performance, general natural-speech robustness, calibrated acoustic level, geometry transfer, or XMOS internal latency."
+}
