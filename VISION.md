@@ -564,10 +564,19 @@ Current recorded-human result:
   fixed adult reference targets;
 - all 25 external hashes and the five-by-five confusion matrix are retained,
   but third-party audio remains outside Git under CC BY 4.0;
-- these five singers are spent and cannot tune the next estimator. H4 remains
-  open; a valid retry must develop speaker normalization or a stronger formant
-  representation on disjoint voices, then freeze it before another untouched
-  singer group. No motor-learning claim is made.
+- these five singers are spent and cannot tune the next estimator;
+- a disjoint five-singer development set then tested a bounded retry ladder:
+  speaker normalization reached at most `0.28`, an LPC-order sweep `0.40`, a
+  learned continuous spectral-to-formant map `0.52`, and a spectral-centroid
+  classifier that emits canonical motor coordinates `0.56`. All used
+  leave-one-singer-out scoring and remained below the frozen `0.80` gate;
+- the reserved five-singer confirmation set remains unfetched and untouched.
+  It must not be consumed until the corpus/domain/mechanism direction is chosen
+  and a development candidate reaches a credible preregistration point.
+
+H4 remains open. More tuning of a sung-vowel classifier risks replacing the
+narrow perception-production closure claim with general supervised identity
+classification. No motor-learning claim is made.
 
 ### Stage 6 — Real-time efficiency
 

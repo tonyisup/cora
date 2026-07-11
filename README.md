@@ -19,7 +19,7 @@ the repository.
 | Parentese-relevant saliency | Mixed; not promoted | The final 16-fieldsite refit reached F1 0.600 on untouched Enga/Turku clips and failed its 0.65 gate; the separately tested vocal front gate remains positive |
 | Local predictive hierarchy | H2 supported within tested boundaries | Natural event transfer replicated across Wellington and MEN; a separate real room run with known efference masks retained four states through 10/15/20% dropout while improving vowels `+0.614` and tones `+0.474`. Unknown-timing world dropout and semantics remain outside scope |
 | Workspace binding | H3 supported within tested boundaries | The preregistered -18 dB synchronized run passed every classifier and zero-clipping gate: scheduled F1/recall/specificity 1.0/1.0/1.0 versus flat F1 0.8 and fixed-window F1 0.667; capacity improved through three slots and plateaued at four |
-| Analysis by synthesis | Recorded-human gate failed | Clean synthesis remained 100%, but the preregistered five-singer VocalSet confirmation scored 36% versus an 80% gate; `/i/` recall was 0% and `/u/` 20%, so H4 remains open |
+| Analysis by synthesis | Recorded-human gate failed; retry paused | Clean synthesis remained 100%, but the preregistered VocalSet confirmation scored 36%; a disjoint development ladder peaked at 56%, so the reserved confirmation singers remain untouched and H4 stays open |
 | Efficiency | Host boundary measured on hardware | Core microbenchmarks and native XVF3800 capture-call-to-workspace latency are reported; device-onset timestamps, live CPU/memory, and energy remain excluded |
 
 ## Hardware boundary
@@ -294,6 +294,13 @@ python3 -m cora_infans --evaluate-recorded-vowels \
 VocalSet is CC BY 4.0 and remains outside Git. The frozen subset contains five
 untouched singers × `a/e/i/o/u`; filenames and hashes are retained, while
 vowel labels enter scoring only after label-blind LPC analysis.
+
+That confirmation failed at 36%. On five disjoint development singers,
+speaker normalization, LPC-order selection, continuous spectral-to-formant
+mapping, and spectral centroids reached at most 28%, 40%, 52%, and 56%
+respectively under leave-one-singer-out scoring. Because none approached the
+frozen 80% gate, the next reserved five-singer confirmation set has not been
+fetched or inspected.
 
 Synthesize and inspect one vowel:
 
