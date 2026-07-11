@@ -600,6 +600,14 @@ reached p95 `0.000834 ms` and was about `4.7x` faster, as expected for a simpler
 resource floor. This is measured efficiency evidence, not yet a hard real-time
 guarantee, device-timestamped measurement, or energy result.
 
+A frozen single-variable retry moved capture from `48 kHz` to the XVF3800's
+advertised native `16 kHz`. Reported input latency fell from `95.3 ms` to
+`42.0 ms`, and estimated ADC-to-workspace p95 fell from about `126 ms` to
+`73 ms`. The three operational miss rates remained `16.25%/14.25%/18.5%`, so
+the deadline failure did not improve. The remaining timing problem is bounded
+to the PortAudio/CoreAudio callback-quantum-to-blocking-read interface rather
+than pipeline compute or host sample-rate conversion.
+
 Required evidence:
 
 - end-to-end frame latency distribution;

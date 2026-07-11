@@ -389,6 +389,13 @@ All frames were quiet-path frames, so this does not establish salient-workload
 timing. The offline Cora core was about 4.7 times slower at p95 than a much
 simpler fixed-threshold/prototype baseline while remaining far below real time.
 
+A single-variable native-rate retry reduced reported input latency from 95.3 ms
+at 48 kHz to 42.0 ms at the XVF3800's native 16 kHz, lowering estimated
+ADC-to-workspace p95 to roughly 73 ms. It did not improve the deadline gate:
+14.25–18.5% of frames still exceeded 30 ms. The unresolved jitter is therefore
+at the callback-quantum/blocking-read boundary rather than in pipeline compute
+or host sample-rate conversion.
+
 The bounded speaking and self-subtraction paths require explicit real-I/O
 authorization. They must not be treated as evidence of conversational or
 developmental language learning.
