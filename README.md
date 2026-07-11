@@ -666,3 +666,9 @@ developmental language learning.
 
 Historical experiment logs and retractions are retained under `docs/`. The
 current claim boundary is defined by `VISION.md` and this README.
+
+The next possible H4 mechanism is documented, but not authorized, in
+[Option D: geometrically constrained articulatory synthesis](docs/H4_OPTION_D_GEOMETRIC_ARTICULATORY_SYNTHESIS.md).
+Its synthetic preregistration remains a draft until the physical plant, local
+learning rule, sensory loss, inverse-search constants, and equivalence-aware
+cycle thresholds are fully specified.

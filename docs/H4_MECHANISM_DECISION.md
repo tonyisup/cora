@@ -1,8 +1,9 @@
 # H4 mechanism decision
 
 Status: Option B was approved and its first preregistered development candidate
-failed. Protected confirmation access remains unauthorized. The frozen result
-is retained; same-data parameter or representation retries are prohibited.
+failed. Option D now exists as a non-executable design draft. Protected
+confirmation access remains unauthorized. The frozen Option B result is
+retained; same-data parameter or representation retries are prohibited.
 
 This memo does not authorize another experiment and does not change
 [VISION.md](../VISION.md). It records the evidence-backed fork reached after the
@@ -101,6 +102,22 @@ current fixed lookup table.
 This could improve recognition accuracy, but it materially changes the project
 from local analysis by synthesis to supervised or globally trained phone
 classification. It should require a VISION revision before implementation.
+
+### D. Geometrically constrained articulatory synthesis — draft
+
+Represent three bounded functional gestures as controls over a physical
+multi-section vocal-tract area function. Learn a separate bounded local
+motor-to-sensory predictor through label-free babbling, then invert observations
+by locally searching the learned forward space. Production uses the physical
+plant; perception and production share its motor/geometry state.
+
+This is genuinely different from Option B because F1/F2/F3 are measured
+consequences rather than motor coordinates. The proposal, honesty boundaries,
+equivalence-aware cycle metric, synthetic gates, and unresolved freeze decisions
+are in [the Option D design memo](H4_OPTION_D_GEOMETRIC_ARTICULATORY_SYNTHESIS.md).
+Its companion
+[preregistration draft](evidence/2026-07-11-h4-option-d-synthetic-preregistration-draft.json)
+contains unresolved fields and grants no implementation or execution authority.
 
 ## Prior-art relevance
 

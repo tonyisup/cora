@@ -1,0 +1,165 @@
+{
+  "experiment": "h4_option_d_geometric_articulatory_synthesis_synthetic",
+  "date": "2026-07-11",
+  "status": "draft_not_frozen_no_execution_authority",
+  "design_memo": "docs/H4_OPTION_D_GEOMETRIC_ARTICULATORY_SYNTHESIS.md",
+  "authorization": {
+    "user_requested_draft": true,
+    "implementation_authorized": false,
+    "synthetic_execution_authorized": false,
+    "recorded_human_audio_authorized": false,
+    "protected_confirmation_access_authorized": false
+  },
+  "research_question": "Can a bounded three-gesture controller over a physical vocal-tract area function learn a local motor-to-sensory forward map through label-free babbling and invert unseen synthetic vowel targets while preserving acoustic equivalence, physical validity, and post-hoc vowel identity?",
+  "hypothesis_boundary": "A pass would support synthetic analysis-by-synthesis closure for a simplified functional vocal-tract plant. It would not establish anatomical recovery, infant learning, human articulation, DIVA fidelity, or recorded-speech performance.",
+  "mechanism": {
+    "motor_vector": {
+      "dimension": 3,
+      "bounds_each": [0.0, 1.0],
+      "coordinates": [
+        {"name": "m1", "meaning": "functional aperture and constriction magnitude", "anatomical_claim": false},
+        {"name": "m2", "meaning": "functional longitudinal constriction position", "anatomical_claim": false},
+        {"name": "m3", "meaning": "functional lip-end area and effective-length control", "anatomical_claim": false}
+      ]
+    },
+    "physical_plant": {
+      "interface": "g(m, F0, q) -> area_sections, section_lengths, transfer_function, waveform",
+      "recommended_section_count_range": [8, 12],
+      "literal_three_tube_allowed_as_baseline_only": true,
+      "source_f0_is_exogenous_not_an_articulatory_coordinate": true,
+      "area_function_family": null,
+      "neutral_area_vector_cm2": null,
+      "section_lengths_cm": null,
+      "minimum_area_cm2": null,
+      "maximum_area_cm2": null,
+      "effective_length_bounds_cm": null,
+      "wall_loss": null,
+      "junction_and_radiation_equations": null,
+      "termination_impedance": null,
+      "glottal_source": null
+    },
+    "learned_forward_model": {
+      "interface": "f_hat(m, F0) -> predicted 24-value sensory envelope",
+      "training_source": "deterministic label-free sensory-motor babbling through the physical plant",
+      "recommended_model": "winner-local affine prototype map",
+      "maximum_prototypes": 64,
+      "scalars_per_prototype_max": 100,
+      "total_learned_scalars_max": 6400,
+      "global_backpropagation": false,
+      "sequence_model": false,
+      "prototype_initialization": null,
+      "activation_radius": null,
+      "winner_center_learning_rate": null,
+      "intercept_learning_rate": null,
+      "jacobian_learning_rate": null,
+      "replacement_rule": null,
+      "tie_order": null
+    },
+    "babbling": {
+      "candidate_sequence": "deterministic low-discrepancy points in [0,1]^3 with bounded inter-point velocity",
+      "candidate_training_command_count": 512,
+      "candidate_held_out_motor_count": 128,
+      "motor_points_disjoint": true,
+      "labels_consumed": false,
+      "exact_sequence_and_seed": null,
+      "velocity_bound_per_25ms_hop": null,
+      "f0_conditions_hz": [90.0, 110.0, 140.0, 180.0]
+    },
+    "sensory_representation": {
+      "dimension": 24,
+      "name": "gain_normalized_smooth_log_spectral_envelope",
+      "analysis_window_ms_range": [120, 200],
+      "motor_hop_ms": 25,
+      "frequency_bounds_hz": null,
+      "envelope_extractor": null,
+      "resonance_peak_term": "secondary structural loss",
+      "harmonic_term": "F0-conditioned confidence weighting, not exclusive sampling",
+      "envelope_loss_weight": null,
+      "resonance_loss_weight": null,
+      "harmonic_loss_weight": null
+    },
+    "inverse_search": {
+      "global_inverse_learned": false,
+      "initialization": "prior motor state; nearest sensory prototype with rest-effort tie break on first frame",
+      "coordinate_order": ["m1", "m2", "m3"],
+      "direction_order": ["negative", "positive"],
+      "rounds": 3,
+      "step_rule": "halve after each complete round",
+      "acceptance_rule": "strict composite-loss improvement only",
+      "candidate_forward_predictions_max_per_frame": 23,
+      "planned_candidate_forward_predictions_per_frame_max": 19,
+      "initial_steps": null,
+      "rest_state": null,
+      "effort_weight_alpha": null,
+      "continuity_weight_beta": null,
+      "out_of_bounds_rule": "reject candidate"
+    },
+    "composite_loss": "D_sensory(S_obs, f_hat(m_t,F0)) + alpha*||m_t-m_rest||^2 + beta*||m_t-m_(t-1)||^2"
+  },
+  "verification": {
+    "cycle": "held-out m -> plant -> sensory observation -> inverse search -> m_prime -> plant -> reperception",
+    "exact_motor_equality_required": false,
+    "acoustic_cycle_metric": null,
+    "acoustic_cycle_threshold": null,
+    "equivalence_aware_motor_method": "project motor error onto locally acoustically identifiable plant-Jacobian subspace or compare with a frozen acceptable-equivalence set",
+    "jacobian_rank_tolerance": null,
+    "equivalence_aware_motor_threshold": null,
+    "agreement_fraction_min": 0.9,
+    "physical_validity_required": true,
+    "post_hoc_vowel_labels_only": true
+  },
+  "synthetic_gates": {
+    "gate_0_plant_validity": {
+      "all_areas_positive_and_finite": true,
+      "stable_filters_and_finite_waveforms": true,
+      "no_clipping": true,
+      "deterministic_repeat_synthesis": true,
+      "bounded_state_and_cost": true
+    },
+    "gate_1_forward_generalization": {
+      "held_out_motor_points_unseen_in_babbling": true,
+      "baselines": ["neutral_tract", "nearest_prototype", "persistence"],
+      "required_win_fraction_vs_each_baseline": null,
+      "maximum_prototypes": 64,
+      "winner_local_updates_only": true,
+      "per_region_error_report_required": true
+    },
+    "gate_2_inverse_closure": {
+      "motor_hop_ms": 25,
+      "forward_predictions_per_hop_max": 23,
+      "acoustic_and_equivalence_agreement_fraction_min": 0.9,
+      "clean_five_vowel_identity_preservation_min": 0.95,
+      "analytic_f1_mae_hz_max": 30.0,
+      "analytic_f2_mae_hz_max": 30.0,
+      "analytic_f3_mae_hz_max": 30.0,
+      "relative_formant_median_and_p95_required": true,
+      "all_geometry_and_trajectory_bounds_required": true,
+      "labels_absent_from_learning_and_inversion": true
+    }
+  },
+  "recorded_data_boundary": {
+    "recorded_audio_under_this_draft": false,
+    "later_spent_development_requires_separate_preregistration": true,
+    "vocalset_spent_development": ["female4", "female5", "male6", "male7", "male8"],
+    "vocalset_protected": ["female6", "female7", "female9", "male9", "male11"],
+    "cmu_spent_development": ["bdl", "slt", "clb", "jmk", "ksp"],
+    "cmu_protected_confirmation": ["rms", "awb", "axb", "eey", "ljm"],
+    "cmu_protected_reserve": ["aew", "ahw", "aup", "fem", "gka", "lnh", "rxr", "slp"],
+    "all_protected_material_must_remain_unfetched": true
+  },
+  "stop_rule": "Do not implement or execute while any unresolved field remains. After freezing, run each synthetic gate once on its protected synthetic split. Retain failures without tuning the plant, representation, learner, search, loss, or gates against failed outcomes.",
+  "unresolved_fields": [
+    "plant family and exact area-function equations",
+    "all physical solver constants and geometry bounds",
+    "local prototype initialization, learning rates, activation radius, replacement, and tie rules",
+    "exact babbling sequence, held-out split, and motor velocity bound",
+    "exact envelope extractor, frequency range, and three sensory-loss weights",
+    "inverse-search step sizes, rest state, alpha, and beta",
+    "acoustic cycle metric and threshold",
+    "equivalence-aware Jacobian tolerance and motor threshold",
+    "forward-generalization baseline win fraction",
+    "exact synthetic vowel target motor points and post-hoc identity map"
+  ],
+  "execution_ready": false,
+  "promotion_allowed": false
+}
