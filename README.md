@@ -19,7 +19,7 @@ the repository.
 | Parentese-relevant saliency | Mixed; not promoted | Cohort alignment remains the best development candidate at F1 0.681. A later locally learned nonlinear temporal codebook was healthy but reached only F1 0.535. The vocal front gate remains positive; reserved confirmation fieldsites remain untouched |
 | Local predictive hierarchy | H2 supported within tested boundaries | Natural event transfer replicated across Wellington and MEN; a separate real room run with known efference masks retained four states through 10/15/20% dropout while improving vowels `+0.614` and tones `+0.474`. Unknown-timing world dropout and semantics remain outside scope |
 | Workspace binding | H3 supported within tested boundaries | Structured tones and exact-utterance natural speech passed at zero clipping. A later no-replay same-source forward model failed on three unseen commands at F1/recall/specificity `0.727/0.667/0.667`, so the exact-efference boundary remains |
-| Analysis by synthesis | H4 open; two mechanism families falsified | Fixed-formant and continuous inverse-synthesis candidates failed recorded-voice gates. The latter reduced reconstruction loss but reached only `0.44` VocalSet and `0.574` CMU Arctic identity; protected confirmation remains untouched |
+| Analysis by synthesis | H4 open; three frozen candidates failed | Fixed-formant and continuous acoustic-coordinate candidates failed recorded-voice gates. A later geometric synthetic candidate learned its forward surface but failed plant `/u/` validity and inverse closure (`0.80` identity, `0.60` agreement); protected confirmation remains untouched |
 | Efficiency | H5 supported within tested boundary | A six-fieldsite speech panel kept salient p95 at 10.17–10.38 ms with clean playback intervals, but two runs clipped only in trailing quiet and failed whole-capture integrity. Same-host energy was 27.36 µJ/frame versus 11.08 µJ/frame for the simpler baseline |
 
 New to the terminology? Start with the [data dictionary](docs/DATA_DICTIONARY.md),
@@ -310,13 +310,14 @@ A second, independently frozen development test used 500 aligned ordinary
 read-speech vowel tokens from five CMU Arctic speakers. The same shared LPC
 formant route peaked at 57.2% (120 ms, order 20); `/o/` and `/u/` recall were
 only 13% and 30%. The five CMU Arctic confirmation speakers remain unfetched.
-This makes the next step a mechanism decision, not another parameter sweep:
-adopting a learned speaker-normalized phone model or changing the frozen vowel
-mapping would materially revise H4's analysis-by-synthesis claim.
-The current mechanism fork, protected-data boundary, and recommended continuous
-inverse-synthesis alternative are summarized in
+The subsequent continuous inverse-synthesis candidate also failed, despite
+lowering reconstruction loss. A genuinely different three-gesture geometric
+candidate then passed held-out local forward prediction but failed its frozen
+synthetic plant and inverse-closure gates: `/u/` collapsed to `/e/`, identity
+was `0.80`, agreement `0.60`, and F3 MAE `56 Hz`. The current mechanism fork,
+retained outcomes, and protected-data boundary are summarized in
 [docs/H4_MECHANISM_DECISION.md](docs/H4_MECHANISM_DECISION.md). No new H4
-experiment or confirmation-data access is authorized by that memo.
+experiment or confirmation-data access is authorized.
 
 Synthesize and inspect one vowel:
 
@@ -657,6 +658,7 @@ developmental language learning.
 - `register_saliency.py` — long-window vocal, speech/song, and adaptive IDS gates
 - `io/motor_plan.py` — source-filter synthesis, LPC perception, and vowel gate
 - `continuous_inverse_synthesis.py` — frozen bounded H4 continuous motor search
+- `geometric_articulatory_synthesis.py` — frozen H4 geometric plant, local forward learner, and inverse gate
 - `benchmark.py` — explicit-boundary event-pipeline microbenchmark
 - `pipeline.py` — saliency, predictive state, and workspace admission
 - `theta_gamma.py` — deterministic bounded temporal scheduler
@@ -667,8 +669,6 @@ developmental language learning.
 Historical experiment logs and retractions are retained under `docs/`. The
 current claim boundary is defined by `VISION.md` and this README.
 
-The next possible H4 mechanism is documented, but not authorized, in
-[Option D: geometrically constrained articulatory synthesis](docs/H4_OPTION_D_GEOMETRIC_ARTICULATORY_SYNTHESIS.md).
-Its synthetic preregistration remains a draft until the physical plant, local
-learning rule, sensory loss, inverse-search constants, and equivalence-aware
-cycle thresholds are fully specified.
+The frozen Option D mechanism and its retained synthetic failure are documented
+in [Option D: geometrically constrained articulatory synthesis](docs/H4_OPTION_D_GEOMETRIC_ARTICULATORY_SYNTHESIS.md).
+It does not authorize a retry or recorded-speech access.

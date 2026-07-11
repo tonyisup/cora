@@ -1,10 +1,10 @@
 # H4 mechanism decision
 
-Status: Option B was approved and its first preregistered development candidate
-failed. Option D is now authorized and preregistered for one synthetic-only
-candidate. Protected confirmation access remains unauthorized. The frozen
-Option B result is retained; same-data parameter or representation retries are
-prohibited.
+Status: Option B and the first frozen Option D candidate both failed their
+preregistered gates. Option D passed local forward generalization but failed
+plant calibration and inverse closure. Protected confirmation access remains
+unauthorized. Both results are retained; same-data parameter or representation
+retries are prohibited.
 
 This memo does not authorize another experiment and does not change
 [VISION.md](../VISION.md). It records the evidence-backed fork reached after the
@@ -104,7 +104,7 @@ This could improve recognition accuracy, but it materially changes the project
 from local analysis by synthesis to supervised or globally trained phone
 classification. It should require a VISION revision before implementation.
 
-### D. Geometrically constrained articulatory synthesis — draft
+### D. Geometrically constrained articulatory synthesis — retained failure
 
 Represent three bounded functional gestures as controls over a physical
 multi-section vocal-tract area function. Learn a separate bounded local
@@ -121,6 +121,25 @@ Its earlier
 preserves the open design state. The user subsequently authorized implementation,
 and the exact [synthetic-only preregistration](evidence/2026-07-11-h4-option-d-synthetic-preregistration.json)
 closes every field. It does not authorize recorded audio.
+
+The candidate was implemented at commit `62c9535` and evaluated exactly once.
+The retained [synthetic result](evidence/2026-07-11-h4-option-d-synthetic-result.json)
+passed its local-forward gate: median held-out sensory distance was `0.0871`,
+and strict win fractions against neutral, nearest-prototype, and persistence
+baselines were `0.996/0.953/0.996`. The full candidate nevertheless failed:
+
+- the plant's selected `/u/` calibration mapped post hoc to `/e/`, so Gate 0
+  failed;
+- inverse identity was `0.80` rather than `0.95`, with every `/u/` reperceived
+  as `/e/`;
+- acoustic-plus-equivalence agreement was `0.60` rather than `0.90`;
+- F1/F2/F3 MAE was `7/12/56 Hz`, so F3 missed the `30 Hz` bound.
+
+All motor/geometry and search-cost bounds passed, with at most 17 learned
+forward predictions per trial. No recorded audio or protected data was
+accessed. The result supports the narrow engineering proposition that a
+winner-local predictor can approximate this synthetic motor-to-sensory surface;
+it does not establish perception-production closure for the frozen plant.
 
 ## Prior-art relevance
 

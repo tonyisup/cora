@@ -613,8 +613,8 @@ Current structured Cora protocol:
 
 ### Stage 5 — Perception-production closure
 
-Status: mechanism demonstrated; the first preregistered five-vowel,
-five-unseen-singer VocalSet confirmation failed.
+Status: H4 remains open; three frozen mechanism candidates failed. The latest
+geometric candidate was synthetic-only and did not authorize recorded speech.
 
 Required evidence:
 
@@ -651,10 +651,23 @@ Current recorded-human result:
 - the reserved five-singer confirmation set remains unfetched and untouched.
   It must not be consumed until the corpus/domain/mechanism direction is chosen
   and a development candidate reaches a credible preregistration point.
+- a subsequent bounded continuous inverse-synthesis candidate strictly lowered
+  reconstruction loss but reached only `0.85` synthetic, `0.44` VocalSet, and
+  `0.574` CMU Arctic identity, below its frozen gates;
+- the next genuinely different candidate used three functional gestures, a
+  ten-section geometric plant, label-free babbling, and a winner-local forward
+  map. On disjoint synthetic points its forward gate passed with median sensory
+  distance `0.0871` and at least `0.953` strict wins against every baseline;
+- that geometric candidate still failed its plant and inverse gates. Its
+  selected `/u/` was nearest to `/e/`; closure identity was `0.80`, combined
+  acoustic/equivalence agreement `0.60`, and F1/F2/F3 MAE `7/12/56 Hz` versus
+  required `0.95`, `0.90`, and at most `30 Hz` each. No recorded audio was
+  accessed.
 
-H4 remains open. Both sung and ordinary read speech now falsify the current
-shared fixed-formant route at development scale. More tuning toward a learned
-phone classifier—or changing the frozen five-vowel mapping after seeing these
+H4 remains open, but the fixed-formant, continuous acoustic-coordinate, and
+first geometric/local-forward candidates are retained failures. Tuning any of
+them after observing their frozen outcomes is prohibited. More tuning toward a
+learned phone classifier—or changing the five-vowel mapping after seeing these
 errors—risks replacing the narrow perception-production closure claim with
 general supervised identity classification. No motor-learning claim is made.
 

@@ -204,6 +204,9 @@ failed society.
 | **Acoustic saliency** | A score for which sounds deserve processing or attention. Loudness is only one possible cue. |
 | **Analysis by synthesis** | Perceive a sound by finding a motor/acoustic representation that could reproduce it. |
 | **Area function** | Cross-sectional area of the vocal tract as a function of distance from glottis to lips. A tube synthesizer approximates it with a finite sequence of sections. |
+| **Functional gestural coordinate** | A bounded control that changes modeled tract geometry. In Option D these are jaw-, tongue-, and lip-inspired controls, not measured anatomical positions. |
+| **Halton sequence** | Deterministic low-discrepancy points used to cover a bounded space more evenly than ordinary random samples. Option D uses disjoint index ranges for babbling and held-out evaluation. |
+| **Analytic formant** | A resonance estimated directly from peaks of the plant transfer function, rather than from a short synthesized or recorded waveform. |
 | **Continuous inverse synthesis** | Infer bounded continuous source/filter parameters by repeatedly synthesizing candidates and minimizing an acoustic reconstruction loss. Cora's first frozen candidate failed H4 identity gates even though its loss decreased. |
 | **Coordinate descent** | Local search that changes one parameter at a time and retains a change only when it improves the objective. The H4 candidate searched F1, F2, and F3 with a fixed budget. |
 | **Equivalence-aware motor agreement** | Motor-plan comparison that does not penalize two physically valid configurations merely because their coordinates differ when they produce the same relevant acoustic consequence. |

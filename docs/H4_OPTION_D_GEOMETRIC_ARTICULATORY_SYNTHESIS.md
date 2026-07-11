@@ -1,17 +1,40 @@
 # H4 Option D — geometrically constrained articulatory synthesis
 
-Status: design approved for synthetic implementation. The exact synthetic-only
-candidate is frozen in the
-[final preregistration](evidence/2026-07-11-h4-option-d-synthetic-preregistration.json).
-No recorded-human experiment is authorized.
+Status: frozen synthetic candidate executed once and retained as a failed
+mechanism. The exact protocol is in the
+[final preregistration](evidence/2026-07-11-h4-option-d-synthetic-preregistration.json)
+and the immutable measurements are in the
+[result](evidence/2026-07-11-h4-option-d-synthetic-result.json). No
+recorded-human experiment is authorized.
 
 This memo proposes a genuinely different H4 mechanism after the fixed-formant
 and continuous acoustic-coordinate candidates failed. It does not change
-[VISION.md](../VISION.md), authorize protected data, or permit synthetic
-execution. The companion
+[VISION.md](../VISION.md) or authorize protected data. The companion
 [synthetic preregistration draft](evidence/2026-07-11-h4-option-d-synthetic-preregistration-draft.json)
 records the earlier open decisions; the final preregistration closes them for
 one synthetic candidate.
+
+## Retained outcome
+
+Implementation commit `62c9535` passed the full test suite before its one
+frozen evaluation. Gate 1 passed strongly: held-out median unit-vector sensory
+distance was `0.0871` (required at most `0.20`), and the predictor's strict win
+fractions against neutral, nearest-prototype, and persistence baselines were
+`0.996`, `0.953`, and `0.996` (each required at least `0.75`).
+
+Gate 0 and Gate 2 failed. The plant could not provide a valid selected `/u/`
+calibration: its closest frozen grid point had formants `430/1205/2480 Hz` and
+was nearest to `/e/` under the preregistered identity rule. Across the 20
+vowel-by-F0 closure trials, identity was `0.80`, combined acoustic/equivalence
+agreement was `0.60`, and F1/F2/F3 MAE was `7/12/56 Hz`; the required values
+were `0.95`, `0.90`, and at most `30 Hz` for each formant. Every `/u/` trial was
+reperceived as `/e/`. All physical bounds, loss-improvement checks, label
+isolation, and the 23-prediction budget passed; the observed maximum was 17.
+
+Under the frozen stop rule, this is not tunable evidence. The useful retained
+result is narrower: the bounded local learner represented the synthetic plant
+well on disjoint Halton points, but that did not yield a plant-valid five-vowel
+inventory or reliable inverse closure. Recorded speech remains prohibited.
 
 ## Decision summary
 

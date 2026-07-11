@@ -1,5 +1,8 @@
 """Focused contracts for the H4 Option D geometric articulatory candidate."""
 
+import json
+from pathlib import Path
+
 import numpy as np
 import pytest
 
@@ -87,3 +90,22 @@ def test_invalid_motor_and_f0_fail_closed() -> None:
         area_function(np.array([-0.1, 0.5, 0.5]))
     with pytest.raises(ValueError, match="F0"):
         synthesize_tract(REST_STATE, f0_hz=123.0)
+
+
+def test_retained_option_d_result_preserves_failed_boundary() -> None:
+    root = Path(__file__).resolve().parents[1]
+    result = json.loads(
+        (
+            root
+            / "docs/evidence/2026-07-11-h4-option-d-synthetic-result.json"
+        ).read_text()
+    )
+
+    assert result["plant"]["gate_passed"] is False
+    assert result["forward_generalization"]["gate_passed"] is True
+    assert result["inverse_closure"]["gate_passed"] is False
+    assert result["all_synthetic_gates_passed"] is False
+    assert result["promotion_allowed"] is False
+    assert result["recorded_audio_accessed"] is False
+    assert result["protected_data_accessed"] is False
+    assert result["provenance"]["implementation_commit"] == "62c9535"
