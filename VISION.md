@@ -228,17 +228,20 @@ Current environmental-control result:
   versus the required `0.65`; Enga F1 was `0.500` and Turku F1 `0.667`;
 - the final refit still improved over frozen absolute-feature baselines and kept
   FPR `0.056`, song FPR `0.083`, and vocal recall `1.0`, but low cross-site
-  recall activates the preregistered stop rule. The remaining Wellington, San
-  Diego, and Toronto fieldsites will not be consumed by another threshold/refit
-  iteration of this feature family.
+  recall activates the preregistered stop rule. No additional Wellington, San
+  Diego, or Toronto clips will be consumed by another threshold/refit iteration
+  of this feature family. Wellington is not corpus-pristine: eight WEL speech
+  clips were already spent by the separate earlier H2 natural-event workflow;
+  San Diego and Toronto remain pristine in retained evidence.
 - the first genuinely order-preserving retry represented each utterance as six
   successive prosodic phases and evaluated all 200 already-spent clips with
   leave-one-fieldsite-out fitting. Its zero-threshold F1 was only `0.302` with
   FPR `0.225`; selecting cutoffs solely from the out-of-field predictions met
   the FPR ceilings but reduced F1 to `0.289`, recall to `0.224`, and retained a
   minimum fieldsite F1 of `0.0`. Vocal recall remained `0.995`. This temporal
-  candidate is falsified, and Wellington, San Diego, and Toronto remain
-  untouched.
+  candidate is falsified. This workflow accessed no WEL/USD/TOR data; however,
+  Wellington was already spent at fieldsite level by H2, while San Diego and
+  Toronto remain corpus-pristine.
 - an explicitly authorized predictive redesign then retained every ordered
   50 ms prosodic state and fit four class-conditional first-order linear-
   Gaussian dynamics. On the same 200 spent clips and 18 leave-one-fieldsite-out
@@ -247,7 +250,9 @@ Current environmental-control result:
   FPR `0.099`, and song FPR `0.071`, but minimum fieldsite F1 remained `0.0`
   (ACO and ARA). This is meaningful evidence that ordered prediction helps,
   but it remains far below the `0.80` readiness gate. Its stop rule is active;
-  the three reserved fieldsites remain untouched.
+  no reserved data was newly accessed. San Diego and Toronto remain pristine;
+  Wellington remains protected from Stage 2 use but is not fieldsite-pristine
+  because of the earlier H2 experiment.
 
 ### Stage 3 — Predictive hierarchy
 

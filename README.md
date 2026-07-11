@@ -461,15 +461,18 @@ developmental language learning.
 - A six-phase, order-preserving trajectory model was then evaluated with
   leave-one-fieldsite-out fitting on all 200 already-spent vocal clips. It
   reached F1 `0.302` at zero thresholds and only `0.289` after out-of-field
-  threshold selection under the existing FPR ceilings. No Wellington, San
-  Diego, or Toronto audio was accessed; another attempt must change the
+  threshold selection under the existing FPR ceilings. This workflow accessed
+  no Wellington, San Diego, or Toronto audio; Wellington was nevertheless
+  already spent for a separate H2 task. Another attempt must change the
   temporal learning mechanism or protocol rather than retune this candidate.
 - An authorized predictive redesign retained every ordered 50 ms prosodic
   state and scored sequences with four class-conditional linear-Gaussian
   dynamics. On the same 200 spent clips it improved F1 from `0.289` to `0.545`
   while keeping FPR `0.099` and song FPR `0.071`, but recall was only `0.466`
   and ACO/ARA remained at F1 `0.0`. The frozen stop rule blocks parameter
-  tuning and protects Wellington, San Diego, and Toronto from confirmation use.
+  tuning and further WEL/USD/TOR access. San Diego and Toronto remain pristine;
+  Wellington is already fieldsite-spent by H2 and cannot serve as pristine
+  Stage 2 confirmation.
 - The upstream vocal gate passed selected diffuse and impulsive controls but
   admitted one crackling-fire clip in fold 3; it rejected all selected fold-4
   controls in the later joint test.
