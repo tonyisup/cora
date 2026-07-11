@@ -14,6 +14,7 @@ from cora_infans.natural_speech_workspace_binding import (
     render_natural_speech_tracks,
     run_natural_speech_acquisition,
     run_spent_natural_speech_design_gate,
+    score_natural_speech_evidence,
 )
 from cora_infans.io.motor_plan import write_wav
 from cora_infans.io.wav_frames import read_pcm_wav
@@ -142,6 +143,23 @@ def test_live_preregistration_audit_fails_closed() -> None:
     blocked = audit_natural_speech_preregistration(changed, current_hashes=hashes)
     assert blocked["ready"] is False
     assert "world route mismatch: distance_cm" in blocked["blockers"]
+
+
+def test_missing_development_gap_is_serialized_as_failure() -> None:
+    evidence = {
+        trial.trial_id: (
+            1.2
+            if trial.split == "development" and not trial.expected_world_usable
+            else 1.0
+        )
+        for trial in build_natural_speech_trials()
+    }
+    report = score_natural_speech_evidence(evidence)
+
+    assert report["verdict"] == "capture_acceptance_failed_no_development_gap"
+    assert report["world_evidence_threshold"] is None
+    assert report["development_gap"]["gap"] < 0
+    assert all(value is False for value in report["criteria"].values())
 
 
 @pytest.mark.skipif(not SPENT_ROOT.exists(), reason="external spent corpus unavailable")

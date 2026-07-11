@@ -330,7 +330,30 @@ def score_natural_speech_evidence(evidence: dict[str, float]) -> dict[str, objec
     max_self = max(evidence[trial.trial_id] for trial in development if not trial.expected_world_usable)
     min_world = min(evidence[trial.trial_id] for trial in development if trial.expected_world_usable)
     if min_world <= max_self:
-        raise ValueError("natural-speech residual evidence has no development gap")
+        criteria = {
+            "clean_development_gap": False,
+            "scheduled_f1_at_least_0_90": False,
+            "scheduled_improves_flat_f1_by_at_least_0_20": False,
+            "scheduled_world_recall_at_least_0_90": False,
+            "scheduled_self_suppression_specificity_at_least_0_90": False,
+            "fixed_window_collision_failure_exposed": False,
+            "capacity_one_worse_than_three": False,
+            "capacity_three_plateaus_at_four": False,
+        }
+        return {
+            "verdict": "capture_acceptance_failed_no_development_gap",
+            "world_evidence": evidence,
+            "world_evidence_threshold": None,
+            "world_evidence_threshold_rule": "maximum development self-only residual ratio plus 10 percent of the clean gap to minimum development world-only ratio",
+            "threshold_selected_from_development_only": True,
+            "development_gap": {
+                "maximum_self_only": max_self,
+                "minimum_world_only": min_world,
+                "gap": min_world - max_self,
+            },
+            "reports": {},
+            "criteria": criteria,
+        }
     threshold = max_self + 0.10 * (min_world - max_self)
     strategies = ("flat", "fixed_self_window", "scheduled_identity_plus_world_residual")
     reports = {
