@@ -203,6 +203,8 @@ failed society.
 |---|---|
 | **Acoustic saliency** | A score for which sounds deserve processing or attention. Loudness is only one possible cue. |
 | **Analysis by synthesis** | Perceive a sound by finding a motor/acoustic representation that could reproduce it. |
+| **Operational contract** | The machine-readable bounds paired with `VISION.md`: stopped programs, protected data, exact-efference requirements, named hardware, and the Stage 6 acceptance metric. |
+| **Stopped program** | A candidate family that may be reproduced historically but may not receive new tuning, held-out execution, or claim expansion without a VISION revision. |
 | **Area function** | Cross-sectional area of the vocal tract as a function of distance from glottis to lips. A tube synthesizer approximates it with a finite sequence of sections. |
 | **Functional gestural coordinate** | A bounded control that changes modeled tract geometry. In Option D these are jaw-, tongue-, and lip-inspired controls, not measured anatomical positions. |
 | **Halton sequence** | Deterministic low-discrepancy points used to cover a bounded space more evenly than ordinary random samples. Option D uses disjoint index ranges for babbling and held-out evaluation. |
@@ -214,6 +216,8 @@ failed society.
 | **Corollary discharge** | An internal signal about a self-generated action, used to predict its sensory consequence. |
 | **Efference copy** | A copy of a motor command supplied to prediction. In this project it marks known self-generated audio. |
 | **Exact efference** | The same commanded waveform and identity used in an earlier self-calibration replay. The supported natural-speech H3 result depends on this narrow condition; it is not generalized self-voice learning. |
+| **ADC-frame-end-to-workspace latency** | Time from the hardware timestamp at the end of a complete captured frame to the workspace decision. It excludes frame accumulation and XMOS-internal delay. |
+| **Active playback interval** | The capture interval during which the commanded stimulus is actually playing. Zero clipping here is required operationally, while clipping elsewhere in the whole capture is still reported separately. |
 | **Sensory template** | A bounded stored consequence of an earlier action. Spectral-v3 stores 12 normalized band-energy scalars per active self identity, with three workspace slots. |
 | **Same-source forward model** | A bounded prediction of how one physical output path changes a known commanded sound. Cora's frozen 13-scalar candidate generalized in spent leave-one-command-out development but failed a later no-replay live test. |
 | **No-replay test** | A self-source test in which the evaluated command is not first played and stored as its own calibration template. The model must predict its consequence from prior commands and the current efference. |

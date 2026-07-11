@@ -19,10 +19,10 @@ def _write_silence(path) -> None:
 
 
 def test_ids_manifest_maps_labels_and_groups_participant_splits(tmp_path) -> None:
-    _write_silence(tmp_path / "USD01B.wav")
-    _write_silence(tmp_path / "USD01D.wav")
-    _write_silence(tmp_path / "TOR02B.wav")
-    _write_silence(tmp_path / "TOR02A.wav")
+    _write_silence(tmp_path / "BEJ01B.wav")
+    _write_silence(tmp_path / "BEJ01D.wav")
+    _write_silence(tmp_path / "MEN02B.wav")
+    _write_silence(tmp_path / "MEN02A.wav")
     output = tmp_path / "labels.csv"
 
     report = build_ids_manifest(tmp_path, output)
@@ -36,14 +36,14 @@ def test_ids_manifest_maps_labels_and_groups_participant_splits(tmp_path) -> Non
         "infant_directed_speech",
         "adult_directed_speech",
     }
-    usd_splits = {row["split"] for row in rows if row["participant_id"] == "USD01"}
-    assert len(usd_splits) == 1
-    assert "TOR02A.wav" not in {row["source_path"] for row in rows}
+    bej_splits = {row["split"] for row in rows if row["participant_id"] == "BEJ01"}
+    assert len(bej_splits) == 1
+    assert "MEN02A.wav" not in {row["source_path"] for row in rows}
 
 
 def test_ids_manifest_can_include_song_conditions(tmp_path) -> None:
-    _write_silence(tmp_path / "USD01A.wav")
-    _write_silence(tmp_path / "USD01C.wav")
+    _write_silence(tmp_path / "BEJ01A.wav")
+    _write_silence(tmp_path / "BEJ01C.wav")
 
     report = build_ids_manifest(
         tmp_path,
@@ -55,6 +55,13 @@ def test_ids_manifest_can_include_song_conditions(tmp_path) -> None:
         "adult_directed_song": 1,
         "infant_directed_song": 1,
     }
+
+
+def test_ids_manifest_rejects_protected_fieldsite_before_metadata_read(tmp_path) -> None:
+    (tmp_path / "USD01B.wav").write_bytes(b"not a wav")
+
+    with pytest.raises(ValueError, match="Stage 2 fieldsite is protected"):
+        build_ids_manifest(tmp_path, tmp_path / "labels.csv")
 
 
 def test_spent_ids_hash_collection_enforces_exact_frozen_boundary(tmp_path) -> None:

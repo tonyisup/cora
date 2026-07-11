@@ -22,7 +22,13 @@ def test_describe_command_prints_json_summary() -> None:
     payload = json.loads(result.stdout)
 
     assert payload["project"] == "cora-infans"
-    assert payload["implemented_slice"] == "evidence_first_auditory_learning"
+    assert payload["implemented_slice"] == "bounded_operational_auditory_system"
+    assert payload["operational_contract"] == {
+        "schema_version": 1,
+        "status": "bounded_operational_contract",
+        "authority": "VISION.md",
+    }
+    assert "machine_enforced_operational_contract" in payload["implemented_subsystems"]
     assert "predictive_hierarchy" in payload["implemented_subsystems"]
     assert "commanded_active_attention" in payload["implemented_subsystems"]
     assert "offline_corpus_evaluation" in payload["implemented_subsystems"]
@@ -36,21 +42,69 @@ def test_describe_command_prints_json_summary() -> None:
     assert "safe_online_predictor_regret_gate" in payload["implemented_subsystems"]
     assert "structured_prediction_fake_harness" in payload["implemented_subsystems"]
     assert "structured_prediction_real_runner" in payload["implemented_subsystems"]
-    assert "environmental_pass_through_policy" in payload["planned_subsystems"]
-    assert "cold_start_parentese_detection" in payload["planned_subsystems"]
-    assert "cross_cultural_parentese_robustness" in payload["planned_subsystems"]
-    assert "structured_prediction_real_capture_evidence" in payload["planned_subsystems"]
     assert "motor_plan_synthesis" in payload["implemented_subsystems"]
     assert "simulation_only_forward_model_robustness_sweep" in payload["implemented_subsystems"]
     assert "simulation_only_forward_model_promotion_gate" in payload["implemented_subsystems"]
     assert "simulation_only_speaking_policy" in payload["implemented_subsystems"]
     assert "simulation_only_speaking_policy_promotion_gate" in payload["implemented_subsystems"]
     assert "simulation_only_speaking_readiness_gate" in payload["implemented_subsystems"]
-    assert "non_speech_source_localization" in payload["planned_subsystems"]
+    assert payload["planned_subsystems"] == []
+    assert payload["stopped_programs"] == [
+        "stage2_register_detection",
+        "stage5_local_inverse_closure",
+    ]
+    assert "cold_start_parentese_detection" in payload["unsupported_expansions"]
+    assert "generalized_no_replay_self_voice" in payload["unsupported_expansions"]
+    assert "wall_plug_energy" in payload["unsupported_expansions"]
     assert (
         payload["verdicts"]["source_localization"]
         == "speech_stimulus_recoverable_non_speech_negative"
     )
+
+
+def test_operational_contract_cli_and_stage6_validation(tmp_path) -> None:
+    env = os.environ.copy()
+    env["PYTHONPATH"] = "src"
+    contract = subprocess.run(
+        [sys.executable, "-m", "cora_infans", "--show-operational-contract"],
+        capture_output=True,
+        check=True,
+        text=True,
+        env=env,
+    )
+    payload = json.loads(contract.stdout)
+    assert payload["stage6"]["latency_max_ms"] == 10.5
+    assert payload["stage4"]["exact_commanded_utterance_replay_required"] is True
+
+    report = tmp_path / "run.json"
+    report.write_text(
+        json.dumps(
+            {
+                "salient_adc_frame_end_to_workspace_p95_ms": 10.4,
+                "device_deadline_miss_count": 0,
+                "overflow_count": 0,
+                "callback_status_count": 0,
+                "timestamp_discontinuity_count": 0,
+                "fallback_frame_count": 0,
+                "active_playback_clipped_sample_count": 0,
+            }
+        )
+    )
+    validation = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "cora_infans",
+            "--validate-stage6-operating-point",
+            "--report",
+            str(report),
+        ],
+        capture_output=True,
+        check=True,
+        text=True,
+        env=env,
+    )
+    assert json.loads(validation.stdout)["operating_point_passed"] is True
 
 
 

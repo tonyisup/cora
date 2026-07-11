@@ -10,6 +10,7 @@ import numpy as np
 
 from .io.motor_plan import VOWEL_FORMANTS_HZ, analyze_vowel
 from .io.wav_frames import read_pcm_wav
+from .operational_contract import assert_h4_speaker_allowed
 
 
 VOWELS = ("a", "e", "i", "o", "u")
@@ -76,6 +77,7 @@ def audit_cmu_arctic_development(
     wav_cache: dict[tuple[str, str], tuple[np.ndarray, int]] = {}
     for key, expected_hash in hashes.items():
         speaker, name = key
+        assert_h4_speaker_allowed("cmu_arctic", speaker)
         path = root / speaker / "wav" / name
         if hashlib.sha256(path.read_bytes()).hexdigest() != expected_hash:
             raise ValueError(f"CMU Arctic WAV hash mismatch: {speaker}/{name}")

@@ -8,6 +8,10 @@ from dataclasses import replace
 from pathlib import Path
 from typing import Any
 
+from .operational_contract import (
+    OPERATIONAL_CONTRACT,
+    evaluate_stage6_operating_point,
+)
 from .io.live_listener import LiveListener
 from .benchmark import benchmark_event_pipeline
 from .energy_workload import run_sustained_energy_workload
@@ -130,8 +134,14 @@ SequenceArgs = tuple[str, bool]
 def describe() -> dict[str, object]:
     return {
         "project": "cora-infans",
-        "implemented_slice": "evidence_first_auditory_learning",
+        "implemented_slice": "bounded_operational_auditory_system",
+        "operational_contract": {
+            "schema_version": OPERATIONAL_CONTRACT["schema_version"],
+            "status": OPERATIONAL_CONTRACT["status"],
+            "authority": OPERATIONAL_CONTRACT["authority"],
+        },
         "implemented_subsystems": [
+            "machine_enforced_operational_contract",
             "synthetic_mic_array_front_end",
             "live_xvf3800_front_end",
             "native_coreaudio_continuous_front_end",
@@ -172,19 +182,23 @@ def describe() -> dict[str, object]:
             "structured_prediction_real_runner",
             "synthetic_workspace_ablation",
             "phase_template_top_down_prediction",
+            "exact_efference_workspace_binding",
+            "factorized_plant_infrastructure",
+            "stage6_operating_point_validator",
         ],
 
-        "planned_subsystems": [
+        "planned_subsystems": [],
+        "unsupported_expansions": [
             "non_speech_source_localization",
-            "environmental_pass_through_policy",
             "cold_start_parentese_detection",
             "cross_cultural_parentese_robustness",
-            "structured_prediction_real_capture_evidence",
-            "cross_protocol_predictive_generalization",
-            "device_timestamped_latency",
-            "energy_benchmark",
-            "general_user_authored_sequences",
+            "generalized_no_replay_self_voice",
+            "global_nonlinear_motor_inverse",
+            "arbitrary_world_dropout_inference",
+            "xmos_internal_latency",
+            "wall_plug_energy",
         ],
+        "stopped_programs": list(OPERATIONAL_CONTRACT["stopped_programs"]),
         "verdicts": {
             "source_localization": "speech_stimulus_recoverable_non_speech_negative",
             "beam_steering": "verified_commanded_top_down_actuator",
@@ -1781,6 +1795,20 @@ def energy_workload_cli(args: list[str] | None = None) -> dict[str, object]:
     )
 
 
+def validate_stage6_operating_point_cli(
+    args: list[str] | None = None,
+) -> dict[str, object]:
+    parsed = args or ["--validate-stage6-operating-point"]
+    if len(parsed) != 3 or parsed[1] != "--report":
+        raise ValueError(
+            "--validate-stage6-operating-point requires --report REPORT.json"
+        )
+    report = json.loads(Path(parsed[2]).read_text())
+    if not isinstance(report, dict):
+        raise ValueError("Stage 6 operating-point report must be a JSON object")
+    return evaluate_stage6_operating_point(report)
+
+
 def prepare_ids_manifest_cli(args: list[str] | None = None) -> dict[str, object]:
     parsed = args or ["--prepare-ids-manifest"]
     root: str | None = None
@@ -2429,6 +2457,16 @@ def main(argv: list[str] | None = None) -> int:
     if args == ["--describe"]:
         print(json.dumps(describe()))
         return 0
+    if args == ["--show-operational-contract"]:
+        print(json.dumps(OPERATIONAL_CONTRACT))
+        return 0
+    if args and args[0] == "--validate-stage6-operating-point":
+        try:
+            print(json.dumps(validate_stage6_operating_point_cli(args)))
+            return 0
+        except (ValueError, OSError, json.JSONDecodeError) as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
     if args and args[0] == "--simulate-frame":
         try:
             simulation_params, output_mode = parse_simulation_cli_args(args)
@@ -2672,7 +2710,7 @@ def main(argv: list[str] | None = None) -> int:
             return 2
 
     print(
-        "usage: python -m cora_infans --describe | --simulate-frame | --simulate-sequence "
+        "usage: python -m cora_infans --describe | --show-operational-contract | --validate-stage6-operating-point --report REPORT.json | --simulate-frame | --simulate-sequence "
         "[--timestamp-ms N --dominant-frequency-hz F --channel-energies a,b,c,d --initial-prediction-hz F --mic-geometry l0,l1,l2,l3 --saliency-threshold F --output json|pretty] "
         "[--family sweep|zigzag|gap|multi_gap|delayed_recovery] [--with-scheduling] "
         "[--capture-live [--device :0] [--duration-ms N]] "

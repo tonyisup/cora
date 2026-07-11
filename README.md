@@ -1,10 +1,12 @@
 # Cora-Infans
 
-Cora-Infans is an audio-centric research system for testing local auditory
-learning, bounded event memory, active attention, and analysis by synthesis.
+Cora-Infans is a bounded local auditory system for environmental vocal-activity
+gating, predictive event tracking, exact-efference workspace binding, and
+deterministic synthetic-plant validation.
 
-The governing research contract is [VISION.md](VISION.md). It distinguishes
-implemented mechanisms from measured and validated capabilities.
+The governing operational contract is [VISION.md](VISION.md). It distinguishes
+implemented mechanisms from measured capabilities and explicitly stopped
+research families.
 
 External corpus use follows [docs/DATA_POLICY.md](docs/DATA_POLICY.md): Cora is
 a personal, non-commercial research project, and third-party audio stays outside
@@ -16,10 +18,10 @@ the repository.
 |---|---|---|
 | Reproducible substrate | Implemented | Synthetic/live contracts, deterministic reports, and tests exist |
 | Real-audio evaluation | First replay passed | WAV and prior-art captured NumPy PCM are measured directly with dev/held-out provenance; developmental-speech breadth is still open |
-| Parentese-relevant saliency | Broad register detection falsified | Absolute, adaptive, temporal, predictive, cohort, and local nonlinear mechanisms failed reliable cross-cultural IDS/ADS detection. The vocal front gate and relational cohort effect remain narrow evidence; active Stage 2 work is stopped and USD/TOR untouched |
+| Environmental vocal gating | Broad register detection falsified | Absolute, adaptive, temporal, predictive, cohort, and local nonlinear mechanisms failed reliable cross-cultural IDS/ADS detection. The five-second vocal front gate and relational cohort effect remain narrow filters; active register research is stopped and USD/TOR untouched |
 | Local predictive hierarchy | H2 supported within tested boundaries | Natural event transfer replicated across Wellington and MEN; a separate real room run with known efference masks retained four states through 10/15/20% dropout while improving vowels `+0.614` and tones `+0.474`. Unknown-timing world dropout and semantics remain outside scope |
 | Workspace binding | H3 supported within tested boundaries | Structured tones and exact-utterance natural speech passed at zero clipping. A later no-replay same-source forward model failed on three unseen commands at F1/recall/specificity `0.727/0.667/0.667`, so the exact-efference boundary remains |
-| Analysis by synthesis | Bounded-local H4 family falsified | Hard and smooth local learners both preserved `20/20` vowel identities but failed continuous closure. The user selected the conservative disposition: stop active H4 work, retain the plant as infrastructure, and do not substitute categorical identity or a global model without revising VISION |
+| Synthetic plant infrastructure | Plant supported; local inverse falsified | The deterministic five-gesture plant passed, while hard and smooth local learners preserved `20/20` vowel identities but failed continuous closure. The plant remains infrastructure; categorical or global inverse claims require a VISION revision |
 | Efficiency | H5 supported within tested boundary | A six-fieldsite speech panel kept salient p95 at 10.17–10.38 ms with clean playback intervals, but two runs clipped only in trailing quiet and failed whole-capture integrity. Same-host energy was 27.36 µJ/frame versus 11.08 µJ/frame for the simpler baseline |
 
 New to the terminology? Start with the [data dictionary](docs/DATA_DICTIONARY.md),
@@ -27,6 +29,23 @@ especially the distinction between the classifier **F1 score** and acoustic
 **F1/F2/F3 formants**.
 The current stage-by-stage claim boundary is summarized in the
 [VISION evidence audit](docs/VISION_EVIDENCE_AUDIT_2026-07-11.md).
+
+Inspect the machine-enforced contract:
+
+```bash
+python3 -m cora_infans --show-operational-contract
+```
+
+Validate a future flat Stage 6 run summary against the named 10.5 ms operating
+point:
+
+```bash
+python3 -m cora_infans --validate-stage6-operating-point --report run.json
+```
+
+The report must include the exact salient ADC-frame-end metric and all zero-
+count integrity fields listed by the contract. Historical experiment gates are
+retained unchanged.
 
 ## Hardware boundary
 
@@ -691,7 +710,7 @@ equivalence-aware reconstruction. Its spent points cannot be used for tuning.
 The disjoint smooth-local Option H candidate also failed and often underperformed
 its nearest-exemplar baseline. Further local kernel/density/search retries are
 stopped. A global nonlinear representation or relaxed closure claim would
-change the governing research contract.
+require a revision to the governing operational specification.
 
 The final [H4 governance decision](docs/evidence/2026-07-11-h4-bounded-local-family-disposition.json)
 records the bounded-local representation family as falsified within tested

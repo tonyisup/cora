@@ -16,6 +16,10 @@ import re
 from collections import Counter
 from pathlib import Path
 
+from ..operational_contract import (
+    STAGE2_PROTECTED_FIELDSITES,
+    assert_stage2_fieldsite_allowed,
+)
 from .wav_frames import read_wav_metadata
 
 
@@ -36,7 +40,7 @@ IDS_SPENT_FIELDSITES = frozenset(
         "MES", "NYA", "PNG", "QUE", "SPA", "TOP", "TSI", "TUR", "VAN",
     }
 )
-IDS_RESERVED_FIELDSITES = frozenset({"WEL", "USD", "TOR"})
+IDS_RESERVED_FIELDSITES = STAGE2_PROTECTED_FIELDSITES
 
 
 def collect_spent_ids_hashes(evidence_dir: str | Path) -> dict[str, str]:
@@ -106,11 +110,13 @@ def build_ids_manifest(
         if match is None:
             skipped_unrecognized += 1
             continue
+        fieldsite = match.group("fieldsite").upper()
+        assert_stage2_fieldsite_allowed(fieldsite)
         kind = match.group("kind").upper()
         if not include_song and kind in ("A", "C"):
             continue
         participant_id = (
-            match.group("fieldsite").upper() + match.group("participant")
+            fieldsite + match.group("participant")
         )
         duration = _wav_duration_seconds(wav_path)
         clip_id = wav_path.stem
@@ -122,7 +128,7 @@ def build_ids_manifest(
                 "label": IDS_LABELS[kind],
                 "split": _participant_split(participant_id, held_out_fraction),
                 "participant_id": participant_id,
-                "fieldsite": match.group("fieldsite").upper(),
+                "fieldsite": fieldsite,
                 "source_path": str(wav_path.relative_to(root_path)),
             }
         )

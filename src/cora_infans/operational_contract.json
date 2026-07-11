@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "authority": "VISION.md",
+  "status": "bounded_operational_contract",
+  "claims": {
+    "stage2_register_detection": "falsified_within_tested_scope",
+    "stage2_vocal_front_gate": "supported_under_tested_five_second_conditions",
+    "stage3_predictive_hierarchy": "supported_within_known_efference_and_named_transfer_boundaries",
+    "stage4_workspace_binding": "supported_only_with_exact_utterance_replay",
+    "stage5_local_inverse_closure": "falsified_within_tested_scope",
+    "stage5_factorized_plant": "infrastructure_only",
+    "stage6_efficiency": "supported_within_named_host_callback_boundary"
+  },
+  "stopped_programs": [
+    "stage2_register_detection",
+    "stage5_local_inverse_closure"
+  ],
+  "stage2": {
+    "window_seconds": 5.0,
+    "cohort_filter_requires_unlabeled_speaker_mode_batch": true,
+    "cohort_filter_is_general_detection": false,
+    "deep_global_model_authorized": false
+  },
+  "stage4": {
+    "exact_commanded_utterance_replay_required": true,
+    "no_replay_authorized": false,
+    "same_source_generalization_authorized": false,
+    "workspace_capacity": 3
+  },
+  "stage5": {
+    "plant_kind": "factorized_five_gesture_ten_section_transmission_line",
+    "expanded_band_hz": 5000,
+    "local_inverse_execution_authorized": false,
+    "global_inverse_execution_authorized": false
+  },
+  "stage6": {
+    "latency_metric": "salient_adc_frame_end_to_workspace_p95_ms",
+    "latency_max_ms": 10.5,
+    "frame_accumulation_ms_excluded": 25.0,
+    "input": {
+      "device_selector": ":0",
+      "device": "reSpeaker XVF3800 4-Mic Array",
+      "sample_rate_hz": 16000,
+      "host_channels": 2
+    },
+    "self_source": {
+      "output_device_index": 3,
+      "device": "Mac mini Speakers",
+      "placement": "centered_directly_below_xvf3800",
+      "vertical_distance_cm": 4,
+      "system_volume_percent": 100
+    },
+    "world_source": {
+      "output_device_index": 2,
+      "device": "External Headphones",
+      "angle_degrees": 180,
+      "distance_cm": 50,
+      "hardware_volume_max_percent_approximate": 50
+    },
+    "required_zero_counts": [
+      "device_deadline_miss_count",
+      "overflow_count",
+      "callback_status_count",
+      "timestamp_discontinuity_count",
+      "fallback_frame_count",
+      "active_playback_clipped_sample_count"
+    ],
+    "measured_energy": {
+      "workload_uj_per_frame": 27.36,
+      "baseline_uj_per_frame": 11.08,
+      "same_host_ratio": 2.47,
+      "is_allowance": false
+    }
+  },
+  "protected_data": {
+    "stage2_fieldsites": ["WEL", "USD", "TOR"],
+    "stage2_pristine_fieldsites": ["USD", "TOR"],
+    "vocalset_speakers": ["female6", "female7", "female9", "male9", "male11"],
+    "cmu_arctic_confirmation_speakers": ["rms", "awb", "axb", "eey", "ljm"],
+    "cmu_arctic_reserve_speakers": ["aew", "ahw", "aup", "fem", "gka", "lnh", "rxr", "slp"]
+  },
+  "governance": {
+    "frozen_failure_stops_candidate": true,
+    "post_hoc_threshold_selection_authorized": false,
+    "code_defect_correction_requires_provenance": true,
+    "new_mechanism_requires_preregistration": true,
+    "new_mechanism_requires_disjoint_evidence": true,
+    "protected_access_requires_vision_revision_and_preregistration": true
+  }
+}
