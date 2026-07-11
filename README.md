@@ -18,7 +18,7 @@ the repository.
 | Real-audio evaluation | First replay passed | WAV and prior-art captured NumPy PCM are measured directly with dev/held-out provenance; developmental-speech breadth is still open |
 | Parentese-relevant saliency | Mixed; not promoted | The final 16-fieldsite refit reached F1 0.600 on untouched Enga/Turku clips and failed its 0.65 gate; the separately tested vocal front gate remains positive |
 | Local predictive hierarchy | H2 supported within tested boundaries | Natural event transfer replicated across Wellington and MEN; a separate real room run with known efference masks retained four states through 10/15/20% dropout while improving vowels `+0.614` and tones `+0.474`. Unknown-timing world dropout and semantics remain outside scope |
-| Workspace binding | Spent real-capture design gate passed | A three-slot identity-plus-world-evidence candidate reached F1 1.0 on a held-out Corollary capture family versus 0.727 flat; identity-only recall collapsed to 0.25, exposing the overlap failure. Fresh Cora synchronized confirmation remains open |
+| Workspace binding | Fresh classifier gate passed; clipping retry preregistered | The first synchronized Cora run reached scheduled F1 1.0 versus flat 0.8 and fixed-window 0.667, but 9/15 self-bearing captures clipped. Promotion is withheld pending the preregistered -12 dB self-source retry and zero-clipping gate |
 | Analysis by synthesis | Clean synthetic gate passed | Five vowels round-trip across multiple F0 values and 16/48 kHz; recorded-speaker validation remains open |
 | Efficiency | Host boundary measured on hardware | Core microbenchmarks and native XVF3800 capture-call-to-workspace latency are reported; device-onset timestamps, live CPU/memory, and energy remain excluded |
 
@@ -461,11 +461,14 @@ developmental language learning.
   injected source-specific callbacks, retains separate self/world/capture WAVs
   and hashes, verifies capture stream position and chirp alignment, and aborts
   on source-start failure. It caps playback at 25 seconds and capture at 45
-  seconds; real-hardware claims remain structurally rejected. The external-world
-  route is user-frozen at output device 2
-  (`External Headphones`), 180 degrees, and 50 cm until explicitly changed. The
-  Mac mini self-source geometry and level remain unfrozen, so the complete H3
-  setup is not preregistered and no live H3 audio ran.
+  seconds. The first preregistered real run completed all 15 trials and passed
+  every classification gate: scheduled F1/recall/specificity were `1.0/1.0/1.0`
+  versus flat F1 `0.8` and fixed-window recall `0.5`; capacity `1/2/3/4` scored
+  `0.857/0.923/1.0/1.0`. A post-run quality audit found clipped samples in all
+  nine self-bearing captures and none of six world-only captures, so its raw
+  promotion flag is superseded and H3 is not yet promoted. Attempt 2 freezes
+  self playback at `-12 dB` and adds a zero-clipping acceptance gate while
+  preserving geometry, stimuli, threshold selection, and classification gates.
 - Theta/gamma scheduling is an event-timing model, not measured neural dynamics.
 - The vowel table uses adult reference targets and clean synthetic success does
   not imply recorded infant/adult speech performance.

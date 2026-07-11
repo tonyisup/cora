@@ -446,8 +446,8 @@ within its measured boundary. H3's workspace claim remains separate.
 
 ### Stage 4 — Workspace binding
 
-Status: spent real-capture task and structured synthetic gate passed; fresh
-Cora synchronized confirmation not yet demonstrated.
+Status: fresh synchronized classifier gate passed; promotion withheld because
+attempt 1 clipped, with a lower-gain quality retry preregistered.
 
 Required evidence:
 
@@ -516,7 +516,19 @@ Current structured Cora protocol:
   geometry hashes. The final preregistration freezes the self source centered
   directly below the array at a 4 cm center-to-center distance, -90 degrees
   elevation, and 100% system volume. This preregistration is committed before
-  the first bounded hardware execution.
+  the first bounded hardware execution;
+- attempt 1 completed all 15 synchronized trials. At capacity 3, scheduled
+  identity plus world evidence reached F1 `1.0`, world recall `1.0`, and self-
+  suppression specificity `1.0`, versus flat F1 `0.8` and fixed-window F1
+  `0.667`/world recall `0.5`. Capacity `1/2/3/4` reached
+  `0.857/0.923/1.0/1.0`, satisfying the frozen classification gate;
+- a post-run PCM audit found `2,287` clipped samples across all nine self-
+  bearing captures and no clipping in the six world-only captures. Because
+  clipping can distort spectral evidence, attempt 1 is retained as a protocol
+  result and quality failure, not H3 promotion. Attempt 2 freezes only the self
+  digital playback gain from `0 dB` to `-12 dB` and adds a zero-clipping gate;
+  physical geometry, system/hardware levels, trials, threshold rule, and all
+  classification criteria remain unchanged.
 
 ### Stage 5 — Perception-production closure
 

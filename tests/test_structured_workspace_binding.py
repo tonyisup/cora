@@ -255,7 +255,7 @@ def _ready_preregistration(hashes):
                 "vertical_distance_cm": 25,
                 "distance_reference": "XVF3800 array center to Mac mini chassis center",
                 "system_volume_percent": 100,
-                "playback_gain_db": 0.0,
+                "playback_gain_db": -12.0,
             },
             "world_source": {
                 "output_device_index": 2,
@@ -285,6 +285,7 @@ def _ready_preregistration(hashes):
             "capacity_one_f1_must_be_below_capacity_three": True,
             "capacity_three_f1_must_equal_capacity_four": True,
             "all_15_captures_and_alignments_required": True,
+            "no_clipped_capture_samples_required": True,
         },
         "unresolved_fields": [],
     }
@@ -311,12 +312,12 @@ def test_workspace_preregistration_audit_requires_hashes_and_complete_self_geome
     assert "acceptance criteria do not match the frozen H3 gate" in blocked["blockers"]
 
 
-def test_final_workspace_preregistration_matches_current_code_and_geometry() -> None:
+def test_retry_workspace_preregistration_matches_current_code_and_geometry() -> None:
     root = Path(__file__).resolve().parents[1]
     preregistration = json.loads(
         (
             root
-            / "docs/evidence/2026-07-10-structured-workspace-real-preregistration.json"
+            / "docs/evidence/2026-07-10-structured-workspace-real-attempt-2-preregistration.json"
         ).read_text()
     )
     paths = {
@@ -342,6 +343,77 @@ def test_final_workspace_preregistration_matches_current_code_and_geometry() -> 
 
     assert audit == {"verdict": "preregistration_ready", "ready": True, "blockers": []}
     assert preregistration["hardware"]["self_source"]["vertical_distance_cm"] == 4
+    assert preregistration["hardware"]["self_source"]["playback_gain_db"] == -12.0
+    assert preregistration["acceptance"]["no_clipped_capture_samples_required"] is True
+
+
+def test_retained_real_workspace_result_and_artifacts_pass_frozen_gate() -> None:
+    root = Path(__file__).resolve().parents[1]
+    result = json.loads(
+        (
+            root / "docs/evidence/2026-07-10-structured-workspace-real-result.json"
+        ).read_text()
+    )
+    artifact_dir = (
+        root / "docs/evidence/2026-07-10-structured-workspace-real-artifacts"
+    )
+
+    assert result["verdict"] == "real_io_acceptance_passed"
+    assert result["capture_acceptance_verdict"] == "capture_acceptance_passed"
+    assert result["real_hardware"] is True
+    assert result["live_playback"] is True
+    assert result["promotion_allowed"] is True
+    assert result["completed_trial_count"] == 15
+    assert result["error"] is None
+    assert all(result["criteria"].values())
+    selected = result["reports"]["3"]
+    assert selected["scheduled_identity_plus_world_evidence"]["metrics"] == {
+        "tp": 6,
+        "fp": 0,
+        "tn": 3,
+        "fn": 0,
+        "world_recall": 1.0,
+        "self_suppression_specificity": 1.0,
+        "f1": 1.0,
+    }
+    assert selected["flat"]["metrics"]["f1"] == 0.8
+    assert selected["fixed_self_window"]["metrics"]["world_recall"] == 0.5
+    assert len(result["artifacts"]) == 15
+    assert len(list(artifact_dir.glob("*.wav"))) == 45
+
+    for artifact in result["artifacts"]:
+        paths = {
+            "self": artifact_dir / Path(artifact["self_wav"]).name,
+            "world": artifact_dir / Path(artifact["world_wav"]).name,
+            "captured": artifact_dir / Path(artifact["captured_wav"]).name,
+        }
+        for name, path in paths.items():
+            assert path.is_file()
+            assert hashlib.sha256(path.read_bytes()).hexdigest() == artifact[
+                f"{name}_sha256"
+            ]
+        self_pcm, self_rate = read_pcm_wav(paths["self"])
+        world_pcm, world_rate = read_pcm_wav(paths["world"])
+        captured_pcm, captured_rate = read_pcm_wav(paths["captured"])
+        assert self_rate == world_rate == captured_rate == 16000
+        assert self_pcm.shape == world_pcm.shape == (20800, 1)
+        assert captured_pcm.shape == (30400, 2)
+        assert artifact["io_timing"]["stream_position_verified"] is True
+        assert artifact["capture"]["backend"] == "ffmpeg_avfoundation"
+        assert artifact["capture"]["device"] == ":0"
+        sources = artifact["playback"]["sources"]
+        expected_sources = (
+            {"self", "world"}
+            if artifact["condition"] == "overlap"
+            else {"self"}
+            if artifact["condition"] == "self_only"
+            else {"world"}
+        )
+        assert set(sources) == expected_sources
+        if "self" in sources:
+            assert sources["self"]["device_index"] == 3
+        if "world" in sources:
+            assert sources["world"]["device_index"] == 2
 
 
 def test_real_workspace_acquisition_rejects_unverified_backend_provenance(tmp_path) -> None:

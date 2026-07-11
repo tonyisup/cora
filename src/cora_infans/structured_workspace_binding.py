@@ -221,8 +221,8 @@ def audit_workspace_binding_preregistration(
         blockers.append("world speaker hardware volume must remain max")
     if world_route.get("playback_gain_db") != 0.0:
         blockers.append("world playback gain must be frozen at 0 dB")
-    if self_route.get("playback_gain_db") != 0.0:
-        blockers.append("self playback gain must be frozen at 0 dB")
+    if self_route.get("playback_gain_db") != -12.0:
+        blockers.append("self playback gain must be frozen at -12 dB")
 
     if self_route.get("placement") != "centered_directly_below_xvf3800":
         blockers.append("self source must remain centered directly below the XVF3800")
@@ -274,6 +274,7 @@ def audit_workspace_binding_preregistration(
         "capacity_one_f1_must_be_below_capacity_three": True,
         "capacity_three_f1_must_equal_capacity_four": True,
         "all_15_captures_and_alignments_required": True,
+        "no_clipped_capture_samples_required": True,
     }
     if not isinstance(acceptance, Mapping) or any(
         acceptance.get(name) != value for name, value in expected_acceptance.items()
@@ -617,6 +618,9 @@ def run_workspace_binding_acquisition(
     alignments: dict[str, int] = {}
     artifacts: list[dict[str, object]] = []
     total_playback_seconds = 0.0
+    captures_with_clipping = 0
+    total_clipped_samples = 0
+    maximum_clipped_fraction = 0.0
 
     for trial in build_workspace_binding_trials():
         rendered = render_workspace_binding_tracks(trial, config)
@@ -678,6 +682,16 @@ def run_workspace_binding_acquisition(
                     raise ValueError("real H3 capture stream position was not verified")
                 if captured_samples.shape[1] != 2:
                     raise ValueError("real H3 XVF3800 capture must retain two channels")
+            clipped_sample_count = int(
+                np.count_nonzero(np.abs(captured_samples) >= (32767.0 / 32768.0))
+            )
+            clipped_sample_fraction = clipped_sample_count / captured_samples.size
+            if clipped_sample_count:
+                captures_with_clipping += 1
+            total_clipped_samples += clipped_sample_count
+            maximum_clipped_fraction = max(
+                maximum_clipped_fraction, clipped_sample_fraction
+            )
             chirp_samples = int(config.alignment_chirp_ms * config.sample_rate / 1000)
             detected_onset_ms = estimate_playback_latency_ms(
                 efference_pcm=rendered.reference_pcm[:chirp_samples],
@@ -740,6 +754,11 @@ def run_workspace_binding_acquisition(
                 },
                 "playback": io_report["playback"],
                 "capture": io_report["capture"],
+                "capture_quality": {
+                    "peak_absolute": float(np.max(np.abs(captured_samples))),
+                    "clipped_sample_count": clipped_sample_count,
+                    "clipped_sample_fraction": clipped_sample_fraction,
+                },
             }
         )
 
@@ -749,10 +768,17 @@ def run_workspace_binding_acquisition(
         config=config,
     )
     capture_passed = evaluation["verdict"] == "capture_acceptance_passed"
+    no_clipping = captures_with_clipping == 0
+    evaluation["criteria"] = {
+        **evaluation["criteria"],
+        "no_clipped_capture_samples": no_clipping,
+    }
     return {
         **evaluation,
         "verdict": (
             "real_io_acceptance_passed"
+            if real_hardware_claim and capture_passed and no_clipping
+            else "real_io_quality_failed_clipping"
             if real_hardware_claim and capture_passed
             else "real_io_acceptance_failed"
             if real_hardware_claim
@@ -770,9 +796,15 @@ def run_workspace_binding_acquisition(
         "completed_trial_count": len(artifacts),
         "measured_total_playback_seconds": round(total_playback_seconds, 6),
         "bounded_total_capture_seconds": round(bounded_total_capture_seconds, 6),
+        "capture_quality": {
+            "captures_with_clipping": captures_with_clipping,
+            "total_clipped_samples": total_clipped_samples,
+            "maximum_clipped_sample_fraction": maximum_clipped_fraction,
+            "no_clipping_passed": no_clipping,
+        },
         "artifacts": artifacts,
         "error": None,
-        "promotion_allowed": bool(real_hardware_claim and capture_passed),
+        "promotion_allowed": bool(real_hardware_claim and capture_passed and no_clipping),
     }
 
 
