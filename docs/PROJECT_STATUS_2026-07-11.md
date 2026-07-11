@@ -32,9 +32,35 @@ For acronyms, corpus codes, metrics, and common report fields, see the
 | 1 — Real-audio evaluation | Passed in bounded corpora | [prior-art replay](evidence/2026-07-10-prior-art-replay.json), Music Lab PCM/float WAV evaluation, participant/fieldsite manifests | Broader devices, rooms, ages, and spontaneous conditions remain open |
 | 2 — Parentese-relevant saliency | Mixed; not promoted | [narrow Beijing confirmation](evidence/2026-07-10-ids-confirmation.json), [Mentawai/Toposa mode-scoped pass](evidence/2026-07-10-mode-scoped-register-result.json), [vocal front-gate pass](evidence/2026-07-10-yin-vocal-gate-v2-result.json) | [final paired-summary failure](evidence/2026-07-10-expanded-register-v6-result.json), [six-phase failure](evidence/2026-07-11-temporal-register-development-result.json), [predictive-dynamics failure](evidence/2026-07-11-predictive-register-dynamics-result.json), [cohort-adaptive failure](evidence/2026-07-11-cohort-adaptive-register-result.json), and [nonlinear-codebook failure](evidence/2026-07-11-nonlinear-predictive-codebook-result.json) block general promotion |
 | 3 — Predictive hierarchy | H2 supported within tested boundaries | Natural transfer replicated on Wellington and MEN; controlled real known-efference dropout retained four states and improved tone/vowel prediction | Unknown dropout timing, arbitrary missing world input, semantics, and room transfer remain outside the claim |
-| 4 — Workspace binding | H3 supported within structured-tone and exact-efference speech boundaries | [structured attempt 3](evidence/2026-07-10-structured-workspace-real-attempt-3-result.json) and the [fresh spectral-template v3 run](evidence/2026-07-11-natural-speech-workspace-spectral-v3-real-result.json) both passed scheduled F1/recall/specificity and zero-clipping gates | Natural result requires one prior replay of the exact utterance, three fresh pairs, fixed geometry/levels, and one room; not generalized self voice, semantics, transfer, or neural dynamics |
+| 4 — Workspace binding | H3 supported within structured-tone and exact-efference speech boundaries | [structured attempt 3](evidence/2026-07-10-structured-workspace-real-attempt-3-result.json) and the [fresh spectral-template v3 run](evidence/2026-07-11-natural-speech-workspace-spectral-v3-real-result.json) both passed scheduled F1/recall/specificity and zero-clipping gates | A [no-replay same-source extension](evidence/2026-07-11-h3-same-source-forward-model-real-result.json) failed at F1/recall/specificity `0.727/0.667/0.667`; the supported natural result still requires a prior replay of the exact utterance and does not establish generalized self voice, semantics, transfer, or neural dynamics |
 | 5 — Perception-production closure | H4 open; fixed and continuous candidates falsified | The continuous candidate strictly reduced reconstruction loss on every recorded example while respecting all bounds and its 23-synthesis budget | [continuous inverse-synthesis result](evidence/2026-07-11-h4-continuous-inverse-synthesis-development-result.json) scored synthetic `0.85`, VocalSet `0.44`, and CMU Arctic `0.574`, failing `0.90/0.80/0.80`; protected speakers remain untouched |
 | 6 — Real-time efficiency | H5 supported within measured host boundary | Quiet and structured callback gates passed; [lower-volume natural-speech gate](evidence/2026-07-11-stage6-natural-speech-hardware-volume-diagnostic-result.json) passed at 10.34–10.42 ms salient p95; [six-fieldsite timing panel](evidence/2026-07-11-stage6-diverse-natural-speech-result.json) retained 10.17–10.38 ms salient p95 with clean playback intervals; [energy result](evidence/2026-07-11-stage6-energy-result.json) is measured | Two diverse-panel runs clipped only in trailing quiet and failed whole-capture integrity; energy is a 2.47× baseline cost; XMOS internal, wall-plug, acoustic, and cross-device energy remain open |
+
+## H3 same-source generalization failure
+
+The supported exact-efference result stores a compact sensory consequence of
+the exact commanded utterance. The next candidate removed that replay
+requirement: a 13-scalar forward model learned one centered log-spectral
+Mac-mini-speaker-to-XVF3800 path from nine prior commands and applied it to each
+new commanded spectrum. Its leave-one-command-out spent-development audit
+passed every frozen gate and selected threshold `0.300564`.
+
+The separately preregistered fresh run used three H3-unused self commands and
+three H3-unused world sources, with no new-utterance calibration trials. All
+nine captures completed with verified alignment, stream position, source
+hashes, and zero clipping. The classifier nevertheless failed:
+
+- self-only distances were `0.1403/0.1448/0.3706`;
+- overlap distances were `0.2336/0.2218/0.5614`;
+- capacity-3 scheduled F1/recall/specificity were
+  `0.727/0.667/0.667`, versus flat F1 `0.8` and fixed-window recall `0.5`.
+
+Each overlap was farther from predicted self than its paired self probe, but
+between-command offsets destroyed the global separation: minimum overlap minus
+maximum self was `-0.1488`. The retained
+[post-hoc analysis](evidence/2026-07-11-h3-same-source-forward-model-failure-analysis.json)
+does not select a new threshold. Same-data normalization or threshold tuning is
+blocked. H3 remains supported only at its earlier exact-efference boundary.
 
 ## Stage 2 disposition pending
 
@@ -164,7 +190,7 @@ analog/device-front-end transient.
 
 ## Verification state
 
-At this checkpoint the full test suite reports `407 passed, 3 skipped`. The
+At this checkpoint the full test suite reports `418 passed, 3 skipped`. The
 skips are intentional hardware/environment-dependent tests, not hidden failures.
 The working branch is `codex/vision-evidence`; the latest research checkpoints
 include:
@@ -181,6 +207,8 @@ include:
 - `15cf53b` — nonlinear predictive codebook preregistration;
 - `b2370ea` — nonlinear predictive codebook implementation.
 - `f174243` — frozen continuous inverse-synthesis implementation.
+- `937e9cb` — fresh H3 same-source live runner.
+- `43ecf5f` — hash-bound no-replay H3 real preregistration.
 
 ## Decisions required before further Stage 2 or H4 empirical work
 

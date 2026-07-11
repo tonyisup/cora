@@ -601,6 +601,15 @@ Current structured Cora protocol:
   Generalized self-voice learning, arbitrary events or spectra, geometry/room
   transfer, speech semantics, calibrated SPL, and measured neural theta/gamma
   dynamics remain outside the claim.
+- a genuinely different same-source candidate then replaced per-utterance
+  sensory templates with one locally learned 12-band path signature plus a
+  count scalar. Leave-one-command-out development over nine spent commands
+  passed, but its no-replay fresh run failed: capacity-3 scheduled F1, world
+  recall, and self-suppression specificity were `0.727/0.667/0.667`, below flat
+  F1 `0.8`. Two overlaps fell below the frozen threshold and one self-only event
+  exceeded it. All nine captures were aligned and had zero clipping. The
+  existing exact-efference result remains supported; this frozen cross-session
+  same-source model does not extend H3 to unseen utterances.
 
 ### Stage 5 — Perception-production closure
 

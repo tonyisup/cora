@@ -32,6 +32,12 @@ def test_consolidated_status_links_exist_and_preserve_pending_decisions() -> Non
             / "docs/evidence/2026-07-11-h4-continuous-inverse-synthesis-development-result.json"
         ).read_text()
     )
+    h3_same_source = json.loads(
+        (
+            root
+            / "docs/evidence/2026-07-11-h3-same-source-forward-model-real-result.json"
+        ).read_text()
+    )
     provenance = json.loads(
         (
             root
@@ -49,6 +55,10 @@ def test_consolidated_status_links_exist_and_preserve_pending_decisions() -> Non
     assert h4_continuous["all_development_gates_passed"] is False
     assert h4_continuous["confirmation_ready"] is False
     assert h4_continuous["confirmation_audio_or_labels_accessed"] is False
+    assert h3_same_source["verdict"] == "real_io_acceptance_failed"
+    assert h3_same_source["promotion_allowed"] is False
+    assert h3_same_source["completed_trial_count"] == 9
+    assert h3_same_source["capture_quality"]["total_clipped_samples"] == 0
     assert len(provenance["wellington_prior_access"]["clips"]) == 8
     assert provenance["repository_wide_filename_audit"][
         "san_diego_selected_clip_ids_found"

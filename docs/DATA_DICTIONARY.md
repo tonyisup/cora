@@ -210,6 +210,8 @@ failed society.
 | **Efference copy** | A copy of a motor command supplied to prediction. In this project it marks known self-generated audio. |
 | **Exact efference** | The same commanded waveform and identity used in an earlier self-calibration replay. The supported natural-speech H3 result depends on this narrow condition; it is not generalized self-voice learning. |
 | **Sensory template** | A bounded stored consequence of an earlier action. Spectral-v3 stores 12 normalized band-energy scalars per active self identity, with three workspace slots. |
+| **Same-source forward model** | A bounded prediction of how one physical output path changes a known commanded sound. Cora's frozen 13-scalar candidate generalized in spent leave-one-command-out development but failed a later no-replay live test. |
+| **No-replay test** | A self-source test in which the evaluated command is not first played and stored as its own calibration template. The model must predict its consequence from prior commands and the current efference. |
 | **Dropout** | Deliberately missing observations used to test representation stability. This is not neural-network dropout unless explicitly stated. |
 | **Local predictive learning** | Updates predictions using nearby observations and errors without a large globally trained sequence model. |
 | **Motor plan** | Parameters used to synthesize a target sound, currently vowel source/formant settings. |

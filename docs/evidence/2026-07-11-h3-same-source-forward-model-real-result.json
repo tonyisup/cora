@@ -1,0 +1,484 @@
+{
+  "mode": "h3_same_source_forward_model_fresh_real_result",
+  "trial_count": 9,
+  "scored_trial_count": 9,
+  "self_calibration_trial_count": 0,
+  "seconds_per_trial": 0.92,
+  "planned_total_playback_seconds": 8.280000000000001,
+  "frozen_threshold": 0.3005643307398186,
+  "frozen_calibration_count": 9,
+  "shared_model_scalars": 13,
+  "per_new_utterance_sensory_templates": 0,
+  "trials": [
+    {
+      "trial_id": "fresh_self_probe_0",
+      "condition": "self_probe",
+      "pair_index": 0,
+      "efference_id": "fresh_self_0",
+      "expected_world_usable": false
+    },
+    {
+      "trial_id": "fresh_world_only_0",
+      "condition": "world_only",
+      "pair_index": 0,
+      "efference_id": null,
+      "expected_world_usable": true
+    },
+    {
+      "trial_id": "fresh_overlap_0",
+      "condition": "overlap",
+      "pair_index": 0,
+      "efference_id": "fresh_self_0",
+      "expected_world_usable": true
+    },
+    {
+      "trial_id": "fresh_self_probe_1",
+      "condition": "self_probe",
+      "pair_index": 1,
+      "efference_id": "fresh_self_1",
+      "expected_world_usable": false
+    },
+    {
+      "trial_id": "fresh_world_only_1",
+      "condition": "world_only",
+      "pair_index": 1,
+      "efference_id": null,
+      "expected_world_usable": true
+    },
+    {
+      "trial_id": "fresh_overlap_1",
+      "condition": "overlap",
+      "pair_index": 1,
+      "efference_id": "fresh_self_1",
+      "expected_world_usable": true
+    },
+    {
+      "trial_id": "fresh_self_probe_2",
+      "condition": "self_probe",
+      "pair_index": 2,
+      "efference_id": "fresh_self_2",
+      "expected_world_usable": false
+    },
+    {
+      "trial_id": "fresh_world_only_2",
+      "condition": "world_only",
+      "pair_index": 2,
+      "efference_id": null,
+      "expected_world_usable": true
+    },
+    {
+      "trial_id": "fresh_overlap_2",
+      "condition": "overlap",
+      "pair_index": 2,
+      "efference_id": "fresh_self_2",
+      "expected_world_usable": true
+    }
+  ],
+  "strategies": [
+    "flat",
+    "fixed_self_window",
+    "scheduled_identity_plus_same_source_forward_model"
+  ],
+  "capacity_sweep": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "promotion_allowed": false,
+  "world_evidence": {
+    "fresh_self_probe_0": 0.140290884804793,
+    "fresh_world_only_0": 2.0,
+    "fresh_overlap_0": 0.2336497693462652,
+    "fresh_self_probe_1": 0.14482496122250987,
+    "fresh_world_only_1": 2.0,
+    "fresh_overlap_1": 0.22178054196282243,
+    "fresh_self_probe_2": 0.3705661121332223,
+    "fresh_world_only_2": 2.0,
+    "fresh_overlap_2": 0.5613865121474336
+  },
+  "world_evidence_threshold": 0.3005643307398186,
+  "reports": {
+    "1": {
+      "flat": {
+        "strategy": "flat",
+        "capacity": 1,
+        "bounded_binding_slots": 1,
+        "metrics": {
+          "tp": 6,
+          "fp": 3,
+          "tn": 0,
+          "fn": 0,
+          "world_recall": 1.0,
+          "self_suppression_specificity": 0.0,
+          "f1": 0.8
+        }
+      },
+      "fixed_self_window": {
+        "strategy": "fixed_self_window",
+        "capacity": 1,
+        "bounded_binding_slots": 1,
+        "metrics": {
+          "tp": 5,
+          "fp": 2,
+          "tn": 1,
+          "fn": 1,
+          "world_recall": 0.8333333333333334,
+          "self_suppression_specificity": 0.3333333333333333,
+          "f1": 0.7692307692307693
+        }
+      },
+      "scheduled_identity_plus_same_source_forward_model": {
+        "strategy": "scheduled_identity_plus_same_source_forward_model",
+        "capacity": 1,
+        "bounded_binding_slots": 1,
+        "metrics": {
+          "tp": 6,
+          "fp": 3,
+          "tn": 0,
+          "fn": 0,
+          "world_recall": 1.0,
+          "self_suppression_specificity": 0.0,
+          "f1": 0.8
+        }
+      }
+    },
+    "2": {
+      "flat": {
+        "strategy": "flat",
+        "capacity": 2,
+        "bounded_binding_slots": 2,
+        "metrics": {
+          "tp": 6,
+          "fp": 3,
+          "tn": 0,
+          "fn": 0,
+          "world_recall": 1.0,
+          "self_suppression_specificity": 0.0,
+          "f1": 0.8
+        }
+      },
+      "fixed_self_window": {
+        "strategy": "fixed_self_window",
+        "capacity": 2,
+        "bounded_binding_slots": 2,
+        "metrics": {
+          "tp": 4,
+          "fp": 1,
+          "tn": 2,
+          "fn": 2,
+          "world_recall": 0.6666666666666666,
+          "self_suppression_specificity": 0.6666666666666666,
+          "f1": 0.7272727272727273
+        }
+      },
+      "scheduled_identity_plus_same_source_forward_model": {
+        "strategy": "scheduled_identity_plus_same_source_forward_model",
+        "capacity": 2,
+        "bounded_binding_slots": 2,
+        "metrics": {
+          "tp": 5,
+          "fp": 2,
+          "tn": 1,
+          "fn": 1,
+          "world_recall": 0.8333333333333334,
+          "self_suppression_specificity": 0.3333333333333333,
+          "f1": 0.7692307692307693
+        }
+      }
+    },
+    "3": {
+      "flat": {
+        "strategy": "flat",
+        "capacity": 3,
+        "bounded_binding_slots": 3,
+        "metrics": {
+          "tp": 6,
+          "fp": 3,
+          "tn": 0,
+          "fn": 0,
+          "world_recall": 1.0,
+          "self_suppression_specificity": 0.0,
+          "f1": 0.8
+        }
+      },
+      "fixed_self_window": {
+        "strategy": "fixed_self_window",
+        "capacity": 3,
+        "bounded_binding_slots": 3,
+        "metrics": {
+          "tp": 3,
+          "fp": 0,
+          "tn": 3,
+          "fn": 3,
+          "world_recall": 0.5,
+          "self_suppression_specificity": 1.0,
+          "f1": 0.6666666666666666
+        }
+      },
+      "scheduled_identity_plus_same_source_forward_model": {
+        "strategy": "scheduled_identity_plus_same_source_forward_model",
+        "capacity": 3,
+        "bounded_binding_slots": 3,
+        "metrics": {
+          "tp": 4,
+          "fp": 1,
+          "tn": 2,
+          "fn": 2,
+          "world_recall": 0.6666666666666666,
+          "self_suppression_specificity": 0.6666666666666666,
+          "f1": 0.7272727272727273
+        }
+      }
+    },
+    "4": {
+      "flat": {
+        "strategy": "flat",
+        "capacity": 4,
+        "bounded_binding_slots": 4,
+        "metrics": {
+          "tp": 6,
+          "fp": 3,
+          "tn": 0,
+          "fn": 0,
+          "world_recall": 1.0,
+          "self_suppression_specificity": 0.0,
+          "f1": 0.8
+        }
+      },
+      "fixed_self_window": {
+        "strategy": "fixed_self_window",
+        "capacity": 4,
+        "bounded_binding_slots": 4,
+        "metrics": {
+          "tp": 3,
+          "fp": 0,
+          "tn": 3,
+          "fn": 3,
+          "world_recall": 0.5,
+          "self_suppression_specificity": 1.0,
+          "f1": 0.6666666666666666
+        }
+      },
+      "scheduled_identity_plus_same_source_forward_model": {
+        "strategy": "scheduled_identity_plus_same_source_forward_model",
+        "capacity": 4,
+        "bounded_binding_slots": 4,
+        "metrics": {
+          "tp": 4,
+          "fp": 1,
+          "tn": 2,
+          "fn": 2,
+          "world_recall": 0.6666666666666666,
+          "self_suppression_specificity": 0.6666666666666666,
+          "f1": 0.7272727272727273
+        }
+      }
+    }
+  },
+  "criteria": {
+    "scheduled_f1_at_least_0_90": false,
+    "scheduled_minus_flat_f1_at_least_0_20": false,
+    "scheduled_world_recall_at_least_0_90": false,
+    "scheduled_self_suppression_specificity_at_least_0_90": false,
+    "fixed_window_world_recall_below_scheduled": true,
+    "capacity_one_f1_below_capacity_three": false,
+    "capacity_three_f1_equals_capacity_four": true,
+    "frozen_model_and_threshold_unchanged": true,
+    "no_new_utterance_calibration_consumed": true,
+    "all_9_captures_and_alignments_present": true,
+    "no_clipped_capture_samples": true,
+    "all_source_and_artifact_hashes_verified": true
+  },
+  "classification_gates_passed": false,
+  "evidence_class": "fresh_chirp_aligned_same_source_forward_prediction",
+  "date": "2026-07-11",
+  "status": "real_io_acceptance_failed",
+  "verdict": "real_io_acceptance_failed",
+  "real_hardware": true,
+  "live_playback": true,
+  "completed_trial_count": 9,
+  "measured_total_playback_seconds": 8.28,
+  "bounded_total_capture_seconds": 13.68,
+  "preregistration": {
+    "path": "docs/evidence/2026-07-11-h3-same-source-forward-model-real-preregistration.json",
+    "sha256": "e4e69431197e27d22d23d70a776bef01c354fa5a0602fbd9fcc42f129142bd2e",
+    "commit": "43ecf5f",
+    "implementation_commit": "937e9cb"
+  },
+  "capture_quality": {
+    "captures_with_clipping": 0,
+    "total_clipped_samples": 0,
+    "no_clipping_passed": true
+  },
+  "live_runner_observation": {
+    "process_exit_code": 0,
+    "reported_verdict": "real_io_acceptance_failed",
+    "reported_real_hardware": true,
+    "reported_live_playback": true,
+    "reported_completed_trial_count": 9,
+    "reported_backend_checks_passed": true
+  },
+  "retention_audit": {
+    "reason": "The live runner emitted its complete JSON report to stdout rather than a retained result file.",
+    "method": "Recomputed frozen chirp alignments, forward-model distances, classifications, criteria, hashes, and clipping counts from all retained WAVs without replaying audio.",
+    "artifact_count": 27
+  },
+  "artifacts": [
+    {
+      "trial_id": "fresh_self_probe_0",
+      "condition": "self_probe",
+      "self_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-h3-same-source-forward-model-real-artifacts/fresh_self_probe_0_self.wav",
+      "self_sha256": "652429e70bc7c951f7eeed9f74c556d18fe6181f0badebcf767622a0c65fb80e",
+      "world_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-h3-same-source-forward-model-real-artifacts/fresh_self_probe_0_world.wav",
+      "world_sha256": "7d74881576de8253aa60497cf8606cb1d7ac5f8df2944ccd2968dd703a2d083e",
+      "captured_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-h3-same-source-forward-model-real-artifacts/fresh_self_probe_0_capture.wav",
+      "captured_sha256": "65df3fdc6a08cb751f49dee2ee9e8f0f1a342b3aa2b105b5cec0a77f3243bfe9",
+      "alignment_samples": 5944,
+      "alignment_onset_ms": 371.5,
+      "capture_quality": {
+        "peak_absolute": 0.572540283203125,
+        "clipped_sample_count": 0,
+        "clipped_sample_fraction": 0.0
+      }
+    },
+    {
+      "trial_id": "fresh_world_only_0",
+      "condition": "world_only",
+      "self_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-h3-same-source-forward-model-real-artifacts/fresh_world_only_0_self.wav",
+      "self_sha256": "7d74881576de8253aa60497cf8606cb1d7ac5f8df2944ccd2968dd703a2d083e",
+      "world_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-h3-same-source-forward-model-real-artifacts/fresh_world_only_0_world.wav",
+      "world_sha256": "6e5919f0d8001e712eb201940f5aba0cc326bc84770985c1b115ac5273fbdfa4",
+      "captured_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-h3-same-source-forward-model-real-artifacts/fresh_world_only_0_capture.wav",
+      "captured_sha256": "6ee6e709d94e36a1164ef2c9f9fa0269a1184feb91827ffc91a582a76b9573ea",
+      "alignment_samples": 6505,
+      "alignment_onset_ms": 406.562,
+      "capture_quality": {
+        "peak_absolute": 0.4368896484375,
+        "clipped_sample_count": 0,
+        "clipped_sample_fraction": 0.0
+      }
+    },
+    {
+      "trial_id": "fresh_overlap_0",
+      "condition": "overlap",
+      "self_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-h3-same-source-forward-model-real-artifacts/fresh_overlap_0_self.wav",
+      "self_sha256": "652429e70bc7c951f7eeed9f74c556d18fe6181f0badebcf767622a0c65fb80e",
+      "world_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-h3-same-source-forward-model-real-artifacts/fresh_overlap_0_world.wav",
+      "world_sha256": "07542f699844523ea3a557abb787a660f420558861054e29aad98d43c15d9b63",
+      "captured_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-h3-same-source-forward-model-real-artifacts/fresh_overlap_0_capture.wav",
+      "captured_sha256": "a4b7615aa8467c022fc47a03e48d6954c6e35ac4e169673ee903754f82431322",
+      "alignment_samples": 6640,
+      "alignment_onset_ms": 415.0,
+      "capture_quality": {
+        "peak_absolute": 0.49658203125,
+        "clipped_sample_count": 0,
+        "clipped_sample_fraction": 0.0
+      }
+    },
+    {
+      "trial_id": "fresh_self_probe_1",
+      "condition": "self_probe",
+      "self_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-h3-same-source-forward-model-real-artifacts/fresh_self_probe_1_self.wav",
+      "self_sha256": "a08ac87d21bfcb8479bfe66c32b16edd8a1b968d3130b97e6945661f2e35602c",
+      "world_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-h3-same-source-forward-model-real-artifacts/fresh_self_probe_1_world.wav",
+      "world_sha256": "7d74881576de8253aa60497cf8606cb1d7ac5f8df2944ccd2968dd703a2d083e",
+      "captured_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-h3-same-source-forward-model-real-artifacts/fresh_self_probe_1_capture.wav",
+      "captured_sha256": "0c43806634715d12839995927a67a7b59798d7b3f32e574be26bfa79244b9ff7",
+      "alignment_samples": 5821,
+      "alignment_onset_ms": 363.812,
+      "capture_quality": {
+        "peak_absolute": 0.5350341796875,
+        "clipped_sample_count": 0,
+        "clipped_sample_fraction": 0.0
+      }
+    },
+    {
+      "trial_id": "fresh_world_only_1",
+      "condition": "world_only",
+      "self_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-h3-same-source-forward-model-real-artifacts/fresh_world_only_1_self.wav",
+      "self_sha256": "7d74881576de8253aa60497cf8606cb1d7ac5f8df2944ccd2968dd703a2d083e",
+      "world_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-h3-same-source-forward-model-real-artifacts/fresh_world_only_1_world.wav",
+      "world_sha256": "0d15b3b599ed5eb375288495d179068caebfb6c6b48a3aa87cb85e64d426a5b9",
+      "captured_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-h3-same-source-forward-model-real-artifacts/fresh_world_only_1_capture.wav",
+      "captured_sha256": "fcbe66cbab9d51491dcee15efd74d73b812df0dc02d5f951caafcb0f6100c949",
+      "alignment_samples": 6370,
+      "alignment_onset_ms": 398.125,
+      "capture_quality": {
+        "peak_absolute": 0.3543701171875,
+        "clipped_sample_count": 0,
+        "clipped_sample_fraction": 0.0
+      }
+    },
+    {
+      "trial_id": "fresh_overlap_1",
+      "condition": "overlap",
+      "self_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-h3-same-source-forward-model-real-artifacts/fresh_overlap_1_self.wav",
+      "self_sha256": "a08ac87d21bfcb8479bfe66c32b16edd8a1b968d3130b97e6945661f2e35602c",
+      "world_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-h3-same-source-forward-model-real-artifacts/fresh_overlap_1_world.wav",
+      "world_sha256": "180b22feb19bc119b685808bb21e5258fa1b7eaad1ec8d0a059373881e2bc2e0",
+      "captured_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-h3-same-source-forward-model-real-artifacts/fresh_overlap_1_capture.wav",
+      "captured_sha256": "98ed316a89af937578bc3ca0cda470b5e97f3a23f99004120c03ac6ae54e6b39",
+      "alignment_samples": 6738,
+      "alignment_onset_ms": 421.125,
+      "capture_quality": {
+        "peak_absolute": 0.737518310546875,
+        "clipped_sample_count": 0,
+        "clipped_sample_fraction": 0.0
+      }
+    },
+    {
+      "trial_id": "fresh_self_probe_2",
+      "condition": "self_probe",
+      "self_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-h3-same-source-forward-model-real-artifacts/fresh_self_probe_2_self.wav",
+      "self_sha256": "d152a8e3a8fb97a335511a152900402f8473ae6fbc9dafcb6a35da901984e2bf",
+      "world_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-h3-same-source-forward-model-real-artifacts/fresh_self_probe_2_world.wav",
+      "world_sha256": "7d74881576de8253aa60497cf8606cb1d7ac5f8df2944ccd2968dd703a2d083e",
+      "captured_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-h3-same-source-forward-model-real-artifacts/fresh_self_probe_2_capture.wav",
+      "captured_sha256": "2b7b4bbafcc53e7ba11adabcbc85277e86d0dd9349665b12abf4de9b011f9e48",
+      "alignment_samples": 5898,
+      "alignment_onset_ms": 368.625,
+      "capture_quality": {
+        "peak_absolute": 0.41351318359375,
+        "clipped_sample_count": 0,
+        "clipped_sample_fraction": 0.0
+      }
+    },
+    {
+      "trial_id": "fresh_world_only_2",
+      "condition": "world_only",
+      "self_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-h3-same-source-forward-model-real-artifacts/fresh_world_only_2_self.wav",
+      "self_sha256": "7d74881576de8253aa60497cf8606cb1d7ac5f8df2944ccd2968dd703a2d083e",
+      "world_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-h3-same-source-forward-model-real-artifacts/fresh_world_only_2_world.wav",
+      "world_sha256": "2ffb52af7d7c96594f473a15c3ce217327f3417c36b874742c9be994c0104a28",
+      "captured_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-h3-same-source-forward-model-real-artifacts/fresh_world_only_2_capture.wav",
+      "captured_sha256": "6a65bb283c0b440b2bfb79ad41f4c0950c91c58f7836230fd66c0805b453a9e0",
+      "alignment_samples": 6242,
+      "alignment_onset_ms": 390.125,
+      "capture_quality": {
+        "peak_absolute": 0.08306884765625,
+        "clipped_sample_count": 0,
+        "clipped_sample_fraction": 0.0
+      }
+    },
+    {
+      "trial_id": "fresh_overlap_2",
+      "condition": "overlap",
+      "self_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-h3-same-source-forward-model-real-artifacts/fresh_overlap_2_self.wav",
+      "self_sha256": "d152a8e3a8fb97a335511a152900402f8473ae6fbc9dafcb6a35da901984e2bf",
+      "world_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-h3-same-source-forward-model-real-artifacts/fresh_overlap_2_world.wav",
+      "world_sha256": "f5f803fb59db89df2d3b6a049ab00ee97c404c7062a36d05a24612ae153d2aa8",
+      "captured_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-h3-same-source-forward-model-real-artifacts/fresh_overlap_2_capture.wav",
+      "captured_sha256": "6bfe11c7c37804b721fb5999abd6f17656b7b3c88b7eb4e4cd586e31f59af80e",
+      "alignment_samples": 6794,
+      "alignment_onset_ms": 424.625,
+      "capture_quality": {
+        "peak_absolute": 0.434356689453125,
+        "clipped_sample_count": 0,
+        "clipped_sample_fraction": 0.0
+      }
+    }
+  ],
+  "interpretation": "The prior-session 13-scalar forward model did not generalize reliably to three unseen commanded utterances. Two overlaps fell below the frozen threshold and one self-only probe exceeded it. Capacity-3 scheduled binding therefore underperformed flat admission despite complete, aligned, zero-clipping acquisition.",
+  "claim_boundary": "This failure leaves the existing exact-efference H3 result intact and rejects this frozen cross-session same-source forward model. It does not test room or geometry transfer, human speaker identity, semantics, or biological corollary discharge."
+}
