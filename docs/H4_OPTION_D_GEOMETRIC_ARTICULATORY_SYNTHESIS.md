@@ -1,13 +1,17 @@
 # H4 Option D — geometrically constrained articulatory synthesis
 
-Status: design draft; not frozen; no implementation or experiment is authorized.
+Status: design approved for synthetic implementation. The exact synthetic-only
+candidate is frozen in the
+[final preregistration](evidence/2026-07-11-h4-option-d-synthetic-preregistration.json).
+No recorded-human experiment is authorized.
 
 This memo proposes a genuinely different H4 mechanism after the fixed-formant
 and continuous acoustic-coordinate candidates failed. It does not change
 [VISION.md](../VISION.md), authorize protected data, or permit synthetic
 execution. The companion
 [synthetic preregistration draft](evidence/2026-07-11-h4-option-d-synthetic-preregistration-draft.json)
-lists the decisions that must be closed before a candidate can be frozen.
+records the earlier open decisions; the final preregistration closes them for
+one synthetic candidate.
 
 ## Decision summary
 
@@ -348,5 +352,6 @@ reserve speaker remain untouched.
 7. Define the equivalence-aware motor threshold and Jacobian rank tolerance.
 8. Freeze exact synthetic target motor points and post-hoc vowel mapping.
 
-Until all eight decisions are resolved in a committed preregistration, Option D
-is a research design rather than an executable candidate.
+All eight decisions are resolved for the first synthetic candidate in the final
+preregistration. Those values are frozen for implementation and one synthetic
+evaluation; they do not authorize recorded speech.

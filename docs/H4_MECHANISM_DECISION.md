@@ -1,9 +1,10 @@
 # H4 mechanism decision
 
 Status: Option B was approved and its first preregistered development candidate
-failed. Option D now exists as a non-executable design draft. Protected
-confirmation access remains unauthorized. The frozen Option B result is
-retained; same-data parameter or representation retries are prohibited.
+failed. Option D is now authorized and preregistered for one synthetic-only
+candidate. Protected confirmation access remains unauthorized. The frozen
+Option B result is retained; same-data parameter or representation retries are
+prohibited.
 
 This memo does not authorize another experiment and does not change
 [VISION.md](../VISION.md). It records the evidence-backed fork reached after the
@@ -115,9 +116,11 @@ This is genuinely different from Option B because F1/F2/F3 are measured
 consequences rather than motor coordinates. The proposal, honesty boundaries,
 equivalence-aware cycle metric, synthetic gates, and unresolved freeze decisions
 are in [the Option D design memo](H4_OPTION_D_GEOMETRIC_ARTICULATORY_SYNTHESIS.md).
-Its companion
+Its earlier
 [preregistration draft](evidence/2026-07-11-h4-option-d-synthetic-preregistration-draft.json)
-contains unresolved fields and grants no implementation or execution authority.
+preserves the open design state. The user subsequently authorized implementation,
+and the exact [synthetic-only preregistration](evidence/2026-07-11-h4-option-d-synthetic-preregistration.json)
+closes every field. It does not authorize recorded audio.
 
 ## Prior-art relevance
 
