@@ -262,11 +262,14 @@ analog/device-front-end transient.
 
 ## Verification state
 
-At this checkpoint the full test suite reports `448 passed, 3 skipped`. The
+At this checkpoint the full test suite reports `449 passed, 3 skipped`. The
 skips are intentional hardware/environment-dependent tests, not hidden failures.
 The bounded readiness command also validates every required retained stage
 artifact against its frozen SHA-256 pin and exits nonzero on a missing,
 malformed, replaced, or failed evidence gate.
+The read-only GitHub Actions workflow runs that gate before the hardware-safe
+suite on every push and pull request; a regression test enforces the order,
+permissions, timeout, and absence of live-I/O flags.
 The working branch is `codex/vision-evidence`; the latest research checkpoints
 include:
 

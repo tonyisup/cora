@@ -43,6 +43,10 @@ and that every artifact matches its frozen SHA-256 pin:
 python3 -m cora_infans --operational-readiness
 ```
 
+GitHub Actions runs this readiness gate before the hardware-safe test suite on
+every push and pull request. Live hardware and protected corpora are never
+accessed by CI.
+
 Validate a future flat Stage 6 run summary against the named 10.5 ms operating
 point:
 

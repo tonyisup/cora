@@ -43,11 +43,14 @@ failed gate as partial promotion.
 
 ### Verification
 
-- Full suite: `448 passed, 3 skipped`.
+- Full suite: `449 passed, 3 skipped`.
 - The skips are intentional hardware/environment-dependent tests.
 - `python3 -m cora_infans --operational-readiness` verifies all required
   retained stage evidence against frozen SHA-256 pins and exits nonzero when
   evidence is missing, malformed, replaced, or fails a bounded gate.
+- `.github/workflows/ci.yml` makes readiness a required fail-fast workflow step
+  before the hardware-safe test suite; it grants only read access to repository
+  contents and does not execute live or protected-data runners.
 - Evidence-link existence and final Stage 2/H4 disposition fields are asserted
   by `tests/test_consolidated_status.py`.
 - The working branch is `codex/vision-evidence`.
