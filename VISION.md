@@ -446,8 +446,8 @@ within its measured boundary. H3's workspace claim remains separate.
 
 ### Stage 4 — Workspace binding
 
-Status: fresh synchronized classifier gate passed; promotion withheld because
-attempt 1 clipped, with a lower-gain quality retry preregistered.
+Status: fresh synchronized classifier gate passed twice; promotion withheld
+while the preregistered gain correction pursues the zero-clipping quality gate.
 
 Required evidence:
 
@@ -528,7 +528,11 @@ Current structured Cora protocol:
   result and quality failure, not H3 promotion. Attempt 2 freezes only the self
   digital playback gain from `0 dB` to `-12 dB` and adds a zero-clipping gate;
   physical geometry, system/hardware levels, trials, threshold rule, and all
-  classification criteria remain unchanged.
+  classification criteria remain unchanged;
+- attempt 2 at `-12 dB` retained identical classifier metrics and reduced
+  clipping by `94.58%`, from `2,287` samples in nine captures to `124` samples
+  in seven captures, but still failed the zero-clipping gate. Attempt 3 is
+  preregistered at `-18 dB`; all other variables and criteria remain frozen.
 
 ### Stage 5 — Perception-production closure
 

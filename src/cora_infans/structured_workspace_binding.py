@@ -221,8 +221,8 @@ def audit_workspace_binding_preregistration(
         blockers.append("world speaker hardware volume must remain max")
     if world_route.get("playback_gain_db") != 0.0:
         blockers.append("world playback gain must be frozen at 0 dB")
-    if self_route.get("playback_gain_db") != -12.0:
-        blockers.append("self playback gain must be frozen at -12 dB")
+    if self_route.get("playback_gain_db") != -18.0:
+        blockers.append("self playback gain must be frozen at -18 dB")
 
     if self_route.get("placement") != "centered_directly_below_xvf3800":
         blockers.append("self source must remain centered directly below the XVF3800")

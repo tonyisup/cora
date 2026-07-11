@@ -255,7 +255,7 @@ def _ready_preregistration(hashes):
                 "vertical_distance_cm": 25,
                 "distance_reference": "XVF3800 array center to Mac mini chassis center",
                 "system_volume_percent": 100,
-                "playback_gain_db": -12.0,
+                "playback_gain_db": -18.0,
             },
             "world_source": {
                 "output_device_index": 2,
@@ -317,7 +317,7 @@ def test_retry_workspace_preregistration_matches_current_code_and_geometry() -> 
     preregistration = json.loads(
         (
             root
-            / "docs/evidence/2026-07-10-structured-workspace-real-attempt-2-preregistration.json"
+            / "docs/evidence/2026-07-10-structured-workspace-real-attempt-3-preregistration.json"
         ).read_text()
     )
     paths = {
@@ -343,7 +343,7 @@ def test_retry_workspace_preregistration_matches_current_code_and_geometry() -> 
 
     assert audit == {"verdict": "preregistration_ready", "ready": True, "blockers": []}
     assert preregistration["hardware"]["self_source"]["vertical_distance_cm"] == 4
-    assert preregistration["hardware"]["self_source"]["playback_gain_db"] == -12.0
+    assert preregistration["hardware"]["self_source"]["playback_gain_db"] == -18.0
     assert preregistration["acceptance"]["no_clipped_capture_samples_required"] is True
 
 

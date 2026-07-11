@@ -18,7 +18,7 @@ the repository.
 | Real-audio evaluation | First replay passed | WAV and prior-art captured NumPy PCM are measured directly with dev/held-out provenance; developmental-speech breadth is still open |
 | Parentese-relevant saliency | Mixed; not promoted | The final 16-fieldsite refit reached F1 0.600 on untouched Enga/Turku clips and failed its 0.65 gate; the separately tested vocal front gate remains positive |
 | Local predictive hierarchy | H2 supported within tested boundaries | Natural event transfer replicated across Wellington and MEN; a separate real room run with known efference masks retained four states through 10/15/20% dropout while improving vowels `+0.614` and tones `+0.474`. Unknown-timing world dropout and semantics remain outside scope |
-| Workspace binding | Fresh classifier gate passed; clipping retry preregistered | The first synchronized Cora run reached scheduled F1 1.0 versus flat 0.8 and fixed-window 0.667, but 9/15 self-bearing captures clipped. Promotion is withheld pending the preregistered -12 dB self-source retry and zero-clipping gate |
+| Workspace binding | Fresh classifier gate passed; clipping retry continues | Two synchronized Cora runs reached scheduled F1 1.0 versus flat 0.8 and fixed-window 0.667. Reducing self gain to -12 dB cut clipping 94.58% but did not reach zero; promotion is withheld pending the preregistered -18 dB retry |
 | Analysis by synthesis | Clean synthetic gate passed | Five vowels round-trip across multiple F0 values and 16/48 kHz; recorded-speaker validation remains open |
 | Efficiency | Host boundary measured on hardware | Core microbenchmarks and native XVF3800 capture-call-to-workspace latency are reported; device-onset timestamps, live CPU/memory, and energy remain excluded |
 
@@ -469,6 +469,9 @@ developmental language learning.
   promotion flag is superseded and H3 is not yet promoted. Attempt 2 freezes
   self playback at `-12 dB` and adds a zero-clipping acceptance gate while
   preserving geometry, stimuli, threshold selection, and classification gates.
+  It retained identical classifier metrics and reduced clipped samples from
+  `2,287` to `124`, but still failed the zero-clipping gate. Attempt 3 freezes
+  self playback at `-18 dB`; every other condition and criterion is unchanged.
 - Theta/gamma scheduling is an event-timing model, not measured neural dynamics.
 - The vowel table uses adult reference targets and clean synthetic success does
   not imply recorded infant/adult speech performance.
