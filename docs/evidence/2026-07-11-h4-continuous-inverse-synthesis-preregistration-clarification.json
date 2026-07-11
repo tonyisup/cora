@@ -1,0 +1,16 @@
+{
+  "experiment": "h4_continuous_inverse_synthesis_development",
+  "date": "2026-07-11",
+  "status": "clarified_before_implementation_or_candidate_evaluation",
+  "parent_preregistration": "docs/evidence/2026-07-11-h4-continuous-inverse-synthesis-development-preregistration.json",
+  "incorporation_rule": "All parent fields remain unchanged. This artifact freezes the previously unspecified shared analysis sample rate and resampling rule only.",
+  "clarification": {
+    "analysis_sample_rate_hz": 16000,
+    "resampling": "Downmix to mono first, then use deterministic linear interpolation to 16000 Hz before pitch estimation, spectral representation, initialization, local adaptation, synthesis comparison, and final reperception.",
+    "duration_rule": "After resampling, use exactly the parent window duration: 1000 ms for VocalSet, 120 ms for CMU Arctic, and 300 ms for clean synthetic trials."
+  },
+  "candidate_metrics_seen_before_clarification": false,
+  "implementation_started_before_clarification": false,
+  "confirmation_audio_or_labels_accessed": false,
+  "promotion_allowed": false
+}
