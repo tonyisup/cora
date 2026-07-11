@@ -81,6 +81,12 @@ Despite that, selected F1 was `0.535`, recall `0.466`, FPR `0.113`, and song FPR
 `0.083`; ACO and ARA remained at F1 `0.0`. The same-data linear predictive
 candidate was slightly better at `0.545`. The nonlinear mechanism is therefore
 retained as another confirmation-readiness failure, with USD/TOR untouched.
+The [same-data failure comparison](evidence/2026-07-11-nonlinear-predictive-codebook-failure-analysis.json)
+shows that nonlinear and linear speech/IDS score rankings correlated about
+`0.89`, and their selected decisions agreed on `178/200` clips. The codebook
+rescued four linear false negatives but lost four linear true positives and
+added two net false positives. It therefore did not reveal a complementary
+cross-fieldsite invariant hidden by the linear readout.
 
 ## H4 disposition pending
 
