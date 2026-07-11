@@ -1105,3 +1105,59 @@ def test_listen_live_cli_parses_with_self_subtraction_flag() -> None:
     assert trial["played"] is True
     # Self-subtraction path executed: world_residual is computed per trial.
     assert trial.get("world_residual") is not None
+
+
+def test_structured_workspace_real_cli_blocks_before_audio_callbacks(tmp_path) -> None:
+    import cora_infans.cli as cli
+
+    preregistration = tmp_path / "blocked-preregistration.json"
+    preregistration.write_text(
+        json.dumps(
+            {
+                "mode": "structured_workspace_binding_real_preregistration",
+                "status": "blocked_missing_self_geometry",
+                "bounded_playback_capture_authorized": True,
+                "frozen_hashes": {},
+                "hardware": {
+                    "input": {"avfoundation_device": ":0", "channels": 2},
+                    "self_source": {
+                        "output_device_index": 3,
+                        "playback_gain_db": 0.0,
+                    },
+                    "world_source": {
+                        "output_device_index": 2,
+                        "playback_gain_db": 0.0,
+                    },
+                },
+            }
+        )
+    )
+    output = tmp_path / "must-not-exist"
+    calls = []
+    original_play = cli.play_wav_to_device
+    original_capture = cli.capture_to_wav
+    cli.play_wav_to_device = lambda *args, **kwargs: calls.append((args, kwargs))  # type: ignore[assignment]
+    cli.capture_to_wav = lambda *args, **kwargs: calls.append((args, kwargs))  # type: ignore[assignment]
+    try:
+        try:
+            cli.structured_workspace_binding_cli(
+                [
+                    "--evaluate-structured-workspace-binding",
+                    "--real-io",
+                    "--out-dir",
+                    str(output),
+                    "--preregistration",
+                    str(preregistration),
+                    "--authorize-bounded-playback",
+                ]
+            )
+        except ValueError as exc:
+            assert "preregistration blocked" in str(exc)
+        else:
+            raise AssertionError("incomplete H3 preregistration must block")
+    finally:
+        cli.play_wav_to_device = original_play  # type: ignore[assignment]
+        cli.capture_to_wav = original_capture  # type: ignore[assignment]
+
+    assert calls == []
+    assert not output.exists()

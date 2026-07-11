@@ -9,6 +9,7 @@ from cora_infans.io.motor_plan import write_wav
 from cora_infans.io.wav_frames import read_pcm_wav
 from cora_infans.structured_workspace_binding import (
     WorkspaceBindingConfig,
+    audit_workspace_binding_preregistration,
     build_workspace_binding_protocol,
     build_workspace_binding_trials,
     evaluate_workspace_binding_captures,
@@ -173,6 +174,11 @@ def test_injected_workspace_acquisition_retains_all_tracks_and_capture(tmp_path)
     assert report["playback_callback_started"] is True
     assert report["promotion_allowed"] is False
     assert report["capture_acceptance_verdict"] == "capture_acceptance_passed"
+    assert report["criteria"]["scheduled_world_recall_at_least_0_90"] is True
+    assert (
+        report["criteria"]["scheduled_self_suppression_specificity_at_least_0_90"]
+        is True
+    )
     assert report["measured_total_playback_seconds"] == 19.5
     assert report["bounded_total_capture_seconds"] == 28.5
     assert len(playback_calls) == 18
@@ -194,6 +200,20 @@ def test_workspace_acquisition_rejects_unfrozen_hardware_and_oversized_run(tmp_p
             real_hardware_claim=True,
         )
     except ValueError as exc:
+        assert "bounded authorization" in str(exc)
+    else:
+        raise AssertionError("real hardware execution must require explicit authorization")
+
+    try:
+        run_workspace_binding_acquisition(
+            out_dir=tmp_path,
+            self_playback=callback,
+            world_playback=callback,
+            capture_fn=callback,
+            real_hardware_claim=True,
+            bounded_playback_authorized=True,
+        )
+    except ValueError as exc:
         assert "preregistration" in str(exc)
     else:
         raise AssertionError("unfrozen hardware execution must be rejected")
@@ -210,6 +230,116 @@ def test_workspace_acquisition_rejects_unfrozen_hardware_and_oversized_run(tmp_p
         assert "2 second bound" in str(exc)
     else:
         raise AssertionError("oversized workspace playback must be rejected")
+
+
+def _ready_preregistration(hashes):
+    return {
+        "mode": "structured_workspace_binding_real_preregistration",
+        "status": "preregistered_before_live_execution",
+        "bounded_playback_capture_authorized": True,
+        "frozen_hashes": dict(hashes),
+        "hardware": {
+            "input": {
+                "avfoundation_device": ":0",
+                "device": "reSpeaker XVF3800 4-Mic Array",
+                "channels": 2,
+                "sample_rate": 16000,
+            },
+            "self_source": {
+                "output_device_index": 3,
+                "output_device": "Mac mini Speakers",
+                "angle_degrees": 0,
+                "distance_cm": 25,
+                "system_volume_percent": 50,
+                "playback_gain_db": 0.0,
+            },
+            "world_source": {
+                "output_device_index": 2,
+                "output_device": "External Headphones",
+                "angle_degrees": 180,
+                "distance_cm": 50,
+                "hardware_volume": "max",
+                "playback_gain_db": 0.0,
+            },
+            "environment": {"room": "semi-quiet", "known_background": "laptop fan"},
+        },
+        "bounds": {
+            "trial_count": 15,
+            "per_trial_playback_seconds_max": 2.0,
+            "total_playback_seconds_max": 25.0,
+            "total_capture_seconds_max": 45.0,
+            "planned_playback_seconds": 19.5,
+            "planned_capture_seconds": 28.5,
+        },
+        "acceptance": {
+            "selected_capacity": 3,
+            "scheduled_f1_min": 0.9,
+            "scheduled_minus_flat_f1_min": 0.2,
+            "scheduled_world_recall_min": 0.9,
+            "scheduled_self_suppression_specificity_min": 0.9,
+            "fixed_window_world_recall_must_be_below_scheduled": True,
+            "capacity_one_f1_must_be_below_capacity_three": True,
+            "capacity_three_f1_must_equal_capacity_four": True,
+            "all_15_captures_and_alignments_required": True,
+        },
+        "unresolved_fields": [],
+    }
+
+
+def test_workspace_preregistration_audit_requires_hashes_and_complete_self_geometry() -> None:
+    hashes = {"implementation_sha256": "impl", "cli_sha256": "cli"}
+    preregistration = _ready_preregistration(hashes)
+
+    ready = audit_workspace_binding_preregistration(
+        preregistration, current_hashes=hashes
+    )
+    assert ready == {"verdict": "preregistration_ready", "ready": True, "blockers": []}
+
+    preregistration["hardware"]["self_source"]["angle_degrees"] = None
+    preregistration["frozen_hashes"]["cli_sha256"] = "stale"
+    preregistration["acceptance"]["scheduled_f1_min"] = 0.5
+    blocked = audit_workspace_binding_preregistration(
+        preregistration, current_hashes=hashes
+    )
+    assert blocked["ready"] is False
+    assert "self source angle is not frozen" in blocked["blockers"]
+    assert "frozen hash mismatch: cli_sha256" in blocked["blockers"]
+    assert "acceptance criteria do not match the frozen H3 gate" in blocked["blockers"]
+
+
+def test_real_workspace_acquisition_rejects_unverified_backend_provenance(tmp_path) -> None:
+    hashes = {"implementation_sha256": "impl"}
+    playback_seen = Event()
+
+    def playback(_path):
+        playback_seen.set()
+        return {"backend": "ffmpeg_audiotoolbox", "started": True}
+
+    def capture(path, *, sample_rate, ready_event, capture_timeline, **_kwargs):
+        capture_timeline["frame_position_fn"] = lambda: sample_rate // 10
+        capture_timeline["position_source"] = "synthetic_frame_count"
+        ready_event.set()
+        assert playback_seen.wait(timeout=1.0)
+        time.sleep(0.01)
+        write_wav(path, np.zeros(sample_rate // 2), sample_rate)
+        return {"backend": "unverified_capture", "completed": True}
+
+    report = run_workspace_binding_acquisition(
+        out_dir=tmp_path,
+        self_playback=playback,
+        world_playback=playback,
+        capture_fn=capture,
+        real_hardware_claim=True,
+        bounded_playback_authorized=True,
+        hardware_preregistration=_ready_preregistration(hashes),
+        current_hashes=hashes,
+    )
+
+    assert report["verdict"] == "acquisition_failed"
+    assert report["real_hardware"] is True
+    assert report["live_playback"] is True
+    assert report["completed_trial_count"] == 0
+    assert "capture backend provenance was not verified" in report["error"]
 
 
 def test_workspace_acquisition_aborts_on_source_start_failure(tmp_path) -> None:

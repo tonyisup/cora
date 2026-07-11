@@ -1,0 +1,50 @@
+{
+  "experiment": "structured_workspace_binding_hardware_gate_audit",
+  "date": "2026-07-10",
+  "status": "hardware_route_verified_fail_closed_pending_self_geometry",
+  "implementation_sha256": "3ba0ed65525cbca1d90b6f31d0602b5ada1fa1b096b1e5fd3b7f82464a52b0a8",
+  "cli_sha256": "e5ac353bad3f772224e061a3e78a8e71fc4311318664eabcf15387458b6f4301",
+  "io_sha256": "1cf10155c49dc32406b4936504f5af452be335ea73ee08f2d7a6fc7437f3f34b",
+  "runner_tests_sha256": "931b5eef274d9f8e45491425cd2e11ff16a1c062519e2fc4500b61626296fe30",
+  "cli_tests_sha256": "8d582217c26ee6218b3909e7fb0ea11b3144cec5ef3ce4cee1686f22bdc11b1a",
+  "draft_preregistration_sha256": "94d8d0f51c1c5f2bca9b63176068bcd9ea339182e08deb9d8fd98a9382f74cde",
+  "verification": {
+    "targeted_tests": "12 passed",
+    "full_suite": "323 passed, 3 skipped",
+    "draft_json_validation": "passed",
+    "diff_check": "passed",
+    "draft_cli_probe": {
+      "audio_callbacks_invoked": false,
+      "output_directory_created": false,
+      "reported_blockers": [
+        "status is not preregistered_before_live_execution",
+        "self source angle is not frozen",
+        "self source distance is not frozen",
+        "self source system volume is not frozen",
+        "preregistration still lists unresolved fields"
+      ]
+    }
+  },
+  "verified_contracts": {
+    "explicit_bounded_authorization_flag_required": true,
+    "committed_preregistration_required": true,
+    "runner_cli_io_protocol_and_world_geometry_hashes_must_match": true,
+    "xvf3800_input_identity_channel_count_and_sample_rate_are_frozen": true,
+    "self_and_world_output_device_identities_are_frozen": true,
+    "standing_world_angle_distance_hardware_volume_and_digital_gain_are_frozen": true,
+    "self_angle_distance_system_volume_and_digital_gain_must_be_frozen": true,
+    "room_and_known_background_are_frozen": true,
+    "playback_and_capture_bounds_must_match": true,
+    "scientific_acceptance_thresholds_cannot_be_weakened": true,
+    "incomplete_draft_fails_before_output_creation_or_callbacks": true,
+    "unverified_real_capture_backend_provenance_aborts_the_first_trial": true,
+    "real_capture_requires_two_xvf3800_channels_and_verified_stream_position": true
+  },
+  "unresolved_user_inputs": [
+    "Mac mini self-source angle in degrees using the standing board convention",
+    "Mac mini self-source distance in centimeters from the array center",
+    "Mac mini system output volume percentage"
+  ],
+  "next_action_after_input": "Fill the three self-source fields, clear unresolved_fields, change status to preregistered_before_live_execution, verify hashes without changing code, commit the final preregistration, then execute the bounded CLI command.",
+  "claim_boundary": "No audio ran in this audit. It verifies that the concrete real-I/O route cannot run with incomplete geometry, stale code, altered bounds, weakened acceptance criteria, missing authorization, or unverified backend provenance."
+}

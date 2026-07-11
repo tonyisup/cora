@@ -7,7 +7,7 @@ import math
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Callable
+from typing import Callable, Mapping
 
 import numpy as np
 
@@ -155,6 +155,130 @@ def _validate_acquisition_bounds(config: WorkspaceBindingConfig) -> None:
 
 def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def audit_workspace_binding_preregistration(
+    preregistration: Mapping[str, object],
+    *,
+    current_hashes: Mapping[str, str],
+) -> dict[str, object]:
+    """Return exact blockers for the hash- and geometry-bound H3 live gate."""
+
+    blockers: list[str] = []
+    if preregistration.get("mode") != "structured_workspace_binding_real_preregistration":
+        blockers.append("mode is not the structured H3 real preregistration")
+    if preregistration.get("status") != "preregistered_before_live_execution":
+        blockers.append("status is not preregistered_before_live_execution")
+    if preregistration.get("bounded_playback_capture_authorized") is not True:
+        blockers.append("bounded playback and capture are not authorized")
+
+    frozen_hashes = preregistration.get("frozen_hashes")
+    if not isinstance(frozen_hashes, Mapping):
+        blockers.append("frozen_hashes are missing")
+    else:
+        for name, actual in current_hashes.items():
+            if frozen_hashes.get(name) != actual:
+                blockers.append(f"frozen hash mismatch: {name}")
+
+    hardware = preregistration.get("hardware")
+    if not isinstance(hardware, Mapping):
+        blockers.append("hardware mapping is missing")
+        hardware = {}
+    input_route = hardware.get("input")
+    self_route = hardware.get("self_source")
+    world_route = hardware.get("world_source")
+    if not isinstance(input_route, Mapping):
+        blockers.append("input route is missing")
+        input_route = {}
+    if not isinstance(self_route, Mapping):
+        blockers.append("self source route is missing")
+        self_route = {}
+    if not isinstance(world_route, Mapping):
+        blockers.append("world source route is missing")
+        world_route = {}
+
+    if input_route.get("avfoundation_device") != ":0":
+        blockers.append("input must be XVF3800 avfoundation device :0")
+    if input_route.get("device") != "reSpeaker XVF3800 4-Mic Array":
+        blockers.append("input device identity is not frozen to XVF3800")
+    if input_route.get("channels") != 2:
+        blockers.append("input must retain the two XVF3800 fused channels")
+    if input_route.get("sample_rate") != 16000:
+        blockers.append("input sample rate must remain 16000 Hz")
+    if self_route.get("output_device_index") != 3:
+        blockers.append("self source must use output device 3")
+    if self_route.get("output_device") != "Mac mini Speakers":
+        blockers.append("self source must use Mac mini Speakers")
+    if world_route.get("output_device_index") != 2:
+        blockers.append("world source must use output device 2")
+    if world_route.get("output_device") != "External Headphones":
+        blockers.append("world source must use External Headphones")
+    if world_route.get("angle_degrees") != 180:
+        blockers.append("world source angle must remain 180 degrees")
+    if world_route.get("distance_cm") != 50:
+        blockers.append("world source distance must remain 50 cm")
+    if world_route.get("hardware_volume") != "max":
+        blockers.append("world speaker hardware volume must remain max")
+    if world_route.get("playback_gain_db") != 0.0:
+        blockers.append("world playback gain must be frozen at 0 dB")
+    if self_route.get("playback_gain_db") != 0.0:
+        blockers.append("self playback gain must be frozen at 0 dB")
+
+    self_angle = self_route.get("angle_degrees")
+    if not isinstance(self_angle, (int, float)) or not (0 <= self_angle <= 360):
+        blockers.append("self source angle is not frozen")
+    self_distance = self_route.get("distance_cm")
+    if not isinstance(self_distance, (int, float)) or self_distance <= 0:
+        blockers.append("self source distance is not frozen")
+    self_volume = self_route.get("system_volume_percent")
+    if not isinstance(self_volume, (int, float)) or not (0 < self_volume <= 100):
+        blockers.append("self source system volume is not frozen")
+
+    bounds = preregistration.get("bounds")
+    expected_bounds = {
+        "trial_count": 15,
+        "per_trial_playback_seconds_max": 2.0,
+        "total_playback_seconds_max": 25.0,
+        "total_capture_seconds_max": 45.0,
+        "planned_playback_seconds": 19.5,
+        "planned_capture_seconds": 28.5,
+    }
+    if not isinstance(bounds, Mapping) or any(
+        bounds.get(name) != value for name, value in expected_bounds.items()
+    ):
+        blockers.append("live run bounds do not match the frozen protocol")
+
+    environment = hardware.get("environment")
+    if not isinstance(environment, Mapping) or (
+        environment.get("room") != "semi-quiet"
+        or environment.get("known_background") != "laptop fan"
+    ):
+        blockers.append("room state does not match the confirmed environment")
+
+    acceptance = preregistration.get("acceptance")
+    expected_acceptance = {
+        "selected_capacity": 3,
+        "scheduled_f1_min": 0.9,
+        "scheduled_minus_flat_f1_min": 0.2,
+        "scheduled_world_recall_min": 0.9,
+        "scheduled_self_suppression_specificity_min": 0.9,
+        "fixed_window_world_recall_must_be_below_scheduled": True,
+        "capacity_one_f1_must_be_below_capacity_three": True,
+        "capacity_three_f1_must_equal_capacity_four": True,
+        "all_15_captures_and_alignments_required": True,
+    }
+    if not isinstance(acceptance, Mapping) or any(
+        acceptance.get(name) != value for name, value in expected_acceptance.items()
+    ):
+        blockers.append("acceptance criteria do not match the frozen H3 gate")
+    if preregistration.get("unresolved_fields") != []:
+        blockers.append("preregistration still lists unresolved fields")
+
+    return {
+        "verdict": "preregistration_ready" if not blockers else "preregistration_blocked",
+        "ready": not blockers,
+        "blockers": blockers,
+    }
 
 
 def render_workspace_binding_tracks(
@@ -359,6 +483,12 @@ def _score_workspace_binding_evidence(
         "scheduled_improves_flat_f1_by_at_least_0_20": (
             float(scheduled["f1"]) - float(flat["f1"]) >= 0.20 - 1e-12
         ),
+        "scheduled_world_recall_at_least_0_90": (
+            float(scheduled["world_recall"]) >= 0.90
+        ),
+        "scheduled_self_suppression_specificity_at_least_0_90": (
+            float(scheduled["self_suppression_specificity"]) >= 0.90
+        ),
         "fixed_window_collision_failure_exposed": (
             float(fixed["world_recall"]) < float(scheduled["world_recall"])
         ),
@@ -432,14 +562,17 @@ def run_workspace_binding_acquisition(
     capture_preroll_ms: int = 100,
     capture_tail_ms: int = 500,
     real_hardware_claim: bool = False,
+    bounded_playback_authorized: bool = False,
+    hardware_preregistration: Mapping[str, object] | None = None,
+    current_hashes: Mapping[str, str] | None = None,
 ) -> dict[str, object]:
     """Acquire every trial through injected, source-specific I/O callbacks.
 
     This runner deliberately has no device discovery, CLI route, or concrete
     hardware callback. Until the complete physical preregistration is frozen,
-    ``real_hardware_claim`` is rejected. The acquisition and artifact path can
-    therefore be verified without making or accidentally executing a hardware
-    claim.
+    ``real_hardware_claim`` requires an authorized preregistration matching the
+    current code hashes. The acquisition path can therefore be verified with
+    injected I/O while incomplete hardware metadata fails before callbacks run.
     """
 
     config = config or WorkspaceBindingConfig()
@@ -449,10 +582,19 @@ def run_workspace_binding_acquisition(
     if capture_preroll_ms < 0 or capture_preroll_ms > 1000:
         raise ValueError("workspace capture preroll must be between 0 and 1000 ms")
     if real_hardware_claim:
-        raise ValueError(
-            "real H3 hardware execution remains disabled until the complete "
-            "device, geometry, and level preregistration is frozen"
+        if not bounded_playback_authorized:
+            raise ValueError("real H3 hardware execution requires bounded authorization")
+        if hardware_preregistration is None or current_hashes is None:
+            raise ValueError("real H3 hardware execution requires a frozen preregistration")
+        preregistration_audit = audit_workspace_binding_preregistration(
+            hardware_preregistration,
+            current_hashes=current_hashes,
         )
+        if not preregistration_audit["ready"]:
+            raise ValueError(
+                "real H3 preregistration blocked: "
+                + "; ".join(str(item) for item in preregistration_audit["blockers"])
+            )
 
     protocol = build_workspace_binding_protocol(config)
     bounded_total_capture_seconds = float(protocol["maximum_total_playback_seconds"]) + (
@@ -508,6 +650,26 @@ def run_workspace_binding_acquisition(
             captured_samples, captured_rate = read_pcm_wav(capture_path)
             if captured_rate != config.sample_rate:
                 raise ValueError("workspace capture sample rate mismatch")
+            if real_hardware_claim:
+                capture_report = io_report.get("capture")
+                playback_report = io_report.get("playback")
+                if not isinstance(capture_report, Mapping) or (
+                    capture_report.get("backend") != "ffmpeg_avfoundation"
+                ):
+                    raise ValueError("real H3 capture backend provenance was not verified")
+                if not isinstance(playback_report, Mapping):
+                    raise ValueError("real H3 playback provenance was not verified")
+                source_reports = playback_report.get("sources")
+                if not isinstance(source_reports, Mapping) or any(
+                    not isinstance(report, Mapping)
+                    or report.get("backend") != "ffmpeg_audiotoolbox"
+                    for report in source_reports.values()
+                ):
+                    raise ValueError("real H3 source playback provenance was not verified")
+                if not bool(io_report.get("stream_position_verified")):
+                    raise ValueError("real H3 capture stream position was not verified")
+                if captured_samples.shape[1] != 2:
+                    raise ValueError("real H3 XVF3800 capture must retain two channels")
             chirp_samples = int(config.alignment_chirp_ms * config.sample_rate / 1000)
             detected_onset_ms = estimate_playback_latency_ms(
                 efference_pcm=rendered.reference_pcm[:chirp_samples],
@@ -526,9 +688,14 @@ def run_workspace_binding_acquisition(
             return {
                 **build_workspace_binding_protocol(config),
                 "verdict": "acquisition_failed",
-                "real_hardware": False,
-                "live_playback": False,
+                "real_hardware": real_hardware_claim,
+                "live_playback": bool(real_hardware_claim and playback_started),
                 "playback_callback_started": playback_started,
+                "hardware": (
+                    hardware_preregistration.get("hardware")
+                    if hardware_preregistration is not None
+                    else None
+                ),
                 "failed_trial_id": trial.trial_id,
                 "completed_trial_count": len(artifacts),
                 "bounded_total_capture_seconds": bounded_total_capture_seconds,
@@ -573,19 +740,31 @@ def run_workspace_binding_acquisition(
         alignment_samples=alignments,
         config=config,
     )
+    capture_passed = evaluation["verdict"] == "capture_acceptance_passed"
     return {
         **evaluation,
-        "verdict": "injected_acquisition_complete",
+        "verdict": (
+            "real_io_acceptance_passed"
+            if real_hardware_claim and capture_passed
+            else "real_io_acceptance_failed"
+            if real_hardware_claim
+            else "injected_acquisition_complete"
+        ),
         "capture_acceptance_verdict": evaluation["verdict"],
-        "real_hardware": False,
-        "live_playback": False,
+        "real_hardware": real_hardware_claim,
+        "live_playback": real_hardware_claim,
         "playback_callback_started": True,
+        "hardware": (
+            hardware_preregistration.get("hardware")
+            if hardware_preregistration is not None
+            else None
+        ),
         "completed_trial_count": len(artifacts),
         "measured_total_playback_seconds": round(total_playback_seconds, 6),
         "bounded_total_capture_seconds": round(bounded_total_capture_seconds, 6),
         "artifacts": artifacts,
         "error": None,
-        "promotion_allowed": False,
+        "promotion_allowed": bool(real_hardware_claim and capture_passed),
     }
 
 

@@ -325,7 +325,12 @@ python3 -m cora_infans --evaluate-structured-workspace-binding --fake-io
 The protocol uses held-out self/world frequency bands, self-only/world-only/
 overlap conditions, flat and fixed-window baselines, and a 1–4 binding-slot
 sweep. Generic dual-track concurrency and chirp-aligned two-channel capture
-evaluation are tested, but live CLI device I/O is intentionally not wired yet.
+evaluation are tested. A real-I/O CLI path is now wired behind a fail-closed,
+hash-bound preregistration gate; the committed draft deliberately has null Mac
+mini angle, distance, and volume fields, so it cannot invoke audio callbacks or
+create a run directory. Once those fields are supplied and the preregistration
+is finalized, the bounded command uses device 3 for self, device 2 for world,
+and XVF3800 input `:0`.
 
 The ablation compares flat, fixed-window, and theta-gamma handling on aligned
 self echo and legitimate world/motor overlap. Scheduling suppression requires
