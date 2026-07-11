@@ -416,6 +416,52 @@ def test_retained_real_workspace_result_and_artifacts_pass_frozen_gate() -> None
             assert sources["world"]["device_index"] == 2
 
 
+def test_retained_attempt_3_passes_classification_quality_and_artifact_gates() -> None:
+    root = Path(__file__).resolve().parents[1]
+    result = json.loads(
+        (
+            root
+            / "docs/evidence/2026-07-10-structured-workspace-real-attempt-3-result.json"
+        ).read_text()
+    )
+    artifact_dir = root / (
+        "docs/evidence/2026-07-10-structured-workspace-real-attempt-3-artifacts"
+    )
+
+    assert result["verdict"] == "real_io_acceptance_passed"
+    assert result["promotion_allowed"] is True
+    assert result["completed_trial_count"] == 15
+    assert all(result["criteria"].values())
+    assert result["capture_quality"] == {
+        "captures_with_clipping": 0,
+        "total_clipped_samples": 0,
+        "maximum_clipped_sample_fraction": 0.0,
+        "no_clipping_passed": True,
+    }
+    scheduled = result["reports"]["3"][
+        "scheduled_identity_plus_world_evidence"
+    ]["metrics"]
+    assert scheduled["f1"] == 1.0
+    assert scheduled["world_recall"] == 1.0
+    assert scheduled["self_suppression_specificity"] == 1.0
+    assert len(result["artifacts"]) == 15
+    assert len(list(artifact_dir.glob("*.wav"))) == 45
+
+    for artifact in result["artifacts"]:
+        for name in ("self", "world", "captured"):
+            path = artifact_dir / Path(artifact[f"{name}_wav"]).name
+            assert hashlib.sha256(path.read_bytes()).hexdigest() == artifact[
+                f"{name}_sha256"
+            ]
+        capture_path = artifact_dir / Path(artifact["captured_wav"]).name
+        capture, rate = read_pcm_wav(capture_path)
+        assert rate == 16000
+        assert capture.shape == (30400, 2)
+        assert artifact["capture_quality"]["clipped_sample_count"] == 0
+        assert artifact["io_timing"]["stream_position_verified"] is True
+        assert artifact["capture"]["backend"] == "ffmpeg_avfoundation"
+
+
 def test_real_workspace_acquisition_rejects_unverified_backend_provenance(tmp_path) -> None:
     hashes = {"implementation_sha256": "impl"}
     playback_seen = Event()

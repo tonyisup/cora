@@ -446,8 +446,7 @@ within its measured boundary. H3's workspace claim remains separate.
 
 ### Stage 4 — Workspace binding
 
-Status: fresh synchronized classifier gate passed twice; promotion withheld
-while the preregistered gain correction pursues the zero-clipping quality gate.
+Status: supported within the measured structured-tone, fixed-geometry boundary.
 
 Required evidence:
 
@@ -532,7 +531,13 @@ Current structured Cora protocol:
 - attempt 2 at `-12 dB` retained identical classifier metrics and reduced
   clipping by `94.58%`, from `2,287` samples in nine captures to `124` samples
   in seven captures, but still failed the zero-clipping gate. Attempt 3 is
-  preregistered at `-18 dB`; all other variables and criteria remain frozen.
+  preregistered at `-18 dB`; all other variables and criteria remain frozen;
+- attempt 3 completed all 15 real synchronized trials, retained the same
+  scheduled/flat/fixed-window and capacity results, and contained zero clipped
+  samples. It passed every frozen classification and capture-quality criterion.
+  H3 is therefore supported within this single-room structured-tone boundary;
+  natural speech binding, arbitrary spectral overlap, geometry transfer, and
+  measured neural theta/gamma dynamics remain outside the claim.
 
 ### Stage 5 — Perception-production closure
 

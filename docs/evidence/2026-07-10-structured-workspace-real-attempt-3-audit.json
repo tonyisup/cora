@@ -1,0 +1,52 @@
+{
+  "experiment": "structured_workspace_binding_real_attempt_3_audit",
+  "date": "2026-07-10",
+  "status": "h3_supported_within_measured_boundary",
+  "preregistration_sha256": "9b0bc6471ec3342ca18b473af72700b29d6fe8af6b26882a776dd94b3ab71cf3",
+  "result_sha256": "7c1e3f7484e11723ea828094e9d8ee3a37bca9b1d2dd9983410391aaa8775bba",
+  "execution": {
+    "real_hardware": true,
+    "completed_trial_count": 15,
+    "retained_wav_count": 45,
+    "measured_total_playback_seconds": 19.5,
+    "bounded_total_capture_seconds": 28.5,
+    "all_stream_positions_verified": true,
+    "all_alignment_chirps_recovered": true,
+    "all_artifact_hashes_retained": true
+  },
+  "classification": {
+    "selected_capacity": 3,
+    "scheduled": {
+      "f1": 1.0,
+      "world_recall": 1.0,
+      "self_suppression_specificity": 1.0
+    },
+    "flat": {
+      "f1": 0.8,
+      "world_recall": 1.0,
+      "self_suppression_specificity": 0.0
+    },
+    "fixed_self_window": {
+      "f1": 0.6666666666666666,
+      "world_recall": 0.5,
+      "self_suppression_specificity": 1.0
+    },
+    "capacity_f1_1_2_3_4": [
+      0.8571428571428571,
+      0.9230769230769231,
+      1.0,
+      1.0
+    ],
+    "world_evidence_threshold": 0.10004366413114273,
+    "all_frozen_classification_criteria_passed": true
+  },
+  "capture_quality": {
+    "self_playback_gain_db": -18.0,
+    "captures_with_clipping": 0,
+    "total_clipped_samples": 0,
+    "maximum_clipped_sample_fraction": 0.0,
+    "zero_clipping_gate_passed": true
+  },
+  "promotion_allowed": true,
+  "claim_boundary": "H3 is supported for structured low-band self tones and high-band world tones under the frozen single-room, single-array, fixed-geometry conditions. This does not establish natural speech binding, arbitrary source spectra, geometry transfer, neural theta/gamma dynamics, or general cognition."
+}
