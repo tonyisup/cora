@@ -26,6 +26,12 @@ def test_consolidated_status_links_exist_and_preserve_pending_decisions() -> Non
     cmu = json.loads(
         (root / "docs/evidence/2026-07-11-cmu-arctic-development-result.json").read_text()
     )
+    h4_continuous = json.loads(
+        (
+            root
+            / "docs/evidence/2026-07-11-h4-continuous-inverse-synthesis-development-result.json"
+        ).read_text()
+    )
     provenance = json.loads(
         (
             root
@@ -40,6 +46,9 @@ def test_consolidated_status_links_exist_and_preserve_pending_decisions() -> Non
     assert natural_speech["overall_criteria_passed"] is True
     assert natural_speech["aggregate"]["clipped_sample_count"] == 0
     assert cmu["confirmation_audio_or_labels_accessed"] is False
+    assert h4_continuous["all_development_gates_passed"] is False
+    assert h4_continuous["confirmation_ready"] is False
+    assert h4_continuous["confirmation_audio_or_labels_accessed"] is False
     assert len(provenance["wellington_prior_access"]["clips"]) == 8
     assert provenance["repository_wide_filename_audit"][
         "san_diego_selected_clip_ids_found"
@@ -48,4 +57,4 @@ def test_consolidated_status_links_exist_and_preserve_pending_decisions() -> Non
         "toronto_selected_clip_ids_found"
     ] is False
     assert "Stage 2 disposition pending" in text
-    assert "H4 disposition pending" in text
+    assert "H4 continuous inverse-synthesis outcome" in text

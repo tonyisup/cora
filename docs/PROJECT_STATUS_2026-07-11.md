@@ -16,8 +16,10 @@ For acronyms, corpus codes, metrics, and common report fields, see the
   evidence, but four families of cross-cultural register models failed to
   generalize reliably.
 - H2, H3, and H5 are supported only inside their measured boundaries.
-- H4 remains open. The current fixed-formant perception-production route failed
-  on held-out recorded singers and on two disjoint development domains.
+- H4 remains open as a broad hypothesis, but both tested mechanism families are
+  falsified at their frozen gates. The fixed-formant route failed on recorded
+  voices, and the approved continuous inverse-synthesis candidate reduced
+  reconstruction loss without reaching reliable vowel identity.
 - No new reserved Stage 2 or H4 confirmation data was consumed after its
   applicable development stop rule fired. Wellington had already been consumed
   for a separate H2 target and is not fieldsite-pristine for Stage 2.
@@ -31,7 +33,7 @@ For acronyms, corpus codes, metrics, and common report fields, see the
 | 2 — Parentese-relevant saliency | Mixed; not promoted | [narrow Beijing confirmation](evidence/2026-07-10-ids-confirmation.json), [Mentawai/Toposa mode-scoped pass](evidence/2026-07-10-mode-scoped-register-result.json), [vocal front-gate pass](evidence/2026-07-10-yin-vocal-gate-v2-result.json) | [final paired-summary failure](evidence/2026-07-10-expanded-register-v6-result.json), [six-phase failure](evidence/2026-07-11-temporal-register-development-result.json), [predictive-dynamics failure](evidence/2026-07-11-predictive-register-dynamics-result.json), [cohort-adaptive failure](evidence/2026-07-11-cohort-adaptive-register-result.json), and [nonlinear-codebook failure](evidence/2026-07-11-nonlinear-predictive-codebook-result.json) block general promotion |
 | 3 — Predictive hierarchy | H2 supported within tested boundaries | Natural transfer replicated on Wellington and MEN; controlled real known-efference dropout retained four states and improved tone/vowel prediction | Unknown dropout timing, arbitrary missing world input, semantics, and room transfer remain outside the claim |
 | 4 — Workspace binding | H3 supported within structured-tone and exact-efference speech boundaries | [structured attempt 3](evidence/2026-07-10-structured-workspace-real-attempt-3-result.json) and the [fresh spectral-template v3 run](evidence/2026-07-11-natural-speech-workspace-spectral-v3-real-result.json) both passed scheduled F1/recall/specificity and zero-clipping gates | Natural result requires one prior replay of the exact utterance, three fresh pairs, fixed geometry/levels, and one room; not generalized self voice, semantics, transfer, or neural dynamics |
-| 5 — Perception-production closure | H4 open; current route falsified | Clean synthesis remained perfect | [held-out VocalSet result](evidence/2026-07-11-vocalset-recorded-vowel-result.json) scored 0.36; sung development peaked at 0.56; [CMU Arctic development](evidence/2026-07-11-cmu-arctic-development-result.json) peaked at 0.572 |
+| 5 — Perception-production closure | H4 open; fixed and continuous candidates falsified | The continuous candidate strictly reduced reconstruction loss on every recorded example while respecting all bounds and its 23-synthesis budget | [continuous inverse-synthesis result](evidence/2026-07-11-h4-continuous-inverse-synthesis-development-result.json) scored synthetic `0.85`, VocalSet `0.44`, and CMU Arctic `0.574`, failing `0.90/0.80/0.80`; protected speakers remain untouched |
 | 6 — Real-time efficiency | H5 supported within measured host boundary | Quiet and structured callback gates passed; [lower-volume natural-speech gate](evidence/2026-07-11-stage6-natural-speech-hardware-volume-diagnostic-result.json) passed at 10.34–10.42 ms salient p95; [six-fieldsite timing panel](evidence/2026-07-11-stage6-diverse-natural-speech-result.json) retained 10.17–10.38 ms salient p95 with clean playback intervals; [energy result](evidence/2026-07-11-stage6-energy-result.json) is measured | Two diverse-panel runs clipped only in trailing quiet and failed whole-capture integrity; energy is a 2.47× baseline cost; XMOS internal, wall-plug, acoustic, and cross-device energy remain open |
 
 ## Stage 2 disposition pending
@@ -95,11 +97,12 @@ rescued four linear false negatives but lost four linear true positives and
 added two net false positives. It therefore did not reveal a complementary
 cross-fieldsite invariant hidden by the linear readout.
 
-## H4 disposition pending
+## H4 continuous inverse-synthesis outcome
 
-The evidence-backed mechanism fork and recommended continuous inverse-synthesis
+The evidence-backed mechanism fork and approved continuous inverse-synthesis
 alternative are documented in [H4_MECHANISM_DECISION.md](H4_MECHANISM_DECISION.md).
-That memo does not authorize a new experiment or confirmation-data access.
+The candidate was preregistered, implemented at `f174243`, and evaluated once
+on already-spent development material.
 
 The current shared fixed-formant route is contradicted in both recorded domains:
 
@@ -108,9 +111,21 @@ The current shared fixed-formant route is contradicted in both recorded domains:
 - CMU Arctic ordinary read-speech development: `286/500 = 0.572`, with `/o/`
   recall `0.13` and `/u/` recall `0.30`.
 
-Consuming either reserved confirmation set would not be credible. Continuing
-with a supervised phone classifier or changing the frozen vowel mapping after
-seeing these errors would materially revise the analysis-by-synthesis claim.
+The [continuous result](evidence/2026-07-11-h4-continuous-inverse-synthesis-development-result.json)
+then scored `17/20 = 0.85` on clean synthetic trials, `11/25 = 0.44` on
+VocalSet, and `287/500 = 0.574` on CMU Arctic. The respective gates were
+`0.90`, `0.80`, and `0.80`. Adaptation strictly lowered spectral reconstruction
+loss on all `525` recorded examples, but final identity mostly stayed unchanged:
+it rescued/lost `1/2` VocalSet decisions and `17/9` CMU decisions. This is the
+central H4 result: acoustic reconstruction improvement is not evidence of a
+useful shared perception-production identity by itself.
+The [post-hoc transition analysis](evidence/2026-07-11-h4-continuous-inverse-synthesis-failure-analysis.json)
+records these derived rescue/loss counts without a candidate rerun.
+
+Consuming either reserved confirmation set is not credible. The stop rule
+blocks same-data tuning. A supervised phone classifier would materially revise
+the analysis-by-synthesis claim; another H4 attempt requires a genuinely new
+mechanism and an explicit governance decision.
 
 ## Protected data
 
@@ -149,7 +164,7 @@ analog/device-front-end transient.
 
 ## Verification state
 
-At this checkpoint the full test suite reports `386 passed, 3 skipped`. The
+At this checkpoint the full test suite reports `407 passed, 3 skipped`. The
 skips are intentional hardware/environment-dependent tests, not hidden failures.
 The working branch is `codex/vision-evidence`; the latest research checkpoints
 include:
@@ -165,14 +180,16 @@ include:
 - `9bf73c8` — six-stimulus audit implementation;
 - `15cf53b` — nonlinear predictive codebook preregistration;
 - `b2370ea` — nonlinear predictive codebook implementation.
+- `f174243` — frozen continuous inverse-synthesis implementation.
 
 ## Decisions required before further Stage 2 or H4 empirical work
 
 1. Decide whether Stage 2 should now record broad cross-cultural register
    detection as falsified or authorize a deep/global mechanism outside the
    current local-learning contract.
-2. Decide whether H4 should record the current shared fixed-formant route as
-   falsified or revise the perception-production hypothesis.
+2. Decide whether H4 should stop active work after two falsified mechanism
+   families or authorize a genuinely different representation. Same-data
+   tuning of the continuous candidate is not an option.
 
 Until those decisions are made, no pristine USD/TOR or additional WEL
 confirmation data should be fetched and no same-family threshold,

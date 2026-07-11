@@ -203,6 +203,8 @@ failed society.
 |---|---|
 | **Acoustic saliency** | A score for which sounds deserve processing or attention. Loudness is only one possible cue. |
 | **Analysis by synthesis** | Perceive a sound by finding a motor/acoustic representation that could reproduce it. |
+| **Continuous inverse synthesis** | Infer bounded continuous source/filter parameters by repeatedly synthesizing candidates and minimizing an acoustic reconstruction loss. Cora's first frozen candidate failed H4 identity gates even though its loss decreased. |
+| **Coordinate descent** | Local search that changes one parameter at a time and retains a change only when it improves the objective. The H4 candidate searched F1, F2, and F3 with a fixed budget. |
 | **Bounded workspace** | Capacity-limited memory for active events. “Bounded” means memory cannot grow without limit. |
 | **Corollary discharge** | An internal signal about a self-generated action, used to predict its sensory consequence. |
 | **Efference copy** | A copy of a motor command supplied to prediction. In this project it marks known self-generated audio. |
@@ -211,6 +213,8 @@ failed society.
 | **Dropout** | Deliberately missing observations used to test representation stability. This is not neural-network dropout unless explicitly stated. |
 | **Local predictive learning** | Updates predictions using nearby observations and errors without a large globally trained sequence model. |
 | **Motor plan** | Parameters used to synthesize a target sound, currently vowel source/formant settings. |
+| **Reconstruction loss** | Distance between an observed signal representation and a synthesized candidate representation. A lower value means a closer match under that representation; it does not necessarily mean the vowel identity is more accurate. |
+| **Reperception** | Analyze the waveform synthesized from a final motor plan through the perception path again. H4 reports whether that perceived identity agrees with the motor plan's post-hoc identity. |
 | **Parentese** | Informal term for infant-directed vocal style. It is culturally and relationally variable; Cora does not assume one universal acoustic template. |
 | **Predictive coding** | Compare incoming observations with predictions and propagate the mismatch or residual. The term is a design hypothesis, not proof of neural fidelity. |
 | **Self-suppression** | Reduce attention to predicted self-generated sound so unexpected world sound remains visible. |

@@ -612,6 +612,13 @@ developmental language learning.
 - Theta/gamma scheduling is an event-timing model, not measured neural dynamics.
 - The vowel table uses adult reference targets and clean synthetic success does
   not imply recorded infant/adult speech performance.
+- The approved continuous inverse-synthesis H4 candidate is retained as a
+  preregistered failure. Its local updates strictly reduced spectral
+  reconstruction loss on every recorded development example, but identity
+  reached only `0.85` synthetic, `0.44` VocalSet, and `0.574` CMU Arctic versus
+  `0.90/0.80/0.80` gates. Lower reconstruction error therefore did not establish
+  a useful shared perception-production representation; protected confirmation
+  speakers remain untouched.
 - Process CPU/RSS, native-overflow proxy, host/device-boundary latency, and an
   offline conventional comparison are measured. The quiet-path device timing
   and structured-salient timing gates passed; same-host sustained estimated
@@ -638,6 +645,7 @@ developmental language learning.
 - `natural_speech_workspace_spectral_v3.py` — final bounded 12-band exact-efference speech-binding gate
 - `register_saliency.py` — long-window vocal, speech/song, and adaptive IDS gates
 - `io/motor_plan.py` — source-filter synthesis, LPC perception, and vowel gate
+- `continuous_inverse_synthesis.py` — frozen bounded H4 continuous motor search
 - `benchmark.py` — explicit-boundary event-pipeline microbenchmark
 - `pipeline.py` — saliency, predictive state, and workspace admission
 - `theta_gamma.py` — deterministic bounded temporal scheduler

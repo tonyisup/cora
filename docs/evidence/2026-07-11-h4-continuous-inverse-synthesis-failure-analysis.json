@@ -1,0 +1,40 @@
+{
+  "experiment": "h4_continuous_inverse_synthesis_development",
+  "analysis_type": "post_hoc_failure_decomposition",
+  "date": "2026-07-11",
+  "source_result": "docs/evidence/2026-07-11-h4-continuous-inverse-synthesis-development-result.json",
+  "source_result_sha256": "8943cd98b21bc98a98faa3539bed634e5cc5a281d648bd6c170a27d081c3cc36",
+  "configuration_changed": false,
+  "candidate_rerun": false,
+  "derived_identity_transitions": {
+    "synthetic": {
+      "trial_count": 20,
+      "initial_correct": 17,
+      "final_correct": 17,
+      "incorrect_to_correct": 0,
+      "correct_to_incorrect": 0,
+      "unchanged_identity": 20
+    },
+    "vocalset": {
+      "trial_count": 25,
+      "initial_correct": 12,
+      "final_correct": 11,
+      "incorrect_to_correct": 1,
+      "correct_to_incorrect": 2,
+      "unchanged_identity": 19
+    },
+    "cmu_arctic": {
+      "trial_count": 500,
+      "initial_correct": 279,
+      "final_correct": 287,
+      "incorrect_to_correct": 17,
+      "correct_to_incorrect": 9,
+      "unchanged_identity": 461
+    }
+  },
+  "interpretation": "The frozen local optimizer consistently improved its label-blind spectral objective, but that objective was weakly coupled to the required five-vowel identity. Most identities did not change; the small CMU gain did not transport to VocalSet and did not approach the frozen domain gate.",
+  "decision": "retain_failed_candidate_and_do_not_access_confirmation",
+  "same_data_retry_allowed": false,
+  "confirmation_audio_or_labels_accessed": false,
+  "promotion_allowed": false
+}

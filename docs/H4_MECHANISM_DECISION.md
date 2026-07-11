@@ -1,12 +1,44 @@
 # H4 mechanism decision
 
-Status: Option B approved; development-only continuous inverse synthesis may
-proceed under a separate preregistration. Protected confirmation access remains
-unauthorized.
+Status: Option B was approved and its first preregistered development candidate
+failed. Protected confirmation access remains unauthorized. The frozen result
+is retained; same-data parameter or representation retries are prohibited.
 
-This memo does not authorize a new experiment and does not change
+This memo does not authorize another experiment and does not change
 [VISION.md](../VISION.md). It records the evidence-backed fork reached after the
-fixed-formant route failed in both sung and ordinary read speech.
+fixed-formant route failed in both sung and ordinary read speech, followed by
+the outcome of the approved continuous inverse-synthesis candidate.
+
+## Option B outcome
+
+The candidate was frozen in
+[the development preregistration](evidence/2026-07-11-h4-continuous-inverse-synthesis-development-preregistration.json),
+implemented at commit `f174243`, and evaluated once on already-spent data. The
+[retained result](evidence/2026-07-11-h4-continuous-inverse-synthesis-development-result.json)
+failed confirmation readiness:
+
+| Domain | Initial canonical identity | Adapted identity | Required |
+|---|---:|---:|---:|
+| Clean synthetic | `17/20 = 0.85` | `17/20 = 0.85` | `0.90` |
+| VocalSet development | `12/25 = 0.48` | `11/25 = 0.44` | `0.80` |
+| CMU Arctic development | `279/500 = 0.558` | `287/500 = 0.574` | `0.80` |
+
+The optimizer behaved as specified: every real-speech example obtained a
+strictly lower label-blind spectral reconstruction loss, all plans stayed
+within bounds, and no example exceeded 23 syntheses. But lower reconstruction
+loss did not transport reliably to the post-hoc vowel identity. Adaptation
+changed no synthetic identities, reduced VocalSet identity accuracy, and only
+slightly improved CMU Arctic. Motor-plan/reperception agreement was `0.72` and
+`0.79` on the two recorded domains, below the required `0.90`; VocalSet's
+median relative loss improvement was also only `0.0395`, below `0.10`.
+
+This falsifies this frozen continuous source/filter representation and loss as
+a confirmation-ready H4 mechanism. It does not falsify every possible analysis-
+by-synthesis model, but another active attempt now requires a genuinely new
+mechanism and a new governance decision—not tuning this candidate.
+The retained [post-hoc transition analysis](evidence/2026-07-11-h4-continuous-inverse-synthesis-failure-analysis.json)
+derives the identity rescue/loss counts from the immutable result without
+rerunning or changing the candidate.
 
 ## Current contradiction
 
@@ -81,7 +113,7 @@ promotion claims.
 
 ## Protected data boundary
 
-Until a decision is made:
+Following the failed Option B candidate:
 
 - do not fetch VocalSet `female6`, `female7`, `female9`, `male9`, or `male11`;
 - do not fetch CMU Arctic confirmation speakers `rms`, `awb`, `axb`, `eey`, or
@@ -90,6 +122,6 @@ Until a decision is made:
 - do not run another same-family threshold, representation, or hyperparameter
   retry.
 
-If option B is approved, its first artifact must be a preregistration over
-already-spent development data. Approval is not permission to access protected
+The completed Option B workflow followed a preregistration over already-spent
+development data. Its failure is not permission to access protected
 confirmation audio.
