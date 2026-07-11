@@ -239,6 +239,15 @@ Current environmental-control result:
   minimum fieldsite F1 of `0.0`. Vocal recall remained `0.995`. This temporal
   candidate is falsified, and Wellington, San Diego, and Toronto remain
   untouched.
+- an explicitly authorized predictive redesign then retained every ordered
+  50 ms prosodic state and fit four class-conditional first-order linear-
+  Gaussian dynamics. On the same 200 spent clips and 18 leave-one-fieldsite-out
+  folds, zero-threshold F1 improved to `0.484` with FPR `0.077`. Frozen
+  ceiling-constrained threshold selection reached F1 `0.545`, recall `0.466`,
+  FPR `0.099`, and song FPR `0.071`, but minimum fieldsite F1 remained `0.0`
+  (ACO and ARA). This is meaningful evidence that ordered prediction helps,
+  but it remains far below the `0.80` readiness gate. Its stop rule is active;
+  the three reserved fieldsites remain untouched.
 
 ### Stage 3 — Predictive hierarchy
 

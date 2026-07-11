@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 import numpy as np
 
 from cora_infans.predictive_register_dynamics import (
@@ -64,3 +67,22 @@ def test_predictive_dynamics_uses_grouped_folds_and_frozen_thresholds() -> None:
     assert report["promotion_allowed"] is False
     assert selection["protocol"] == "predictive_dynamics_out_of_field_threshold_selection"
     assert selection["metrics"]["false_positive_rate"] <= 0.15
+
+
+def test_retained_predictive_dynamics_result_preserves_stop_decision() -> None:
+    root = Path(__file__).resolve().parents[1]
+    result = json.loads(
+        (
+            root
+            / "docs/evidence/2026-07-11-predictive-register-dynamics-result.json"
+        ).read_text()
+    )
+
+    assert result["source"]["clip_count"] == 200
+    assert result["source"]["fieldsite_count"] == 18
+    assert result["zero_threshold_report"]["f1"] == 0.4835164835164835
+    assert result["out_of_field_threshold_selection"]["f1"] == 0.5454545454545454
+    assert result["out_of_field_threshold_selection"]["minimum_fieldsite_f1"] == 0.0
+    assert result["development_candidate_ready"] is False
+    assert result["confirmation_audio_or_metadata_accessed"] is False
+    assert result["promotion_allowed"] is False

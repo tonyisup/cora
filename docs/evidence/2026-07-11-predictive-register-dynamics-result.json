@@ -1,0 +1,92 @@
+{
+  "experiment": "predictive_register_dynamics_development",
+  "date": "2026-07-11",
+  "status": "development_candidate_failed_confirmation_readiness",
+  "preregistration": {
+    "path": "docs/evidence/2026-07-11-predictive-register-dynamics-preregistration.json",
+    "sha256": "77ebc2d140882149719968de18e38d390acd2e3e08561cad7c1fbf86b25c8c84",
+    "commit": "e3b1f68"
+  },
+  "implementation_commit": "65c5d2a",
+  "representation": {
+    "name": "first_order_linear_gaussian_prosodic_state_space",
+    "frame_ms": 50,
+    "state_features": ["pitch_log2", "pitch_confidence", "intensity_db", "spectral_centroid_log", "spectral_flux_log"],
+    "ridge_regularization": 1.0,
+    "residual_variance_floor": 0.05,
+    "calibration": "unlabeled within-speaker and vocal-mode batch normalization"
+  },
+  "source": {
+    "clip_count": 200,
+    "fieldsite_count": 18,
+    "sequence_frame_count_range": [21, 1111],
+    "input_manifest_sha256": "84234dd382ef090f12d02005a35863962e6504fc9197aa131adcce6b770fd26e",
+    "all_clip_hashes_verified": true,
+    "all_sequences_finite": true
+  },
+  "zero_threshold_report": {
+    "true_positive": 22,
+    "false_positive": 11,
+    "true_negative": 131,
+    "false_negative": 36,
+    "precision": 0.6666666666666666,
+    "recall": 0.3793103448275862,
+    "f1": 0.4835164835164835,
+    "false_positive_rate": 0.07746478873239436,
+    "song_false_positive_count": 5,
+    "song_count": 84,
+    "song_false_positive_rate": 0.05952380952380952,
+    "vocal_retained_count": 199,
+    "vocal_recall": 0.995,
+    "minimum_fieldsite_f1": 0.0
+  },
+  "out_of_field_threshold_selection": {
+    "speech_score_minimum": -0.004216587715444309,
+    "ids_score_minimum": -0.010898748107214473,
+    "true_positive": 27,
+    "false_positive": 14,
+    "true_negative": 128,
+    "false_negative": 31,
+    "precision": 0.6585365853658537,
+    "recall": 0.46551724137931033,
+    "f1": 0.5454545454545454,
+    "false_positive_rate": 0.09859154929577464,
+    "song_false_positive_count": 6,
+    "song_count": 84,
+    "song_false_positive_rate": 0.07142857142857142,
+    "minimum_fieldsite_f1": 0.0,
+    "per_fieldsite_f1": {
+      "ACO": 0.0,
+      "ARA": 0.0,
+      "BEJ": 0.9090909090909091,
+      "HAD": 0.8,
+      "JEN": 0.8,
+      "KRA": 0.3333333333333333,
+      "LIM": 0.4,
+      "MBE": 0.8,
+      "MEN": 0.5,
+      "MES": 0.6666666666666666,
+      "NYA": 0.5,
+      "PNG": 0.4,
+      "QUE": 0.4,
+      "SPA": 0.8571428571428571,
+      "TOP": 0.6666666666666666,
+      "TSI": 0.3333333333333333,
+      "TUR": 0.3333333333333333,
+      "VAN": 0.4
+    }
+  },
+  "comparison": {
+    "same_200_clip_six_phase_candidate_f1": 0.28888888888888886,
+    "predictive_dynamics_f1_improvement": 0.25656565656565655,
+    "historical_paired_summary_16_fieldsite_f1": 0.7850467289719626,
+    "comparison_boundary": "The six-phase comparison uses the same 200 spent clips and 18 folds. The paired-summary reference used 176 clips and 16 folds, so it is descriptive rather than a matched superiority test."
+  },
+  "full_development_model_sha256": "0d3b26b70ede1b97475fd62e82cdfc016bce4d9dd9a2231734f21c8d6c7434be",
+  "full_external_result_sha256": "5acc624c0909a2132370c4c032b064b572745da7ce74a4b15f361ca638ae86b5",
+  "development_candidate_ready": false,
+  "confirmation_audio_or_metadata_accessed": false,
+  "promotion_allowed": false,
+  "stop_rule": "Do not tune frame size, feature list, dynamics order, regularization, variance floor, normalization scope, or thresholds, and do not access WEL, USD, or TOR. Another Stage 2 mechanism requires a new explicit research decision.",
+  "interpretation": "Ordered predictive dynamics materially improved over the coarse six-phase representation and controlled false positives, but cross-fieldsite IDS recall remained too low and two fieldsites had F1 zero. The model is falsified for confirmation readiness."
+}
