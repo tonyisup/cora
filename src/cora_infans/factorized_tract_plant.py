@@ -48,6 +48,8 @@ FROZEN_OPTION_E_CONFIG = FactorizedPlantConfig(
     protrusion_narrowing=0.8,
     maximum_length_cm=20.0,
 )
+EXPANDED_FORMANT_FREQUENCIES_HZ = np.arange(80.0, 5000.0 + 5.0, 5.0)
+EXPANDED_SENSORY_FREQUENCIES_HZ = np.geomspace(150.0, 5000.0, 30)
 
 
 def _motor5(value: np.ndarray) -> np.ndarray:
@@ -184,6 +186,42 @@ def factorized_sensory(motor: np.ndarray, config: FactorizedPlantConfig) -> np.n
     norm = float(np.linalg.norm(vector))
     if norm <= 1e-12:
         raise ValueError("factorized plant envelope has insufficient structure")
+    return vector / norm
+
+
+def expanded_formants(
+    motor: np.ndarray, config: FactorizedPlantConfig = FROZEN_OPTION_E_CONFIG
+) -> tuple[float, float, float] | None:
+    magnitude = np.abs(
+        factorized_transfer(motor, EXPANDED_FORMANT_FREQUENCIES_HZ, config)
+    )
+    candidates = [
+        index
+        for index in range(1, len(magnitude) - 1)
+        if magnitude[index] > magnitude[index - 1]
+        and magnitude[index] >= magnitude[index + 1]
+    ]
+    selected: list[float] = []
+    for index in candidates:
+        frequency = float(EXPANDED_FORMANT_FREQUENCIES_HZ[index])
+        if not selected or frequency - selected[-1] >= 150.0:
+            selected.append(frequency)
+        if len(selected) == 3:
+            return selected[0], selected[1], selected[2]
+    return None
+
+
+def expanded_sensory(
+    motor: np.ndarray, config: FactorizedPlantConfig = FROZEN_OPTION_E_CONFIG
+) -> np.ndarray:
+    magnitude = np.abs(
+        factorized_transfer(motor, EXPANDED_SENSORY_FREQUENCIES_HZ, config)
+    )
+    vector = np.log(magnitude + 1e-12)
+    vector -= float(np.mean(vector))
+    norm = float(np.linalg.norm(vector))
+    if norm <= 1e-12:
+        raise ValueError("expanded plant envelope has insufficient structure")
     return vector / norm
 
 
@@ -486,6 +524,192 @@ def evaluate_option_e_confirmation() -> dict[str, object]:
                 "f3": float(formant_mae[2]),
             },
             "pairwise_sensory_distances": pairwise_rows,
+            "waveforms": waveform_rows,
+            "criteria": p2_criteria,
+            "gate_passed": p2_passed,
+        },
+        "all_plant_gates_passed": p0_passed and p2_passed,
+        "forward_learning_executed": False,
+        "inverse_search_executed": False,
+        "recorded_audio_accessed": False,
+        "protected_data_accessed": False,
+        "promotion_allowed": False,
+    }
+
+
+def _option_f_targets(
+    points: np.ndarray,
+    formants: list[tuple[float, float, float] | None],
+) -> list[dict[str, object]]:
+    used: set[int] = set()
+    targets: list[dict[str, object]] = []
+    for vowel in VOWELS:
+        candidates = [
+            (relative_formant_rmse(vowel, value), index)
+            for index, value in enumerate(formants)
+            if value is not None and index not in used
+        ]
+        cost, offset = min(candidates, key=lambda row: (row[0], row[1]))
+        used.add(offset)
+        value = formants[offset]
+        assert value is not None
+        motor = points[offset]
+        neighbor_rows: list[dict[str, object]] = []
+        for neighbor in _neighbors(motor, 0.03):
+            neighbor_formants = expanded_formants(neighbor)
+            valid = (
+                neighbor_formants is not None
+                and nearest_vowel(neighbor_formants) == vowel
+                and relative_formant_rmse(vowel, neighbor_formants) <= 0.25
+            )
+            neighbor_rows.append(
+                {
+                    "motor": neighbor.tolist(),
+                    "formants_hz": None
+                    if neighbor_formants is None
+                    else list(neighbor_formants),
+                    "valid": valid,
+                }
+            )
+        targets.append(
+            {
+                "vowel": vowel,
+                "halton_index": 12289 + offset,
+                "motor": motor.tolist(),
+                "formants_hz": list(value),
+                "relative_formant_rmse": cost,
+                "nearest_vowel": nearest_vowel(value),
+                "valid_neighbor_fraction": sum(
+                    bool(row["valid"]) for row in neighbor_rows
+                )
+                / len(neighbor_rows),
+                "neighbors": neighbor_rows,
+            }
+        )
+    return targets
+
+
+def evaluate_option_f_confirmation() -> dict[str, object]:
+    points = halton5_points(12289, 13312)
+    formants: list[tuple[float, float, float] | None] = []
+    geometry_valid = True
+    transfer_valid = True
+    for point in points:
+        geometry = factorized_area_function(point, FROZEN_OPTION_E_CONFIG)
+        geometry_valid &= bool(
+            np.all(np.isfinite(geometry.areas_cm2))
+            and np.all(geometry.areas_cm2 >= 0.04)
+            and np.all(geometry.areas_cm2 <= 9.0)
+            and 15.5 <= geometry.total_length_cm <= 20.0
+        )
+        transfer_valid &= bool(
+            np.all(
+                np.isfinite(
+                    factorized_transfer(
+                        point,
+                        EXPANDED_SENSORY_FREQUENCIES_HZ,
+                        FROZEN_OPTION_E_CONFIG,
+                    )
+                )
+            )
+        )
+        formants.append(expanded_formants(point))
+
+    targets = _option_f_targets(points, formants)
+    waveform_rows: list[dict[str, object]] = []
+    for target in targets:
+        motor = np.asarray(target["motor"], dtype=np.float64)
+        for f0_hz in F0_CONDITIONS_HZ:
+            first = synthesize_factorized(motor, f0_hz)
+            second = synthesize_factorized(motor, f0_hz)
+            waveform_rows.append(
+                {
+                    "vowel": target["vowel"],
+                    "f0_hz": f0_hz,
+                    "finite": bool(np.all(np.isfinite(first))),
+                    "peak": float(np.max(np.abs(first))),
+                    "deterministic": bool(np.array_equal(first, second)),
+                }
+            )
+
+    measured = np.asarray([target["formants_hz"] for target in targets])
+    references = np.asarray(
+        [VOWEL_FORMANTS_HZ[target["vowel"]] for target in targets]
+    )
+    formant_mae = np.mean(np.abs(measured - references), axis=0)
+    pairwise_rows: list[dict[str, object]] = []
+    for left, right in itertools.combinations(targets, 2):
+        distance = float(
+            np.linalg.norm(
+                expanded_sensory(np.asarray(left["motor"]))
+                - expanded_sensory(np.asarray(right["motor"]))
+            )
+            / 2.0
+        )
+        pairwise_rows.append(
+            {
+                "pair": f"{left['vowel']}{right['vowel']}",
+                "half_euclidean_expanded_sensory_distance": distance,
+            }
+        )
+
+    p0_criteria = {
+        "all_confirmation_geometry_valid": bool(geometry_valid),
+        "all_expanded_transfers_finite": bool(transfer_valid),
+        "all_confirmation_points_have_three_formants_through_5khz": all(
+            value is not None for value in formants
+        ),
+        "all_target_f0_waveforms_finite_and_below_one": all(
+            bool(row["finite"]) and float(row["peak"]) < 1.0
+            for row in waveform_rows
+        ),
+        "all_target_f0_waveforms_deterministic": all(
+            bool(row["deterministic"]) for row in waveform_rows
+        ),
+    }
+    p2_criteria = {
+        "each_target_nearest_identity_matches": all(
+            target["nearest_vowel"] == target["vowel"] for target in targets
+        ),
+        "maximum_target_relative_formant_rmse_at_most_0_15": max(
+            float(target["relative_formant_rmse"]) for target in targets
+        )
+        <= 0.15,
+        "mean_target_f1_mae_at_most_75_hz": float(formant_mae[0]) <= 75.0,
+        "mean_target_f2_mae_at_most_150_hz": float(formant_mae[1]) <= 150.0,
+        "mean_target_f3_mae_at_most_150_hz": float(formant_mae[2]) <= 150.0,
+        "minimum_pairwise_expanded_sensory_distance_at_least_0_25": min(
+            float(row["half_euclidean_expanded_sensory_distance"])
+            for row in pairwise_rows
+        )
+        >= 0.25,
+        "minimum_valid_neighborhood_fraction_at_least_0_80": min(
+            float(target["valid_neighbor_fraction"]) for target in targets
+        )
+        >= 0.8,
+    }
+    p0_passed = all(p0_criteria.values())
+    p2_passed = all(p2_criteria.values())
+    return {
+        "mode": "h4_option_f_expanded_band_plant_confirmation",
+        "evidence_scope": "synthetic_plant_only",
+        "confirmation_indices_inclusive": [12289, 13312],
+        "confirmation_count": len(points),
+        "expanded_formant_band_hz": [80.0, 5000.0],
+        "expanded_sensory_dimension": 30,
+        "p0": {
+            "points_with_three_formants": sum(value is not None for value in formants),
+            "criteria": p0_criteria,
+            "gate_passed": p0_passed,
+        },
+        "p2": {
+            "targets": targets,
+            "formant_mae_hz": {
+                "f1": float(formant_mae[0]),
+                "f2": float(formant_mae[1]),
+                "f3": float(formant_mae[2]),
+            },
+            "pairwise_expanded_sensory_distances": pairwise_rows,
             "waveforms": waveform_rows,
             "criteria": p2_criteria,
             "gate_passed": p2_passed,

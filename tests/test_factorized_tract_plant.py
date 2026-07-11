@@ -4,10 +4,13 @@ import json
 from pathlib import Path
 
 import numpy as np
+import pytest
 
 from cora_infans.factorized_tract_plant import (
     FROZEN_OPTION_E_CONFIG,
     design_family,
+    expanded_formants,
+    expanded_sensory,
     factorized_area_function,
     factorized_formants,
     halton5_points,
@@ -80,3 +83,12 @@ def test_retained_option_e_confirmation_preserves_stop_boundary() -> None:
     assert result["recorded_audio_accessed"] is False
     assert result["protected_data_accessed"] is False
     assert result["provenance"]["implementation_commit"] == "6ce2dc1"
+
+
+def test_option_f_expanded_readout_contract() -> None:
+    motor = halton5_points(12289, 12289)[0]
+    sensory = expanded_sensory(motor)
+
+    assert sensory.shape == (30,)
+    assert np.linalg.norm(sensory) == pytest.approx(1.0)
+    assert expanded_formants(motor) == expanded_formants(motor)
