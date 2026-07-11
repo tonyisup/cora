@@ -42,6 +42,7 @@ from .live_mic import (
 )
 from ..predictive import FocusTrajectoryCoder, PredictiveCoder, PredictiveHierarchy
 from ..runtime_metrics import RuntimeLatencyTracker
+from ..resource_metrics import ProcessResourceTracker
 from .active_attention import (
     ActiveAttentionGovernor,
     AttentionConfig,
@@ -916,6 +917,7 @@ class LiveListener:
         attention_log: list[dict[str, object]] = []
         motor_imitation_log: list[dict[str, object]] = []
         latency_tracker = RuntimeLatencyTracker(deadline_ms=frame_ms)
+        resource_tracker = ProcessResourceTracker()
         target_frames = max(1, duration_ms // frame_ms)
         for i in range(target_frames):
             now_ms = i * frame_ms
@@ -1139,7 +1141,11 @@ class LiveListener:
                 backend_reported_input_latency_ms=(
                     getattr(self.array, "stream_metadata", {}) or {}
                 ).get("reported_input_latency_ms"),
+                input_overflow_count=int(
+                    getattr(self.array, "input_overflow_count", 0)
+                ),
             ),
+            "runtime_resources": resource_tracker.summary(),
             "capture_stream_fallback_reason": getattr(
                 self.array, "stream_fallback_reason", None
             ),

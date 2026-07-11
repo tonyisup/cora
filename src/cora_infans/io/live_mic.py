@@ -83,6 +83,7 @@ class LiveMicArray:
         self.stream_fallback_reason: str | None = None
         self.stream_metadata: dict[str, object] | None = None
         self.last_input_overflowed = False
+        self.input_overflow_count = 0
         self.is_real_capture = True
         # Retained raw PCM of the most recent capture, so downstream consumers
         # (e.g. the motor-imitation loop's analyze_vowel) have a waveform to
@@ -270,6 +271,7 @@ class LiveMicArray:
             sample_count = max(1, int(round(seconds * self.sample_rate)))
             data, overflowed = self._native_stream.read(sample_count)
             self.last_input_overflowed = bool(overflowed)
+            self.input_overflow_count += int(self.last_input_overflowed)
             return self._frame_from_float_data(
                 np.asarray(data, dtype=np.float32),
                 sample_rate=self.sample_rate,

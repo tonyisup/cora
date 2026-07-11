@@ -63,7 +63,10 @@ class RuntimeLatencyTracker:
         capture_backend: str,
         real_capture: bool,
         backend_reported_input_latency_ms: float | None = None,
+        input_overflow_count: int = 0,
     ) -> dict[str, object]:
+        if input_overflow_count < 0:
+            raise ValueError("input_overflow_count must be non-negative")
         strict_misses = sum(value > self.deadline_ms for value in self.total_ms)
         operational_limit = self.deadline_ms + self.deadline_tolerance_ms
         misses = sum(value > operational_limit for value in self.total_ms)
@@ -86,6 +89,13 @@ class RuntimeLatencyTracker:
             ),
             "deadline_miss_count": misses,
             "deadline_miss_rate": misses / len(self.total_ms) if self.total_ms else 0.0,
+            "input_overflow_count": input_overflow_count,
+            "input_overflow_rate": (
+                input_overflow_count / len(self.total_ms) if self.total_ms else 0.0
+            ),
+            "dropped_frame_proxy": (
+                "PortAudio input-overflow flag per requested analysis frame"
+            ),
             "requested_frame_rate_hz": 1000.0 / self.deadline_ms,
             "measured_path_real_time_factor": (
                 total_measured_ms / represented_ms if represented_ms else 0.0

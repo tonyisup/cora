@@ -10,6 +10,7 @@ def test_runtime_latency_tracker_reports_deadlines_and_boundary() -> None:
         capture_backend="FakeArray",
         real_capture=False,
         backend_reported_input_latency_ms=10.0,
+        input_overflow_count=1,
     )
 
     assert report["measurement_boundary"] == "capture_frame_call_start_to_workspace_decision"
@@ -26,3 +27,5 @@ def test_runtime_latency_tracker_reports_deadlines_and_boundary() -> None:
     assert report["real_capture"] is False
     assert report["backend_reported_input_latency_ms"] == 10.0
     assert report["estimated_adc_to_workspace_latency_ms"]["p50"] == 36.0
+    assert report["input_overflow_count"] == 1
+    assert report["input_overflow_rate"] == 0.5

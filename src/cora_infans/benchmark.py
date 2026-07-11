@@ -7,16 +7,73 @@ import platform
 import statistics
 import time
 import tracemalloc
+from collections import deque
 
 import numpy as np
 
 from .config import CoraInfansConfig
 from .pipeline import AudioFrame, CoraInfansPipeline
 from .predictive import FocusTrajectoryCoder, PredictiveCoder, PredictiveHierarchy
+from .resource_metrics import ProcessResourceTracker
 
 
 def _percentile(values: list[float], percentile: float) -> float:
     return float(np.percentile(np.asarray(values, dtype=np.float64), percentile))
+
+
+class _ConventionalFrameBaseline:
+    """Fixed-threshold, nearest-prototype DSP baseline with bounded memory."""
+
+    def __init__(self) -> None:
+        self.events: deque[tuple[int, int]] = deque(maxlen=10)
+        self.prototypes_hz = np.asarray([300.0, 500.0, 700.0, 900.0])
+
+    def process_frame(self, frame: AudioFrame) -> tuple[int, int] | None:
+        energies = np.asarray(frame.channel_energies, dtype=np.float64)
+        if float(np.max(energies) - np.mean(energies)) < 0.004:
+            return None
+        identity = int(np.argmin(np.abs(self.prototypes_hz - frame.dominant_frequency_hz)))
+        event = (int(np.argmax(energies)), identity)
+        self.events.append(event)
+        return event
+
+
+def _measure_processor(
+    frames: list[AudioFrame], process_frame: object
+) -> dict[str, object]:
+    durations_ms: list[float] = []
+    resources = ProcessResourceTracker()
+    tracemalloc.start()
+    for frame in frames:
+        started = time.perf_counter_ns()
+        process_frame(frame)  # type: ignore[operator]
+        durations_ms.append((time.perf_counter_ns() - started) / 1_000_000.0)
+    current_bytes, peak_bytes = tracemalloc.get_traced_memory()
+    tracemalloc.stop()
+    resource_report = resources.summary()
+    return {
+        "latency_ms": {
+            "mean": statistics.fmean(durations_ms),
+            "p50": _percentile(durations_ms, 50.0),
+            "p95": _percentile(durations_ms, 95.0),
+            "p99": _percentile(durations_ms, 99.0),
+            "max": max(durations_ms),
+        },
+        "wall_seconds": resource_report["wall_seconds"],
+        "cpu_seconds": resource_report["cpu_seconds"],
+        "average_process_cpu_percent": resource_report[
+            "average_process_cpu_percent"
+        ],
+        "peak_resident_memory_bytes": resource_report[
+            "peak_resident_memory_bytes"
+        ],
+        "peak_resident_memory_megabytes": resource_report[
+            "peak_resident_memory_megabytes"
+        ],
+        "peak_rss_semantics": resource_report["peak_rss_semantics"],
+        "tracemalloc_current_bytes": current_bytes,
+        "tracemalloc_peak_bytes": peak_bytes,
+    }
 
 
 def benchmark_event_pipeline(
@@ -51,23 +108,18 @@ def benchmark_event_pipeline(
 
     # Warm caches and imports outside the measured interval.
     pipeline.process_frame(AudioFrame(0, [0.03, 0.02], 300.0))
-    durations_ms: list[float] = []
-    process_start = time.process_time()
-    wall_start = time.perf_counter()
-    tracemalloc.start()
-    for index in range(iterations):
-        frame = AudioFrame(
+    frames = [
+        AudioFrame(
             timestamp_ms=(index + 1) * frame_ms,
             channel_energies=[0.03 + (index % 3) * 0.001, 0.02],
             dominant_frequency_hz=300.0 + (index % 7) * 5.0,
         )
-        started = time.perf_counter_ns()
-        pipeline.process_frame(frame)
-        durations_ms.append((time.perf_counter_ns() - started) / 1_000_000.0)
-    current_bytes, peak_bytes = tracemalloc.get_traced_memory()
-    tracemalloc.stop()
-    wall_seconds = time.perf_counter() - wall_start
-    cpu_seconds = time.process_time() - process_start
+        for index in range(iterations)
+    ]
+    cora = _measure_processor(frames, pipeline.process_frame)
+    conventional = _measure_processor(
+        frames, _ConventionalFrameBaseline().process_frame
+    )
     represented_audio_seconds = iterations * frame_ms / 1000.0
 
     return {
@@ -83,19 +135,41 @@ def benchmark_event_pipeline(
         ],
         "iterations": iterations,
         "frame_ms": frame_ms,
-        "latency_ms": {
-            "mean": statistics.fmean(durations_ms),
-            "p50": _percentile(durations_ms, 50.0),
-            "p95": _percentile(durations_ms, 95.0),
-            "p99": _percentile(durations_ms, 99.0),
-            "max": max(durations_ms),
-        },
-        "wall_seconds": wall_seconds,
-        "cpu_seconds": cpu_seconds,
-        "real_time_factor": wall_seconds / represented_audio_seconds,
-        "tracemalloc_current_bytes": current_bytes,
-        "tracemalloc_peak_bytes": peak_bytes,
+        "latency_ms": cora["latency_ms"],
+        "wall_seconds": cora["wall_seconds"],
+        "cpu_seconds": cora["cpu_seconds"],
+        "real_time_factor": float(cora["wall_seconds"]) / represented_audio_seconds,
+        "average_process_cpu_percent": cora["average_process_cpu_percent"],
+        "peak_resident_memory_bytes": cora["peak_resident_memory_bytes"],
+        "peak_resident_memory_megabytes": cora["peak_resident_memory_megabytes"],
+        "peak_rss_semantics": cora["peak_rss_semantics"],
+        "tracemalloc_current_bytes": cora["tracemalloc_current_bytes"],
+        "tracemalloc_peak_bytes": cora["tracemalloc_peak_bytes"],
         "resident_workspace_events": len(pipeline.workspace.snapshot()),
+        "conventional_baseline": {
+            "name": "fixed_threshold_nearest_frequency_bounded_deque",
+            "measurement_boundary": "AudioFrame_to_fixed_DSP_event_in_process",
+            **conventional,
+            "real_time_factor": (
+                float(conventional["wall_seconds"]) / represented_audio_seconds
+            ),
+        },
+        "same_host_comparison": {
+            "cora_to_baseline_p95_latency_ratio": (
+                float(cora["latency_ms"]["p95"])
+                / max(float(conventional["latency_ms"]["p95"]), 1e-12)
+            ),
+            "cora_to_baseline_real_time_factor_ratio": (
+                float(cora["wall_seconds"])
+                / max(float(conventional["wall_seconds"]), 1e-12)
+            ),
+            "input_frames_identical": True,
+            "instrumentation_identical": True,
+            "interpretation": (
+                "The conventional baseline is intentionally simpler and is a "
+                "resource floor, not a capability-equivalent competitor."
+            ),
+        },
         "environment": {
             "python": platform.python_version(),
             "platform": platform.platform(),
