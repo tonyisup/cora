@@ -264,6 +264,16 @@ Current environmental-control result:
   narrower idea that relational cohort context helps, but the mechanism still
   fails confirmation readiness. Its stop rule blocks same-family tuning and
   USD/TOR access.
+- an authorized nonlinear retry then learned a 32-prototype temporal codebook
+  from label-blind four-frame contexts using one winner-local update pass and
+  Gaussian radial-basis activations. Every out-of-field fold used all
+  prototypes and reduced quantization error, so representation collapse did
+  not explain the result. On the same 200 clips and 18 folds, selected F1 was
+  only `0.535`, recall `0.466`, FPR `0.113`, and song FPR `0.083`; ACO and ARA
+  remained at F1 `0.0`. The healthy nonlinear representation slightly
+  underperformed the same-data linear predictive parent (`0.545`) and remained
+  far below readiness. This mechanism is falsified without accessing USD/TOR;
+  its stop rule blocks codebook or readout tuning.
 
 ### Stage 3 — Predictive hierarchy
 

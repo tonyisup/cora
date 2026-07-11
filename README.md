@@ -16,7 +16,7 @@ the repository.
 |---|---|---|
 | Reproducible substrate | Implemented | Synthetic/live contracts, deterministic reports, and tests exist |
 | Real-audio evaluation | First replay passed | WAV and prior-art captured NumPy PCM are measured directly with dev/held-out provenance; developmental-speech breadth is still open |
-| Parentese-relevant saliency | Mixed; not promoted | Label-free cohort alignment improved the predictive candidate to F1 0.681 and FPR 0.035, but recall was 0.561 and five eligible fieldsites missed the frozen floor. The vocal front gate remains positive; reserved confirmation fieldsites remain untouched |
+| Parentese-relevant saliency | Mixed; not promoted | Cohort alignment remains the best development candidate at F1 0.681. A later locally learned nonlinear temporal codebook was healthy but reached only F1 0.535. The vocal front gate remains positive; reserved confirmation fieldsites remain untouched |
 | Local predictive hierarchy | H2 supported within tested boundaries | Natural event transfer replicated across Wellington and MEN; a separate real room run with known efference masks retained four states through 10/15/20% dropout while improving vowels `+0.614` and tones `+0.474`. Unknown-timing world dropout and semantics remain outside scope |
 | Workspace binding | H3 supported within tested boundaries | The preregistered -18 dB synchronized run passed every classifier and zero-clipping gate: scheduled F1/recall/specificity 1.0/1.0/1.0 versus flat F1 0.8 and fixed-window F1 0.667; capacity improved through three slots and plateaued at four |
 | Analysis by synthesis | Recorded-human gate failed; mechanism decision required | Clean synthesis remained 100%, but the preregistered VocalSet confirmation scored 36%; disjoint sung and ordinary-speech development peaked at 56% and 57.2%, so both reserved confirmation sets remain untouched and H4 stays open |
@@ -479,6 +479,13 @@ developmental language learning.
   FPR to `0.035`, but recall remained `0.561`; ACO stayed at F1 `0.0` and four
   other fieldsites missed the frozen floor. The gain is meaningful but does not
   rescue cross-cultural promotion, and USD/TOR remain untouched.
+- An authorized nonlinear candidate learned 32 temporal prototypes from
+  label-blind 200 ms contexts using winner-local updates, then used Gaussian
+  radial-basis responses in condition-specific predictive readouts. All folds
+  used every prototype and reduced quantization error, but selected F1 was only
+  `0.535`, recall `0.466`, FPR `0.113`, and song FPR `0.083`; ACO and ARA stayed
+  at F1 `0.0`. It slightly underperformed the same-data linear model, so its
+  frozen stop rule blocks codebook/readout tuning and USD/TOR access.
 - The upstream vocal gate passed selected diffuse and impulsive controls but
   admitted one crackling-fire clip in fold 3; it rejected all selected fold-4
   controls in the later joint test.

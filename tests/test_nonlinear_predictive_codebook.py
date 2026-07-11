@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 import numpy as np
 
 from cora_infans.nonlinear_predictive_codebook import (
@@ -130,3 +133,21 @@ def test_nonlinear_codebook_uses_grouped_folds_and_frozen_thresholds() -> None:
     assert report["promotion_allowed"] is False
     assert selection["protocol"] == "nonlinear_codebook_out_of_field_threshold_selection"
     assert selection["metrics"]["false_positive_rate"] <= 0.15
+
+
+def test_retained_nonlinear_result_preserves_representation_and_stop_decisions() -> None:
+    root = Path(__file__).resolve().parents[1]
+    result = json.loads(
+        (
+            root
+            / "docs/evidence/2026-07-11-nonlinear-predictive-codebook-result.json"
+        ).read_text()
+    )
+
+    assert result["source"]["clip_count"] == 200
+    assert result["codebook_health"]["all_health_gates_passed"] is True
+    assert result["out_of_field_threshold_selection"]["f1"] == 0.5346534653465347
+    assert result["out_of_field_threshold_selection"]["minimum_fieldsite_f1"] == 0.0
+    assert result["development_candidate_ready"] is False
+    assert result["confirmation_audio_or_metadata_accessed"] is False
+    assert result["promotion_allowed"] is False

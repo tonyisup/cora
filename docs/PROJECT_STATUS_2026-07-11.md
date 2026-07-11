@@ -25,7 +25,7 @@ are authoritative.
 |---|---|---|---|
 | 0 — Reproducible substrate | Implemented | Deterministic unit/integration suite; explicit synthetic/live contracts; fail-loud real I/O; hash-pinned external-data runners | Passing plumbing is not empirical promotion |
 | 1 — Real-audio evaluation | Passed in bounded corpora | [prior-art replay](evidence/2026-07-10-prior-art-replay.json), Music Lab PCM/float WAV evaluation, participant/fieldsite manifests | Broader devices, rooms, ages, and spontaneous conditions remain open |
-| 2 — Parentese-relevant saliency | Mixed; not promoted | [narrow Beijing confirmation](evidence/2026-07-10-ids-confirmation.json), [Menominee/Toposa mode-scoped pass](evidence/2026-07-10-mode-scoped-register-result.json), [vocal front-gate pass](evidence/2026-07-10-yin-vocal-gate-v2-result.json) | [final paired-summary failure](evidence/2026-07-10-expanded-register-v6-result.json), [six-phase failure](evidence/2026-07-11-temporal-register-development-result.json), [predictive-dynamics failure](evidence/2026-07-11-predictive-register-dynamics-result.json), and [cohort-adaptive failure](evidence/2026-07-11-cohort-adaptive-register-result.json) block general promotion |
+| 2 — Parentese-relevant saliency | Mixed; not promoted | [narrow Beijing confirmation](evidence/2026-07-10-ids-confirmation.json), [Menominee/Toposa mode-scoped pass](evidence/2026-07-10-mode-scoped-register-result.json), [vocal front-gate pass](evidence/2026-07-10-yin-vocal-gate-v2-result.json) | [final paired-summary failure](evidence/2026-07-10-expanded-register-v6-result.json), [six-phase failure](evidence/2026-07-11-temporal-register-development-result.json), [predictive-dynamics failure](evidence/2026-07-11-predictive-register-dynamics-result.json), [cohort-adaptive failure](evidence/2026-07-11-cohort-adaptive-register-result.json), and [nonlinear-codebook failure](evidence/2026-07-11-nonlinear-predictive-codebook-result.json) block general promotion |
 | 3 — Predictive hierarchy | H2 supported within tested boundaries | Natural transfer replicated on Wellington and MEN; controlled real known-efference dropout retained four states and improved tone/vowel prediction | Unknown dropout timing, arbitrary missing world input, semantics, and room transfer remain outside the claim |
 | 4 — Workspace binding | H3 supported within structured boundary | [real synchronized attempt 3](evidence/2026-07-10-structured-workspace-real-attempt-3-result.json) passed scheduled F1/recall/specificity and zero-clipping gates | Structured tones, fixed geometry, one room; not natural speech or measured neural theta/gamma dynamics |
 | 5 — Perception-production closure | H4 open; current route falsified | Clean synthesis remained perfect | [held-out VocalSet result](evidence/2026-07-11-vocalset-recorded-vowel-result.json) scored 0.36; sung development peaked at 0.56; [CMU Arctic development](evidence/2026-07-11-cmu-arctic-development-result.json) peaked at 0.572 |
@@ -72,6 +72,15 @@ clips and 17 fieldsites:
 This is useful evidence that relational cohort context helps, but it does not
 rescue reliable cross-cultural register detection. Its stop rule now blocks
 same-family tuning and USD/TOR confirmation.
+
+The subsequently authorized nonlinear candidate learned 32 temporal
+prototypes from label-blind four-frame contexts with winner-local updates and
+used Gaussian radial-basis activations in predictive readouts. Codebook health
+was strong in every fold: utilization was `1.0` and quantization error fell.
+Despite that, selected F1 was `0.535`, recall `0.466`, FPR `0.113`, and song FPR
+`0.083`; ACO and ARA remained at F1 `0.0`. The same-data linear predictive
+candidate was slightly better at `0.545`. The nonlinear mechanism is therefore
+retained as another confirmation-readiness failure, with USD/TOR untouched.
 
 ## H4 disposition pending
 
@@ -123,7 +132,7 @@ analog/device-front-end transient.
 
 ## Verification state
 
-At this checkpoint the full test suite reports `378 passed, 3 skipped`. The
+At this checkpoint the full test suite reports `384 passed, 3 skipped`. The
 skips are intentional hardware/environment-dependent tests, not hidden failures.
 The working branch is `codex/vision-evidence`; the latest research checkpoints
 include:
@@ -136,12 +145,15 @@ include:
 - `b867722` — cohort-adaptive preregistration;
 - `a17fa59` — cohort-adaptive implementation;
 - `ec7b4f1` — diverse natural-speech timing preregistration;
-- `9bf73c8` — six-stimulus audit implementation.
+- `9bf73c8` — six-stimulus audit implementation;
+- `15cf53b` — nonlinear predictive codebook preregistration;
+- `b2370ea` — nonlinear predictive codebook implementation.
 
 ## Decisions required before further Stage 2 or H4 empirical work
 
 1. Decide whether Stage 2 should now record broad cross-cultural register
-   detection as falsified or authorize a materially different mechanism.
+   detection as falsified or authorize a deep/global mechanism outside the
+   current local-learning contract.
 2. Decide whether H4 should record the current shared fixed-formant route as
    falsified or revise the perception-production hypothesis.
 
