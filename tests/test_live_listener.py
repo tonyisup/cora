@@ -1091,6 +1091,7 @@ def test_listener_plays_external_wav_without_deleting_it(tmp_path, monkeypatch) 
     assert stimulus_path.exists()
     assert report["stimulus"]["kind"] == "external_wav"
     assert report["stimulus"]["source_wav_sha256"] is not None
+    assert all(frame["stimulus_playback_active"] for frame in report["frames"])
 
 
 @pytest.mark.skipif(shutil.which("ffmpeg") is None, reason="ffmpeg not available")

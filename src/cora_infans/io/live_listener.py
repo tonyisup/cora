@@ -935,9 +935,29 @@ class LiveListener:
         target_frames = max(1, duration_ms // frame_ms)
         for i in range(target_frames):
             now_ms = i * frame_ms
+            playback_poll = getattr(stim_proc, "poll", None)
+            playback_active_at_capture_start = (
+                bool(with_stimulus)
+                and stim_proc is not None
+                and (
+                    playback_poll() is None
+                    if callable(playback_poll)
+                    else True
+                )
+            )
             capture_started_ns = time.perf_counter_ns()
             frame = self.array.capture_frame(duration_ms=frame_ms)
             capture_ended_ns = time.perf_counter_ns()
+            playback_poll = getattr(stim_proc, "poll", None)
+            playback_active_at_capture_end = (
+                bool(with_stimulus)
+                and stim_proc is not None
+                and (
+                    playback_poll() is None
+                    if callable(playback_poll)
+                    else True
+                )
+            )
             event = pipeline.process_frame(frame)
             decision_ended_ns = time.perf_counter_ns()
             device_timing_fn = getattr(
@@ -966,6 +986,16 @@ class LiveListener:
             frame_is_salient.append(is_salient)
             frame_view = asdict_public(frame)
             frame_view["stimulus_active"] = with_stimulus
+            frame_view["stimulus_playback_active_at_capture_start"] = (
+                playback_active_at_capture_start
+            )
+            frame_view["stimulus_playback_active_at_capture_end"] = (
+                playback_active_at_capture_end
+            )
+            frame_view["stimulus_playback_active"] = (
+                playback_active_at_capture_start
+                or playback_active_at_capture_end
+            )
             frame_view["capture_peak_absolute"] = float(
                 getattr(self.array, "last_frame_peak_absolute", 0.0)
             )
