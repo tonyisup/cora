@@ -3,10 +3,12 @@
 import numpy as np
 
 from cora_infans.factorized_tract_plant import (
+    FROZEN_OPTION_E_CONFIG,
     design_family,
     factorized_area_function,
     factorized_formants,
     halton5_points,
+    synthesize_factorized,
 )
 
 
@@ -45,3 +47,14 @@ def test_option_e_formant_analysis_is_deterministic() -> None:
     config = design_family()[0]
     motor = halton5_points(4097, 4097)[0]
     assert factorized_formants(motor, config) == factorized_formants(motor, config)
+
+
+def test_option_e_frozen_confirmation_config_and_waveform() -> None:
+    assert FROZEN_OPTION_E_CONFIG == design_family()[23]
+    motor = halton5_points(8193, 8193)[0]
+    first = synthesize_factorized(motor, 110.0)
+    second = synthesize_factorized(motor, 110.0)
+
+    assert first.shape == (2560,)
+    assert float(np.max(np.abs(first))) < 1.0
+    np.testing.assert_array_equal(first, second)
