@@ -59,3 +59,45 @@ def parse_phone_labels(text: str) -> list[PhoneSegment]:
 
 def sha256_path(path: str | Path) -> str:
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+
+def select_tokens(
+    label_dir: str | Path,
+    *,
+    per_vowel: int,
+    minimum_duration_seconds: float,
+) -> list[dict[str, object]]:
+    if per_vowel <= 0 or minimum_duration_seconds <= 0.0:
+        raise ValueError("token selection limits must be positive")
+    counts = {vowel: 0 for vowel in TARGET_PHONE_TO_VOWEL.values()}
+    selected: list[dict[str, object]] = []
+    for label_path in sorted(Path(label_dir).glob("arctic_[ab][0-9][0-9][0-9][0-9].lab")):
+        for segment_index, segment in enumerate(
+            parse_phone_labels(label_path.read_text())
+        ):
+            vowel = TARGET_PHONE_TO_VOWEL.get(segment.phone)
+            if (
+                vowel is None
+                or counts[vowel] >= per_vowel
+                or segment.duration_seconds < minimum_duration_seconds
+            ):
+                continue
+            selected.append(
+                {
+                    "label_name": label_path.name,
+                    "wav_name": f"{label_path.stem}.wav",
+                    "segment_index": segment_index,
+                    "phone": segment.phone,
+                    "vowel": vowel,
+                    "start_seconds": segment.start_seconds,
+                    "end_seconds": segment.end_seconds,
+                    "duration_seconds": segment.duration_seconds,
+                    "selection_ordinal_for_vowel": counts[vowel],
+                }
+            )
+            counts[vowel] += 1
+        if all(count == per_vowel for count in counts.values()):
+            break
+    if any(count != per_vowel for count in counts.values()):
+        raise ValueError(f"insufficient qualifying CMU Arctic tokens: {counts}")
+    return selected
