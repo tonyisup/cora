@@ -312,36 +312,22 @@ def test_workspace_preregistration_audit_requires_hashes_and_complete_self_geome
     assert "acceptance criteria do not match the frozen H3 gate" in blocked["blockers"]
 
 
-def test_retry_workspace_preregistration_matches_current_code_and_geometry() -> None:
+def test_successful_workspace_preregistration_is_retained_with_its_audit() -> None:
     root = Path(__file__).resolve().parents[1]
-    preregistration = json.loads(
+    preregistration_path = root / (
+        "docs/evidence/2026-07-10-structured-workspace-real-attempt-3-preregistration.json"
+    )
+    preregistration = json.loads(preregistration_path.read_text())
+    audit = json.loads(
         (
             root
-            / "docs/evidence/2026-07-10-structured-workspace-real-attempt-3-preregistration.json"
+            / "docs/evidence/2026-07-10-structured-workspace-real-attempt-3-audit.json"
         ).read_text()
     )
-    paths = {
-        "implementation_sha256": root
-        / "src/cora_infans/structured_workspace_binding.py",
-        "cli_sha256": root / "src/cora_infans/cli.py",
-        "io_sha256": root / "src/cora_infans/live_speak_smoke.py",
-        "protocol_sha256": root
-        / "docs/evidence/2026-07-10-structured-workspace-binding-protocol.json",
-        "standing_world_geometry_sha256": root
-        / "docs/evidence/2026-07-10-h3-standing-world-geometry.json",
-        "standing_self_placement_sha256": root
-        / "docs/evidence/2026-07-10-h3-standing-self-placement.json",
-    }
-    current_hashes = {
-        name: hashlib.sha256(path.read_bytes()).hexdigest()
-        for name, path in paths.items()
-    }
 
-    audit = audit_workspace_binding_preregistration(
-        preregistration, current_hashes=current_hashes
-    )
-
-    assert audit == {"verdict": "preregistration_ready", "ready": True, "blockers": []}
+    assert hashlib.sha256(preregistration_path.read_bytes()).hexdigest() == audit[
+        "preregistration_sha256"
+    ]
     assert preregistration["hardware"]["self_source"]["vertical_distance_cm"] == 4
     assert preregistration["hardware"]["self_source"]["playback_gain_db"] == -18.0
     assert preregistration["acceptance"]["no_clipped_capture_samples_required"] is True

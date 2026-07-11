@@ -87,6 +87,7 @@ from .natural_event_prediction import (
     evaluate_natural_event_cross_fieldsite,
 )
 from .real_workspace_binding import evaluate_real_workspace_binding_design
+from .recorded_vowel_audit import evaluate_recorded_vowels
 from .structured_workspace_binding import (
     WorkspaceBindingConfig,
     build_workspace_binding_protocol,
@@ -1157,6 +1158,14 @@ def real_workspace_design_cli(args: list[str]) -> dict[str, object]:
     return evaluate_real_workspace_binding_design(root=args[2])
 
 
+def recorded_vowel_cli(args: list[str]) -> dict[str, object]:
+    """Evaluate the preregistered held-out VocalSet vowel subset."""
+
+    if len(args) != 5 or args[1] != "--root" or args[3] != "--manifest":
+        raise ValueError("--evaluate-recorded-vowels requires --root DIR --manifest FILE")
+    return evaluate_recorded_vowels(corpus_root=args[2], manifest_path=args[4])
+
+
 def structured_workspace_binding_cli(args: list[str]) -> dict[str, object]:
     """Plan, inject, or run the preregistration-gated structured H3 protocol."""
 
@@ -2125,6 +2134,13 @@ def main(argv: list[str] | None = None) -> int:
         except (ValueError, OSError, json.JSONDecodeError) as exc:
             print(str(exc), file=sys.stderr)
             return 2
+    if args and args[0] == "--evaluate-recorded-vowels":
+        try:
+            print(json.dumps(recorded_vowel_cli(args)))
+            return 0
+        except (ValueError, OSError, json.JSONDecodeError) as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
     if args and args[0] == "--evaluate-structured-workspace-binding":
         try:
             print(json.dumps(structured_workspace_binding_cli(args)))
@@ -2256,6 +2272,7 @@ def main(argv: list[str] | None = None) -> int:
         "[--evaluate-natural-event-transfer --development-root DIR --development-participants ID,ID --held-out-root DIR --held-out-participants ID,ID] "
         "[--evaluate-natural-event-ablations --development-root DIR --development-participants ID,ID --held-out-root DIR --held-out-participants ID,ID] "
         "[--evaluate-real-workspace-design --root COROLLARY_M2_BASELINE_DIR] "
+        "[--evaluate-recorded-vowels --root VOCALSET_SUBSET_DIR --manifest FILE] "
         "[--evaluate-structured-workspace-binding [--fake-io | --real-io --out-dir DIR --preregistration FILE --authorize-bounded-playback]] "
         "[--simulate-self-suppression [--vowel a|e|i|o|u] [--world-vowel a|e|i|o|u] [--world-gain F] [--duration-ms N] [--sample-rate N]] "
         "[--learn-self-forward-model [--vowel a|e|i|o|u] [--observed-delay-ms F] [--observed-attenuation F] [--observed-echo-decay F] [--world-vowel a|e|i|o|u] [--world-gain F]] "

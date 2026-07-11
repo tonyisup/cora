@@ -282,6 +282,19 @@ Measure the clean synthetic vowel confusion matrix:
 python3 -m cora_infans --evaluate-vowel-loop
 ```
 
+Evaluate the preregistered five-vowel VocalSet confirmation subset after its
+external manifest has been fetched:
+
+```bash
+python3 -m cora_infans --evaluate-recorded-vowels \
+  --root /external/vocalset-subset \
+  --manifest /external/vocalset-manifest.json
+```
+
+VocalSet is CC BY 4.0 and remains outside Git. The frozen subset contains five
+untouched singers × `a/e/i/o/u`; filenames and hashes are retained, while
+vowel labels enter scoring only after label-blind LPC analysis.
+
 Synthesize and inspect one vowel:
 
 ```bash

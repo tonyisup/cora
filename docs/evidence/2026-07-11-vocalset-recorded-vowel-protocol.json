@@ -1,0 +1,60 @@
+{
+  "mode": "vocalset_held_out_recorded_vowel_audit",
+  "date": "2026-07-11",
+  "status": "preregistered_before_confirmation_audio_fetch",
+  "source": {
+    "name": "VocalSet 1.0",
+    "doi": "10.5281/zenodo.1193957",
+    "license": "CC BY 4.0",
+    "archive_url": "https://zenodo.org/api/records/1193957/files/VocalSet.zip/content",
+    "archive_bytes": 2077087366,
+    "archive_md5_published_by_zenodo": "c44f60d34b8724b9a6f6d15e0a3158a9",
+    "central_directory_sha256": "dc801568a8d5f2f6c67be28dba53b2badadb7088715b9047c922b38aae1d8626"
+  },
+  "published_split_provenance": {
+    "train_singers_member": "train_singers.rtfd/TXT.rtf",
+    "train_singers_sha256": "d989bb6ae3d181ff15a2acef2e9e7cb1003658bf38814b3422f0da9cc225184d",
+    "test_singers_member": "test_singers.rtfd/TXT.rtf",
+    "test_singers_sha256": "8a94621146a06fe91d2ef6826c0f542bd994200674d11a45f81d0e41961b2f32"
+  },
+  "confirmation_selection": {
+    "singers": [
+      "female1",
+      "female3",
+      "male1",
+      "male2",
+      "male4"
+    ],
+    "selection_rule": "first two female and first three male IDs in the published training list",
+    "why_published_training_is_still_held_out": "Cora's fixed LPC estimator and adult target table were created without any VocalSet audio; no selected singer audio is used for tuning",
+    "vowels": [
+      "a",
+      "e",
+      "i",
+      "o",
+      "u"
+    ],
+    "condition": "long_tones/straight",
+    "clip_count": 25,
+    "member_template": "FULL/{singer}/long_tones/straight/{short_id}_long_straight_{vowel}.wav"
+  },
+  "analysis": {
+    "window": "center 1.0 second",
+    "input_reduction": "mono as stored; no normalization or corpus-specific filtering",
+    "estimator": "existing label-blind LPC formant estimator",
+    "label_boundary": "filename vowel and singer labels enter scoring only after signal analysis",
+    "corpus_tuning_allowed": false,
+    "formant_error_reference": "Cora fixed adult F1/F2/F3 table; reported descriptively, not treated as singer-specific ground truth"
+  },
+  "acceptance": {
+    "clean_synthetic_accuracy_min": 0.9,
+    "recorded_accuracy_min": 0.8,
+    "each_vowel_recall_min": 0.6,
+    "each_singer_accuracy_min": 0.6,
+    "all_five_by_five_cells_reported": true,
+    "f1_f2_f3_mae_reported_separately": true,
+    "all_25_member_hashes_verified": true,
+    "full_scale_analysis_windows_reported": true
+  },
+  "claim_boundary": "A pass supports fixed-table vowel identity closure on clean synthesis and five unseen VocalSet singers performing straight sung long tones. It does not establish ordinary speech, infant speech, learned motor plans, or biological vocal-tract fidelity."
+}

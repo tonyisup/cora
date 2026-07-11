@@ -541,7 +541,8 @@ Current structured Cora protocol:
 
 ### Stage 5 — Perception-production closure
 
-Status: mechanism demonstrated; acoustic fidelity gate not passed.
+Status: mechanism demonstrated; a CC BY 4.0 five-vowel, five-unseen-singer
+VocalSet confirmation is preregistered before its selected audio is fetched.
 
 Required evidence:
 
