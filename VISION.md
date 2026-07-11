@@ -497,14 +497,17 @@ Current structured Cora protocol:
   self→world evidence gap, reflecting the safety priority to preserve world
   overlap. Scheduled F1 then reached `1.0` versus flat `0.8` and fixed-window
   `0.667`; capacity `1/2/3/4` reached `0.857/0.923/1.0/1.0`;
-- this is synthetic plumbing only. Live I/O remains deliberately unwired until
-  both source geometries and levels are confirmed and frozen.
+- this is synthetic plumbing only. The external-world route is user-frozen at
+  output device 2 (`External Headphones`), 180 degrees, and 50 cm until
+  explicitly changed. Live I/O remains deliberately unwired until the Mac mini
+  self-source geometry and level are also confirmed and frozen;
 - the device-agnostic live boundary is nevertheless implemented and tested:
   self/world tracks stay separate, overlap sources start concurrently, one
   source owns the alignment chirp, and explicitly aligned two-channel captures
   feed the same frozen metric;
-- no hardware route is exposed. Device indices, physical geometry, and levels
-  must be frozen in a separate preregistration before the CLI can play this task.
+- no hardware route is exposed. The complete device mapping, physical geometry,
+  and levels must be frozen in a separate preregistration before the CLI can
+  play this task.
 
 ### Stage 5 — Perception-production closure
 

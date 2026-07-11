@@ -453,7 +453,10 @@ developmental language learning.
 - Generic live plumbing now keeps self/world PCM separate, starts overlap tracks
   through a concurrent source abstraction, assigns one chirp reference source,
   and evaluates explicitly aligned mono or two-channel captures. Injected-I/O
-  tests pass; devices and geometry remain unfrozen and no live H3 audio ran.
+  tests pass. The external-world route is now user-frozen at output device 2
+  (`External Headphones`), 180 degrees, and 50 cm until explicitly changed. The
+  Mac mini self-source geometry and level remain unfrozen, so the complete H3
+  setup is not preregistered and no live H3 audio ran.
 - Theta/gamma scheduling is an event-timing model, not measured neural dynamics.
 - The vowel table uses adult reference targets and clean synthetic success does
   not imply recorded infant/adult speech performance.
