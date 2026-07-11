@@ -1,0 +1,22 @@
+{
+  "experiment": "cmu_arctic_ordinary_speech_development_window_grid_attempt_1",
+  "date": "2026-07-11",
+  "status": "invalid_harness_configuration_no_result",
+  "attempted_window_ms": [
+    60,
+    80,
+    100
+  ],
+  "existing_estimator_minimum_window_ms_at_16khz": 100,
+  "failure": "analyze_vowel rejected the first 60 ms window before the candidate grid completed",
+  "eligible_metrics_produced": false,
+  "correction": "Use 100/110/120 ms central windows, all within the existing estimator contract and the frozen 120 ms minimum token duration.",
+  "unchanged": [
+    "five development speakers and untouched confirmation speakers",
+    "500 deterministically selected tokens",
+    "label mapping and selected WAVs",
+    "LPC implementation and order grid",
+    "label-blind analysis and scoring"
+  ],
+  "promotion_allowed": false
+}

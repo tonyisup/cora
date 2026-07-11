@@ -13,7 +13,7 @@ from .io.wav_frames import read_pcm_wav
 
 
 VOWELS = ("a", "e", "i", "o", "u")
-WINDOW_MS = (60, 80, 100)
+WINDOW_MS = (100, 110, 120)
 LPC_ORDERS = (10, 12, 14, 16, 18, 20)
 
 
