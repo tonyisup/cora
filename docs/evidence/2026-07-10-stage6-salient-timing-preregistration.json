@@ -1,0 +1,59 @@
+{
+  "experiment": "stage6_callback_salient_workload_timing_gate",
+  "date": "2026-07-10",
+  "status": "frozen_before_salient_playback_capture",
+  "parent": "docs/evidence/2026-07-10-stage6-device-timestamp-result.json",
+  "hypothesis": "The callback ADC-frame timing gate remains below the 30 ms operational deadline when the live pipeline emits salient workspace events from a bounded external-world stimulus.",
+  "hardware_geometry": {
+    "input": "XVF3800, 16 kHz, two fused channels, callback backend",
+    "world_output_device": "External Headphones, CoreAudio device 2",
+    "world_speakers": "stacked vertically at 180 degrees, facing microphone",
+    "distance_cm": 50,
+    "speaker_hardware_volume": "maximum",
+    "room": "semi-quiet with laptop fan",
+    "self_output": "none"
+  },
+  "stimulus": {
+    "implementation": "ParenteseStimulus fixed synthetic pitch contour",
+    "duration_ms": 1200,
+    "sweeps": 3,
+    "sweep_ms": 400,
+    "wav_peak_scale": 0.95,
+    "playback_filter": "ffmpeg volume=12dB",
+    "output_sample_rate_hz": 48000,
+    "labels": "stimulus_active is protocol metadata only; salient/quiet workload is determined by emitted pipeline events"
+  },
+  "protocol": {
+    "replicates": 3,
+    "listen_duration_ms_each": 10000,
+    "frame_ms": 25,
+    "expected_frames_each": 400,
+    "saliency_threshold": 0.02,
+    "command": ".venv/bin/python -m cora_infans --listen-live --duration-ms 10000 --frame-ms 25 --sample-rate 16000 --capture-backend callback --with-stimulus"
+  },
+  "acceptance_criteria": {
+    "real_capture_each": true,
+    "callback_backend_without_fallback_each": true,
+    "frame_count_each": 400,
+    "salient_frame_count_each_min": 20,
+    "input_overflow_count_each_max": 0,
+    "callback_status_count_each_max": 0,
+    "callback_timestamp_discontinuity_count_each_max": 0,
+    "captured_clipped_sample_count_each_max": 0,
+    "salient_adc_frame_end_to_workspace_p95_ms_each_max": 30.0,
+    "salient_device_operational_deadline_miss_rate_each_max": 0.05,
+    "quiet_adc_frame_end_to_workspace_p95_ms_each_max": 30.0,
+    "steady_state_real_time_factor_each_max": 1.2,
+    "average_process_cpu_percent_each_max": 100.0,
+    "peak_resident_memory_megabytes_each_max": 512.0
+  },
+  "interpretation_rules": [
+    "The gate requires actual emitted salient events; playback metadata alone cannot satisfy it.",
+    "Timing is stratified by emitted-event workload after the event decision, without changing the decision path.",
+    "Capture clipping, callback errors, timestamp discontinuity, overflow, or fallback fail the run.",
+    "The stimulus is a structured pitch contour, not natural speech, and the result cannot support conversational or semantic claims.",
+    "PortAudio ADC timestamps exclude XMOS internal DSP delay and are not raw CoreAudio AudioTimeStamp values.",
+    "No energy claim is allowed."
+  ],
+  "promotion_boundary": "Passing closes structured salient-workload timing only for this fixed geometry and hardware. Natural speech workload, geometry transfer, XMOS internal delay, and energy remain open."
+}

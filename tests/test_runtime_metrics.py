@@ -39,6 +39,7 @@ def test_runtime_tracker_reports_device_timestamped_frame_latency() -> None:
         total_ms=26.0,
         adc_onset_to_decision_ms=51.0,
         adc_end_to_decision_ms=26.0,
+        workload_label="salient",
     )
 
     report = tracker.summary(
@@ -54,3 +55,7 @@ def test_runtime_tracker_reports_device_timestamped_frame_latency() -> None:
     assert report["device_timestamped_deadline_miss_count"] == 0
     assert "hardware_adc_sample_onset" not in report["excluded"]
     assert "raw_coreaudio_AudioTimeStamp" in report["excluded"]
+    assert report["workload_latency_ms"]["salient"]["frame_count"] == 1
+    assert report["workload_latency_ms"]["salient"][
+        "adc_frame_end_to_workspace_decision"
+    ]["p95"] == 26.0

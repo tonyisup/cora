@@ -946,6 +946,7 @@ class LiveListener:
                     if device_timing is not None
                     else None
                 ),
+                workload_label="salient" if event is not None else "quiet",
             )
             is_salient = event is not None
             frame_is_salient.append(is_salient)
@@ -1172,6 +1173,23 @@ class LiveListener:
             "capture_callback_timestamp_discontinuity_count": int(
                 getattr(self.array, "callback_timestamp_discontinuity_count", 0)
             ),
+            "capture_quality": {
+                "peak_absolute": float(
+                    getattr(self.array, "capture_peak_absolute", 0.0)
+                ),
+                "captured_sample_count": int(
+                    getattr(self.array, "captured_sample_count", 0)
+                ),
+                "clipped_sample_count": int(
+                    getattr(self.array, "clipped_sample_count", 0)
+                ),
+                "clipped_sample_fraction": (
+                    int(getattr(self.array, "clipped_sample_count", 0))
+                    / int(getattr(self.array, "captured_sample_count", 0))
+                    if int(getattr(self.array, "captured_sample_count", 0)) > 0
+                    else 0.0
+                ),
+            },
             "active_attention": (
                 {
                     "enabled": with_attention,

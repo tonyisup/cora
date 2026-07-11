@@ -89,6 +89,9 @@ class LiveMicArray:
         self.callback_status_count = 0
         self.callback_timestamp_discontinuity_count = 0
         self.last_device_frame_timing: dict[str, float] | None = None
+        self.capture_peak_absolute = 0.0
+        self.captured_sample_count = 0
+        self.clipped_sample_count = 0
         self._callback_enabled = False
         self._callback_closed = False
         self._callback_condition = threading.Condition()
@@ -518,6 +521,12 @@ class LiveMicArray:
             raise LiveMicError(
                 f"expected {CAPTURE_CHANNELS}-channel PCM, got shape {data.shape}"
             )
+        absolute = np.abs(data)
+        self.capture_peak_absolute = max(
+            self.capture_peak_absolute, float(np.max(absolute, initial=0.0))
+        )
+        self.captured_sample_count += int(data.size)
+        self.clipped_sample_count += int(np.count_nonzero(absolute >= 1.0))
 
         # Retain the raw PCM (mono mix) for downstream waveform analysis.
         self.last_pcm = data.mean(axis=1).astype(np.float32)

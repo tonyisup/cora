@@ -45,6 +45,7 @@ class RuntimeLatencyTracker:
         self.total_ms: list[float] = []
         self.adc_onset_to_decision_ms: list[float] = []
         self.adc_end_to_decision_ms: list[float] = []
+        self.workloads: dict[str, dict[str, list[float]]] = {}
 
     def record(
         self,
@@ -54,6 +55,7 @@ class RuntimeLatencyTracker:
         total_ms: float,
         adc_onset_to_decision_ms: float | None = None,
         adc_end_to_decision_ms: float | None = None,
+        workload_label: str | None = None,
     ) -> None:
         if min(capture_ms, pipeline_ms, total_ms) < 0.0:
             raise ValueError("latencies must be non-negative")
@@ -67,6 +69,17 @@ class RuntimeLatencyTracker:
                 raise ValueError("ADC latencies must be non-negative")
             self.adc_onset_to_decision_ms.append(float(adc_onset_to_decision_ms))
             self.adc_end_to_decision_ms.append(float(adc_end_to_decision_ms))
+        if workload_label is not None:
+            if not workload_label:
+                raise ValueError("workload_label must not be empty")
+            workload = self.workloads.setdefault(
+                workload_label,
+                {"capture_to_decision": [], "adc_onset": [], "adc_end": []},
+            )
+            workload["capture_to_decision"].append(float(total_ms))
+            if adc_onset_to_decision_ms is not None and adc_end_to_decision_ms is not None:
+                workload["adc_onset"].append(float(adc_onset_to_decision_ms))
+                workload["adc_end"].append(float(adc_end_to_decision_ms))
 
     def summary(
         self,
@@ -149,6 +162,36 @@ class RuntimeLatencyTracker:
             "capture_call_latency_ms": _distribution(self.capture_ms),
             "pipeline_decision_latency_ms": _distribution(self.pipeline_ms),
             "capture_to_workspace_latency_ms": _distribution(self.total_ms),
+            "workload_latency_ms": {
+                label: {
+                    "frame_count": len(values["capture_to_decision"]),
+                    "capture_to_workspace": _distribution(
+                        values["capture_to_decision"]
+                    ),
+                    "adc_frame_onset_to_workspace_decision": (
+                        _distribution(values["adc_onset"])
+                        if values["adc_onset"]
+                        else None
+                    ),
+                    "adc_frame_end_to_workspace_decision": (
+                        _distribution(values["adc_end"])
+                        if values["adc_end"]
+                        else None
+                    ),
+                    "device_operational_deadline_miss_count": (
+                        sum(value > operational_limit for value in values["adc_end"])
+                        if values["adc_end"]
+                        else None
+                    ),
+                    "device_operational_deadline_miss_rate": (
+                        sum(value > operational_limit for value in values["adc_end"])
+                        / len(values["adc_end"])
+                        if values["adc_end"]
+                        else None
+                    ),
+                }
+                for label, values in sorted(self.workloads.items())
+            },
             "device_timestamped_frame_latency_ms": (
                 {
                     "adc_frame_onset_to_workspace_decision": _distribution(
