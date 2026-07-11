@@ -29,6 +29,7 @@ def test_describe_command_prints_json_summary() -> None:
         "authority": "VISION.md",
     }
     assert "machine_enforced_operational_contract" in payload["implemented_subsystems"]
+    assert "retained_evidence_readiness_aggregator" in payload["implemented_subsystems"]
     assert "predictive_hierarchy" in payload["implemented_subsystems"]
     assert "commanded_active_attention" in payload["implemented_subsystems"]
     assert "offline_corpus_evaluation" in payload["implemented_subsystems"]

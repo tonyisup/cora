@@ -36,6 +36,12 @@ Inspect the machine-enforced contract:
 python3 -m cora_infans --show-operational-contract
 ```
 
+Verify that every bounded operational stage has its required retained evidence:
+
+```bash
+python3 -m cora_infans --operational-readiness
+```
+
 Validate a future flat Stage 6 run summary against the named 10.5 ms operating
 point:
 

@@ -262,8 +262,11 @@ analog/device-front-end transient.
 
 ## Verification state
 
-At this checkpoint the full test suite reports `444 passed, 3 skipped`. The
+At this checkpoint the full test suite reports `448 passed, 3 skipped`. The
 skips are intentional hardware/environment-dependent tests, not hidden failures.
+The bounded readiness command also validates every required retained stage
+artifact, records its SHA-256 hash, and exits nonzero on a missing, malformed,
+or failed evidence gate.
 The working branch is `codex/vision-evidence`; the latest research checkpoints
 include:
 

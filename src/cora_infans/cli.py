@@ -12,6 +12,7 @@ from .operational_contract import (
     OPERATIONAL_CONTRACT,
     evaluate_stage6_operating_point,
 )
+from .operational_readiness import build_operational_readiness_report
 from .io.live_listener import LiveListener
 from .benchmark import benchmark_event_pipeline
 from .energy_workload import run_sustained_energy_workload
@@ -142,6 +143,7 @@ def describe() -> dict[str, object]:
         },
         "implemented_subsystems": [
             "machine_enforced_operational_contract",
+            "retained_evidence_readiness_aggregator",
             "synthetic_mic_array_front_end",
             "live_xvf3800_front_end",
             "native_coreaudio_continuous_front_end",
@@ -1809,6 +1811,18 @@ def validate_stage6_operating_point_cli(
     return evaluate_stage6_operating_point(report)
 
 
+def operational_readiness_cli(args: list[str] | None = None) -> dict[str, object]:
+    parsed = args or ["--operational-readiness"]
+    evidence_dir = "docs/evidence"
+    if len(parsed) == 3 and parsed[1] == "--evidence-dir":
+        evidence_dir = parsed[2]
+    elif len(parsed) != 1:
+        raise ValueError(
+            "--operational-readiness accepts only [--evidence-dir DIR]"
+        )
+    return build_operational_readiness_report(evidence_dir)
+
+
 def prepare_ids_manifest_cli(args: list[str] | None = None) -> dict[str, object]:
     parsed = args or ["--prepare-ids-manifest"]
     root: str | None = None
@@ -2467,6 +2481,21 @@ def main(argv: list[str] | None = None) -> int:
         except (ValueError, OSError, json.JSONDecodeError) as exc:
             print(str(exc), file=sys.stderr)
             return 2
+    if args and args[0] == "--operational-readiness":
+        try:
+            report = operational_readiness_cli(args)
+            print(json.dumps(report))
+            return 0 if report["operational_evidence_ready"] is True else 1
+        except (
+            ValueError,
+            OSError,
+            json.JSONDecodeError,
+            KeyError,
+            TypeError,
+            AttributeError,
+        ) as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
     if args and args[0] == "--simulate-frame":
         try:
             simulation_params, output_mode = parse_simulation_cli_args(args)
@@ -2710,7 +2739,7 @@ def main(argv: list[str] | None = None) -> int:
             return 2
 
     print(
-        "usage: python -m cora_infans --describe | --show-operational-contract | --validate-stage6-operating-point --report REPORT.json | --simulate-frame | --simulate-sequence "
+        "usage: python -m cora_infans --describe | --show-operational-contract | --operational-readiness [--evidence-dir DIR] | --validate-stage6-operating-point --report REPORT.json | --simulate-frame | --simulate-sequence "
         "[--timestamp-ms N --dominant-frequency-hz F --channel-energies a,b,c,d --initial-prediction-hz F --mic-geometry l0,l1,l2,l3 --saliency-threshold F --output json|pretty] "
         "[--family sweep|zigzag|gap|multi_gap|delayed_recovery] [--with-scheduling] "
         "[--capture-live [--device :0] [--duration-ms N]] "
