@@ -60,6 +60,8 @@ def _summarize_run(path: Path) -> dict[str, object]:
     resources = report["runtime_resources"]
     return {
         "raw_report_sha256": hashlib.sha256(raw).hexdigest(),
+        "real_capture": bool(performance["real_capture"]),
+        "capture_backend": str(performance["capture_backend"]),
         "frame_count": int(report["frame_count"]),
         "salient_frame_count": int(report["salient_frame_count"]),
         "playback_interval": playback,
@@ -101,6 +103,12 @@ def audit_natural_speech_diagnostic(paths: list[str | Path]) -> dict[str, object
         raise ValueError("natural-speech diagnostic requires exactly three runs")
     runs = [_summarize_run(Path(path)) for path in paths]
     criteria = {
+        "real_capture_each": all(run["real_capture"] is True for run in runs),
+        "callback_backend_each": all(
+            run["capture_backend"]
+            == "sounddevice_portaudio_coreaudio_callback"
+            for run in runs
+        ),
         "frame_count_each_400": all(run["frame_count"] == 400 for run in runs),
         "salient_frame_count_each_min_20": all(
             int(run["salient_frame_count"]) >= 20 for run in runs

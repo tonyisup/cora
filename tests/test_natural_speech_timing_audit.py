@@ -40,6 +40,8 @@ def _report(*, clipped_playback: int = 0, clipped_trailing: int = 0):
             "peak_absolute": 1.0 if total_clipped else 0.5,
         },
         "runtime_performance": {
+            "real_capture": True,
+            "capture_backend": "sounddevice_portaudio_coreaudio_callback",
             "workload_latency_ms": {
                 "salient": {"adc_frame_end_to_workspace_decision": {"p95": 10.0}},
                 "quiet": {"adc_frame_end_to_workspace_decision": {"p95": 10.0}},
@@ -72,5 +74,7 @@ def test_natural_speech_diagnostic_reconciles_and_partitions_clipping(tmp_path) 
     assert result["runs"][1]["playback_interval"]["clipped_sample_count"] == 3
     assert result["runs"][2]["trailing_quiet_interval"]["clipped_sample_count"] == 2
     assert result["criteria"]["frame_clipping_sum_equals_aggregate_each"] is True
+    assert result["criteria"]["real_capture_each"] is True
+    assert result["criteria"]["callback_backend_each"] is True
     assert result["criteria"]["clipped_sample_count_each_max_0"] is False
     assert result["promotion_allowed"] is False
