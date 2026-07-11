@@ -489,7 +489,8 @@ within its measured boundary. H3's workspace claim remains separate.
 
 ### Stage 4 — Workspace binding
 
-Status: supported within the measured structured-tone, fixed-geometry boundary.
+Status: supported within measured structured-tone and exact-efference natural-
+speech, fixed-geometry boundaries.
 
 Required evidence:
 
@@ -579,8 +580,27 @@ Current structured Cora protocol:
   scheduled/flat/fixed-window and capacity results, and contained zero clipped
   samples. It passed every frozen classification and capture-quality criterion.
   H3 is therefore supported within this single-room structured-tone boundary;
-  natural speech binding, arbitrary spectral overlap, geometry transfer, and
-  measured neural theta/gamma dynamics remain outside the claim.
+- the first natural-speech candidate used chirp-conditioned FIR self prediction.
+  Its maximum development self-only residual ratio was `1.442` versus a
+  normalized world-only value of `1.0`, so no threshold existed; three captures
+  also clipped. The run failed before held-out classification;
+- template-v2 stored the prior raw sensory consequence of the exact self replay,
+  RMS-normalized sources, and compensated the measured near/far path imbalance.
+  It narrowed the missing development gap to `-0.0093`, but still failed before
+  classification and clipped one 18-sample overlap transient;
+- the final candidate froze a phase- and gain-invariant 12-band spectral-shape
+  distance and numeric threshold (`0.07896`) on all now-spent v2 captures. It
+  then ran once on three fresh exact-efference self/world pairs. Repeated-self
+  distances were `0.0687/0.0100/0.0419`; overlap distances were
+  `0.4409/0.2357/0.1481`. Capacity-3 scheduled F1, world recall, and self-
+  suppression specificity were all `1.0`, versus flat F1 `0.8` and fixed-window
+  world recall `0.5`; capacity `1/2/3/4` reached
+  `0.857/0.923/1.0/1.0`. All 12 captures had zero clipped samples;
+- this extends H3 only to compact source-identity binding for an exact commanded
+  utterance after one prior replay, in one room at fixed geometry and levels.
+  Generalized self-voice learning, arbitrary events or spectra, geometry/room
+  transfer, speech semantics, calibrated SPL, and measured neural theta/gamma
+  dynamics remain outside the claim.
 
 ### Stage 5 — Perception-production closure
 

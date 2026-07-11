@@ -143,6 +143,7 @@ failed society.
 | **F0** | Fundamental frequency | Pitch-related repetition rate, in hertz. |
 | **F1/F2/F3** | First/second/third formant | Vocal-tract resonance estimates, in hertz. Not the F1 classifier metric. |
 | **FFT** | Fast Fourier transform | Converts a time-domain frame into frequency components. |
+| **FIR** | Finite impulse response | A bounded filter represented by a fixed number of coefficients. The first natural-speech workspace candidate estimated a 128-sample self-path FIR and failed its live development-gap gate. |
 | **Hz / kHz** | Hertz / kilohertz | Cycles per second / thousands of cycles per second. |
 | **LPC** | Linear predictive coding | Estimates a spectral envelope and candidate formants from past samples. Used in the vowel perception route. |
 | **PCM** | Pulse-code modulation | The decoded sequence of audio sample amplitudes. |
@@ -153,6 +154,8 @@ failed society.
 | **YIN** | Name of a pitch-estimation algorithm, not an acronym used here | Supplies pitch and voiced-window coverage for the vocal gate. |
 | **Spectral centroid** | — | Frequency-weighted center of spectral energy; loosely related to brightness. |
 | **Spectral flux** | — | Amount of spectral change from one frame to the next. |
+| **Hann window** | — | A smooth taper applied before an FFT to reduce edge discontinuities. The final natural-speech workspace metric applies one to each 600 ms capture. |
+| **Spectral-shape distance** | — | Euclidean distance between mean-centered, L2-normalized log-band energy vectors. In spectral-v3 it compares a current event with the stored sensory trace for the matching efference identity. |
 | **Clipping** | — | Samples reaching full digital scale. Clipping means information may have been lost. |
 | **Frame** | — | A short block of audio analyzed as one observation, commonly 25 or 50 ms here. |
 | **Sample rate** | — | Samples captured per second, commonly 16,000 Hz on the current XVF3800 path. |
@@ -189,6 +192,7 @@ failed society.
 | **RBF** (radial basis function) | A locally tuned nonlinear activation based on distance from a prototype. |
 | **Residual** | Difference between what was observed and what was predicted. |
 | **Ridge regression** | Linear fitting with an L2 penalty that discourages excessively large coefficients. |
+| **L2 norm / normalization** | Euclidean vector length / division by that length. Spectral-v3 uses it to remove overall gain while retaining relative 12-band shape. |
 | **Transductive** | Uses unlabeled examples from the specific target batch when adapting or normalizing. |
 | **Winner-local update** | Only the nearest prototype changes for a training observation. It is a local competitive-learning rule, not global backpropagation. |
 | **Backpropagation** | Gradient-based credit assignment through multiple model layers. The bounded local codebook candidate did not use it. |
@@ -202,6 +206,8 @@ failed society.
 | **Bounded workspace** | Capacity-limited memory for active events. “Bounded” means memory cannot grow without limit. |
 | **Corollary discharge** | An internal signal about a self-generated action, used to predict its sensory consequence. |
 | **Efference copy** | A copy of a motor command supplied to prediction. In this project it marks known self-generated audio. |
+| **Exact efference** | The same commanded waveform and identity used in an earlier self-calibration replay. The supported natural-speech H3 result depends on this narrow condition; it is not generalized self-voice learning. |
+| **Sensory template** | A bounded stored consequence of an earlier action. Spectral-v3 stores 12 normalized band-energy scalars per active self identity, with three workspace slots. |
 | **Dropout** | Deliberately missing observations used to test representation stability. This is not neural-network dropout unless explicitly stated. |
 | **Local predictive learning** | Updates predictions using nearby observations and errors without a large globally trained sequence model. |
 | **Motor plan** | Parameters used to synthesize a target sound, currently vowel source/formant settings. |

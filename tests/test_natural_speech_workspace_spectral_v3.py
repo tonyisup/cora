@@ -1,5 +1,6 @@
 from pathlib import Path
 from threading import Event
+import json
 import time
 
 import numpy as np
@@ -31,6 +32,22 @@ def test_spectral_v3_protocol_is_final_bounded_fresh_gate() -> None:
     assert protocol["maximum_total_playback_seconds"] == pytest.approx(11.04)
     assert protocol["frozen_threshold"] == FROZEN_THRESHOLD
     assert protocol["template_memory"]["scalars_per_slot"] == 12
+
+
+def test_retained_fresh_spectral_v3_result_passes_narrow_gate() -> None:
+    result = json.loads(
+        Path(
+            "docs/evidence/2026-07-11-natural-speech-workspace-spectral-v3-real-result.json"
+        ).read_text()
+    )
+    selected = result["reports"]["3"]
+    assert result["verdict"] == "real_io_acceptance_passed"
+    assert result["promotion_allowed"] is True
+    assert all(result["criteria"].values())
+    assert result["capture_quality"]["total_clipped_samples"] == 0
+    assert selected["scheduled_identity_plus_spectral_template"]["metrics"]["f1"] == 1.0
+    assert selected["flat"]["metrics"]["f1"] == 0.8
+    assert selected["fixed_self_window"]["metrics"]["world_recall"] == 0.5
 
 
 @pytest.mark.skipif(

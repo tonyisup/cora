@@ -18,7 +18,7 @@ the repository.
 | Real-audio evaluation | First replay passed | WAV and prior-art captured NumPy PCM are measured directly with dev/held-out provenance; developmental-speech breadth is still open |
 | Parentese-relevant saliency | Mixed; not promoted | Cohort alignment remains the best development candidate at F1 0.681. A later locally learned nonlinear temporal codebook was healthy but reached only F1 0.535. The vocal front gate remains positive; reserved confirmation fieldsites remain untouched |
 | Local predictive hierarchy | H2 supported within tested boundaries | Natural event transfer replicated across Wellington and MEN; a separate real room run with known efference masks retained four states through 10/15/20% dropout while improving vowels `+0.614` and tones `+0.474`. Unknown-timing world dropout and semantics remain outside scope |
-| Workspace binding | H3 supported within tested boundaries | The preregistered -18 dB synchronized run passed every classifier and zero-clipping gate: scheduled F1/recall/specificity 1.0/1.0/1.0 versus flat F1 0.8 and fixed-window F1 0.667; capacity improved through three slots and plateaued at four |
+| Workspace binding | H3 supported within tested boundaries | Structured tones passed at zero clipping. A later final natural-speech spectral-template run also passed on three fresh exact-efference pairs: scheduled F1/recall/specificity 1.0/1.0/1.0 versus flat F1 0.8 and fixed-window recall 0.5; capacity improved through three slots and plateaued at four |
 | Analysis by synthesis | Recorded-human gate failed; mechanism decision required | Clean synthesis remained 100%, but the preregistered VocalSet confirmation scored 36%; disjoint sung and ordinary-speech development peaked at 56% and 57.2%, so both reserved confirmation sets remain untouched and H4 stays open |
 | Efficiency | H5 supported within tested boundary | A six-fieldsite speech panel kept salient p95 at 10.17–10.38 ms with clean playback intervals, but two runs clipped only in trailing quiet and failed whole-capture integrity. Same-host energy was 27.36 µJ/frame versus 11.08 µJ/frame for the simpler baseline |
 
@@ -590,8 +590,21 @@ developmental language learning.
   Attempt 3 again completed all 15 trials with identical classifier metrics and
   zero clipped samples across every capture. All original classification gates
   and the added quality gate passed, supporting H3 within this structured tone,
-  fixed-room, fixed-geometry boundary. Natural speech, arbitrary spectra, and
-  geometry transfer remain untested.
+  fixed-room, fixed-geometry boundary.
+- The natural-speech extension retained two preregistered failures before its
+  final result. Chirp-conditioned FIR subtraction had no development gap and
+  clipped three captures. A raw prior-replay PCM template narrowed the gap to
+  `-0.0093` but still failed and clipped one overlap. The final candidate froze
+  a phase- and gain-invariant 12-band spectral-shape distance and its numeric
+  threshold on those now-spent captures, then evaluated three fresh source
+  pairs once. Fresh repeated-self distances were `0.0687/0.0100/0.0419`, all
+  below the `0.0790` threshold; overlaps were `0.4409/0.2357/0.1481`, all above
+  it. Scheduled capacity-3 F1/recall/specificity were `1.0/1.0/1.0`, flat F1
+  was `0.8`, fixed-window world recall was `0.5`, capacity `1/2/3/4` reached
+  `0.857/0.923/1.0/1.0`, and all 12 captures had zero clipping. This extends
+  H3 only to exact-efference speech binding after one prior replay at the same
+  fixed room and geometry; generalized self voice, arbitrary events, geometry
+  transfer, semantics, and neural dynamics remain untested.
 - Theta/gamma scheduling is an event-timing model, not measured neural dynamics.
 - The vowel table uses adult reference targets and clean synthetic success does
   not imply recorded infant/adult speech performance.
@@ -618,6 +631,7 @@ developmental language learning.
 - `natural_event_prediction.py` — causal quiet/onset/stable/change states and cross-fieldsite transfer
 - `real_workspace_binding.py` — bounded self/world binding design audit over retained real captures
 - `structured_workspace_binding.py` — device-agnostic self/world/overlap H3 protocol and fake gate
+- `natural_speech_workspace_spectral_v3.py` — final bounded 12-band exact-efference speech-binding gate
 - `register_saliency.py` — long-window vocal, speech/song, and adaptive IDS gates
 - `io/motor_plan.py` — source-filter synthesis, LPC perception, and vowel gate
 - `benchmark.py` — explicit-boundary event-pipeline microbenchmark
