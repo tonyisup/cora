@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import csv
+import json
 import wave
 
 import numpy as np
+import pytest
 
-from cora_infans.io.ids_corpus import build_ids_manifest
+from cora_infans.io.ids_corpus import build_ids_manifest, collect_spent_ids_hashes
 
 
 def _write_silence(path) -> None:
@@ -53,3 +55,30 @@ def test_ids_manifest_can_include_song_conditions(tmp_path) -> None:
         "adult_directed_song": 1,
         "infant_directed_song": 1,
     }
+
+
+def test_spent_ids_hash_collection_enforces_exact_frozen_boundary(tmp_path) -> None:
+    spent = [
+        "ACO", "ARA", "BEJ", "HAD", "JEN", "KRA", "LIM", "MBE", "MEN",
+        "MES", "NYA", "PNG", "QUE", "SPA", "TOP", "TSI", "TUR", "VAN",
+    ]
+    records = {}
+    index = 0
+    while len(records) < 200:
+        fieldsite = spent[index % len(spent)]
+        participant = (index // (len(spent) * 4)) + 1
+        condition = "ABCD"[(index // len(spent)) % 4]
+        records[f"{fieldsite}{participant:02d}{condition}.wav"] = "a" * 64
+        index += 1
+    (tmp_path / "result.json").write_text(
+        json.dumps({"selected_file_sha256": records})
+    )
+
+    assert collect_spent_ids_hashes(tmp_path) == dict(sorted(records.items()))
+
+    records["WEL01B.wav"] = "b" * 64
+    (tmp_path / "result.json").write_text(
+        json.dumps({"selected_file_sha256": records})
+    )
+    with pytest.raises(ValueError, match="reserved IDS fieldsite"):
+        collect_spent_ids_hashes(tmp_path)

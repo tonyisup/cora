@@ -16,7 +16,7 @@ the repository.
 |---|---|---|
 | Reproducible substrate | Implemented | Synthetic/live contracts, deterministic reports, and tests exist |
 | Real-audio evaluation | First replay passed | WAV and prior-art captured NumPy PCM are measured directly with dev/held-out provenance; developmental-speech breadth is still open |
-| Parentese-relevant saliency | Mixed; not promoted | The final 16-fieldsite refit reached F1 0.600 on untouched Enga/Turku clips and failed its 0.65 gate; the separately tested vocal front gate remains positive |
+| Parentese-relevant saliency | Mixed; not promoted | The final paired-summary refit reached F1 0.600 on untouched Enga/Turku clips; a genuinely temporal six-phase retry then reached only F1 0.289 after ceiling-constrained development threshold selection. The vocal front gate remains positive |
 | Local predictive hierarchy | H2 supported within tested boundaries | Natural event transfer replicated across Wellington and MEN; a separate real room run with known efference masks retained four states through 10/15/20% dropout while improving vowels `+0.614` and tones `+0.474`. Unknown-timing world dropout and semantics remain outside scope |
 | Workspace binding | H3 supported within tested boundaries | The preregistered -18 dB synchronized run passed every classifier and zero-clipping gate: scheduled F1/recall/specificity 1.0/1.0/1.0 versus flat F1 0.8 and fixed-window F1 0.667; capacity improved through three slots and plateaued at four |
 | Analysis by synthesis | Recorded-human gate failed; mechanism decision required | Clean synthesis remained 100%, but the preregistered VocalSet confirmation scored 36%; disjoint sung and ordinary-speech development peaked at 56% and 57.2%, so both reserved confirmation sets remain untouched and H4 stays open |
@@ -458,6 +458,12 @@ developmental language learning.
   two later fieldsites, then failed on Vanuatu; larger-data revisions failed a
   song ceiling and a final pooled-F1 gate. It requires batch calibration and is
   not a universal or cold-start parentese detector.
+- A six-phase, order-preserving trajectory model was then evaluated with
+  leave-one-fieldsite-out fitting on all 200 already-spent vocal clips. It
+  reached F1 `0.302` at zero thresholds and only `0.289` after out-of-field
+  threshold selection under the existing FPR ceilings. No Wellington, San
+  Diego, or Toronto audio was accessed; another attempt must change the
+  temporal learning mechanism or protocol rather than retune this candidate.
 - The upstream vocal gate passed selected diffuse and impulsive controls but
   admitted one crackling-fire clip in fold 3; it rejected all selected fold-4
   controls in the later joint test.

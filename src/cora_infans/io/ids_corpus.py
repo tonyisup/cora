@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import csv
 import hashlib
+import json
 import re
 from collections import Counter
 from pathlib import Path
@@ -28,6 +29,46 @@ IDS_LABELS = {
     "C": "adult_directed_song",
     "D": "adult_directed_speech",
 }
+
+IDS_SPENT_FIELDSITES = frozenset(
+    {
+        "ACO", "ARA", "BEJ", "HAD", "JEN", "KRA", "LIM", "MBE", "MEN",
+        "MES", "NYA", "PNG", "QUE", "SPA", "TOP", "TSI", "TUR", "VAN",
+    }
+)
+IDS_RESERVED_FIELDSITES = frozenset({"WEL", "USD", "TOR"})
+
+
+def collect_spent_ids_hashes(evidence_dir: str | Path) -> dict[str, str]:
+    """Collect the exact hash-pinned set of already-spent Music Lab WAVs."""
+
+    root = Path(evidence_dir)
+    selected: dict[str, str] = {}
+    for path in sorted(root.glob("*.json")):
+        try:
+            payload = json.loads(path.read_text())
+        except json.JSONDecodeError:
+            continue
+        records = payload.get("selected_file_sha256")
+        if not isinstance(records, dict):
+            continue
+        for name, digest in records.items():
+            if not isinstance(name, str) or IDS_FILENAME.fullmatch(name) is None:
+                continue
+            fieldsite = name[:3].upper()
+            if fieldsite in IDS_RESERVED_FIELDSITES:
+                raise ValueError(f"reserved IDS fieldsite appeared in evidence: {name}")
+            if fieldsite not in IDS_SPENT_FIELDSITES:
+                continue
+            if not isinstance(digest, str) or not re.fullmatch(r"[0-9a-f]{64}", digest):
+                raise ValueError(f"invalid IDS evidence hash: {name}")
+            previous = selected.get(name)
+            if previous is not None and previous != digest:
+                raise ValueError(f"conflicting IDS evidence hashes: {name}")
+            selected[name] = digest
+    if len(selected) != 200:
+        raise ValueError(f"expected 200 already-spent IDS clips, found {len(selected)}")
+    return dict(sorted(selected.items()))
 
 
 def _participant_split(participant_id: str, held_out_fraction: float) -> str:

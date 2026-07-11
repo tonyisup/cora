@@ -231,6 +231,14 @@ Current environmental-control result:
   recall activates the preregistered stop rule. The remaining Wellington, San
   Diego, and Toronto fieldsites will not be consumed by another threshold/refit
   iteration of this feature family.
+- the first genuinely order-preserving retry represented each utterance as six
+  successive prosodic phases and evaluated all 200 already-spent clips with
+  leave-one-fieldsite-out fitting. Its zero-threshold F1 was only `0.302` with
+  FPR `0.225`; selecting cutoffs solely from the out-of-field predictions met
+  the FPR ceilings but reduced F1 to `0.289`, recall to `0.224`, and retained a
+  minimum fieldsite F1 of `0.0`. Vocal recall remained `0.995`. This temporal
+  candidate is falsified, and Wellington, San Diego, and Toronto remain
+  untouched.
 
 ### Stage 3 — Predictive hierarchy
 

@@ -13,6 +13,51 @@ RangeFetcher = Callable[[int, int], bytes]
 EOCD_SIGNATURE = b"PK\x05\x06"
 CENTRAL_SIGNATURE = b"PK\x01\x02"
 LOCAL_SIGNATURE = b"PK\x03\x04"
+UINT32_MODULUS = 1 << 32
+
+
+def _resolve_wrapped_central_offset(
+    declared_offset: int,
+    *,
+    central_size: int,
+    eocd_offset: int,
+) -> int:
+    """Resolve Info-ZIP's unsigned-32-bit offset wrapping for large archives.
+
+    Some archives larger than 4 GiB retain classic EOCD/member records and
+    wrap physical offsets modulo 2**32 instead of emitting ZIP64 records. The
+    central directory is required to end immediately before the EOCD here, so
+    the wrapped offset can be recovered without guessing.
+    """
+
+    if declared_offset + central_size > eocd_offset:
+        raise ValueError("remote ZIP central directory is out of bounds")
+    resolved = declared_offset
+    while resolved + central_size < eocd_offset:
+        resolved += UINT32_MODULUS
+    if resolved + central_size != eocd_offset:
+        raise ValueError("remote ZIP central directory is not contiguous with EOCD")
+    return resolved
+
+
+def _unwrap_member_offset(
+    raw_offset: int,
+    *,
+    previous_raw_offset: int | None,
+    offset_epoch: int,
+    wrapped_archive: bool,
+) -> tuple[int, int]:
+    """Recover a monotonically ordered local-header offset after one wrap."""
+
+    if (
+        wrapped_archive
+        and previous_raw_offset is not None
+        and raw_offset < previous_raw_offset
+    ):
+        if previous_raw_offset < 0xF0000000 or raw_offset > 0x0FFFFFFF:
+            raise ValueError("ambiguous wrapped ZIP member ordering")
+        offset_epoch += UINT32_MODULUS
+    return raw_offset + offset_epoch, offset_epoch
 
 
 @dataclass(frozen=True)
@@ -69,14 +114,21 @@ class RemoteZipIndex:
             raise ValueError("multi-disk ZIP archives are not supported")
         if comment_length != len(tail) - eocd_offset - 22:
             raise ValueError("remote ZIP EOCD comment length is inconsistent")
-        if central_offset + central_size > archive_size:
-            raise ValueError("remote ZIP central directory is out of bounds")
+        absolute_eocd_offset = tail_start + eocd_offset
+        central_offset = _resolve_wrapped_central_offset(
+            central_offset,
+            central_size=central_size,
+            eocd_offset=absolute_eocd_offset,
+        )
         central = fetch_range(central_offset, central_offset + central_size - 1)
         if len(central) != central_size:
             raise ValueError("remote ZIP central-directory range has the wrong length")
 
         members: dict[str, RemoteZipMember] = {}
         offset = 0
+        previous_raw_offset: int | None = None
+        member_offset_epoch = 0
+        wrapped_archive = central_offset >= UINT32_MODULUS
         for _ in range(total_entries):
             if central[offset : offset + 4] != CENTRAL_SIGNATURE:
                 raise ValueError("invalid ZIP central-directory member signature")
@@ -106,13 +158,22 @@ class RemoteZipIndex:
             name = name_bytes.decode(encoding)
             if name in members:
                 raise ValueError(f"duplicate ZIP member: {name}")
+            resolved_local_offset, member_offset_epoch = _unwrap_member_offset(
+                local_header_offset,
+                previous_raw_offset=previous_raw_offset,
+                offset_epoch=member_offset_epoch,
+                wrapped_archive=wrapped_archive,
+            )
+            previous_raw_offset = local_header_offset
+            if resolved_local_offset >= central_offset:
+                raise ValueError(f"ZIP local header is out of bounds: {name}")
             members[name] = RemoteZipMember(
                 name=name,
                 compression=compression,
                 crc32=crc32,
                 compressed_size=compressed_size,
                 uncompressed_size=uncompressed_size,
-                local_header_offset=local_header_offset,
+                local_header_offset=resolved_local_offset,
             )
             offset = start + name_length + extra_length + comment_length
         if offset != len(central):
