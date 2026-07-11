@@ -1,0 +1,36 @@
+{
+  "decision": "h4_bounded_local_representation_family_disposition",
+  "date": "2026-07-11",
+  "status": "final_project_governance_decision",
+  "user_selection": {
+    "option": 1,
+    "label": "Record bounded-local H4 as falsified",
+    "selected_after_reviewing_alternatives": true
+  },
+  "evidence_basis": [
+    "docs/evidence/2026-07-11-h4-continuous-inverse-synthesis-development-result.json",
+    "docs/evidence/2026-07-11-h4-option-d-synthetic-result.json",
+    "docs/evidence/2026-07-11-h4-option-f-expanded-band-plant-result.json",
+    "docs/evidence/2026-07-11-h4-option-g-expanded-local-closure-result.json",
+    "docs/evidence/2026-07-11-h4-option-h-smooth-local-closure-result.json"
+  ],
+  "disposition": {
+    "bounded_local_h4_family_falsified_within_tested_scope": true,
+    "active_h4_experimentation_stopped": true,
+    "successful_factorized_plant_retained_as_infrastructure_only": true,
+    "h4_promoted": false,
+    "categorical_identity_substituted_for_continuous_closure": false,
+    "global_nonlinear_representation_authorized": false,
+    "same_family_tuning_authorized": false,
+    "recorded_confirmation_access_authorized": false
+  },
+  "claim_boundary": "The project falsifies the tested bounded-local analysis-by-synthesis representation family as sufficient for its continuous H4 closure gates. It does not claim that every possible biological or globally learned perception-production mechanism is false.",
+  "protected_data": {
+    "vocalset_untouched": ["female6", "female7", "female9", "male9", "male11"],
+    "cmu_confirmation_untouched": ["rms", "awb", "axb", "eey", "ljm"],
+    "cmu_reserve_untouched": ["aew", "ahw", "aup", "fem", "gka", "lnh", "rxr", "slp"]
+  },
+  "recorded_audio_accessed_by_decision": false,
+  "protected_data_accessed_by_decision": false,
+  "promotion_allowed": false
+}

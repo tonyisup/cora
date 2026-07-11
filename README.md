@@ -19,7 +19,7 @@ the repository.
 | Parentese-relevant saliency | Mixed; not promoted | Cohort alignment remains the best development candidate at F1 0.681. A later locally learned nonlinear temporal codebook was healthy but reached only F1 0.535. The vocal front gate remains positive; reserved confirmation fieldsites remain untouched |
 | Local predictive hierarchy | H2 supported within tested boundaries | Natural event transfer replicated across Wellington and MEN; a separate real room run with known efference masks retained four states through 10/15/20% dropout while improving vowels `+0.614` and tones `+0.474`. Unknown-timing world dropout and semantics remain outside scope |
 | Workspace binding | H3 supported within tested boundaries | Structured tones and exact-utterance natural speech passed at zero clipping. A later no-replay same-source forward model failed on three unseen commands at F1/recall/specificity `0.727/0.667/0.667`, so the exact-efference boundary remains |
-| Analysis by synthesis | H4 open; local branches stopped | Hard and smooth local learners both preserved `20/20` vowel identities but failed continuous closure. Smooth local regression reached forward distance `0.293`, agreement `0.40`, and F1/F2/F3 MAE `15/90/163 Hz`; a further mechanism now requires a VISION decision |
+| Analysis by synthesis | Bounded-local H4 family falsified | Hard and smooth local learners both preserved `20/20` vowel identities but failed continuous closure. The user selected the conservative disposition: stop active H4 work, retain the plant as infrastructure, and do not substitute categorical identity or a global model without revising VISION |
 | Efficiency | H5 supported within tested boundary | A six-fieldsite speech panel kept salient p95 at 10.17–10.38 ms with clean playback intervals, but two runs clipped only in trailing quiet and failed whole-capture integrity. Same-host energy was 27.36 µJ/frame versus 11.08 µJ/frame for the simpler baseline |
 
 New to the terminology? Start with the [data dictionary](docs/DATA_DICTIONARY.md),
@@ -689,3 +689,8 @@ The disjoint smooth-local Option H candidate also failed and often underperforme
 its nearest-exemplar baseline. Further local kernel/density/search retries are
 stopped. A global nonlinear representation or relaxed closure claim would
 change the governing research contract.
+
+The final [H4 governance decision](docs/evidence/2026-07-11-h4-bounded-local-family-disposition.json)
+records the bounded-local representation family as falsified within tested
+scope. Active H4 work is stopped and all reserved confirmation data remains
+untouched.

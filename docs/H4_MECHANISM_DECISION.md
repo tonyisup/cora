@@ -1,10 +1,13 @@
 # H4 mechanism decision
 
-Status: Option B and the first frozen Option D candidate both failed their
-preregistered gates. Option D passed local forward generalization but failed
-plant calibration and inverse closure. Protected confirmation access remains
-unauthorized. Both results are retained; same-data parameter or representation
-retries are prohibited.
+Status: final disposition selected. The tested bounded-local H4 representation
+family is recorded as falsified within scope, and active H4 experimentation is
+stopped. Protected confirmation access remains unauthorized.
+
+The authoritative
+[governance artifact](evidence/2026-07-11-h4-bounded-local-family-disposition.json)
+records the user's selection of Option 1 after reviewing stop, global-model,
+and weakened-claim alternatives.
 
 This memo does not authorize another experiment and does not change
 [VISION.md](../VISION.md). It records the evidence-backed fork reached after the
@@ -234,3 +237,19 @@ or search retry would tune the failed family. A global nonlinear encoder,
 supervised articulatory inversion, or relaxed continuous-closure claim would
 materially revise [VISION.md](../VISION.md) and requires an explicit user
 decision. Active H4 experimentation stops here meanwhile.
+
+## Final disposition
+
+The user selected: **record bounded-local H4 as falsified**.
+
+The project therefore concludes that its tested fixed-formant, continuous
+acoustic-coordinate, hard winner-local, and smooth exemplar-local mechanisms do
+not satisfy the continuous H4 perception-production closure target. Perfect
+post-hoc vowel identity in Options G and H does not override their failed
+forward, equivalence, and formant gates.
+
+The successful Option F factorized plant/readout remains reusable synthetic
+infrastructure, but it is not evidence that H4 closed. No further local
+capacity, density, kernel, threshold, or search retry is authorized. A global
+nonlinear mechanism or weaker categorical hypothesis would require a future
+explicit VISION revision. Protected VocalSet and CMU material remains untouched.

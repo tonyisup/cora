@@ -44,6 +44,12 @@ def test_consolidated_status_links_exist_and_preserve_pending_decisions() -> Non
             / "docs/evidence/2026-07-11-stage2-reserved-fieldsite-provenance-correction.json"
         ).read_text()
     )
+    h4_disposition = json.loads(
+        (
+            root
+            / "docs/evidence/2026-07-11-h4-bounded-local-family-disposition.json"
+        ).read_text()
+    )
 
     assert predictive["development_candidate_ready"] is False
     assert predictive["confirmation_audio_or_metadata_accessed"] is False
@@ -66,5 +72,12 @@ def test_consolidated_status_links_exist_and_preserve_pending_decisions() -> Non
     assert provenance["repository_wide_filename_audit"][
         "toronto_selected_clip_ids_found"
     ] is False
+    assert h4_disposition["user_selection"]["option"] == 1
+    assert h4_disposition["disposition"][
+        "bounded_local_h4_family_falsified_within_tested_scope"
+    ] is True
+    assert h4_disposition["disposition"]["active_h4_experimentation_stopped"] is True
+    assert h4_disposition["disposition"]["global_nonlinear_representation_authorized"] is False
+    assert h4_disposition["protected_data_accessed_by_decision"] is False
     assert "Stage 2 disposition pending" in text
     assert "H4 continuous inverse-synthesis outcome" in text

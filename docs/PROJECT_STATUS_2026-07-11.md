@@ -16,9 +16,9 @@ For acronyms, corpus codes, metrics, and common report fields, see the
   evidence, but four families of cross-cultural register models failed to
   generalize reliably.
 - H2, H3, and H5 are supported only inside their measured boundaries.
-- H4 remains open, but active local-mechanism work is stopped. Both hard and
-  smooth local learners preserved perfect vowel identity while failing
-  continuous forward and equivalence-aware closure.
+- The tested bounded-local H4 representation family is formally falsified
+  within scope. Active H4 work is stopped; the passed plant is infrastructure
+  only, not closure evidence.
 - No new reserved Stage 2 or H4 confirmation data was consumed after its
   applicable development stop rule fired. Wellington had already been consumed
   for a separate H2 target and is not fieldsite-pristine for Stage 2.
@@ -32,7 +32,7 @@ For acronyms, corpus codes, metrics, and common report fields, see the
 | 2 — Parentese-relevant saliency | Mixed; not promoted | [narrow Beijing confirmation](evidence/2026-07-10-ids-confirmation.json), [Mentawai/Toposa mode-scoped pass](evidence/2026-07-10-mode-scoped-register-result.json), [vocal front-gate pass](evidence/2026-07-10-yin-vocal-gate-v2-result.json) | [final paired-summary failure](evidence/2026-07-10-expanded-register-v6-result.json), [six-phase failure](evidence/2026-07-11-temporal-register-development-result.json), [predictive-dynamics failure](evidence/2026-07-11-predictive-register-dynamics-result.json), [cohort-adaptive failure](evidence/2026-07-11-cohort-adaptive-register-result.json), and [nonlinear-codebook failure](evidence/2026-07-11-nonlinear-predictive-codebook-result.json) block general promotion |
 | 3 — Predictive hierarchy | H2 supported within tested boundaries | Natural transfer replicated on Wellington and MEN; controlled real known-efference dropout retained four states and improved tone/vowel prediction | Unknown dropout timing, arbitrary missing world input, semantics, and room transfer remain outside the claim |
 | 4 — Workspace binding | H3 supported within structured-tone and exact-efference speech boundaries | [structured attempt 3](evidence/2026-07-10-structured-workspace-real-attempt-3-result.json) and the [fresh spectral-template v3 run](evidence/2026-07-11-natural-speech-workspace-spectral-v3-real-result.json) both passed scheduled F1/recall/specificity and zero-clipping gates | A [no-replay same-source extension](evidence/2026-07-11-h3-same-source-forward-model-real-result.json) failed at F1/recall/specificity `0.727/0.667/0.667`; the supported natural result still requires a prior replay of the exact utterance and does not establish generalized self voice, semantics, transfer, or neural dynamics |
-| 5 — Perception-production closure | H4 open; local family stopped | Option F passed the plant; Options G and H each preserved `20/20` identities | [Option H](evidence/2026-07-11-h4-option-h-smooth-local-closure-result.json) worsened forward distance to `0.293`, beat nearest-exemplar only `0.479`, and failed agreement/formants at `0.40` and `15/90/163 Hz`; global/nonlocal work requires a VISION decision |
+| 5 — Perception-production closure | Bounded-local H4 family falsified | Option F passed the plant; Options G and H each preserved `20/20` identities | [Final disposition](evidence/2026-07-11-h4-bounded-local-family-disposition.json) stops active H4 after failed continuous closure; global/nonlocal or categorical alternatives require a future VISION revision |
 | 6 — Real-time efficiency | H5 supported within measured host boundary | Quiet and structured callback gates passed; [lower-volume natural-speech gate](evidence/2026-07-11-stage6-natural-speech-hardware-volume-diagnostic-result.json) passed at 10.34–10.42 ms salient p95; [six-fieldsite timing panel](evidence/2026-07-11-stage6-diverse-natural-speech-result.json) retained 10.17–10.38 ms salient p95 with clean playback intervals; [energy result](evidence/2026-07-11-stage6-energy-result.json) is measured | Two diverse-panel runs clipped only in trailing quiet and failed whole-capture integrity; energy is a 2.47× baseline cost; XMOS internal, wall-plug, acoustic, and cross-device energy remain open |
 
 ## H3 same-source generalization failure
@@ -282,16 +282,13 @@ include:
 - `22bc25f` — frozen Option H smooth-local preregistration.
 - `f9c2136` — frozen Option H implementation before metrics.
 
-## Decisions required before further Stage 2 or H4 empirical work
+## Decision required before further Stage 2 empirical work
 
 1. Decide whether Stage 2 should now record broad cross-cultural register
    detection as falsified or authorize a deep/global mechanism outside the
    current local-learning contract.
-2. Decide whether H4 should record the bounded-local representation family as
-   falsified or revise VISION.md to authorize a global nonlinear representation
-   or weaker categorical closure claim. Same-family tuning and protected-data
-   access are not options.
 
-Until those decisions are made, no pristine USD/TOR or additional WEL
-confirmation data should be fetched and no same-family threshold,
+The H4 decision is complete: the bounded-local family is falsified and active
+H4 work is stopped. Until the Stage 2 decision is made, no pristine USD/TOR or
+additional WEL confirmation data should be fetched and no same-family threshold,
 representation, or hyperparameter retry should be run.

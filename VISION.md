@@ -76,6 +76,12 @@ The first primitive set is the five-vowel inventory `a/e/i/o/u`. A fixed adult
 formant table is a calibration scaffold, not infant motor learning or a DIVA
 implementation.
 
+Project disposition: the tested bounded-local representation family is
+falsified as sufficient for the continuous H4 closure gates, and active H4 work
+is stopped. The factorized plant is retained as infrastructure only. A global
+nonlinear representation or weaker categorical claim would require an explicit
+revision to this vision.
+
 ### H5 — Efficient embodied operation
 
 Offloading low-level DSP and using bounded local state can provide useful
@@ -613,8 +619,8 @@ Current structured Cora protocol:
 
 ### Stage 5 — Perception-production closure
 
-Status: H4 remains open; three frozen mechanism candidates failed. The latest
-geometric candidate was synthetic-only and did not authorize recorded speech.
+Status: bounded-local H4 family falsified within tested scope; active H4 work
+stopped by explicit governance decision. Protected data remains untouched.
 
 Required evidence:
 
@@ -686,13 +692,13 @@ Current recorded-human result:
   `15/90/163 Hz` F1/F2/F3 MAE. Further local density/kernel/search retries are
   blocked as same-family tuning.
 
-H4 remains open, but the fixed-formant, continuous acoustic-coordinate, and
-first geometric/local-forward candidates are retained failures; the factorized
-plant is also stopped at its stricter all-state gate. Tuning any of them after
-observing their frozen outcomes is prohibited. More tuning toward a
-learned phone classifier—or changing the five-vowel mapping after seeing these
-errors—risks replacing the narrow perception-production closure claim with
-general supervised identity classification. No motor-learning claim is made.
+The project now records the tested bounded-local H4 representation family as
+falsified for its continuous closure target. This disposition does not claim
+that every possible perception-production mechanism is false, but it ends
+active H4 experimentation under the current vision. The successful factorized
+plant is infrastructure only. Same-family tuning, a global nonlinear encoder,
+a learned phone classifier, or replacement of continuous closure with
+categorical identity is not authorized. No motor-learning claim is made.
 
 ### Stage 6 — Real-time efficiency
 
