@@ -1,0 +1,107 @@
+{
+  "experiment": "h3_same_source_forward_model_fresh_live_design",
+  "date": "2026-07-11",
+  "status": "frozen_before_live_implementation_or_fresh_capture",
+  "authorization": {
+    "basis": "User approved proceeding with H3; standing authorization covers bounded live audio runs while the frozen physical geometry remains unchanged.",
+    "bounded_playback_capture_authorized": true,
+    "separate_hash_bound_real_preregistration_required": true
+  },
+  "parent_development_result": {
+    "path": "docs/evidence/2026-07-11-h3-same-source-forward-model-development-result.json",
+    "sha256": "c753e877fb8371615de7c44830412a16d315257a4c58081912dbbeb79b55e85b",
+    "commit": "450669d",
+    "all_development_gates_passed": true
+  },
+  "research_question": "Can the 13-scalar forward model frozen from nine earlier commands distinguish self-only from world overlap for three new commanded utterances in a later live session without hearing a calibration replay of any new utterance?",
+  "frozen_model": {
+    "derivation": "Arithmetic mean of the nine leave-one-command-out path signatures in the retained development result; algebraically identical to one running-mean update over all nine spent calibration pairs.",
+    "path_signature": [-3.541044649854652, -1.4608502433245825, 0.21202144571594092, -0.7031888845356769, -0.810325713732748, -0.265919924154207, 1.7705916353027555, 2.2948114215550075, 0.6793604152251167, 1.396976527801285, 0.7414630591118022, -0.31389508911003894],
+    "calibration_count": 9,
+    "state_scalars": 13,
+    "per_new_utterance_sensory_templates": 0,
+    "updates_during_fresh_run": 0,
+    "selected_world_evidence_threshold": 0.3005643307398186,
+    "threshold_source": "spent development only",
+    "fresh_captures_may_change_model_or_threshold": false
+  },
+  "source_selection": {
+    "root": "/private/tmp/cora-ids-spent-200",
+    "corpus_content_status": "already spent by earlier non-H3 workflows; exact files unused in all prior H3 live panels",
+    "rule": "Exclude every prior H3 source filename. For self commands, sort remaining D speech filenames and choose the first file from each of the first three distinct fieldsites. For world sources, exclude those three fieldsites, sort remaining B speech filenames, and choose the first file from each of the first three distinct fieldsites. Require at least one 600 ms source window; do not substitute after freezing.",
+    "pairs": [
+      {
+        "index": 0,
+        "self": {"filename": "ACO02D.wav", "sha256": "37b51d8b8a6641bf77105f15b59c55987c7ccc6b704073c36da06d507fd377b5", "duration_seconds": 6.975170068027211},
+        "world": {"filename": "HAD01B.wav", "sha256": "3833e84bbf14de88af48fd2c2071b34c1d68eb19f86ce24cad25e27e87f17163", "duration_seconds": 13.82795918367347}
+      },
+      {
+        "index": 1,
+        "self": {"filename": "ARA11D.wav", "sha256": "e3dc3dbb1a24704e483272bb0a6b06e1415ba69e46bae360dae21a00b011708c", "duration_seconds": 1.0029478458049887},
+        "world": {"filename": "JEN03B.wav", "sha256": "04fbc60ea438db483274892c3378c67bda83b4a5e21f15996d1f5e6a1c9338fa", "duration_seconds": 2.008888888888889}
+      },
+      {
+        "index": 2,
+        "self": {"filename": "BEJ01D.wav", "sha256": "98edd12709f9bcd1630d73d788c4c3b354cd3130b6cddcbbeadac2c0bee79f1f", "duration_seconds": 12.018798185941042},
+        "world": {"filename": "KRA01B.wav", "sha256": "8cd3712cb93a3978aabbe6ed20668198b0befc25ea44a10bb6fd7854f3844db7", "duration_seconds": 5.910612244897959}
+      }
+    ],
+    "source_preparation": "Unchanged spectral-v3 rule: downmix, linearly resample to 16000 Hz, select the greatest-RMS non-overlapping 600 ms window with earliest tie breaking, remove mean, normalize self to target RMS 0.04/peak cap 0.20 and world to target RMS 0.10/peak cap 0.80.",
+    "runtime_labels_consumed": false
+  },
+  "protocol": {
+    "conditions_each_pair_in_order": ["self_probe", "world_only", "overlap"],
+    "self_calibration_trials": 0,
+    "trial_count": 9,
+    "scored_trial_count": 9,
+    "alignment_chirp_ms": 120,
+    "alignment_silence_ms": 100,
+    "speech_ms": 600,
+    "tail_silence_ms": 100,
+    "seconds_per_trial": 0.92,
+    "planned_total_playback_seconds": 8.28,
+    "planned_total_capture_seconds": 13.68,
+    "strategies": ["flat", "fixed_self_window", "scheduled_identity_plus_same_source_forward_model"],
+    "capacity_sweep": [1, 2, 3, 4],
+    "selected_capacity": 3
+  },
+  "representation": {
+    "command_input": "known commanded self-source 600 ms PCM",
+    "observation_input": "chirp-aligned two-channel microphone PCM downmixed to mono",
+    "feature_and_prediction": "The exact frozen 12-band centered-log-power transform and path-conditioned prediction from the development implementation.",
+    "world_evidence": "Euclidean distance between normalized predicted-self bands and normalized current capture bands; world-only evidence is 2.0 because it has no matching efference.",
+    "decision": "A bound event is suppressed only when distance is strictly below 0.3005643307398186; equality is world-usable.",
+    "runtime_condition_or_corpus_labels_consumed": false
+  },
+  "levels": {
+    "self_software_playback_gain_db": -24.0,
+    "world_software_playback_gain_db": -3.0,
+    "self_chirp_peak_absolute": 0.12,
+    "world_chirp_peak_absolute": 0.03,
+    "physical_controls_unchanged_from_spectral_v3": true,
+    "calibrated_spl_claimed": false
+  },
+  "hardware": {
+    "input": "XVF3800 :0, 16000 Hz, two fused host channels",
+    "self_source": "Mac mini Speakers centered 4 cm below the XVF3800, system volume 100 percent",
+    "world_source": "External Headphones device 2 at 180 degrees and 50 cm, mechanical knob approximately 50 percent",
+    "environment": "same semi-quiet room; laptop fan is known background"
+  },
+  "acceptance": {
+    "selected_capacity_scheduled_f1_min": 0.90,
+    "selected_capacity_scheduled_minus_flat_f1_min": 0.20,
+    "selected_capacity_world_recall_min": 0.90,
+    "selected_capacity_self_suppression_specificity_min": 0.90,
+    "fixed_window_world_recall_must_be_below_scheduled": true,
+    "capacity_one_f1_must_be_below_capacity_three": true,
+    "capacity_three_f1_must_equal_capacity_four": true,
+    "all_nine_captures_and_alignments_required": true,
+    "no_clipped_capture_samples_required": true,
+    "frozen_model_and_threshold_unchanged": true,
+    "all_source_and_artifact_hashes_verified": true,
+    "no_new_utterance_calibration_consumed": true
+  },
+  "run_policy": "After a hash-bound real preregistration, run all nine trials once. Retain any post-playback failure. Do not change the model, threshold, bands, source panel, levels, or geometry after observing fresh audio.",
+  "promotion_boundary": "A full pass extends H3 from exact-utterance replay to three unseen commanded utterances emitted by the same physical self source, using one prior-session bounded forward model at fixed geometry. It does not establish human speaker identity, Cora-generated speech, room or geometry transfer, arbitrary self sounds, semantics, calibrated SPL, or biological corollary discharge.",
+  "promotion_allowed_under_design_document": false
+}
