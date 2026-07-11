@@ -11,6 +11,7 @@ import pytest
 
 from cora_infans.operational_readiness import (
     EVIDENCE_FILES,
+    EXPECTED_EVIDENCE_SHA256,
     build_operational_readiness_report,
 )
 
@@ -22,6 +23,7 @@ def test_repository_operational_evidence_is_ready() -> None:
     assert report["operational_evidence_ready"] is True
     assert all(report["checks"].values())
     assert len(report["evidence_sha256"]) == len(EVIDENCE_FILES)
+    assert report["evidence_sha256"] == EXPECTED_EVIDENCE_SHA256
     assert report["stopped_programs"] == [
         "stage2_register_detection",
         "stage5_local_inverse_closure",
@@ -87,3 +89,4 @@ def test_operational_readiness_cli_fails_when_a_gate_is_false(tmp_path) -> None:
     assert result.returncode == 1
     assert report["operational_evidence_ready"] is False
     assert report["checks"]["stage6_retained_timing_gate_passed"] is False
+    assert report["checks"]["stage6_timing_sha256_matches_pin"] is False

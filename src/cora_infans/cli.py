@@ -12,7 +12,10 @@ from .operational_contract import (
     OPERATIONAL_CONTRACT,
     evaluate_stage6_operating_point,
 )
-from .operational_readiness import build_operational_readiness_report
+from .operational_readiness import (
+    build_operational_readiness_report,
+    repository_evidence_dir,
+)
 from .io.live_listener import LiveListener
 from .benchmark import benchmark_event_pipeline
 from .energy_workload import run_sustained_energy_workload
@@ -1813,7 +1816,7 @@ def validate_stage6_operating_point_cli(
 
 def operational_readiness_cli(args: list[str] | None = None) -> dict[str, object]:
     parsed = args or ["--operational-readiness"]
-    evidence_dir = "docs/evidence"
+    evidence_dir: str | Path = repository_evidence_dir()
     if len(parsed) == 3 and parsed[1] == "--evidence-dir":
         evidence_dir = parsed[2]
     elif len(parsed) != 1:

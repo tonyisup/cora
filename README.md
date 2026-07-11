@@ -36,7 +36,8 @@ Inspect the machine-enforced contract:
 python3 -m cora_infans --show-operational-contract
 ```
 
-Verify that every bounded operational stage has its required retained evidence:
+Verify that every bounded operational stage has its required retained evidence
+and that every artifact matches its frozen SHA-256 pin:
 
 ```bash
 python3 -m cora_infans --operational-readiness

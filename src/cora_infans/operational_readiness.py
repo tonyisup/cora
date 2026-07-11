@@ -23,6 +23,26 @@ EVIDENCE_FILES = {
     "stage6_energy": "2026-07-11-stage6-energy-result.json",
 }
 
+EXPECTED_EVIDENCE_SHA256 = {
+    "stage1_prior_art": "d913f7e433e949a2afa88cd0e85c83f14b98b824e30d0a24993aeaa1d27ac6b2",
+    "stage2_vocal_gate": "603cf12603f950515e1407bfac9b1a71c0137a2b6074087ecc7abb9888392068",
+    "stage2_disposition": "87b57720404c1e9bbd8cbdc395ffc6762447a6103628782a6283533422b6d835",
+    "stage3_dropout": "4f60aa7c9c44fe5ea8cdafaca705c12df8665659aeaa64671560eb0a68e39f9c",
+    "stage3_wellington": "25f05865c9f984081a3fbdb8005577827f067f070430c836d2d0003c7240882e",
+    "stage3_mentawai": "abaf369a8e8271344ffb34661aebe661f405955e8386edd87916607968e4c9c7",
+    "stage4_exact_efference": "0525fa614ca1ab1655415448eb0c9c7c2e2d4c357bdd73f723ae036fe8d821c7",
+    "stage5_plant": "991851cdf530e5cbbed5e345eadf9bb3d6f73df771b15f0078aa8a540bd5db88",
+    "stage5_disposition": "ee0bc6f649d15b6b5195e471953255ce04818979674bb24c3378c4a4015cdfd4",
+    "stage6_timing": "7f46030d3d159360cb3a5264124998f07db6a6fcf9760bd0b929ff1d469777f7",
+    "stage6_energy": "12b6ac10068267589b1aaf484ad30c96cd6ee4678e8155dc85cca5b267633011",
+}
+
+
+def repository_evidence_dir() -> Path:
+    """Return the evidence directory adjacent to this source checkout."""
+
+    return Path(__file__).resolve().parents[2] / "docs" / "evidence"
+
 
 def _load_evidence(root: Path, name: str) -> tuple[dict[str, object], str]:
     path = root / name
@@ -49,6 +69,9 @@ def build_operational_readiness_report(
     for role, filename in EVIDENCE_FILES.items():
         loaded[role], hashes[role] = _load_evidence(root, filename)
 
+    if set(EXPECTED_EVIDENCE_SHA256) != set(EVIDENCE_FILES):
+        raise ValueError("operational evidence hash-pin roles are incomplete")
+
     prior = loaded["stage1_prior_art"]
     vocal = loaded["stage2_vocal_gate"]
     stage2 = loaded["stage2_disposition"]
@@ -71,6 +94,10 @@ def build_operational_readiness_report(
         raise ValueError("Stage 6 timing evidence is missing its salient p95 range")
 
     checks = {
+        **{
+            f"{role}_sha256_matches_pin": hashes[role] == expected
+            for role, expected in EXPECTED_EVIDENCE_SHA256.items()
+        },
         "stage0_contract_valid": OPERATIONAL_CONTRACT["status"]
         == "bounded_operational_contract",
         "stage1_real_frames_retained": int(prior["source"]["clip_count"]) > 0,
