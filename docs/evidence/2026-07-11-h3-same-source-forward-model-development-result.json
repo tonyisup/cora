@@ -1,0 +1,771 @@
+{
+  "mode": "h3_same_source_forward_model_spent_development",
+  "evidence_scope": "already_spent_h3_captures_only",
+  "representation": {
+    "bands": 12,
+    "band_edges_hz": [
+      80.0,
+      116.92309086753535,
+      170.88761472522404,
+      249.75885130817167,
+      365.03221083095747,
+      533.5086794570668,
+      779.7435475847172,
+      1139.6253208452779,
+      1665.6064368017064,
+      2434.34815949647,
+      3557.893888200289,
+      5199.999379838636,
+      7600.0
+    ],
+    "shared_path_scalars": 12,
+    "shared_path_count_scalars": 1,
+    "per_utterance_sensory_templates": 0,
+    "workspace_slots": 3,
+    "runtime_labels_consumed": false
+  },
+  "fold_count": 9,
+  "self_probe_distances": [
+    0.19360013805110815,
+    0.24375951330348256,
+    0.17647255879767146,
+    0.1654214004583197,
+    0.13963166200724286,
+    0.22018709646886975,
+    0.2172498772857975,
+    0.29923121700548455,
+    0.22320857058746998
+  ],
+  "raw_efference_self_probe_distances": [
+    0.5753641687441078,
+    0.7467508977101054,
+    0.653269196338339,
+    0.3952501990749366,
+    0.5052354057353637,
+    0.30412815094748197,
+    0.29668988708056493,
+    0.690222648970966,
+    0.44550793535058353
+  ],
+  "overlap_distances": [
+    0.5954984810995939,
+    0.31256235434882507,
+    0.45009779163661245,
+    0.4339221761246367,
+    0.4159592470540334,
+    0.3147198111061411
+  ],
+  "maximum_self_probe_distance": 0.29923121700548455,
+  "minimum_overlap_distance": 0.31256235434882507,
+  "clean_gap": 0.013331137343340516,
+  "selected_threshold": 0.3005643307398186,
+  "threshold_rule": "max_self + 0.10 * (min_overlap - max_self)",
+  "folds": [
+    {
+      "held_out_command": "v2_development_0",
+      "training_commands": [
+        "v2_development_1",
+        "v2_development_2",
+        "v2_held_out_0",
+        "v2_held_out_1",
+        "v2_held_out_2",
+        "v3_0",
+        "v3_1",
+        "v3_2"
+      ],
+      "training_count": 8,
+      "held_out_calibration_consumed": false,
+      "self_probe_forward_distance": 0.19360013805110815,
+      "self_probe_raw_efference_distance": 0.5753641687441078,
+      "forward_improves_raw": true,
+      "overlap_forward_distance": null,
+      "model_state_scalars": 13,
+      "path_signature": [
+        -3.684540169185758,
+        -1.4485049380239425,
+        0.29714712247445974,
+        -0.6691546227821955,
+        -0.7797390640116906,
+        -0.22374654058720578,
+        1.762795112325339,
+        2.1983821906903294,
+        0.6812401466942483,
+        1.4242920752611932,
+        0.7709191193942841,
+        -0.3290904322490573
+      ]
+    },
+    {
+      "held_out_command": "v2_development_1",
+      "training_commands": [
+        "v2_development_0",
+        "v2_development_2",
+        "v2_held_out_0",
+        "v2_held_out_1",
+        "v2_held_out_2",
+        "v3_0",
+        "v3_1",
+        "v3_2"
+      ],
+      "training_count": 8,
+      "held_out_calibration_consumed": false,
+      "self_probe_forward_distance": 0.24375951330348256,
+      "self_probe_raw_efference_distance": 0.7467508977101054,
+      "forward_improves_raw": true,
+      "overlap_forward_distance": null,
+      "model_state_scalars": 13,
+      "path_signature": [
+        -3.2765373835844422,
+        -1.2314072169528658,
+        0.1882698323326969,
+        -0.7381964252423184,
+        -0.8490660116282506,
+        -0.2896921129729109,
+        1.7584120060199224,
+        2.157706343327974,
+        0.6132375787614609,
+        1.3617745998125688,
+        0.7029308575433898,
+        -0.3974320674172208
+      ]
+    },
+    {
+      "held_out_command": "v2_development_2",
+      "training_commands": [
+        "v2_development_0",
+        "v2_development_1",
+        "v2_held_out_0",
+        "v2_held_out_1",
+        "v2_held_out_2",
+        "v3_0",
+        "v3_1",
+        "v3_2"
+      ],
+      "training_count": 8,
+      "held_out_calibration_consumed": false,
+      "self_probe_forward_distance": 0.17647255879767146,
+      "self_probe_raw_efference_distance": 0.653269196338339,
+      "forward_improves_raw": true,
+      "overlap_forward_distance": null,
+      "model_state_scalars": 13,
+      "path_signature": [
+        -3.345533264110362,
+        -1.4226681718470324,
+        0.09693166327195857,
+        -0.6849089760518231,
+        -0.7955885668457733,
+        -0.265308773653143,
+        1.7633672816116486,
+        2.133965348828562,
+        0.712013606458639,
+        1.410043216096921,
+        0.7097574178019165,
+        -0.31207078156151086
+      ]
+    },
+    {
+      "held_out_command": "v2_held_out_0",
+      "training_commands": [
+        "v2_development_0",
+        "v2_development_1",
+        "v2_development_2",
+        "v2_held_out_1",
+        "v2_held_out_2",
+        "v3_0",
+        "v3_1",
+        "v3_2"
+      ],
+      "training_count": 8,
+      "held_out_calibration_consumed": false,
+      "self_probe_forward_distance": 0.1654214004583197,
+      "self_probe_raw_efference_distance": 0.3952501990749366,
+      "forward_improves_raw": true,
+      "overlap_forward_distance": 0.5954984810995939,
+      "model_state_scalars": 13,
+      "path_signature": [
+        -3.449532573152905,
+        -1.2046254755235368,
+        0.21057324476297928,
+        -0.708492622737767,
+        -0.8754711734932554,
+        -0.30661497354007106,
+        1.7275343300577184,
+        2.2466898554990036,
+        0.6549339206784524,
+        1.3695231608358946,
+        0.7151674511792133,
+        -0.3796851445657232
+      ]
+    },
+    {
+      "held_out_command": "v2_held_out_1",
+      "training_commands": [
+        "v2_development_0",
+        "v2_development_1",
+        "v2_development_2",
+        "v2_held_out_0",
+        "v2_held_out_2",
+        "v3_0",
+        "v3_1",
+        "v3_2"
+      ],
+      "training_count": 8,
+      "held_out_calibration_consumed": false,
+      "self_probe_forward_distance": 0.13963166200724286,
+      "self_probe_raw_efference_distance": 0.5052354057353637,
+      "forward_improves_raw": true,
+      "overlap_forward_distance": 0.31256235434882507,
+      "model_state_scalars": 13,
+      "path_signature": [
+        -3.6389650844833286,
+        -1.3140178533585911,
+        0.19384187098067782,
+        -0.7238056855265087,
+        -0.842492004561768,
+        -0.2966220103080788,
+        1.7519301389205177,
+        2.310606300657896,
+        0.6749297353781174,
+        1.4070351704266717,
+        0.7635819125147598,
+        -0.28602249064036356
+      ]
+    },
+    {
+      "held_out_command": "v2_held_out_2",
+      "training_commands": [
+        "v2_development_0",
+        "v2_development_1",
+        "v2_development_2",
+        "v2_held_out_0",
+        "v2_held_out_1",
+        "v3_0",
+        "v3_1",
+        "v3_2"
+      ],
+      "training_count": 8,
+      "held_out_calibration_consumed": false,
+      "self_probe_forward_distance": 0.22018709646886975,
+      "self_probe_raw_efference_distance": 0.30412815094748197,
+      "forward_improves_raw": true,
+      "overlap_forward_distance": 0.45009779163661245,
+      "model_state_scalars": 13,
+      "path_signature": [
+        -3.8044915688194463,
+        -1.8376612259345482,
+        0.20435548585615101,
+        -0.6830630646113748,
+        -0.7304699249803537,
+        -0.18445668393478454,
+        1.854604009541252,
+        2.4796351778274093,
+        0.7383856416082506,
+        1.4498825130035558,
+        0.7608432558417815,
+        -0.24756361539789112
+      ]
+    },
+    {
+      "held_out_command": "v3_0",
+      "training_commands": [
+        "v2_development_0",
+        "v2_development_1",
+        "v2_development_2",
+        "v2_held_out_0",
+        "v2_held_out_1",
+        "v2_held_out_2",
+        "v3_1",
+        "v3_2"
+      ],
+      "training_count": 8,
+      "held_out_calibration_consumed": false,
+      "self_probe_forward_distance": 0.2172498772857975,
+      "self_probe_raw_efference_distance": 0.29668988708056493,
+      "forward_improves_raw": true,
+      "overlap_forward_distance": 0.4339221761246367,
+      "model_state_scalars": 13,
+      "path_signature": [
+        -3.9516502718570403,
+        -1.7230364265117892,
+        0.4024745183326333,
+        -0.6179947929073552,
+        -0.775404648224692,
+        -0.28066993538615714,
+        1.8532121842571005,
+        2.3975016175166344,
+        0.7329640802803279,
+        1.4332559409869472,
+        0.785419012458142,
+        -0.25607127894474846
+      ]
+    },
+    {
+      "held_out_command": "v3_1",
+      "training_commands": [
+        "v2_development_0",
+        "v2_development_1",
+        "v2_development_2",
+        "v2_held_out_0",
+        "v2_held_out_1",
+        "v2_held_out_2",
+        "v3_0",
+        "v3_2"
+      ],
+      "training_count": 8,
+      "held_out_calibration_consumed": false,
+      "self_probe_forward_distance": 0.29923121700548455,
+      "self_probe_raw_efference_distance": 0.690222648970966,
+      "forward_improves_raw": true,
+      "overlap_forward_distance": 0.4159592470540334,
+      "model_state_scalars": 13,
+      "path_signature": [
+        -3.1807555245520738,
+        -1.295408356843986,
+        0.1511180973328593,
+        -0.7742922529139658,
+        -0.8867592011185921,
+        -0.300907459584837,
+        1.7095399421573285,
+        2.3252957737448714,
+        0.6118700855611416,
+        1.3283897069845032,
+        0.7225712388997688,
+        -0.4106620496670166
+      ]
+    },
+    {
+      "held_out_command": "v3_2",
+      "training_commands": [
+        "v2_development_0",
+        "v2_development_1",
+        "v2_development_2",
+        "v2_held_out_0",
+        "v2_held_out_1",
+        "v2_held_out_2",
+        "v3_0",
+        "v3_1"
+      ],
+      "training_count": 8,
+      "held_out_calibration_consumed": false,
+      "self_probe_forward_distance": 0.22320857058746998,
+      "self_probe_raw_efference_distance": 0.44550793535058353,
+      "forward_improves_raw": true,
+      "overlap_forward_distance": 0.3147198111061411,
+      "model_state_scalars": 13,
+      "path_signature": [
+        -3.537396008946513,
+        -1.6703225249249498,
+        0.16348117609905222,
+        -0.7287915180477824,
+        -0.7579408287303571,
+        -0.24526082742067512,
+        1.7539297128339717,
+        2.4035201859023876,
+        0.6946689416054126,
+        1.3885923668033104,
+        0.7419772663729645,
+        -0.2064579415468185
+      ]
+    }
+  ],
+  "rows": [
+    {
+      "trial_id": "v2_development_0_self_probe",
+      "panel": "v2_development",
+      "efference_id": "v2_development_self_0",
+      "condition": "self_probe",
+      "expected_world_usable": false,
+      "world_evidence": 0.19360013805110815
+    },
+    {
+      "trial_id": "v2_development_0_world_only",
+      "panel": "v2_development",
+      "efference_id": null,
+      "condition": "world_only",
+      "expected_world_usable": true,
+      "world_evidence": 2.0
+    },
+    {
+      "trial_id": "v2_development_1_self_probe",
+      "panel": "v2_development",
+      "efference_id": "v2_development_self_1",
+      "condition": "self_probe",
+      "expected_world_usable": false,
+      "world_evidence": 0.24375951330348256
+    },
+    {
+      "trial_id": "v2_development_1_world_only",
+      "panel": "v2_development",
+      "efference_id": null,
+      "condition": "world_only",
+      "expected_world_usable": true,
+      "world_evidence": 2.0
+    },
+    {
+      "trial_id": "v2_development_2_self_probe",
+      "panel": "v2_development",
+      "efference_id": "v2_development_self_2",
+      "condition": "self_probe",
+      "expected_world_usable": false,
+      "world_evidence": 0.17647255879767146
+    },
+    {
+      "trial_id": "v2_development_2_world_only",
+      "panel": "v2_development",
+      "efference_id": null,
+      "condition": "world_only",
+      "expected_world_usable": true,
+      "world_evidence": 2.0
+    },
+    {
+      "trial_id": "v2_held_out_0_self_probe",
+      "panel": "v2_held_out",
+      "efference_id": "v2_held_out_self_0",
+      "condition": "self_probe",
+      "expected_world_usable": false,
+      "world_evidence": 0.1654214004583197
+    },
+    {
+      "trial_id": "v2_held_out_0_world_only",
+      "panel": "v2_held_out",
+      "efference_id": null,
+      "condition": "world_only",
+      "expected_world_usable": true,
+      "world_evidence": 2.0
+    },
+    {
+      "trial_id": "v2_held_out_0_overlap",
+      "panel": "v2_held_out",
+      "efference_id": "v2_held_out_self_0",
+      "condition": "overlap",
+      "expected_world_usable": true,
+      "world_evidence": 0.5954984810995939
+    },
+    {
+      "trial_id": "v2_held_out_1_self_probe",
+      "panel": "v2_held_out",
+      "efference_id": "v2_held_out_self_1",
+      "condition": "self_probe",
+      "expected_world_usable": false,
+      "world_evidence": 0.13963166200724286
+    },
+    {
+      "trial_id": "v2_held_out_1_world_only",
+      "panel": "v2_held_out",
+      "efference_id": null,
+      "condition": "world_only",
+      "expected_world_usable": true,
+      "world_evidence": 2.0
+    },
+    {
+      "trial_id": "v2_held_out_1_overlap",
+      "panel": "v2_held_out",
+      "efference_id": "v2_held_out_self_1",
+      "condition": "overlap",
+      "expected_world_usable": true,
+      "world_evidence": 0.31256235434882507
+    },
+    {
+      "trial_id": "v2_held_out_2_self_probe",
+      "panel": "v2_held_out",
+      "efference_id": "v2_held_out_self_2",
+      "condition": "self_probe",
+      "expected_world_usable": false,
+      "world_evidence": 0.22018709646886975
+    },
+    {
+      "trial_id": "v2_held_out_2_world_only",
+      "panel": "v2_held_out",
+      "efference_id": null,
+      "condition": "world_only",
+      "expected_world_usable": true,
+      "world_evidence": 2.0
+    },
+    {
+      "trial_id": "v2_held_out_2_overlap",
+      "panel": "v2_held_out",
+      "efference_id": "v2_held_out_self_2",
+      "condition": "overlap",
+      "expected_world_usable": true,
+      "world_evidence": 0.45009779163661245
+    },
+    {
+      "trial_id": "v3_0_self_probe",
+      "panel": "v3",
+      "efference_id": "v3_self_0",
+      "condition": "self_probe",
+      "expected_world_usable": false,
+      "world_evidence": 0.2172498772857975
+    },
+    {
+      "trial_id": "v3_0_world_only",
+      "panel": "v3",
+      "efference_id": null,
+      "condition": "world_only",
+      "expected_world_usable": true,
+      "world_evidence": 2.0
+    },
+    {
+      "trial_id": "v3_0_overlap",
+      "panel": "v3",
+      "efference_id": "v3_self_0",
+      "condition": "overlap",
+      "expected_world_usable": true,
+      "world_evidence": 0.4339221761246367
+    },
+    {
+      "trial_id": "v3_1_self_probe",
+      "panel": "v3",
+      "efference_id": "v3_self_1",
+      "condition": "self_probe",
+      "expected_world_usable": false,
+      "world_evidence": 0.29923121700548455
+    },
+    {
+      "trial_id": "v3_1_world_only",
+      "panel": "v3",
+      "efference_id": null,
+      "condition": "world_only",
+      "expected_world_usable": true,
+      "world_evidence": 2.0
+    },
+    {
+      "trial_id": "v3_1_overlap",
+      "panel": "v3",
+      "efference_id": "v3_self_1",
+      "condition": "overlap",
+      "expected_world_usable": true,
+      "world_evidence": 0.4159592470540334
+    },
+    {
+      "trial_id": "v3_2_self_probe",
+      "panel": "v3",
+      "efference_id": "v3_self_2",
+      "condition": "self_probe",
+      "expected_world_usable": false,
+      "world_evidence": 0.22320857058746998
+    },
+    {
+      "trial_id": "v3_2_world_only",
+      "panel": "v3",
+      "efference_id": null,
+      "condition": "world_only",
+      "expected_world_usable": true,
+      "world_evidence": 2.0
+    },
+    {
+      "trial_id": "v3_2_overlap",
+      "panel": "v3",
+      "efference_id": "v3_self_2",
+      "condition": "overlap",
+      "expected_world_usable": true,
+      "world_evidence": 0.3147198111061411
+    }
+  ],
+  "reports": {
+    "1": {
+      "flat": {
+        "strategy": "flat",
+        "capacity": 1,
+        "bounded_binding_slots": 1,
+        "metrics": {
+          "tp": 15,
+          "fp": 9,
+          "tn": 0,
+          "fn": 0,
+          "world_recall": 1.0,
+          "self_suppression_specificity": 0.0,
+          "f1": 0.7692307692307693
+        }
+      },
+      "fixed_self_window": {
+        "strategy": "fixed_self_window",
+        "capacity": 1,
+        "bounded_binding_slots": 1,
+        "metrics": {
+          "tp": 13,
+          "fp": 6,
+          "tn": 3,
+          "fn": 2,
+          "world_recall": 0.8666666666666667,
+          "self_suppression_specificity": 0.3333333333333333,
+          "f1": 0.7647058823529411
+        }
+      },
+      "scheduled_identity_plus_same_source_forward_model": {
+        "strategy": "scheduled_identity_plus_same_source_forward_model",
+        "capacity": 1,
+        "bounded_binding_slots": 1,
+        "metrics": {
+          "tp": 15,
+          "fp": 6,
+          "tn": 3,
+          "fn": 0,
+          "world_recall": 1.0,
+          "self_suppression_specificity": 0.3333333333333333,
+          "f1": 0.8333333333333334
+        }
+      }
+    },
+    "2": {
+      "flat": {
+        "strategy": "flat",
+        "capacity": 2,
+        "bounded_binding_slots": 2,
+        "metrics": {
+          "tp": 15,
+          "fp": 9,
+          "tn": 0,
+          "fn": 0,
+          "world_recall": 1.0,
+          "self_suppression_specificity": 0.0,
+          "f1": 0.7692307692307693
+        }
+      },
+      "fixed_self_window": {
+        "strategy": "fixed_self_window",
+        "capacity": 2,
+        "bounded_binding_slots": 2,
+        "metrics": {
+          "tp": 11,
+          "fp": 3,
+          "tn": 6,
+          "fn": 4,
+          "world_recall": 0.7333333333333333,
+          "self_suppression_specificity": 0.6666666666666666,
+          "f1": 0.7586206896551724
+        }
+      },
+      "scheduled_identity_plus_same_source_forward_model": {
+        "strategy": "scheduled_identity_plus_same_source_forward_model",
+        "capacity": 2,
+        "bounded_binding_slots": 2,
+        "metrics": {
+          "tp": 15,
+          "fp": 3,
+          "tn": 6,
+          "fn": 0,
+          "world_recall": 1.0,
+          "self_suppression_specificity": 0.6666666666666666,
+          "f1": 0.9090909090909091
+        }
+      }
+    },
+    "3": {
+      "flat": {
+        "strategy": "flat",
+        "capacity": 3,
+        "bounded_binding_slots": 3,
+        "metrics": {
+          "tp": 15,
+          "fp": 9,
+          "tn": 0,
+          "fn": 0,
+          "world_recall": 1.0,
+          "self_suppression_specificity": 0.0,
+          "f1": 0.7692307692307693
+        }
+      },
+      "fixed_self_window": {
+        "strategy": "fixed_self_window",
+        "capacity": 3,
+        "bounded_binding_slots": 3,
+        "metrics": {
+          "tp": 9,
+          "fp": 0,
+          "tn": 9,
+          "fn": 6,
+          "world_recall": 0.6,
+          "self_suppression_specificity": 1.0,
+          "f1": 0.75
+        }
+      },
+      "scheduled_identity_plus_same_source_forward_model": {
+        "strategy": "scheduled_identity_plus_same_source_forward_model",
+        "capacity": 3,
+        "bounded_binding_slots": 3,
+        "metrics": {
+          "tp": 15,
+          "fp": 0,
+          "tn": 9,
+          "fn": 0,
+          "world_recall": 1.0,
+          "self_suppression_specificity": 1.0,
+          "f1": 1.0
+        }
+      }
+    },
+    "4": {
+      "flat": {
+        "strategy": "flat",
+        "capacity": 4,
+        "bounded_binding_slots": 4,
+        "metrics": {
+          "tp": 15,
+          "fp": 9,
+          "tn": 0,
+          "fn": 0,
+          "world_recall": 1.0,
+          "self_suppression_specificity": 0.0,
+          "f1": 0.7692307692307693
+        }
+      },
+      "fixed_self_window": {
+        "strategy": "fixed_self_window",
+        "capacity": 4,
+        "bounded_binding_slots": 4,
+        "metrics": {
+          "tp": 9,
+          "fp": 0,
+          "tn": 9,
+          "fn": 6,
+          "world_recall": 0.6,
+          "self_suppression_specificity": 1.0,
+          "f1": 0.75
+        }
+      },
+      "scheduled_identity_plus_same_source_forward_model": {
+        "strategy": "scheduled_identity_plus_same_source_forward_model",
+        "capacity": 4,
+        "bounded_binding_slots": 4,
+        "metrics": {
+          "tp": 15,
+          "fp": 0,
+          "tn": 9,
+          "fn": 0,
+          "world_recall": 1.0,
+          "self_suppression_specificity": 1.0,
+          "f1": 1.0
+        }
+      }
+    }
+  },
+  "criteria": {
+    "clean_self_overlap_distance_gap": true,
+    "all_nine_self_probe_forward_distances_below_raw_efference_distances": true,
+    "selected_capacity_scheduled_f1_at_least_0_90": true,
+    "selected_capacity_scheduled_minus_flat_f1_at_least_0_20": true,
+    "selected_capacity_world_recall_at_least_0_90": true,
+    "selected_capacity_self_suppression_specificity_at_least_0_90": true,
+    "fixed_window_world_recall_below_scheduled": true,
+    "capacity_one_f1_below_capacity_three": true,
+    "capacity_three_f1_equals_capacity_four": true,
+    "all_nine_leave_one_command_out_folds_present": true,
+    "all_artifact_hashes_verified": true,
+    "maximum_shared_model_scalars_at_most_13": true,
+    "confirmation_audio_not_accessed": true
+  },
+  "all_development_gates_passed": true,
+  "fresh_live_preregistration_allowed": true,
+  "fresh_live_audio_accessed": false,
+  "promotion_allowed": false,
+  "claim_boundary": "A pass supports only fresh-test readiness for one bounded same-source forward model at the existing geometry. It does not extend H3 without a separately preregistered fresh live result.",
+  "provenance": {
+    "preregistration": "docs/evidence/2026-07-11-h3-same-source-forward-model-development-preregistration.json",
+    "preregistration_sha256": "46a7d0f76aef23438a2b34f73639254eac957363f0270b9a91254c5b9a7769b7",
+    "preregistration_commit": "bc83cca",
+    "implementation_commit": "3cee27f",
+    "template_v2_result_sha256": "6695504cbad6213381e8221d242fce367a65a2ab7074d7e3741c1d7730f2c6f7",
+    "spectral_v3_result_sha256": "0525fa614ca1ab1655415448eb0c9c7c2e2d4c357bdd73f723ae036fe8d821c7"
+  }
+}
