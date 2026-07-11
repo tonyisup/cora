@@ -655,6 +655,16 @@ pitch-contour, room, geometry, input, and host boundary. Natural speech timing,
 geometry transfer, raw CoreAudio timestamps, XMOS internal DSP delay, and
 energy remain open.
 
+A follow-on natural-speech gate played one hash-pinned, already-spent Music Lab
+IDS utterance through the same world speaker. Both the initial `-12 dB` and
+single permitted `-18 dB` three-run attempts passed every timing, salience,
+stream-integrity, CPU, RSS, and real-time-factor criterion. Final salient ADC
+frame-end-to-workspace p95 was `10.40–10.56 ms` with zero device misses, but
+one run contained `108` full-scale captured samples while the other two were
+clean. The lower gain did not monotonically remove clipping, so the frozen stop
+rule is active. This is positive descriptive workload timing and a capture-
+quality failure, not closure of the natural-speech boundary.
+
 The final Stage 6 comparison used three preregistered 10-second trials each of
 Cora, a simpler fixed-threshold/prototype baseline, and idle, sampled by macOS
 `powermetrics` on the same M4 Pro. All nine trials and `20` central power samples

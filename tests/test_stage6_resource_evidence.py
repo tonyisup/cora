@@ -85,3 +85,24 @@ def test_retained_salient_timing_gate_preserves_clipping_free_pass() -> None:
     assert all(result["criteria"].values())
     assert result["overall_criteria_passed"] is True
     assert result["promotion_allowed"] is True
+
+
+def test_retained_natural_speech_timing_preserves_quality_failure() -> None:
+    root = Path(__file__).resolve().parents[1]
+    result = json.loads(
+        (
+            root
+            / "docs/evidence/2026-07-11-stage6-natural-speech-timing-result.json"
+        ).read_text()
+    )
+
+    final = result["final_attempt_minus_18_db"]
+    assert final["aggregate"]["frame_count"] == 1200
+    assert final["aggregate"]["salient_frame_count"] == 717
+    assert final["aggregate"]["clipped_sample_count"] == 108
+    assert final["aggregate"]["device_deadline_miss_count"] == 0
+    assert max(final["aggregate"]["salient_adc_frame_end_to_workspace_p95_ms_range"]) < 30.0
+    assert result["criteria"]["captured_clipped_sample_count_each_max_0"] is False
+    assert result["stop_rule_activated"] is True
+    assert result["overall_criteria_passed"] is False
+    assert result["promotion_allowed"] is False
