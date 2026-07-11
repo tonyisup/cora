@@ -4,6 +4,7 @@ import json
 
 from cora_infans.natural_speech_timing_audit import (
     EXPECTED_STIMULUS_SHA256,
+    audit_diverse_natural_speech,
     audit_natural_speech_diagnostic,
 )
 
@@ -77,4 +78,51 @@ def test_natural_speech_diagnostic_reconciles_and_partitions_clipping(tmp_path) 
     assert result["criteria"]["real_capture_each"] is True
     assert result["criteria"]["callback_backend_each"] is True
     assert result["criteria"]["clipped_sample_count_each_max_0"] is False
+    assert result["promotion_allowed"] is False
+
+
+def test_diverse_natural_speech_requires_every_frozen_stimulus_to_pass(tmp_path) -> None:
+    reports = []
+    stimuli = []
+    for index in range(6):
+        digest = f"{index + 1:064x}"
+        report = _report(clipped_playback=1 if index == 4 else 0)
+        report["frame_count"] = 800
+        report["frames"] = report["frames"] * 2
+        report["stimulus"]["source_wav_sha256"] = digest
+        path = tmp_path / f"diverse-{index}.json"
+        path.write_text(json.dumps(report))
+        reports.append(path)
+        stimuli.append(
+            {
+                "filename": f"SITE{index}.wav",
+                "sha256": digest,
+                "fieldsite": f"S{index}",
+                "speaker": f"S{index}01",
+                "condition": (
+                    "infant_directed_speech"
+                    if index % 2
+                    else "adult_directed_speech"
+                ),
+            }
+        )
+    protocol = {
+        "experiment": "stage6_diverse_natural_speech_timing_and_integrity",
+        "stimuli": stimuli,
+        "fixed_runtime": {
+            "target_frames_each": 800,
+            "software_playback_gain_db": -18.0,
+        },
+    }
+
+    result = audit_diverse_natural_speech(reports, protocol)
+
+    assert result["stimulus_count"] == 6
+    assert result["fieldsite_count"] == 6
+    assert result["condition_counts"] == {
+        "adult_directed_speech": 3,
+        "infant_directed_speech": 3,
+    }
+    assert result["criteria"]["clipped_sample_count_each_max_0"] is False
+    assert result["failed_stimuli"] == ["SITE4.wav"]
     assert result["promotion_allowed"] is False
