@@ -1,0 +1,69 @@
+{
+  "experiment": "predictive_register_dynamics_development",
+  "date": "2026-07-11",
+  "status": "frozen_before_implementation_and_development_scoring",
+  "authorization": "User explicitly authorized the Stage 2 redesign after the six-phase temporal candidate failed.",
+  "parent": "docs/evidence/2026-07-11-temporal-register-development-result.json",
+  "research_question": "Can a transparent class-conditional predictive dynamics model generalize IDS/ADS sequence structure across already-spent societies better than orderless paired summaries and coarse phase trajectories?",
+  "representation": {
+    "name": "first_order_linear_gaussian_prosodic_state_space",
+    "frame_ms": 50,
+    "observed_state_features": [
+      "log2 pitch with label-blind interpolation across unvoiced frames",
+      "pitch confidence",
+      "log RMS intensity in dB",
+      "log spectral centroid",
+      "log1p spectral flux"
+    ],
+    "sequence_policy": "Retain every ordered 50 ms state. Do not phase-bin, pool into whole-clip quantiles, reverse, pad, time-warp, or use annotations to construct observations.",
+    "calibration": "For each speaker and vocal mode, normalize the two unlabeled condition sequences jointly by feature mean and standard deviation. This preserves the existing speaker-and-mode batch boundary and is not cold-start or causal.",
+    "minimum_sequence_frames": 6
+  },
+  "model": {
+    "condition_models": [
+      "infant_directed_song",
+      "infant_directed_speech",
+      "adult_directed_song",
+      "adult_directed_speech"
+    ],
+    "dynamics": "For each condition, fit x[t] = intercept + A*x[t-1] with ridge-regularized least squares over training transitions only; score held-out sequences by mean diagonal-Gaussian next-state log likelihood.",
+    "ridge_regularization": 1.0,
+    "residual_variance_floor": 0.05,
+    "supervision_boundary": "Condition labels select the four training dynamics and score held-out predictions. Labels never alter, synthesize, segment, normalize, interpolate, or otherwise generate evaluated PCM features.",
+    "vocal_front_gate": {
+      "feature": "yin_voiced_fraction",
+      "minimum": 0.2,
+      "status": "unchanged from the previously supported front gate"
+    },
+    "scores": {
+      "speech_score": "max mean log likelihood under the two speech dynamics minus max mean log likelihood under the two song dynamics",
+      "ids_score": "mean log likelihood under infant-directed-speech dynamics minus mean log likelihood under adult-directed-speech dynamics"
+    },
+    "primary_decision": "vocal front gate passes and both speech_score and ids_score are at least zero",
+    "development_threshold_selection": "As a secondary development report, choose one speech and one IDS cutoff from leave-one-fieldsite-out predictions only, maximizing pooled F1 subject to the frozen pooled-FPR and song-FPR ceilings, then minimum fieldsite F1, then lower error rates."
+  },
+  "development_data": {
+    "source": "exact 200 hash-pinned clips already spent across ACO, ARA, BEJ, HAD, JEN, KRA, LIM, MBE, MEN, MES, NYA, PNG, QUE, SPA, TOP, TSI, TUR, and VAN",
+    "manifest": "/private/tmp/cora-ids-spent-200-manifest.json",
+    "manifest_sha256": "84234dd382ef090f12d02005a35863962e6504fc9197aa131adcce6b770fd26e",
+    "evaluation": "18-fold leave-one-fieldsite-out; every test fieldsite is excluded from dynamics fitting",
+    "confirmation_audio_or_metadata_accessed": false
+  },
+  "confirmation_boundary": {
+    "reserved_fieldsites": ["WEL", "USD", "TOR"],
+    "policy": "Do not fetch or inspect any reserved archive member, waveform, header, hash, label, participant list, or selected filename unless the complete development implementation, model artifact, thresholds, confirmation gates, and stop rule are committed first."
+  },
+  "acceptance": {
+    "minimum_pooled_f1": 0.8,
+    "maximum_pooled_false_positive_rate": 0.15,
+    "maximum_song_false_positive_rate": 0.15,
+    "minimum_each_fieldsite_f1": 0.5,
+    "minimum_vocal_recall": 0.95,
+    "all_clips_hash_verified": true,
+    "all_sequences_finite": true,
+    "all_18_out_of_field_folds_present": true
+  },
+  "candidate_ready_rule": "The ceiling-constrained out-of-field threshold selection must satisfy every acceptance criterion before any confirmation protocol is written.",
+  "stop_rule": "If this single frozen model fails development readiness, retain the failure and do not tune frame size, feature list, dynamics order, regularization, variance floor, normalization scope, or thresholds into another attempt. Another Stage 2 mechanism requires a new explicit research decision.",
+  "claim_boundary": "A development pass would justify preregistering one three-fieldsite confirmation of a batch-calibrated predictive register model. It would not establish cold-start, causal, live, universal, semantic, infant-learning, or biological prediction."
+}
