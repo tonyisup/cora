@@ -20,7 +20,7 @@ the repository.
 | Local predictive hierarchy | H2 supported within tested boundaries | Natural event transfer replicated across Wellington and MEN; a separate real room run with known efference masks retained four states through 10/15/20% dropout while improving vowels `+0.614` and tones `+0.474`. Unknown-timing world dropout and semantics remain outside scope |
 | Workspace binding | H3 supported within tested boundaries | The preregistered -18 dB synchronized run passed every classifier and zero-clipping gate: scheduled F1/recall/specificity 1.0/1.0/1.0 versus flat F1 0.8 and fixed-window F1 0.667; capacity improved through three slots and plateaued at four |
 | Analysis by synthesis | Recorded-human gate failed; mechanism decision required | Clean synthesis remained 100%, but the preregistered VocalSet confirmation scored 36%; disjoint sung and ordinary-speech development peaked at 56% and 57.2%, so both reserved confirmation sets remain untouched and H4 stays open |
-| Efficiency | H5 supported within tested boundary | Quiet and structured-salient device timing passed; natural-speech workload timing stayed below 10.56 ms p95 but failed its zero-clipping gate. Same-host energy was 27.36 µJ/frame versus 11.08 µJ/frame for the simpler baseline |
+| Efficiency | H5 supported within tested boundary | Quiet, structured-salient, and one lower-hardware-volume natural-speech timing gate passed; natural-speech salient p95 was 10.34–10.42 ms with zero clipping. Same-host energy was 27.36 µJ/frame versus 11.08 µJ/frame for the simpler baseline |
 
 ## Hardware boundary
 
@@ -573,9 +573,11 @@ developmental language learning.
   offline conventional comparison are measured. The quiet-path device timing
   and structured-salient timing gates passed; same-host sustained estimated
   energy is measured. A natural-speech timing attempt passed latency but failed
-  capture quality when one final run clipped 108 samples. Raw CoreAudio
-  timestamps, XMOS internal DSP latency, and embodied/paced-live energy remain
-  open.
+  capture quality at maximum speaker volume; a separately frozen diagnostic at
+  approximately 50% hardware volume then passed every gate across 1,200 frames
+  with per-frame clipping reconciliation. The supported point is uncalibrated
+  and one-utterance only. Raw CoreAudio timestamps, XMOS internal DSP latency,
+  and embodied/paced-live energy remain open.
 
 ## Main modules
 

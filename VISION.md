@@ -598,8 +598,9 @@ general supervised identity classification. No motor-learning claim is made.
 
 Status: offline/live resources, callback ADC-frame timing, and same-host
 estimated CPU energy measured on real hardware. Quiet and structured-salient
-timing gates passed. H5 is supported within the tested host/software boundary;
-natural speech timing, XMOS internal delay, and embodied energy remain open.
+timing gates passed, as did one bounded natural-speech timing gate at reduced
+speaker hardware volume. H5 is supported within the tested host/software
+boundary; broader speech, XMOS internal delay, and embodied energy remain open.
 
 The native CoreAudio path has a measured sub-40 ms *host capture-call* p95 at a
 25 ms frame size. PortAudio reports an additional nominal input latency near
@@ -665,6 +666,17 @@ clean. The lower gain did not monotonically remove clipping, so the frozen stop
 rule is active. This is positive descriptive workload timing and a capture-
 quality failure, not closure of the natural-speech boundary.
 
+A separately frozen hardware-level diagnostic then reduced only the external
+speaker knob from maximum to approximately half of its mechanical travel,
+retaining `-18 dB` software gain. New per-frame telemetry separated actual
+playback (`277–279` frames/run) from trailing quiet (`121–123` frames/run) and
+reconciled every clipped-sample total. All three runs were clean across 1,200
+frames and 960,000 captured samples. Salient ADC frame-end-to-workspace p95 was
+`10.34–10.42 ms`, quiet p95 `10.16–10.22 ms`, with zero device misses,
+overflows, callback-status events, timestamp discontinuities, or fallbacks.
+Natural-speech timing therefore passes at this lower, uncalibrated hardware
+setting; the maximum-volume failure remains valid and bounds the claim.
+
 The final Stage 6 comparison used three preregistered 10-second trials each of
 Cora, a simpler fixed-threshold/prototype baseline, and idle, sampled by macOS
 `powermetrics` on the same M4 Pro. All nine trials and `20` central power samples
@@ -680,7 +692,8 @@ Together, the named-host latency, RTF, CPU, RSS, overflow/deadline, conventional
 baseline, and estimated energy evidence supports H5 within the sustained
 synthetic/structured host-software boundary. It does not measure wall-plug or
 acoustic energy, XVF3800 consumption, paced live-runtime energy, natural-speech
-timing, XMOS internal DSP delay, or cross-device efficiency.
+timing beyond one utterance and lower-volume operating point, XMOS internal DSP
+delay, or cross-device efficiency.
 
 Required evidence:
 
