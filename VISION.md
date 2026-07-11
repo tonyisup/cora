@@ -335,6 +335,16 @@ Current evidence:
   perturbations and representation stability under F0/noise. Dropout
   representation stability, recorded-speaker transfer, and natural-stream
   transfer remain open.
+- a follow-up development-only audit selected median aggregation of 60 ms
+  spectral subwindows as a candidate dropout-aware representation. It retained
+  four states through `20%` dropout on development folds;
+- before hardware, however, a fresh synthetic condition matrix failed: pooled
+  vowel improvement was `0.193`, and the `15%`/`20%` conditions improved only
+  `0.105`, below the frozen `0.20`/`0.15` gates. Real I/O was prohibited and no
+  new live evidence was consumed;
+- short-window aggregation/dropout-percentage tuning is therefore retired for
+  this family. A future dropout design needs explicit missing-observation
+  handling or another genuinely different mechanism.
 
 Promotion criterion:
 

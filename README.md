@@ -331,6 +331,9 @@ developmental language learning.
   unseen `200 Hz` synthetic F0, `10 dB` noise, and `10%` dropout. F0/noise kept
   four vowel states, but dropout merged every `u` into the `i`-dominated state;
   the strict robustness verdict therefore fails despite `+0.579` improvement.
+- A temporal-median dropout revision passed development folds but failed a
+  fresh synthetic gate (`+0.193` pooled; `+0.105` at 15–20% dropout), so its
+  real-I/O path is blocked and no additional live evidence was consumed.
 - Theta/gamma scheduling is an event-timing model, not measured neural dynamics.
 - The vowel table uses adult reference targets and clean synthetic success does
   not imply recorded infant/adult speech performance.

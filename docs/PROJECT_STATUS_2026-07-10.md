@@ -274,6 +274,11 @@ research contract and implements the first vertical evidence path.
   `0.842` versus baseline `0.263` but mapped every `u` token to the `i`-dominated
   state, leaving occupancy `3`. The frozen per-condition occupancy gate fails,
   so predictive robustness is positive but representation robustness is mixed.
+- A development-only temporal-aggregation audit then selected median 60 ms
+  spectra at a 30 ms hop, but an entirely fresh synthetic condition matrix
+  failed before hardware: pooled vowel improvement `0.193`; `15%` and `20%`
+  dropout improved only `0.105`. The CLI blocks real I/O for this variant. No
+  new live capture was spent, and short-window/dropout-percentage tuning stops.
 
 ### Prior-art real-capture replay
 

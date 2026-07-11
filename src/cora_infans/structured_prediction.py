@@ -40,6 +40,8 @@ CALIBRATED_V2_HELD_OUT_SEEDS = (10103, 11213, 12323)
 CALIBRATED_V2_STD_FLOOR = 0.30
 ROBUST_V3_DEVELOPMENT_SEEDS = (13001, 13006, 13015)
 ROBUST_V3_HELD_OUT_SEEDS = (13016, 13017, 13023)
+DROPOUT_V4_DEVELOPMENT_SEEDS = (13025, 13039, 13043)
+DROPOUT_V4_HELD_OUT_SEEDS = (13045, 13048, 13051)
 
 PlaybackFn = Callable[[str], dict[str, object]]
 CaptureFn = Callable[..., dict[str, object]]
@@ -71,6 +73,43 @@ def build_robust_v3_trial_conditions() -> dict[str, dict[str, object]]:
         for split, seeds in (
             ("dev", ROBUST_V3_DEVELOPMENT_SEEDS),
             ("held_out", ROBUST_V3_HELD_OUT_SEEDS),
+        )
+        for seed in seeds
+    }
+
+
+def build_dropout_v4_trial_conditions() -> dict[str, dict[str, object]]:
+    """Fresh multi-severity dropout matrix for the temporal robust signature."""
+
+    by_seed: dict[int, dict[str, object]] = {
+        13025: {"name": "clean_speaker_f0_110", "vowel_f0_hz": 110.0},
+        13039: {"name": "clean_speaker_f0_140", "vowel_f0_hz": 140.0},
+        13043: {"name": "clean_speaker_f0_170", "vowel_f0_hz": 170.0},
+        13045: {
+            "name": "speaker_shift_f0_200_grammar_dropout_10pct",
+            "vowel_f0_hz": 200.0,
+            "grammar_dropout_fraction": 0.10,
+            "dropout_burst_ms": 5.0,
+        },
+        13048: {
+            "name": "speaker_shift_f0_200_grammar_dropout_15pct",
+            "vowel_f0_hz": 200.0,
+            "grammar_dropout_fraction": 0.15,
+            "dropout_burst_ms": 5.0,
+        },
+        13051: {
+            "name": "speaker_shift_f0_200_grammar_dropout_20pct",
+            "vowel_f0_hz": 200.0,
+            "grammar_dropout_fraction": 0.20,
+            "dropout_burst_ms": 5.0,
+        },
+    }
+    return {
+        f"{family}_{split}_{seed}": dict(by_seed[seed])
+        for family in ("tones", "vowels")
+        for split, seeds in (
+            ("dev", DROPOUT_V4_DEVELOPMENT_SEEDS),
+            ("held_out", DROPOUT_V4_HELD_OUT_SEEDS),
         )
         for seed in seeds
     }
@@ -203,6 +242,10 @@ def build_structured_protocol_manifest(
     protocol_variant: str | None = None,
     calibration_normalization_std_floor: float | None = None,
     trial_conditions: dict[str, dict[str, object]] | None = None,
+    signature_mode: str | None = None,
+    representation_selection_boundary: str = (
+        "selected on attempt-2 development captures only"
+    ),
 ) -> dict[str, object]:
     config = config or StructuredProtocolConfig()
     development_seeds = development_seeds or DEVELOPMENT_SEEDS
@@ -264,12 +307,18 @@ def build_structured_protocol_manifest(
         manifest["protocol_variant"] = protocol_variant
     if calibration_normalization_std_floor is not None:
         manifest["representation"] = {
-            "base": "12_band_log_geometric_spectrum",
+            "base": (
+                "median_60ms_12_band_log_spectrum_30ms_hop"
+                if signature_mode == "temporal_median_60_30"
+                else "12_band_log_geometric_spectrum"
+            ),
             "unlabeled_trial_calibration": "featurewise_zscore_then_unit_norm",
             "calibration_observation_count": len(CALIBRATION_SEQUENCE),
             "standard_deviation_floor": calibration_normalization_std_floor,
-            "selection_boundary": "selected on attempt-2 development captures only",
+            "selection_boundary": representation_selection_boundary,
         }
+        if signature_mode is not None:
+            manifest["representation"]["signature_mode"] = signature_mode
     return manifest
 
 
@@ -431,11 +480,33 @@ def _spectral_signature(segment: np.ndarray, sample_rate: int) -> np.ndarray:
     return signature / max(scale, 1e-6)
 
 
+def _temporal_median_spectral_signature(
+    segment: np.ndarray, sample_rate: int
+) -> np.ndarray:
+    """Median spectral evidence across overlapping windows resists burst erasure."""
+
+    frame = int(round(0.060 * sample_rate))
+    hop = int(round(0.030 * sample_rate))
+    if len(segment) < frame:
+        raise ValueError("token segment is too short for temporal median signature")
+    signatures = np.asarray(
+        [
+            _spectral_signature(segment[start : start + frame], sample_rate)
+            for start in range(0, len(segment) - frame + 1, hop)
+        ],
+        dtype=np.float64,
+    )
+    signature = np.median(signatures, axis=0)
+    signature -= float(np.mean(signature))
+    return signature / max(float(np.std(signature)), 1e-6)
+
+
 def _captured_signatures(
     captured_path: Path,
     trial: RenderedStructuredTrial,
     *,
     alignment_samples: int,
+    signature_mode: str = "full_spectrum",
 ) -> list[np.ndarray]:
     samples, sample_rate = read_pcm_wav(captured_path)
     signatures = []
@@ -444,9 +515,14 @@ def _captured_signatures(
         aligned_end = alignment_samples + end
         if aligned_start < 0 or aligned_end > len(samples):
             raise ValueError("captured trial does not contain every token window")
-        signatures.append(
-            _spectral_signature(samples[aligned_start:aligned_end], sample_rate)
-        )
+        segment = samples[aligned_start:aligned_end]
+        if signature_mode == "full_spectrum":
+            signature = _spectral_signature(segment, sample_rate)
+        elif signature_mode == "temporal_median_60_30":
+            signature = _temporal_median_spectral_signature(segment, sample_rate)
+        else:
+            raise ValueError(f"unknown structured signature mode: {signature_mode}")
+        signatures.append(signature)
     return signatures
 
 
@@ -687,6 +763,7 @@ def _run_real_structured_protocol(
     real_hardware_claim: bool,
     calibration_normalization_std_floor: float | None,
     acceptance_profile: str,
+    signature_mode: str,
 ) -> dict[str, object]:
     out_dir.mkdir(parents=True, exist_ok=True)
     rendered: list[RenderedStructuredTrial] = []
@@ -772,6 +849,7 @@ def _run_real_structured_protocol(
                 captured_path,
                 rendered_trial,
                 alignment_samples=alignment_samples,
+                signature_mode=signature_mode,
             )
         except Exception as exc:  # noqa: BLE001
             return {
@@ -877,6 +955,10 @@ def run_structured_prediction_protocol(
     calibration_normalization_std_floor: float | None = None,
     acceptance_profile: str = "original",
     trial_conditions: dict[str, dict[str, object]] | None = None,
+    signature_mode: str = "full_spectrum",
+    representation_selection_boundary: str = (
+        "selected on attempt-2 development captures only"
+    ),
 ) -> dict[str, object]:
     """Plan or run the fake protocol; never perform real I/O in this helper."""
 
@@ -890,6 +972,10 @@ def run_structured_prediction_protocol(
         protocol_variant=protocol_variant,
         calibration_normalization_std_floor=calibration_normalization_std_floor,
         trial_conditions=trial_conditions,
+        signature_mode=(
+            signature_mode if signature_mode != "full_spectrum" else None
+        ),
+        representation_selection_boundary=representation_selection_boundary,
     )
     if real_io:
         if not bounded_playback_authorized:
@@ -918,6 +1004,7 @@ def run_structured_prediction_protocol(
                 calibration_normalization_std_floor
             ),
             acceptance_profile=acceptance_profile,
+            signature_mode=signature_mode,
         )
     if not fake_io:
         return {
@@ -960,6 +1047,7 @@ def run_structured_prediction_protocol(
             captured_path,
             rendered_trial,
             alignment_samples=delay,
+            signature_mode=signature_mode,
         )
         rendered.append(rendered_trial)
         artifacts.append(

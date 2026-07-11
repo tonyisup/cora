@@ -131,3 +131,13 @@ baseline, but all `u` tokens entered the `i`-dominated state and occupancy fell
 to three. The frozen per-condition occupancy rule makes the overall robustness
 verdict a failure. The result supports controlled predictive robustness, not
 dropout-stable representation or natural-stream H2.
+
+## Dropout-aware temporal aggregation stop
+
+Median aggregation over 60 ms spectral subwindows passed a development-only
+audit at `10–20%` dropout, but failed its required fresh synthetic gate before
+hardware. Pooled vowel improvement was `0.193`; the `15%` and `20%` conditions
+improved only `0.105`. The variant is retained as a falsified design, and its
+real-I/O CLI path is explicitly blocked. Further window/dropout-percentage
+tuning on this family is retired; a new attempt requires an explicit missing-
+observation mechanism or a different research rationale.

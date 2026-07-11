@@ -68,9 +68,12 @@ from .structured_prediction import (
     CALIBRATED_V2_DEVELOPMENT_SEEDS,
     CALIBRATED_V2_HELD_OUT_SEEDS,
     CALIBRATED_V2_STD_FLOOR,
+    DROPOUT_V4_DEVELOPMENT_SEEDS,
+    DROPOUT_V4_HELD_OUT_SEEDS,
     ROBUST_V3_DEVELOPMENT_SEEDS,
     ROBUST_V3_HELD_OUT_SEEDS,
     build_robust_v3_trial_conditions,
+    build_dropout_v4_trial_conditions,
     run_structured_prediction_protocol,
 )
 from .live_speak_smoke import (
@@ -942,7 +945,12 @@ def structured_prediction_cli(args: list[str]) -> dict[str, object]:
             elif option == "--speaker-orientation":
                 speaker_orientation = value
             else:
-                if value not in {"original", "calibrated_v2", "robustness_v3"}:
+                if value not in {
+                    "original",
+                    "calibrated_v2",
+                    "robustness_v3",
+                    "dropout_v4",
+                }:
                     raise ValueError("unknown structured protocol variant")
                 variant = value
             i += 2
@@ -950,6 +958,10 @@ def structured_prediction_cli(args: list[str]) -> dict[str, object]:
         raise ValueError(f"unknown option: {option}")
     if out_dir is None:
         raise ValueError("--out-dir is required")
+    if variant == "dropout_v4" and real_io:
+        raise ValueError(
+            "dropout_v4 failed its fresh synthetic design gate; real I/O is prohibited"
+        )
     geometry: dict[str, object] | None = None
     playback_fn = None
     capture_fn = None
@@ -979,8 +991,9 @@ def structured_prediction_cli(args: list[str]) -> dict[str, object]:
             device=input_device,
             **kwargs,
         )
-    calibrated = variant in {"calibrated_v2", "robustness_v3"}
+    calibrated = variant in {"calibrated_v2", "robustness_v3", "dropout_v4"}
     robust = variant == "robustness_v3"
+    dropout_robust = variant == "dropout_v4"
     return run_structured_prediction_protocol(
         out_dir=out_dir,
         fake_io=fake_io,
@@ -991,13 +1004,15 @@ def structured_prediction_cli(args: list[str]) -> dict[str, object]:
         geometry=geometry,
         real_hardware_claim=bool(real_io and bounded_playback_authorized),
         development_seeds=(
-            ROBUST_V3_DEVELOPMENT_SEEDS
-            if robust
+            DROPOUT_V4_DEVELOPMENT_SEEDS
+            if dropout_robust
+            else ROBUST_V3_DEVELOPMENT_SEEDS if robust
             else CALIBRATED_V2_DEVELOPMENT_SEEDS if calibrated else None
         ),
         held_out_seeds=(
-            ROBUST_V3_HELD_OUT_SEEDS
-            if robust
+            DROPOUT_V4_HELD_OUT_SEEDS
+            if dropout_robust
+            else ROBUST_V3_HELD_OUT_SEEDS if robust
             else CALIBRATED_V2_HELD_OUT_SEEDS if calibrated else None
         ),
         protocol_variant=(variant if calibrated else None),
@@ -1006,10 +1021,22 @@ def structured_prediction_cli(args: list[str]) -> dict[str, object]:
         ),
         acceptance_profile=(
             "h2_condition_robustness_v3"
-            if robust
+            if robust or dropout_robust
             else "h2_predictive_advantage_v2" if calibrated else "original"
         ),
-        trial_conditions=(build_robust_v3_trial_conditions() if robust else None),
+        trial_conditions=(
+            build_dropout_v4_trial_conditions()
+            if dropout_robust
+            else build_robust_v3_trial_conditions() if robust else None
+        ),
+        signature_mode=(
+            "temporal_median_60_30" if dropout_robust else "full_spectrum"
+        ),
+        representation_selection_boundary=(
+            "selected on robustness-v3 development captures only"
+            if dropout_robust
+            else "selected on attempt-2 development captures only"
+        ),
     )
 
 
@@ -1982,7 +2009,7 @@ def main(argv: list[str] | None = None) -> int:
         "[--fit-register-scorer --source ROOT::LABEL_CSV [--source ROOT::LABEL_CSV] --out MODEL.json] "
         "[--eval-register-scorer --model MODEL.json --root DIR --label-csv FILE] "
         "[--eval-register-pipeline --model MODEL.json --vocal-root DIR --vocal-label-csv FILE --environmental-root DIR --environmental-label-csv FILE] "
-        "[--evaluate-structured-prediction --out-dir DIR [--variant original|calibrated_v2|robustness_v3] [--fake-io | --real-io --authorize-bounded-playback --input-device :0 --output-device-index 2 --speaker-distance-cm N --speaker-orientation TEXT --quiet-room-confirmed]] "
+        "[--evaluate-structured-prediction --out-dir DIR [--variant original|calibrated_v2|robustness_v3|dropout_v4] [--fake-io | --real-io --authorize-bounded-playback --input-device :0 --output-device-index 2 --speaker-distance-cm N --speaker-orientation TEXT --quiet-room-confirmed]] "
         "[--simulate-self-suppression [--vowel a|e|i|o|u] [--world-vowel a|e|i|o|u] [--world-gain F] [--duration-ms N] [--sample-rate N]] "
         "[--learn-self-forward-model [--vowel a|e|i|o|u] [--observed-delay-ms F] [--observed-attenuation F] [--observed-echo-decay F] [--world-vowel a|e|i|o|u] [--world-gain F]] "
         "[--sweep-self-forward-model [--vowel a|e|i|o|u] [--delay-errors-ms csv] [--attenuation-scales csv] [--echo-decay-scales csv] [--world-vowel a|e|i|o|u] [--world-gain F]] "

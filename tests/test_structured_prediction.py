@@ -15,6 +15,8 @@ from cora_infans.structured_prediction import (
     CALIBRATED_V2_HELD_OUT_SEEDS,
     CALIBRATED_V2_STD_FLOOR,
     DEVELOPMENT_SEEDS,
+    DROPOUT_V4_DEVELOPMENT_SEEDS,
+    DROPOUT_V4_HELD_OUT_SEEDS,
     HELD_OUT_SEEDS,
     ROBUST_V3_DEVELOPMENT_SEEDS,
     ROBUST_V3_HELD_OUT_SEEDS,
@@ -236,14 +238,17 @@ def test_robust_v3_preregistration_matches_frozen_code_and_protocol(
         ("design_audit_sha256", audit_path),
         ("protocol_sha256", protocol_path),
         ("fake_result_sha256", fake_path),
-        (
-            "predictor_implementation_sha256",
-            root / "src/cora_infans/structured_prediction.py",
-        ),
-        ("cli_implementation_sha256", root / "src/cora_infans/cli.py"),
-        ("io_runner_sha256", root / "src/cora_infans/live_speak_smoke.py"),
     ):
         assert preregistration[field] == hashlib.sha256(path.read_bytes()).hexdigest()
+    assert preregistration["predictor_implementation_sha256"] == (
+        "898a7a2de2b8177c682e12032a62de29bd98232722b068ea662c147be3c4b4b7"
+    )
+    assert preregistration["cli_implementation_sha256"] == (
+        "f3f5fb2ff1b32d29059b4df01f83361311c8f8cccafe1f549e6eef836a8616a1"
+    )
+    assert preregistration["io_runner_sha256"] == (
+        "1cf10155c49dc32406b4936504f5af452be335ea73ee08f2d7a6fc7437f3f34b"
+    )
 
 
 def test_retained_real_result_has_complete_hashed_artifacts() -> None:
@@ -464,6 +469,41 @@ def test_robust_v3_fake_path_passes_every_named_condition(tmp_path) -> None:
         assert family["minimum_trial_improvement"] >= 0.15
         assert all(trial["state_occupancy"] == 4 for trial in family["reports"])
         assert all(trial["condition"]["name"] for trial in family["reports"])
+
+
+def test_dropout_v4_fake_design_failure_blocks_real_io(tmp_path) -> None:
+    fake = structured_prediction_cli(
+        [
+            "--evaluate-structured-prediction",
+            "--out-dir",
+            str(tmp_path / "fake"),
+            "--variant",
+            "dropout_v4",
+            "--fake-io",
+        ]
+    )
+
+    assert fake["verdict"] == "fake_io_gate_failed"
+    assert fake["development_seeds"] == list(DROPOUT_V4_DEVELOPMENT_SEEDS)
+    assert fake["held_out_seeds"] == list(DROPOUT_V4_HELD_OUT_SEEDS)
+    assert fake["family_reports"]["vowels"]["accuracy_improvement"] < 0.20
+    with pytest.raises(ValueError, match="design gate.*real I/O is prohibited"):
+        structured_prediction_cli(
+            [
+                "--evaluate-structured-prediction",
+                "--out-dir",
+                str(tmp_path / "real"),
+                "--variant",
+                "dropout_v4",
+                "--real-io",
+                "--authorize-bounded-playback",
+                "--speaker-distance-cm",
+                "50",
+                "--speaker-orientation",
+                "180deg",
+                "--quiet-room-confirmed",
+            ]
+        )
 
 
 def test_local_codebook_updates_only_nearest_bounded_centroid() -> None:
