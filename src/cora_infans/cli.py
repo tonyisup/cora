@@ -87,6 +87,10 @@ from .natural_event_prediction import (
     evaluate_natural_event_cross_fieldsite,
 )
 from .real_workspace_binding import evaluate_real_workspace_binding_design
+from .structured_workspace_binding import (
+    build_workspace_binding_protocol,
+    run_fake_workspace_binding_protocol,
+)
 from .live_speak_smoke import (
     StimulusSpec,
     capture_to_wav,
@@ -1151,6 +1155,16 @@ def real_workspace_design_cli(args: list[str]) -> dict[str, object]:
     return evaluate_real_workspace_binding_design(root=args[2])
 
 
+def structured_workspace_binding_cli(args: list[str]) -> dict[str, object]:
+    """Plan or exercise the structured H3 protocol without live device I/O."""
+
+    if args == ["--evaluate-structured-workspace-binding"]:
+        return build_workspace_binding_protocol()
+    if args == ["--evaluate-structured-workspace-binding", "--fake-io"]:
+        return run_fake_workspace_binding_protocol()
+    raise ValueError("structured workspace binding accepts only optional --fake-io")
+
+
 def synthesize_vowel_cli(args: list[str] | None = None) -> dict[str, object]:
     """Option C CLI: synthesize a vowel (motor-plan production) to a WAV file.
 
@@ -2027,6 +2041,13 @@ def main(argv: list[str] | None = None) -> int:
         except (ValueError, OSError, json.JSONDecodeError) as exc:
             print(str(exc), file=sys.stderr)
             return 2
+    if args and args[0] == "--evaluate-structured-workspace-binding":
+        try:
+            print(json.dumps(structured_workspace_binding_cli(args)))
+            return 0
+        except (ValueError, OSError) as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
     if args and args[0] == "--synthesize-vowel":
         try:
             print(json.dumps(synthesize_vowel_cli(args)))
@@ -2151,6 +2172,7 @@ def main(argv: list[str] | None = None) -> int:
         "[--evaluate-natural-event-transfer --development-root DIR --development-participants ID,ID --held-out-root DIR --held-out-participants ID,ID] "
         "[--evaluate-natural-event-ablations --development-root DIR --development-participants ID,ID --held-out-root DIR --held-out-participants ID,ID] "
         "[--evaluate-real-workspace-design --root COROLLARY_M2_BASELINE_DIR] "
+        "[--evaluate-structured-workspace-binding [--fake-io]] "
         "[--simulate-self-suppression [--vowel a|e|i|o|u] [--world-vowel a|e|i|o|u] [--world-gain F] [--duration-ms N] [--sample-rate N]] "
         "[--learn-self-forward-model [--vowel a|e|i|o|u] [--observed-delay-ms F] [--observed-attenuation F] [--observed-echo-decay F] [--world-vowel a|e|i|o|u] [--world-gain F]] "
         "[--sweep-self-forward-model [--vowel a|e|i|o|u] [--delay-errors-ms csv] [--attenuation-scales csv] [--echo-decay-scales csv] [--world-vowel a|e|i|o|u] [--world-gain F]] "

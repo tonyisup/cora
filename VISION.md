@@ -446,8 +446,8 @@ within its measured boundary. H3's workspace claim remains separate.
 
 ### Stage 4 — Workspace binding
 
-Status: spent real-capture task and bounded candidate designed; fresh Cora
-synchronized confirmation not yet demonstrated.
+Status: spent real-capture task and structured synthetic gate passed; fresh
+Cora synchronized confirmation not yet demonstrated.
 
 Required evidence:
 
@@ -482,6 +482,23 @@ Current spent real-capture design result:
   by Corollary and are not a recomputed Cora signal residual. A fresh Cora task
   must freeze the metric and compare flat, fixed-window, and scheduled binding
   under synchronized self-only, world-only, and overlap playback.
+
+Current structured Cora protocol:
+
+- a 15-trial device-agnostic protocol now separates development and held-out
+  self/world frequency bands and includes self-only, world-only, and equal-gain
+  overlap conditions;
+- flat, fixed-self-window, and scheduled identity-plus-world-evidence strategies
+  are scored across binding capacities `1/2/3/4`;
+- the first synthetic run retained a real design failure: a symmetric midpoint
+  world-evidence threshold made equal-gain overlap numerically borderline and
+  reduced scheduled world recall to `0.667`;
+- the corrected development-only rule places the threshold at 10% of the clean
+  self→world evidence gap, reflecting the safety priority to preserve world
+  overlap. Scheduled F1 then reached `1.0` versus flat `0.8` and fixed-window
+  `0.667`; capacity `1/2/3/4` reached `0.857/0.923/1.0/1.0`;
+- this is synthetic plumbing only. Live I/O remains deliberately unwired until
+  both source geometries and levels are confirmed and frozen.
 
 ### Stage 5 — Perception-production closure
 

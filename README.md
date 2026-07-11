@@ -315,6 +315,17 @@ This consumes Corollary-produced self-presence and speech summary features plus
 verifies the underlying real PCM hashes. It does not recompute a signal residual
 or replace a fresh Cora synchronized binding task.
 
+Plan or exercise the device-agnostic structured H3 protocol:
+
+```bash
+python3 -m cora_infans --evaluate-structured-workspace-binding
+python3 -m cora_infans --evaluate-structured-workspace-binding --fake-io
+```
+
+The protocol uses held-out self/world frequency bands, self-only/world-only/
+overlap conditions, flat and fixed-window baselines, and a 1–4 binding-slot
+sweep. Live device I/O is intentionally not wired yet.
+
 The ablation compares flat, fixed-window, and theta-gamma handling on aligned
 self echo and legitimate world/motor overlap. Scheduling suppression requires
 verified self-audio identity; temporal coincidence by itself is insufficient.
@@ -432,6 +443,12 @@ developmental language learning.
   up world-speech evidence scored F1 `1.0`. Capacity 1/2/3 improved
   `0.800/0.889/1.000` and plateaued at 4. This is design evidence over upstream
   summary features, not promoted H3 or fresh Cora audio.
+- A new 15-trial structured H3 protocol then passed its synthetic acoustic
+  plumbing gate: scheduled identity plus world evidence scored F1 `1.0` versus
+  flat `0.8` and fixed-window `0.667`; capacity `1/2/3/4` scored
+  `0.857/0.923/1.0/1.0`. The first symmetric midpoint threshold is retained as
+  a failure because it suppressed two equal-gain overlaps; the corrected rule
+  uses the lowest decile of the clean development gap. Live I/O remains unwired.
 - Theta/gamma scheduling is an event-timing model, not measured neural dynamics.
 - The vowel table uses adult reference targets and clean synthetic success does
   not imply recorded infant/adult speech performance.
@@ -448,6 +465,7 @@ developmental language learning.
 - `natural_prediction_audit.py` — participant-held-out, label-blind natural-stream design audit
 - `natural_event_prediction.py` — causal quiet/onset/stable/change states and cross-fieldsite transfer
 - `real_workspace_binding.py` — bounded self/world binding design audit over retained real captures
+- `structured_workspace_binding.py` — device-agnostic self/world/overlap H3 protocol and fake gate
 - `register_saliency.py` — long-window vocal, speech/song, and adaptive IDS gates
 - `io/motor_plan.py` — source-filter synthesis, LPC perception, and vowel gate
 - `benchmark.py` — explicit-boundary event-pipeline microbenchmark

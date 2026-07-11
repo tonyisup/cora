@@ -406,6 +406,17 @@ research contract and implements the first vertical evidence path.
   real PCM. It is not a Cora-computed signal residual and cannot promote H3.
   Fresh synchronized self-only/world-only/overlap capture must compare flat,
   fixed-window, and scheduled strategies under a frozen metric.
+- Added a device-agnostic 15-trial structured successor with separate
+  development/held-out self and world tone bands, self-only/world-only/overlap
+  conditions, flat/fixed/scheduled comparisons, and capacity `1–4`.
+- Its first fake-channel run failed because a midpoint evidence threshold made
+  equal-gain overlap exactly borderline; scheduled world recall was `0.667`.
+  The retained correction fixes the asymmetric safety objective on development
+  only: threshold = maximum self-only evidence + 10% of the clean gap.
+- With that rule, scheduled F1 was `1.0` versus flat `0.8` and fixed-window
+  `0.667`; capacity `1/2/3/4` produced `0.857/0.923/1.0/1.0`. This remains
+  non-promoting synthetic plumbing, and live device I/O is intentionally
+  unwired pending exact source geometry.
 
 ### Analysis-by-synthesis repair
 

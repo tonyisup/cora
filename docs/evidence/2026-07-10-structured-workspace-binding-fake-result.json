@@ -1,0 +1,420 @@
+{
+  "mode": "structured_workspace_binding_protocol",
+  "config": {
+    "sample_rate": 16000,
+    "alignment_chirp_ms": 120,
+    "alignment_silence_ms": 180,
+    "stimulus_ms": 800,
+    "tail_silence_ms": 200,
+    "self_gain": 0.12,
+    "world_gain": 0.12,
+    "fake_delay_ms": 30,
+    "fake_attenuation": 0.35,
+    "fake_noise_rms": 0.001
+  },
+  "trial_count": 15,
+  "seconds_per_trial": 1.3,
+  "maximum_total_playback_seconds": 19.5,
+  "trials": [
+    {
+      "trial_id": "development_self_only_0",
+      "split": "development",
+      "condition": "self_only",
+      "seed_index": 0,
+      "self_frequency_hz": 380,
+      "world_frequency_hz": null,
+      "efference_id": "dev_self_0",
+      "expected_world_usable": false
+    },
+    {
+      "trial_id": "development_world_only_0",
+      "split": "development",
+      "condition": "world_only",
+      "seed_index": 0,
+      "self_frequency_hz": null,
+      "world_frequency_hz": 1150,
+      "efference_id": null,
+      "expected_world_usable": true
+    },
+    {
+      "trial_id": "development_self_only_1",
+      "split": "development",
+      "condition": "self_only",
+      "seed_index": 1,
+      "self_frequency_hz": 520,
+      "world_frequency_hz": null,
+      "efference_id": "dev_self_1",
+      "expected_world_usable": false
+    },
+    {
+      "trial_id": "development_world_only_1",
+      "split": "development",
+      "condition": "world_only",
+      "seed_index": 1,
+      "self_frequency_hz": null,
+      "world_frequency_hz": 1450,
+      "efference_id": null,
+      "expected_world_usable": true
+    },
+    {
+      "trial_id": "development_self_only_2",
+      "split": "development",
+      "condition": "self_only",
+      "seed_index": 2,
+      "self_frequency_hz": 680,
+      "world_frequency_hz": null,
+      "efference_id": "dev_self_2",
+      "expected_world_usable": false
+    },
+    {
+      "trial_id": "development_world_only_2",
+      "split": "development",
+      "condition": "world_only",
+      "seed_index": 2,
+      "self_frequency_hz": null,
+      "world_frequency_hz": 1750,
+      "efference_id": null,
+      "expected_world_usable": true
+    },
+    {
+      "trial_id": "held_out_self_only_0",
+      "split": "held_out",
+      "condition": "self_only",
+      "seed_index": 0,
+      "self_frequency_hz": 420,
+      "world_frequency_hz": null,
+      "efference_id": "held_self_0",
+      "expected_world_usable": false
+    },
+    {
+      "trial_id": "held_out_world_only_0",
+      "split": "held_out",
+      "condition": "world_only",
+      "seed_index": 0,
+      "self_frequency_hz": null,
+      "world_frequency_hz": 1250,
+      "efference_id": null,
+      "expected_world_usable": true
+    },
+    {
+      "trial_id": "held_out_overlap_0",
+      "split": "held_out",
+      "condition": "overlap",
+      "seed_index": 0,
+      "self_frequency_hz": 420,
+      "world_frequency_hz": 1250,
+      "efference_id": "held_self_0",
+      "expected_world_usable": true
+    },
+    {
+      "trial_id": "held_out_self_only_1",
+      "split": "held_out",
+      "condition": "self_only",
+      "seed_index": 1,
+      "self_frequency_hz": 560,
+      "world_frequency_hz": null,
+      "efference_id": "held_self_1",
+      "expected_world_usable": false
+    },
+    {
+      "trial_id": "held_out_world_only_1",
+      "split": "held_out",
+      "condition": "world_only",
+      "seed_index": 1,
+      "self_frequency_hz": null,
+      "world_frequency_hz": 1550,
+      "efference_id": null,
+      "expected_world_usable": true
+    },
+    {
+      "trial_id": "held_out_overlap_1",
+      "split": "held_out",
+      "condition": "overlap",
+      "seed_index": 1,
+      "self_frequency_hz": 560,
+      "world_frequency_hz": 1550,
+      "efference_id": "held_self_1",
+      "expected_world_usable": true
+    },
+    {
+      "trial_id": "held_out_self_only_2",
+      "split": "held_out",
+      "condition": "self_only",
+      "seed_index": 2,
+      "self_frequency_hz": 720,
+      "world_frequency_hz": null,
+      "efference_id": "held_self_2",
+      "expected_world_usable": false
+    },
+    {
+      "trial_id": "held_out_world_only_2",
+      "split": "held_out",
+      "condition": "world_only",
+      "seed_index": 2,
+      "self_frequency_hz": null,
+      "world_frequency_hz": 1850,
+      "efference_id": null,
+      "expected_world_usable": true
+    },
+    {
+      "trial_id": "held_out_overlap_2",
+      "split": "held_out",
+      "condition": "overlap",
+      "seed_index": 2,
+      "self_frequency_hz": 720,
+      "world_frequency_hz": 1850,
+      "efference_id": "held_self_2",
+      "expected_world_usable": true
+    }
+  ],
+  "strategies": [
+    "flat",
+    "fixed_self_window",
+    "scheduled_identity_plus_world_evidence"
+  ],
+  "capacity_sweep": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "label_boundary": "condition and expected_world_usable enter scoring only; the runtime strategy consumes efference identity and measured world-band evidence",
+  "live_io_wired": false,
+  "verdict": "fake_io_plumbing_passed",
+  "evidence_class": "synthetic_fake_acoustic_channel",
+  "promotion_allowed": false,
+  "implementation_sha256": "31666b248db3328251171fbd9c45bec093bfc5547b695538e5a24a373c3e996a",
+  "cli_sha256": "e707dbc12a140f196dc54c9c02d30ee4580ce7b5cd959aa5a11ba4c4cf6f2c45",
+  "protocol_sha256": "5b4be8f2ecc97a23e20f576ffd0110f9551762abad0422877040de7cc55df3dd",
+  "world_evidence": {
+    "development_self_only_0": 0.00018195997517798061,
+    "development_world_only_0": 0.9998936297190939,
+    "development_self_only_1": 0.00016411981206552445,
+    "development_world_only_1": 0.9999104647537157,
+    "development_self_only_2": 0.00017478120286375245,
+    "development_world_only_2": 0.9999001990754703,
+    "held_out_self_only_0": 0.00016649149689854757,
+    "held_out_world_only_0": 0.9999027490753585,
+    "held_out_overlap_0": 0.49978417936538044,
+    "held_out_self_only_1": 0.00017634066214975816,
+    "held_out_world_only_1": 0.9999027924319212,
+    "held_out_overlap_1": 0.49997581310897843,
+    "held_out_self_only_2": 0.00018496012332857933,
+    "held_out_world_only_2": 0.9998979561743436,
+    "held_out_overlap_2": 0.5001713418125375
+  },
+  "world_evidence_threshold": 0.10015312694956957,
+  "world_evidence_threshold_rule": "maximum development self-only ratio plus 10 percent of the clean self-only to world-only gap",
+  "threshold_selected_from_development_only": true,
+  "reports": {
+    "1": {
+      "flat": {
+        "strategy": "flat",
+        "capacity": 1,
+        "bounded_binding_slots": 1,
+        "world_evidence_threshold_scalars": 1,
+        "metrics": {
+          "tp": 6,
+          "fp": 3,
+          "tn": 0,
+          "fn": 0,
+          "world_recall": 1,
+          "self_suppression_specificity": 0,
+          "f1": 0.8
+        }
+      },
+      "fixed_self_window": {
+        "strategy": "fixed_self_window",
+        "capacity": 1,
+        "bounded_binding_slots": 1,
+        "world_evidence_threshold_scalars": 1,
+        "metrics": {
+          "tp": 5,
+          "fp": 2,
+          "tn": 1,
+          "fn": 1,
+          "world_recall": 0.8333333333333334,
+          "self_suppression_specificity": 0.3333333333333333,
+          "f1": 0.7692307692307693
+        }
+      },
+      "scheduled_identity_plus_world_evidence": {
+        "strategy": "scheduled_identity_plus_world_evidence",
+        "capacity": 1,
+        "bounded_binding_slots": 1,
+        "world_evidence_threshold_scalars": 1,
+        "metrics": {
+          "tp": 6,
+          "fp": 2,
+          "tn": 1,
+          "fn": 0,
+          "world_recall": 1,
+          "self_suppression_specificity": 0.3333333333333333,
+          "f1": 0.8571428571428571
+        }
+      }
+    },
+    "2": {
+      "flat": {
+        "strategy": "flat",
+        "capacity": 2,
+        "bounded_binding_slots": 2,
+        "world_evidence_threshold_scalars": 1,
+        "metrics": {
+          "tp": 6,
+          "fp": 3,
+          "tn": 0,
+          "fn": 0,
+          "world_recall": 1,
+          "self_suppression_specificity": 0,
+          "f1": 0.8
+        }
+      },
+      "fixed_self_window": {
+        "strategy": "fixed_self_window",
+        "capacity": 2,
+        "bounded_binding_slots": 2,
+        "world_evidence_threshold_scalars": 1,
+        "metrics": {
+          "tp": 4,
+          "fp": 1,
+          "tn": 2,
+          "fn": 2,
+          "world_recall": 0.6666666666666666,
+          "self_suppression_specificity": 0.6666666666666666,
+          "f1": 0.7272727272727273
+        }
+      },
+      "scheduled_identity_plus_world_evidence": {
+        "strategy": "scheduled_identity_plus_world_evidence",
+        "capacity": 2,
+        "bounded_binding_slots": 2,
+        "world_evidence_threshold_scalars": 1,
+        "metrics": {
+          "tp": 6,
+          "fp": 1,
+          "tn": 2,
+          "fn": 0,
+          "world_recall": 1,
+          "self_suppression_specificity": 0.6666666666666666,
+          "f1": 0.9230769230769231
+        }
+      }
+    },
+    "3": {
+      "flat": {
+        "strategy": "flat",
+        "capacity": 3,
+        "bounded_binding_slots": 3,
+        "world_evidence_threshold_scalars": 1,
+        "metrics": {
+          "tp": 6,
+          "fp": 3,
+          "tn": 0,
+          "fn": 0,
+          "world_recall": 1,
+          "self_suppression_specificity": 0,
+          "f1": 0.8
+        }
+      },
+      "fixed_self_window": {
+        "strategy": "fixed_self_window",
+        "capacity": 3,
+        "bounded_binding_slots": 3,
+        "world_evidence_threshold_scalars": 1,
+        "metrics": {
+          "tp": 3,
+          "fp": 0,
+          "tn": 3,
+          "fn": 3,
+          "world_recall": 0.5,
+          "self_suppression_specificity": 1,
+          "f1": 0.6666666666666666
+        }
+      },
+      "scheduled_identity_plus_world_evidence": {
+        "strategy": "scheduled_identity_plus_world_evidence",
+        "capacity": 3,
+        "bounded_binding_slots": 3,
+        "world_evidence_threshold_scalars": 1,
+        "metrics": {
+          "tp": 6,
+          "fp": 0,
+          "tn": 3,
+          "fn": 0,
+          "world_recall": 1,
+          "self_suppression_specificity": 1,
+          "f1": 1
+        }
+      }
+    },
+    "4": {
+      "flat": {
+        "strategy": "flat",
+        "capacity": 4,
+        "bounded_binding_slots": 4,
+        "world_evidence_threshold_scalars": 1,
+        "metrics": {
+          "tp": 6,
+          "fp": 3,
+          "tn": 0,
+          "fn": 0,
+          "world_recall": 1,
+          "self_suppression_specificity": 0,
+          "f1": 0.8
+        }
+      },
+      "fixed_self_window": {
+        "strategy": "fixed_self_window",
+        "capacity": 4,
+        "bounded_binding_slots": 4,
+        "world_evidence_threshold_scalars": 1,
+        "metrics": {
+          "tp": 3,
+          "fp": 0,
+          "tn": 3,
+          "fn": 3,
+          "world_recall": 0.5,
+          "self_suppression_specificity": 1,
+          "f1": 0.6666666666666666
+        }
+      },
+      "scheduled_identity_plus_world_evidence": {
+        "strategy": "scheduled_identity_plus_world_evidence",
+        "capacity": 4,
+        "bounded_binding_slots": 4,
+        "world_evidence_threshold_scalars": 1,
+        "metrics": {
+          "tp": 6,
+          "fp": 0,
+          "tn": 3,
+          "fn": 0,
+          "world_recall": 1,
+          "self_suppression_specificity": 1,
+          "f1": 1
+        }
+      }
+    }
+  },
+  "criteria": {
+    "scheduled_f1_at_least_0_90": true,
+    "scheduled_improves_flat_f1_by_at_least_0_20": true,
+    "fixed_window_collision_failure_exposed": true,
+    "capacity_one_worse_than_three": true,
+    "capacity_three_plateaus_at_four": true
+  },
+  "design_history": {
+    "initial_midpoint_rule": {
+      "threshold": 0.500037794847136,
+      "held_out_overlap_world_ratios": [
+        0.49978417936538044,
+        0.49997581310897843,
+        0.5001713418125375
+      ],
+      "scheduled_capacity_three_f1": 0.8,
+      "scheduled_capacity_three_world_recall": 0.6666666666666666,
+      "verdict": "failed_equal_gain_overlap_was_numerically_borderline"
+    },
+    "correction": "Replace the symmetric midpoint with maximum development self-only evidence plus 10 percent of the clean development gap, reflecting the frozen safety priority to preserve legitimate world overlap."
+  }
+}
