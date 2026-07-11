@@ -201,3 +201,11 @@ passed both frozen gates: `1024/1024` states exposed three resonances, all five
 vowel regions and neighborhoods retained identity, and F1/F2/F3 MAE was
 `15/56/100 Hz`. This supports proceeding to a separately frozen label-free
 local learner. It does not by itself support H4 or recorded-speech access.
+
+The exact next mechanism is frozen as
+[Option G](H4_OPTION_G_EXPANDED_LOCAL_CLOSURE.md): a 128-prototype winner-local
+affine map learned from label-free five-dimensional babbling, followed by a
+21-prediction bounded inverse. Its disjoint
+[preregistration](evidence/2026-07-11-h4-option-g-expanded-local-closure-preregistration.json)
+must pass both forward generalization and perception-production closure before
+any recorded-speech discussion.
