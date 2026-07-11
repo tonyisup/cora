@@ -195,3 +195,9 @@ leaving the plant unchanged. Its
 [preregistration](evidence/2026-07-11-h4-option-f-expanded-band-plant-preregistration.json)
 authorizes one synthetic plant-only confirmation, not learning or recorded
 speech.
+
+The [Option F result](evidence/2026-07-11-h4-option-f-expanded-band-plant-result.json)
+passed both frozen gates: `1024/1024` states exposed three resonances, all five
+vowel regions and neighborhoods retained identity, and F1/F2/F3 MAE was
+`15/56/100 Hz`. This supports proceeding to a separately frozen label-free
+local learner. It does not by itself support H4 or recorded-speech access.

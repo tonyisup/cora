@@ -1,8 +1,9 @@
 # H4 Option F — expanded-band factorized plant readout
 
-Status: preregistered for one synthetic-only plant confirmation on disjoint
-points. No learning, inverse search, recorded audio, or protected-data access is
-authorized.
+Status: synthetic-only plant confirmation passed on disjoint points. The
+[retained result](evidence/2026-07-11-h4-option-f-expanded-band-plant-result.json)
+authorizes drafting a separate learner protocol, but not executing learning,
+inverse search, recorded audio, or protected-data access.
 
 ## Mechanism revision
 
@@ -36,3 +37,15 @@ babbling and local forward learning using the expanded envelope. It would not
 promote H4 or authorize recorded speech. Any failed gate is retained without
 changing the band, points, targets, or thresholds.
 
+## Retained outcome
+
+Option F passed P0 and P2 exactly as frozen. All `1024/1024` disjoint states
+had three separated resonances through 5 kHz, finite geometry and transfer
+values, and deterministic bounded target waveforms. The five selected vowels
+all retained identity and `1.0` neighborhood validity. F1/F2/F3 MAE was
+`15/56/100 Hz`, and the minimum expanded-sensory separation was `0.4353`
+against the `0.25` gate.
+
+This establishes only that the factorized plant and expanded structural readout
+provide a viable synthetic motor surface. No forward map was learned and no
+perception-to-production inversion occurred.

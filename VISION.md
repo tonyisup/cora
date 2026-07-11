@@ -670,6 +670,11 @@ Current recorded-human result:
   MAE was `15/95/33 Hz`. The overall protocol nevertheless stopped because
   `9/1024` arbitrary motor states lacked three separated peaks within the frozen
   analysis band. No learner or inverse search ran.
+- a separately preregistered expanded-band readout then used new points and
+  retained the same plant. All `1024/1024` states exposed three resonances
+  through 5 kHz; five-vowel targets and neighborhoods passed, with F1/F2/F3 MAE
+  `15/56/100 Hz`. This supports the synthetic plant/readout only. Forward
+  learning and inverse closure remain required before any H4 claim.
 
 H4 remains open, but the fixed-formant, continuous acoustic-coordinate, and
 first geometric/local-forward candidates are retained failures; the factorized

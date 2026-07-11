@@ -92,3 +92,23 @@ def test_option_f_expanded_readout_contract() -> None:
     assert sensory.shape == (30,)
     assert np.linalg.norm(sensory) == pytest.approx(1.0)
     assert expanded_formants(motor) == expanded_formants(motor)
+
+
+def test_retained_option_f_result_preserves_plant_only_boundary() -> None:
+    root = Path(__file__).resolve().parents[1]
+    result = json.loads(
+        (
+            root
+            / "docs/evidence/2026-07-11-h4-option-f-expanded-band-plant-result.json"
+        ).read_text()
+    )
+
+    assert result["p0"]["gate_passed"] is True
+    assert result["p2"]["gate_passed"] is True
+    assert result["all_plant_gates_passed"] is True
+    assert result["forward_learning_executed"] is False
+    assert result["inverse_search_executed"] is False
+    assert result["recorded_audio_accessed"] is False
+    assert result["protected_data_accessed"] is False
+    assert result["promotion_allowed"] is False
+    assert result["provenance"]["implementation_commit"] == "3e97516"
