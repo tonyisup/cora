@@ -308,6 +308,14 @@ research contract and implements the first vertical evidence path.
   each. Hiding quiet/saliency context reduced mean accuracy from `0.7600` to
   `0.6688`, with the full path winning `7/8`. This supports causal anatomy only;
   it is not another promotion and does not stand in for H3 workspace evidence.
+- Preregistered an independent Beijing-only to ARA replication using the four
+  lowest paired ARA participant IDs, unchanged observation/learner code, and
+  the Wellington gate. All eight fetched WAVs verified by size, CRC32, and
+  SHA-256, but scoring was blocked: `ARA01B` is exactly `2.000` seconds and
+  `ARA03B` is `1.632` seconds, too short for the frozen 2-second calibration
+  plus an evaluated frame. The failed eligibility result is retained with no
+  participant substitution or calibration change. It does not count as
+  predictive failure or replication.
 
 ### Prior-art real-capture replay
 
@@ -447,6 +455,9 @@ These numbers are a microbenchmark, not end-to-end auditory latency.
    frame codebook remains retired; the next H2 work should be the required
    hierarchy/workspace/saliency ablations and a second independent natural
    context, not threshold retuning on Wellington.
+   The first independent ARA attempt exposed a duration-eligibility omission;
+   any replacement replication must preregister sequential duration screening
+   and participant replacement before fetching candidate audio.
 4. Add recorded-vowel speakers not used to tune LPC selection and run a separate
    confusion matrix.
 5. Instrument the live capture path for microphone-to-event latency and dropped

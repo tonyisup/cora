@@ -381,6 +381,15 @@ Current evidence:
 - those ablations support the component data flow but cannot promote the result
   again, and their event-context proxy is not evidence for H3's bounded event
   workspace.
+- an independently preregistered Beijing-to-ARA replication retained the same
+  code, training clips, gate, and four numerically lowest paired ARA participant
+  IDs. It failed before scoring because `ARA01B` was exactly the 2-second
+  calibration length and `ARA03B` was `1.632` seconds;
+- no participant was substituted and calibration was not shortened after audio
+  access. This is retained as protocol-eligibility failure: it supplies neither
+  replication nor contradictory predictive-accuracy evidence. The next
+  independent protocol must freeze a deterministic minimum-duration replacement
+  rule before fetching candidate audio.
 
 Promotion criterion:
 

@@ -386,6 +386,11 @@ developmental language learning.
   quiet/saliency event reduced mean accuracy from `0.7600` to `0.6688`. These
   are descriptive component results, not another held-out promotion or an H3
   workspace test.
+- A preregistered Beijing→ARA replication then failed before scoring: `ARA01B`
+  is exactly as long as the mandatory 2-second calibration and `ARA03B` is only
+  `1.632` seconds. The eight clips and hashes are retained, no participant was
+  substituted, and calibration was not shortened. This is protocol-
+  eligibility failure—not negative prediction evidence and not replication.
 - Theta/gamma scheduling is an event-timing model, not measured neural dynamics.
 - The vowel table uses adult reference targets and clean synthetic success does
   not imply recorded infant/adult speech performance.

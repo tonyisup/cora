@@ -148,3 +148,23 @@ def test_retained_cross_fieldsite_evidence_matches_preregistration() -> None:
     assert len(result["held_out_audio_manifest"]) == 8
     assert len({item["sha256"] for item in result["held_out_audio_manifest"]}) == 8
     assert all(len(item["sha256"]) == 64 for item in result["held_out_audio_manifest"])
+
+
+def test_retained_ara_replication_failure_does_not_claim_scoring() -> None:
+    root = Path(__file__).resolve().parents[1]
+    result = json.loads(
+        (
+            root
+            / "docs/evidence/2026-07-10-natural-event-ara-replication-result.json"
+        ).read_text()
+    )
+
+    assert result["verdict"] == "replication_failed_protocol_eligibility"
+    assert result["execution"]["scoring_started"] is False
+    assert result["frozen_acceptance"]["overall_passed"] is False
+    assert result["frozen_acceptance"]["scoring_gates_evaluated"] is False
+    assert result["eligibility"]["ineligible_clips"] == [
+        "ARA01B.wav",
+        "ARA03B.wav",
+    ]
+    assert len(result["held_out_audio_manifest"]) == 8
