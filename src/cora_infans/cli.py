@@ -1203,6 +1203,8 @@ def structured_workspace_binding_cli(args: list[str]) -> dict[str, object]:
         / "docs/evidence/2026-07-10-structured-workspace-binding-protocol.json",
         "standing_world_geometry_sha256": root
         / "docs/evidence/2026-07-10-h3-standing-world-geometry.json",
+        "standing_self_placement_sha256": root
+        / "docs/evidence/2026-07-10-h3-standing-self-placement.json",
     }
     current_hashes = {
         name: hashlib.sha256(path.read_bytes()).hexdigest()

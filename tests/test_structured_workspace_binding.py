@@ -248,9 +248,12 @@ def _ready_preregistration(hashes):
             "self_source": {
                 "output_device_index": 3,
                 "output_device": "Mac mini Speakers",
-                "angle_degrees": 0,
-                "distance_cm": 25,
-                "system_volume_percent": 50,
+                "placement": "centered_directly_below_xvf3800",
+                "horizontal_offset_cm": 0,
+                "elevation_degrees": -90,
+                "vertical_distance_cm": 25,
+                "distance_reference": "XVF3800 array center to Mac mini chassis center",
+                "system_volume_percent": 100,
                 "playback_gain_db": 0.0,
             },
             "world_source": {
@@ -295,14 +298,14 @@ def test_workspace_preregistration_audit_requires_hashes_and_complete_self_geome
     )
     assert ready == {"verdict": "preregistration_ready", "ready": True, "blockers": []}
 
-    preregistration["hardware"]["self_source"]["angle_degrees"] = None
+    preregistration["hardware"]["self_source"]["elevation_degrees"] = None
     preregistration["frozen_hashes"]["cli_sha256"] = "stale"
     preregistration["acceptance"]["scheduled_f1_min"] = 0.5
     blocked = audit_workspace_binding_preregistration(
         preregistration, current_hashes=hashes
     )
     assert blocked["ready"] is False
-    assert "self source angle is not frozen" in blocked["blockers"]
+    assert "self source elevation must remain -90 degrees" in blocked["blockers"]
     assert "frozen hash mismatch: cli_sha256" in blocked["blockers"]
     assert "acceptance criteria do not match the frozen H3 gate" in blocked["blockers"]
 

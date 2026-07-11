@@ -1,15 +1,16 @@
 {
   "mode": "structured_workspace_binding_real_preregistration",
   "date": "2026-07-10",
-  "status": "blocked_missing_self_geometry",
+  "status": "blocked_missing_self_distance",
   "bounded_playback_capture_authorized": true,
   "authorization_source": "user authorized repeated bounded live audio runs",
   "frozen_hashes": {
-    "implementation_sha256": "3ba0ed65525cbca1d90b6f31d0602b5ada1fa1b096b1e5fd3b7f82464a52b0a8",
-    "cli_sha256": "e5ac353bad3f772224e061a3e78a8e71fc4311318664eabcf15387458b6f4301",
+    "implementation_sha256": "945b58579dbe9bfd0dcfce9dcd890ecd3e4b0403683c6bb9c50832f208103347",
+    "cli_sha256": "7711d6759b56c157f1e5955918c6b84b6ba6899d046163823a26349d6f3851a2",
     "io_sha256": "1cf10155c49dc32406b4936504f5af452be335ea73ee08f2d7a6fc7437f3f34b",
     "protocol_sha256": "5b4be8f2ecc97a23e20f576ffd0110f9551762abad0422877040de7cc55df3dd",
-    "standing_world_geometry_sha256": "ba5d882c544c72ada6e43442df4bc41a71b1ae53de5ef0aa68bf8ad70218cd83"
+    "standing_world_geometry_sha256": "ba5d882c544c72ada6e43442df4bc41a71b1ae53de5ef0aa68bf8ad70218cd83",
+    "standing_self_placement_sha256": "8ccbbd18cf4b48c0772c91f77bfc39f83b40a089b713fa7c1143af9f875b9b82"
   },
   "hardware": {
     "input": {
@@ -21,9 +22,12 @@
     "self_source": {
       "output_device_index": 3,
       "output_device": "Mac mini Speakers",
-      "angle_degrees": null,
-      "distance_cm": null,
-      "system_volume_percent": null,
+      "placement": "centered_directly_below_xvf3800",
+      "horizontal_offset_cm": 0,
+      "elevation_degrees": -90,
+      "vertical_distance_cm": null,
+      "distance_reference": "XVF3800 array center to Mac mini chassis center",
+      "system_volume_percent": 100,
       "playback_gain_db": 0.0
     },
     "world_source": {
@@ -64,9 +68,7 @@
     "retry_policy": "retain each failed attempt and preregister any protocol change before retry"
   },
   "unresolved_fields": [
-    "hardware.self_source.angle_degrees",
-    "hardware.self_source.distance_cm",
-    "hardware.self_source.system_volume_percent"
+    "hardware.self_source.vertical_distance_cm"
   ],
   "claim_boundary": "This draft is intentionally non-executable. The CLI audits every frozen hash and physical field before creating the output directory or invoking capture/playback."
 }

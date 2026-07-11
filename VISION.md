@@ -513,8 +513,9 @@ Current structured Cora protocol:
 - the concrete CLI route now exists but is fail-closed before output creation or
   callbacks. It requires an explicit bounded-playback flag and a committed
   preregistration matching the exact runner, CLI, I/O, protocol, and standing-
-  geometry hashes. The current draft has null Mac mini angle, distance, and
-  level fields, so no hardware playback can occur yet.
+  geometry hashes. The self source is now frozen centered directly below the
+  array at -90 degrees elevation and 100% system volume, but its center-to-
+  center distance remains null, so no hardware playback can occur yet.
 
 ### Stage 5 — Perception-production closure
 

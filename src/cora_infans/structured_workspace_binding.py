@@ -224,15 +224,23 @@ def audit_workspace_binding_preregistration(
     if self_route.get("playback_gain_db") != 0.0:
         blockers.append("self playback gain must be frozen at 0 dB")
 
-    self_angle = self_route.get("angle_degrees")
-    if not isinstance(self_angle, (int, float)) or not (0 <= self_angle <= 360):
-        blockers.append("self source angle is not frozen")
-    self_distance = self_route.get("distance_cm")
+    if self_route.get("placement") != "centered_directly_below_xvf3800":
+        blockers.append("self source must remain centered directly below the XVF3800")
+    if self_route.get("horizontal_offset_cm") != 0:
+        blockers.append("self source horizontal offset must remain zero")
+    if self_route.get("elevation_degrees") != -90:
+        blockers.append("self source elevation must remain -90 degrees")
+    self_distance = self_route.get("vertical_distance_cm")
     if not isinstance(self_distance, (int, float)) or self_distance <= 0:
-        blockers.append("self source distance is not frozen")
+        blockers.append("self source vertical distance is not frozen")
+    if (
+        self_route.get("distance_reference")
+        != "XVF3800 array center to Mac mini chassis center"
+    ):
+        blockers.append("self source distance reference is not frozen")
     self_volume = self_route.get("system_volume_percent")
-    if not isinstance(self_volume, (int, float)) or not (0 < self_volume <= 100):
-        blockers.append("self source system volume is not frozen")
+    if self_volume != 100:
+        blockers.append("self source system volume must remain 100 percent")
 
     bounds = preregistration.get("bounds")
     expected_bounds = {
