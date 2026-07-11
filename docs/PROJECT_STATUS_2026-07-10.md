@@ -316,6 +316,16 @@ research contract and implements the first vertical evidence path.
   plus an evaluated frame. The failed eligibility result is retained with no
   participant substitution or calibration change. It does not count as
   predictive failure or replication.
+- Preregistered the replacement before further audio access with a deterministic
+  `2.10 s` duration screen, MEN fieldsite selection, numeric candidate order,
+  and stop-after-four rule. MEN01–04 were the first candidates and every B/D
+  clip qualified; all eight verified by size, CRC32, and SHA-256.
+- The unchanged Beijing-only model passed all MEN gates: `8/8` clip wins, mean
+  improvement `0.1106`, worst improvement `0.0654`, minimum occupancy `3`, and
+  16 state scalars. Combined with Wellington's `8/8` pass, natural speaker and
+  fieldsite transfer for this causal event target is now independently
+  replicated. Semantic/IDS recognition, universality, and controlled-dropout
+  representation stability remain outside the claim.
 
 ### Prior-art real-capture replay
 
@@ -455,9 +465,10 @@ These numbers are a microbenchmark, not end-to-end auditory latency.
    frame codebook remains retired; the next H2 work should be the required
    hierarchy/workspace/saliency ablations and a second independent natural
    context, not threshold retuning on Wellington.
-   The first independent ARA attempt exposed a duration-eligibility omission;
-   any replacement replication must preregister sequential duration screening
-   and participant replacement before fetching candidate audio.
+   The ARA duration-eligibility omission was corrected prospectively and the
+   MEN replacement replication passed. Natural fieldsite transfer no longer
+   needs another immediate corpus; prioritize explicit missing-observation
+   handling for the still-failing controlled-dropout representation.
 4. Add recorded-vowel speakers not used to tune LPC selection and run a separate
    confusion matrix.
 5. Instrument the live capture path for microphone-to-event latency and dropped

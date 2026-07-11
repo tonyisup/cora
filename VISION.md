@@ -234,8 +234,8 @@ Current environmental-control result:
 
 ### Stage 3 — Predictive hierarchy
 
-Status: natural event-transfer gate passed; Stage 3 remains open for required
-ablations and broader robustness.
+Status: natural event transfer replicated across two held-out fieldsites; H2
+remains open only where the named dropout-stability requirement is not met.
 Phase-template evidence remains positive in bounded settings, and a safer
 online learner passed a fresh-fieldsite regret gate but failed superiority. The
 first real structured-stream mechanism passed tones but failed vowels; a
@@ -390,17 +390,29 @@ Current evidence:
   replication nor contradictory predictive-accuracy evidence. The next
   independent protocol must freeze a deterministic minimum-duration replacement
   rule before fetching candidate audio.
+- the replacement replication froze that eligibility rule at `2.10 s`, selected
+  MEN by deterministic metadata/evidence order, and fetched paired participants
+  numerically until four qualified. MEN01–04 all qualified, so no duration
+  rejection or discretionary substitution occurred;
+- using the unchanged Beijing-only learner, all `8/8` MEN clips beat the
+  strongest causal baseline. Mean improvement was `+0.1106`, worst improvement
+  was `+0.0654`, every clip occupied at least three states, and state remained
+  bounded at 16 scalars;
+- together with Wellington (`8/8`, mean `+0.0751`), this independently
+  replicates natural speaker/fieldsite transfer for the causal event target.
+  The remaining H2 limitation is the separately demonstrated controlled-
+  dropout representation collapse, not natural-transfer absence.
 
 Promotion criterion:
 
 - statistically or practically meaningful held-out error reduction across more
   than one recording or synthetic family, without unbounded state growth.
 
-The controlled mechanism and one preregistered Beijing-to-Wellington natural
-event transfer are now positive. Full Stage 3 promotion still requires the
-separate H3 workspace evidence and evidence that the result is not confined to
-this event definition and fieldsite pair. The H2 bottom-up/top-down/saliency
-component ablations are positive but post-confirmation.
+The controlled mechanism and Beijing-to-Wellington and Beijing-to-MEN natural
+event transfers are positive. The H2 bottom-up/top-down/saliency component
+ablations are positive but post-confirmation. H2 is not fully closed because
+the frozen controlled-dropout condition preserved predictive advantage while
+collapsing one represented vowel state. H3's workspace claim remains separate.
 
 ### Stage 4 — Workspace binding
 

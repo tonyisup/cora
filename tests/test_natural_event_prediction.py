@@ -168,3 +168,32 @@ def test_retained_ara_replication_failure_does_not_claim_scoring() -> None:
         "ARA03B.wav",
     ]
     assert len(result["held_out_audio_manifest"]) == 8
+
+
+def test_retained_men_replication_passes_frozen_gate() -> None:
+    root = Path(__file__).resolve().parents[1]
+    evidence = root / "docs/evidence"
+    preregistration = json.loads(
+        (
+            evidence
+            / "2026-07-10-natural-event-men-replication-preregistration.json"
+        ).read_text()
+    )
+    result = json.loads(
+        (
+            evidence / "2026-07-10-natural-event-men-replication-result.json"
+        ).read_text()
+    )
+
+    assert result["verdict"] == "natural_event_transfer_passed"
+    assert result["report"]["all_acceptance_gates_passed"] is True
+    assert result["report"]["wins"] == 8
+    assert result["frozen_hash_verification"]["implementation_sha256"] == (
+        preregistration["frozen_hashes"]["implementation_sha256"]
+    )
+    assert result["eligibility"]["rejected_participants"] == []
+    assert len(result["held_out_audio_manifest"]) == 8
+    assert all(
+        item["decoded_duration_seconds"] >= 2.1
+        for item in result["held_out_audio_manifest"]
+    )

@@ -17,7 +17,7 @@ the repository.
 | Reproducible substrate | Implemented | Synthetic/live contracts, deterministic reports, and tests exist |
 | Real-audio evaluation | First replay passed | WAV and prior-art captured NumPy PCM are measured directly with dev/held-out provenance; developmental-speech breadth is still open |
 | Parentese-relevant saliency | Mixed; not promoted | The final 16-fieldsite refit reached F1 0.600 on untouched Enga/Turku clips and failed its 0.65 gate; the separately tested vocal front gate remains positive |
-| Local predictive hierarchy | Natural event-transfer gate passed; broader robustness open | A frozen 16-scalar event predictor trained on Beijing beat every causal baseline on 8/8 participant-disjoint Wellington clips (`+0.0751` mean, `+0.0107` worst); this supports unlabeled event dynamics, not semantics, while controlled dropout stability and required ablations remain open |
+| Local predictive hierarchy | Natural transfer replicated; dropout stability open | The frozen 16-scalar Beijing-trained event predictor beat every causal baseline on 8/8 Wellington clips (`+0.0751` mean) and independently on 8/8 duration-qualified MEN clips (`+0.1106` mean, `+0.0654` worst); this supports unlabeled event dynamics across speakers/fieldsites, not semantics |
 | Workspace binding | Synthetic ablation passed | Matching self-audio identity plus phase improves synthetic self-echo handling without suppressing a legitimate overlap; real-audio validation remains open |
 | Analysis by synthesis | Clean synthetic gate passed | Five vowels round-trip across multiple F0 values and 16/48 kHz; recorded-speaker validation remains open |
 | Efficiency | Host boundary measured on hardware | Core microbenchmarks and native XVF3800 capture-call-to-workspace latency are reported; device-onset timestamps, live CPU/memory, and energy remain excluded |
@@ -391,6 +391,14 @@ developmental language learning.
   `1.632` seconds. The eight clips and hashes are retained, no participant was
   substituted, and calibration was not shortened. This is protocol-
   eligibility failure—not negative prediction evidence and not replication.
+- A replacement protocol froze a `2.10 s` minimum-duration rule before access,
+  selected MEN by repository/metadata order, and fetched candidates numerically
+  until four paired participants qualified. MEN01–04 all qualified. With the
+  unchanged Beijing-only model, all `8/8` MEN clips beat their strongest causal
+  baseline; mean improvement was `+0.1106`, worst improvement `+0.0654`, and
+  minimum occupancy `3`. This independently replicates natural speaker/
+  fieldsite transfer for the event target; controlled dropout stability remains
+  open.
 - Theta/gamma scheduling is an event-timing model, not measured neural dynamics.
 - The vowel table uses adult reference targets and clean synthetic success does
   not imply recorded infant/adult speech performance.
