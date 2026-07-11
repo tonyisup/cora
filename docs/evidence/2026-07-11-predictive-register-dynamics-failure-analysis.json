@@ -1,0 +1,53 @@
+{
+  "experiment": "predictive_register_dynamics_posthoc_failure_analysis",
+  "date": "2026-07-11",
+  "status": "descriptive_spent_prediction_analysis_only",
+  "source_result": {
+    "path": "docs/evidence/2026-07-11-predictive-register-dynamics-result.json",
+    "full_external_result_sha256": "5acc624c0909a2132370c4c032b064b572745da7ce74a4b15f361ca638ae86b5"
+  },
+  "frozen_thresholds": {
+    "speech_score_minimum": -0.004216587715444309,
+    "ids_score_minimum": -0.010898748107214473
+  },
+  "false_negative_first_blocking_gate": {
+    "vocal_front_gate": 0,
+    "speech_song_gate": 16,
+    "ids_ads_gate": 15,
+    "total": 31
+  },
+  "false_positive_actual_labels": {
+    "adult_directed_speech": 8,
+    "adult_directed_song": 4,
+    "infant_directed_song": 2,
+    "total": 14
+  },
+  "score_separation": {
+    "speech_vs_song_auc": 0.8231732348111659,
+    "ids_vs_ads_auc_within_speech": 0.7672413793103449,
+    "median_speech_score": {
+      "speech": 0.07136694231051033,
+      "song": -0.05293211136892584
+    },
+    "median_ids_score": {
+      "infant_directed_speech": 0.04786626151403883,
+      "adult_directed_speech": -0.057600247178272834
+    }
+  },
+  "paired_ranking": {
+    "ids_score_correct_within_speaker_pairs": 43,
+    "ids_score_pair_count": 58,
+    "ids_score_pair_accuracy": 0.7413793103448276,
+    "aco_correct_pairs": 1,
+    "aco_pair_count": 5,
+    "ara_correct_pairs": 0,
+    "ara_pair_count": 1,
+    "both_speech_scores_above_both_song_scores_count": 27,
+    "full_four_condition_speaker_count": 42,
+    "strict_mode_ranking_accuracy": 0.6428571428571429
+  },
+  "interpretation": "The dynamics contain register-related information, but both hierarchy stages contribute similarly to missed IDS and score transport fails sharply in ACO/ARA. The result does not justify threshold tuning, confirmation access, or a claim that only one gate needs repair.",
+  "model_selection_allowed": false,
+  "confirmation_audio_or_metadata_accessed": false,
+  "promotion_allowed": false
+}
