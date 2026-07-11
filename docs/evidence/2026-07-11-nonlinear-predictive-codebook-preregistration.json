@@ -1,0 +1,102 @@
+{
+  "experiment": "nonlinear_predictive_codebook_register_development",
+  "date": "2026-07-11",
+  "status": "frozen_before_implementation_and_development_scoring",
+  "authorization": "User explicitly approved pursuing nonlinear representation learning after the cohort-adaptive candidate failed.",
+  "parent": "docs/evidence/2026-07-11-cohort-adaptive-register-result.json",
+  "research_question": "Can a compact nonlinear temporal representation learned without labels or global backpropagation expose cross-cultural IDS/ADS predictive structure that the linear and covariance-aligned candidates missed?",
+  "scientific_basis": [
+    {
+      "citation": "Moody and Darken (1989), Fast Learning in Networks of Locally-Tuned Processing Units, Neural Computation 1(2):281-294",
+      "doi": "10.1162/neco.1989.1.2.281",
+      "official_url": "https://direct.mit.edu/neco/article/1/2/281/5488/Fast-Learning-in-Networks-of-Locally-Tuned",
+      "relevance": "Primary precedent for hybrid self-organized locally tuned representations followed by supervised linear output learning."
+    },
+    {
+      "citation": "Nowlan (1989), Maximum Likelihood Competitive Learning, Advances in Neural Information Processing Systems 2",
+      "official_url": "https://proceedings.neurips.cc/paper/1989/hash/d1c38a09acc34845c6be3a127a5aacaf-Abstract.html",
+      "relevance": "Primary precedent for unsupervised competitive placement of radial-basis centers before linear function fitting."
+    }
+  ],
+  "research_scope_note": "Those papers motivate the architecture family only. The causal prosodic context, winner-local update schedule, predictive likelihood scores, cultural generalization question, and all performance claims below are specific project hypotheses.",
+  "input_representation": {
+    "frame_ms": 50,
+    "state_features": [
+      "pitch_log2",
+      "pitch_confidence",
+      "intensity_db",
+      "spectral_centroid_log",
+      "spectral_flux_log"
+    ],
+    "pitch_policy": "Use the parent predictive model's label-blind interpolation over unvoiced frames.",
+    "calibration": "Retain the existing unlabeled within-speaker and known-vocal-mode batch normalization. IDS/ADS labels do not affect normalization. This boundary is not cold-start or strictly causal.",
+    "causal_context_frames": 4,
+    "causal_context_ms": 200,
+    "prediction_target": "Predict the next five-dimensional state from only the preceding four normalized states."
+  },
+  "nonlinear_representation": {
+    "name": "winner_local_competitive_temporal_codebook_with_gaussian_rbf_activations",
+    "prototype_count": 32,
+    "context_dimension": 20,
+    "fit_data": "All calibrated causal contexts from training fieldsites, pooled without condition labels.",
+    "initialization": "Deterministic k-means++ placement on training contexts with NumPy PCG64 seed 20260711.",
+    "update": "Apply one deterministic random permutation of all training contexts using the same seed. For each context, update only its nearest prototype toward the context.",
+    "learning_rate": "Exponential decay from 0.20 on the first update to 0.02 on the last update.",
+    "passes": 1,
+    "bandwidth": "After the update pass, use the median Euclidean distance from each training context to its nearest prototype, floored at 0.1.",
+    "activation": "phi_j(context) = exp(-squared_distance(context, prototype_j) / (2 * bandwidth^2)).",
+    "label_boundary": "Condition labels do not initialize, update, select, prune, weight, or set the bandwidth of prototypes.",
+    "target_boundary": "The held-out fieldsite contributes no context to prototype learning or predictive readout fitting."
+  },
+  "predictive_model": {
+    "condition_models": [
+      "infant_directed_song",
+      "infant_directed_speech",
+      "adult_directed_song",
+      "adult_directed_speech"
+    ],
+    "readout_input": "The most recent five-dimensional state concatenated with 32 nonlinear codebook activations.",
+    "readout_output": "The next five-dimensional state.",
+    "fit": "For each condition, fit one ridge-regularized linear readout over training transitions only.",
+    "ridge_regularization": 1.0,
+    "residual_variance_floor": 0.05,
+    "score": "Mean diagonal-Gaussian next-state log likelihood over every valid context in the held-out sequence.",
+    "speech_score": "Maximum held-out likelihood under the two speech readouts minus maximum likelihood under the two song readouts.",
+    "ids_score": "Infant-directed-speech likelihood minus adult-directed-speech likelihood.",
+    "vocal_front_gate": "Retain the supported YIN voiced-fraction minimum of 0.20."
+  },
+  "development_data": {
+    "source": "The exact hash-pinned 200 already-spent clips used by the temporal, linear-predictive, and cohort-adaptive development experiments.",
+    "manifest": "/private/tmp/cora-ids-spent-200-manifest.json",
+    "manifest_sha256": "84234dd382ef090f12d02005a35863962e6504fc9197aa131adcce6b770fd26e",
+    "evaluation": "18-fold leave-one-fieldsite-out. Every held-out fieldsite is excluded from codebook learning and all four predictive readouts.",
+    "expected_clip_count": 200,
+    "expected_fieldsite_count": 18,
+    "confirmation_audio_or_metadata_accessed": false
+  },
+  "decisions": {
+    "primary": "Report the zero speech-score and IDS-score decision.",
+    "secondary": "Select one speech and one IDS cutoff from the 18 out-of-field predictions only, maximizing pooled F1 subject to the frozen pooled-FPR and song-FPR ceilings, then minimum fieldsite F1, then lower error rates.",
+    "development_boundary": "The secondary cutoff report is development model selection over grouped predictions, not an unbiased confirmation estimate. No fieldsite-specific cutoff is allowed."
+  },
+  "acceptance": {
+    "minimum_pooled_f1": 0.8,
+    "maximum_pooled_false_positive_rate": 0.15,
+    "maximum_song_false_positive_rate": 0.15,
+    "minimum_each_fieldsite_f1": 0.5,
+    "minimum_vocal_recall": 0.95,
+    "minimum_codebook_utilization_fraction_each_fold": 0.75,
+    "quantization_error_after_not_above_before_each_fold": true,
+    "all_clip_hashes_verified": true,
+    "all_sequences_and_model_values_finite": true,
+    "all_18_out_of_field_folds_present": true
+  },
+  "confirmation_boundary": {
+    "pristine_fieldsites": ["USD", "TOR"],
+    "protected_non_pristine_fieldsite": {"WEL": "Previously accessed by H2 and unavailable for pristine Stage 2 confirmation."},
+    "policy": "Do not fetch or inspect USD or TOR archive members, waveforms, headers, hashes, labels, participant lists, or selected filenames unless the complete development implementation, artifact, thresholds, readiness result, and confirmation protocol are committed first."
+  },
+  "candidate_ready_rule": "The ceiling-constrained out-of-field threshold selection and both codebook-health checks must satisfy every acceptance criterion before any USD/TOR confirmation protocol is written.",
+  "stop_rule": "If this single frozen nonlinear candidate fails development readiness, retain the failure and do not tune prototype count, context length, initialization, seed, update rule, learning rates, pass count, bandwidth, feature list, frame size, calibration, ridge, variance floor, or thresholds into another attempt. Another mechanism or deep/global training approach requires a new explicit research decision.",
+  "claim_boundary": "A development pass would justify preregistering one participant- and fieldsite-disjoint confirmation of a compact, batch-calibrated nonlinear predictive codebook. It would not establish deep learning, end-to-end learning, cold-start, strict causality, live adaptation, semantic understanding, universal parentese, infant learning, or biological fidelity."
+}
