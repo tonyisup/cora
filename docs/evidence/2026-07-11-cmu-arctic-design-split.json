@@ -1,0 +1,51 @@
+{
+  "experiment": "cmu_arctic_ordinary_speech_h4_design",
+  "date": "2026-07-11",
+  "status": "speaker_split_frozen_before_any_archive_fetch",
+  "source": {
+    "name": "CMU ARCTIC Speech Databases",
+    "official_page": "http://www.festvox.org/cmu_arctic/",
+    "report": "https://www.cs.cmu.edu/~awb/papers/ssw5/arctic.pdf",
+    "archive_template": "http://festvox.org/cmu_arctic/packed/cmu_us_{speaker}_arctic.tar.bz2",
+    "license": "CMU free-software license; official report states no restriction on commercial or non-commercial use",
+    "recording": "approximately 1,150 phonetically balanced read-English utterances per speaker, 16 kHz studio audio",
+    "alignment": "phonetic labels produced with CMU Sphinx/FestVox labeling scripts"
+  },
+  "development_speakers": [
+    "bdl",
+    "slt",
+    "clb",
+    "jmk",
+    "ksp"
+  ],
+  "confirmation_speakers": [
+    "rms",
+    "awb",
+    "axb",
+    "eey",
+    "ljm"
+  ],
+  "reserve_speakers": [
+    "aew",
+    "ahw",
+    "aup",
+    "fem",
+    "gka",
+    "lnh",
+    "rxr",
+    "slp"
+  ],
+  "selection_rule": "Partition all 18 published speakers before access, balancing reported sex 2F/3M in development and 3F/2M in confirmation while placing standard and accented English voices in both groups.",
+  "vowel_mapping": {
+    "a": "AA",
+    "e": "EH",
+    "i": "IY",
+    "o": "AO",
+    "u": "UW"
+  },
+  "mapping_rationale": "These ARPAbet monophthong labels most closely match Cora's existing fixed F1/F2 targets; mapping is frozen before label or audio access and labels may only select/score windows.",
+  "development_policy": "Only development archives may be fetched while token-duration rules, windowing, LPC/formant representation, and confirmation thresholds are developed.",
+  "confirmation_policy": "No confirmation archive, label, waveform, header, or member listing may be fetched or inspected until implementation and all confirmation gates are committed. A failed confirmation spends all five speakers.",
+  "repository_policy": "Archives and extracted audio remain outside Git. The repository retains source metadata, selected filenames/segments, hashes, protocols, code, and aggregate results only.",
+  "claim_boundary": "This split does not improve H4. CMU Arctic is read ordinary speech with automated alignments, not spontaneous conversation, isolated sustained vowels, infant speech, or motor learning evidence."
+}
