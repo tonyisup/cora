@@ -20,7 +20,7 @@ the repository.
 | Local predictive hierarchy | H2 supported within tested boundaries | Natural event transfer replicated across Wellington and MEN; a separate real room run with known efference masks retained four states through 10/15/20% dropout while improving vowels `+0.614` and tones `+0.474`. Unknown-timing world dropout and semantics remain outside scope |
 | Workspace binding | H3 supported within tested boundaries | The preregistered -18 dB synchronized run passed every classifier and zero-clipping gate: scheduled F1/recall/specificity 1.0/1.0/1.0 versus flat F1 0.8 and fixed-window F1 0.667; capacity improved through three slots and plateaued at four |
 | Analysis by synthesis | Recorded-human gate failed; retry paused | Clean synthesis remained 100%, but the preregistered VocalSet confirmation scored 36%; a disjoint development ladder peaked at 56%, so the reserved confirmation singers remain untouched and H4 stays open |
-| Efficiency | Quiet and structured-salient timing passed | Three final callback runs emitted 142 salient events with zero clipping or device misses; salient ADC frame-end-to-workspace p95 was 9.94–10.20 ms, CPU below 4.15%, and RSS below 65.2 MiB. Natural speech timing, XMOS DSP delay, and energy remain open |
+| Efficiency | H5 supported within tested boundary | Quiet and structured-salient device timing passed; same-host estimated CPU energy was 27.36 µJ/frame for Cora versus 11.08 µJ/frame for the simpler baseline. Wall-plug/acoustic/device energy, natural speech timing, and XMOS delay remain open |
 
 ## Hardware boundary
 
@@ -325,6 +325,12 @@ These commands report throughput and process resources but do not measure power
 themselves. The frozen energy protocol uses privileged macOS `powermetrics` and
 must not be interpreted as wall-plug or cross-device energy.
 
+Audit a completed external nine-trial directory:
+
+```bash
+python3 scripts/audit_stage6_energy.py /private/tmp/cora-stage6-energy-TIMESTAMP
+```
+
 The benchmark report lists all excluded latency sources and does not measure
 energy.
 
@@ -422,6 +428,14 @@ The structured-salient retry uses the external-world speaker at 180 degrees and
 142 salient events, clipped zero of 960,000 captured samples, and kept salient
 ADC frame-end-to-workspace p95 between 9.94 and 10.20 ms with zero device
 deadline misses. This is structured-tone timing, not natural-speech timing.
+
+The same-host sustained energy comparison found similar estimated CPU power for
+Cora and the simpler conventional baseline (13.66 W versus 13.53 W), but the
+baseline processed 2.44 times as many frames per second. Cora therefore used
+27.36 J per million frames versus 11.08 J, or 2.47 times the energy per frame.
+Raw power files remain outside Git with a retained hash manifest. This is a
+`powermetrics` optimization estimate—not wall-plug, acoustic, XVF3800, paced
+live-runtime, or cross-device energy.
 
 The bounded speaking and self-subtraction paths require explicit real-I/O
 authorization. They must not be treated as evidence of conversational or
@@ -543,8 +557,9 @@ developmental language learning.
   not imply recorded infant/adult speech performance.
 - Process CPU/RSS, native-overflow proxy, host/device-boundary latency, and an
   offline conventional comparison are measured. The quiet-path device timing
-  and structured-salient timing gates passed; natural-speech timing, raw
-  CoreAudio timestamps, XMOS internal DSP latency, and energy remain open.
+  and structured-salient timing gates passed; same-host sustained estimated
+  energy is measured. Natural-speech timing, raw CoreAudio timestamps, XMOS
+  internal DSP latency, and embodied/paced-live energy remain open.
 
 ## Main modules
 

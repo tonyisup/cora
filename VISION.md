@@ -580,9 +580,10 @@ classification. No motor-learning claim is made.
 
 ### Stage 6 — Real-time efficiency
 
-Status: offline/live resources and callback ADC-frame timing measured on real
-hardware; quiet and structured-salient device-timestamp gates passed. Natural
-speech timing, XMOS internal delay, and energy remain open.
+Status: offline/live resources, callback ADC-frame timing, and same-host
+estimated CPU energy measured on real hardware. Quiet and structured-salient
+timing gates passed. H5 is supported within the tested host/software boundary;
+natural speech timing, XMOS internal delay, and embodied energy remain open.
 
 The native CoreAudio path has a measured sub-40 ms *host capture-call* p95 at a
 25 ms frame size. PortAudio reports an additional nominal input latency near
@@ -637,6 +638,23 @@ The structured-salient timing gate therefore passes within this fixed
 pitch-contour, room, geometry, input, and host boundary. Natural speech timing,
 geometry transfer, raw CoreAudio timestamps, XMOS internal DSP delay, and
 energy remain open.
+
+The final Stage 6 comparison used three preregistered 10-second trials each of
+Cora, a simpler fixed-threshold/prototype baseline, and idle, sampled by macOS
+`powermetrics` on the same M4 Pro. All nine trials and `20` central power samples
+per trial passed their integrity gates. Cora and the conventional baseline drew
+similar sustained estimated CPU power (`13.66 W` versus `13.53 W`), but the
+baseline processed `2.44x` as many frames per second. Cora therefore used
+`27.36 J` per million frames (`27.36 µJ/frame`) versus `11.08 J` for the
+baseline, a `2.47x` energy-per-frame cost. This is a measured tradeoff, not an
+efficiency win. One idle trial contained unrelated power spikes; they are
+retained, and total energy per frame—not idle-subtracted power—is primary.
+
+Together, the named-host latency, RTF, CPU, RSS, overflow/deadline, conventional
+baseline, and estimated energy evidence supports H5 within the sustained
+synthetic/structured host-software boundary. It does not measure wall-plug or
+acoustic energy, XVF3800 consumption, paced live-runtime energy, natural-speech
+timing, XMOS internal DSP delay, or cross-device efficiency.
 
 Required evidence:
 
