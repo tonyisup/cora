@@ -21,7 +21,7 @@ def _percentile(values: list[float], percentile: float) -> float:
     return float(np.percentile(np.asarray(values, dtype=np.float64), percentile))
 
 
-class _ConventionalFrameBaseline:
+class ConventionalFrameBaseline:
     """Fixed-threshold, nearest-prototype DSP baseline with bounded memory."""
 
     def __init__(self) -> None:
@@ -124,7 +124,7 @@ def benchmark_event_pipeline(
     ]
     cora = _measure_processor(frames, pipeline.process_frame)
     conventional = _measure_processor(
-        frames, _ConventionalFrameBaseline().process_frame
+        frames, ConventionalFrameBaseline().process_frame
     )
     represented_audio_seconds = iterations * frame_ms / 1000.0
 

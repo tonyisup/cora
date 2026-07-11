@@ -1,0 +1,69 @@
+{
+  "experiment": "stage6_same_host_estimated_energy_comparison",
+  "date": "2026-07-10",
+  "status": "frozen_before_powermetrics_access",
+  "vision_requirement": "energy comparison with a conventional baseline on the same hardware",
+  "hardware": {
+    "host": "Mac mini Mac16,11",
+    "processor": "Apple M4 Pro, 12 cores",
+    "memory_gb": 24,
+    "power_tool": "macOS powermetrics cpu_power sampler",
+    "power_scope": "same host only"
+  },
+  "conditions": {
+    "idle": "normal Python orchestrator waiting without an audio processor workload",
+    "cora": "monotonic salient AudioFrame construction through the Cora predictive/workspace processor",
+    "conventional": "identical monotonic salient AudioFrame construction through fixed-threshold, nearest-frequency, bounded-deque DSP"
+  },
+  "workload_boundary": "monotonic_AudioFrame_construction_to_processor_output",
+  "trial_design": {
+    "replicates_per_condition": 3,
+    "workload_duration_seconds": 10,
+    "powermetrics_sample_interval_ms": 500,
+    "powermetrics_samples_per_trial": 24,
+    "warmup_samples_excluded": 2,
+    "tail_samples_excluded": 2,
+    "analyzed_samples_per_trial": 20,
+    "frozen_order": [
+      ["idle", "conventional", "cora"],
+      ["idle", "cora", "conventional"],
+      ["idle", "conventional", "cora"]
+    ]
+  },
+  "primary_metrics": [
+    "median and mean estimated CPU power in milliwatts per trial",
+    "frames per second per active trial",
+    "estimated total CPU joules per million processed frames",
+    "Cora-to-conventional energy-per-frame ratio"
+  ],
+  "secondary_metrics": [
+    "estimated combined SoC power when exposed by the sampler",
+    "idle-subtracted CPU power with negative values retained rather than clamped",
+    "process CPU and peak RSS from the workload report"
+  ],
+  "energy_per_million_frames_formula": "(mean_cpu_power_mw / 1000) / frames_per_second * 1000000",
+  "acceptance_criteria": {
+    "all_nine_trials_complete": true,
+    "analyzed_valid_cpu_power_samples_each": 20,
+    "active_workload_wall_seconds_range": [9.9, 10.2],
+    "active_workload_average_process_cpu_percent_min": 90.0,
+    "resident_event_count_each_max": 11,
+    "frames_processed_each_min": 1,
+    "positive_cpu_power_each_sample": true,
+    "same_host_and_sampler_configuration": true,
+    "paired_order_preserved": true
+  },
+  "interpretation_rules": [
+    "The conventional baseline is intentionally simpler and is expected to use less energy per frame; Cora is not required to win.",
+    "powermetrics values are estimates suitable for optimization on one host, not calibrated wall power and not valid for cross-device comparison.",
+    "Energy per frame is primary because fixed-duration conditions process different frame counts.",
+    "No microphone, speaker, XVF3800, or end-to-end acoustic energy is included.",
+    "The dry-run timestamp defect is retained separately and produced no eligible power data.",
+    "No result is eligible until the parser fields and sample overlap are verified against actual powermetrics output."
+  ],
+  "commands": {
+    "cora": ".venv/bin/python -m cora_infans --energy-workload --mode cora --duration-seconds 10",
+    "conventional": ".venv/bin/python -m cora_infans --energy-workload --mode conventional --duration-seconds 10"
+  },
+  "promotion_boundary": "Passing closes a same-host estimated CPU-energy comparison for sustained synthetic salient processing only. It does not establish wall-plug, acoustic, mobile, or cross-device efficiency."
+}

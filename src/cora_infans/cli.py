@@ -10,6 +10,7 @@ from typing import Any
 
 from .io.live_listener import LiveListener
 from .benchmark import benchmark_event_pipeline
+from .energy_workload import run_sustained_energy_workload
 from .io.live_mic import DEFAULT_DEVICE, LiveMicArray, LiveMicError
 from .io.ids_corpus import build_ids_manifest
 from .io.recorded_frames import (
@@ -1420,6 +1421,29 @@ def benchmark_core_cli(args: list[str] | None = None) -> dict[str, object]:
     return benchmark_event_pipeline(iterations=iterations, frame_ms=frame_ms)
 
 
+def energy_workload_cli(args: list[str] | None = None) -> dict[str, object]:
+    parsed = args or ["--energy-workload"]
+    mode: str | None = None
+    duration_seconds = 10.0
+    i = 1
+    while i < len(parsed):
+        if i + 1 >= len(parsed):
+            raise ValueError(f"missing value for {parsed[i]}")
+        option, value = parsed[i], parsed[i + 1]
+        if option == "--mode":
+            mode = value
+        elif option == "--duration-seconds":
+            duration_seconds = float(value)
+        else:
+            raise ValueError(f"unknown option: {option}")
+        i += 2
+    if mode is None:
+        raise ValueError("--energy-workload requires --mode cora|conventional")
+    return run_sustained_energy_workload(
+        mode=mode, duration_seconds=duration_seconds
+    )
+
+
 def prepare_ids_manifest_cli(args: list[str] | None = None) -> dict[str, object]:
     parsed = args or ["--prepare-ids-manifest"]
     root: str | None = None
@@ -2194,6 +2218,13 @@ def main(argv: list[str] | None = None) -> int:
         except ValueError as exc:
             print(str(exc), file=sys.stderr)
             return 2
+    if args and args[0] == "--energy-workload":
+        try:
+            print(json.dumps(energy_workload_cli(args)))
+            return 0
+        except ValueError as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
     if args == ["--evaluate-workspace-ablation"]:
         print(json.dumps(run_workspace_ablation()))
         return 0
@@ -2285,6 +2316,7 @@ def main(argv: list[str] | None = None) -> int:
         "[--synthesize-vowel a|e|i|o|u --out PATH.wav [--duration-ms N] [--sample-rate N] [--f0-hz F] [--analyze]] "
         "[--evaluate-vowel-loop [--duration-ms N] [--minimum-accuracy F]] "
         "[--benchmark-core [--iterations N] [--frame-ms N]] "
+        "[--energy-workload --mode cora|conventional [--duration-seconds F]] "
         "[--evaluate-workspace-ablation] "
         "[--prepare-ids-manifest --root DIR --out labels.csv [--held-out-fraction F] [--include-song]] "
         "[--prepare-corollary-manifest --root DIR --out labels.csv [--sample-rate N] [--held-out-seeds csv]] "

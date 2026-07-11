@@ -314,6 +314,17 @@ Benchmark only the in-process event pipeline:
 python3 -m cora_infans --benchmark-core --iterations 1000 --frame-ms 25
 ```
 
+Run one sustained processor workload for an external same-host power sampler:
+
+```bash
+python3 -m cora_infans --energy-workload --mode cora --duration-seconds 10
+python3 -m cora_infans --energy-workload --mode conventional --duration-seconds 10
+```
+
+These commands report throughput and process resources but do not measure power
+themselves. The frozen energy protocol uses privileged macOS `powermetrics` and
+must not be interpreted as wall-plug or cross-device energy.
+
 The benchmark report lists all excluded latency sources and does not measure
 energy.
 
