@@ -176,6 +176,28 @@ def test_callback_stream_reblocks_pcm_and_preserves_adc_timestamp() -> None:
     assert array.callback_timestamp_discontinuity_count == 0
 
 
+def test_callback_stream_uses_non_draining_abort_on_close() -> None:
+    calls = []
+
+    class FakeNativeStream:
+        def abort(self):
+            calls.append("abort")
+
+        def stop(self):
+            calls.append("stop")
+
+        def close(self):
+            calls.append("close")
+
+    array = LiveMicArray(stream_backend="callback")
+    array._native_stream = FakeNativeStream()
+    array._callback_enabled = True
+
+    array.stop_stream()
+
+    assert calls == ["abort", "close"]
+
+
 @pytest.mark.skipif(shutil.which("ffmpeg") is None, reason="ffmpeg not available")
 def test_live_capture_runs_end_to_end_if_device_present() -> None:
     """Skips (does not fake) when the board is not connected."""

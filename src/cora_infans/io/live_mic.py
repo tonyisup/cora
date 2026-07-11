@@ -274,7 +274,10 @@ class LiveMicArray:
         self._native_stream = None
         if native_stream is not None:
             try:
-                native_stream.stop()
+                if self._callback_enabled and hasattr(native_stream, "abort"):
+                    native_stream.abort()
+                else:
+                    native_stream.stop()
             finally:
                 native_stream.close()
         self._callback_enabled = False
