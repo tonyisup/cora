@@ -1,6 +1,8 @@
 # H4 mechanism decision
 
-Status: decision required before further H4 empirical work.
+Status: Option B approved; development-only continuous inverse synthesis may
+proceed under a separate preregistration. Protected confirmation access remains
+unauthorized.
 
 This memo does not authorize a new experiment and does not change
 [VISION.md](../VISION.md). It records the evidence-backed fork reached after the
