@@ -356,6 +356,12 @@ Current evidence:
   is self-generated; it is not arbitrary-world dropout detection. Fresh
   synthetic falsification and a separately preregistered live run are required
   before the dropout-stability limitation changes.
+- a six-seed prospective synthetic matrix was then frozen before execution. It
+  passed every gate: tones improved `+0.614` pooled, vowels `+0.596`, all
+  10/15/20% conditions retained four states, and minimum trial improvement was
+  `+0.579`;
+- synthetic promotion remains prohibited. The result permits one separately
+  preregistered real room-transfer run; it does not itself change H2 status.
 - the calibrated codebook was then audited on eight already-spent continuous
   Beijing speech clips with four participant-held-out folds. The learner saw no
   IDS/ADS labels; 18 fixed frame/horizon/representation candidates were compared

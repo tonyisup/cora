@@ -571,6 +571,22 @@ def test_dropout_v5_plan_is_fresh_and_real_io_stays_blocked(tmp_path) -> None:
         )
 
 
+def test_retained_dropout_v5_fresh_synthetic_gate_passed() -> None:
+    root = Path(__file__).resolve().parents[1]
+    result = json.loads(
+        (
+            root
+            / "docs/evidence/2026-07-10-dropout-v5-fresh-synthetic-result.json"
+        ).read_text()
+    )
+
+    assert result["report"]["promotion_allowed"] is False
+    assert result["gate_summary"]["all_gates_passed"] is True
+    assert result["gate_summary"]["tones"]["condition_occupancies"] == [4, 4, 4]
+    assert result["gate_summary"]["vowels"]["condition_occupancies"] == [4, 4, 4]
+    assert result["gate_summary"]["vowels"]["minimum_trial_improvement"] >= 0.15
+
+
 def test_local_codebook_updates_only_nearest_bounded_centroid() -> None:
     initial = np.eye(4, dtype=np.float64)
     codebook = LocalAcousticCodebook(initial)

@@ -289,6 +289,11 @@ research contract and implements the first vertical evidence path.
   interpolation controls collapsed to at most two vowel states. This is design
   evidence only, limited to known self-generated erasures; fresh synthetic and
   separately preregistered real gates remain mandatory.
+- Froze six unused v5 seeds and the same 10/15/20% condition gate before a
+  prospective fake-acoustic execution. It passed: pooled tone improvement
+  `0.614`, pooled vowel improvement `0.596`, minimum trial improvement `0.579`,
+  and four states in every condition. Promotion remains prohibited because the
+  channel is synthetic; a separately frozen real run is the next gate.
 - Added a reproducible label-blind natural-stream design harness and reacquired
   only eight already-spent Beijing development clips by corrected ZIP64 byte
   ranges; every SHA-256 matched the earlier evidence.

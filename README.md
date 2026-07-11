@@ -375,6 +375,10 @@ developmental language learning.
   synthetic matrix it retained four states through 10/15/20% dropout and
   improved vowels by `+0.579/+0.526/+0.526`. This is design evidence only; a
   fresh synthetic gate and separate real preregistration are still required.
+- That prospective gate then passed on six unused seeds: tones improved
+  `+0.614` pooled and vowels `+0.596`, every 10/15/20% condition retained four
+  states, and the minimum trial improvement was `+0.579`. This remains
+  synthetic evidence; live execution requires a separate frozen protocol.
 - A label-blind natural-stream audit over eight spent Beijing speech clips then
   tested 18 frame/horizon variants. None advanced; the best won `2/8` clips,
   mean improvement was only `+0.0036`, and worst-clip regret was `9.9%`.
