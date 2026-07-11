@@ -1,0 +1,108 @@
+{
+  "experiment": "h3_same_source_forward_model_development",
+  "date": "2026-07-11",
+  "status": "frozen_before_implementation_or_new_candidate_metrics",
+  "authorization": {
+    "basis": "User approved proceeding with H3 while independently researching H4.",
+    "scope": "offline development on already-spent H3 captures; a separate preregistration is required before fresh live playback",
+    "standing_bounded_live_audio_authorization_preserved": true
+  },
+  "parent_result": {
+    "path": "docs/evidence/2026-07-11-natural-speech-workspace-spectral-v3-real-result.json",
+    "sha256": "0525fa614ca1ab1655415448eb0c9c7c2e2d4c357bdd73f723ae036fe8d821c7",
+    "supported_boundary": "exact commanded utterance after one prior replay at fixed geometry",
+    "new_limitation_target": "same physical self source on an unseen commanded utterance without a target-utterance replay"
+  },
+  "research_question": "Can one bounded label-blind forward model of the fixed Mac mini speaker-to-XVF3800 path predict the captured spectral consequence of an unseen commanded utterance well enough to suppress self-only audio while preserving world overlap?",
+  "mechanism_change": {
+    "old": "one stored 12-scalar microphone sensory trace for each exact commanded utterance",
+    "new": "one shared 12-scalar log-spectral path signature learned locally from other commanded utterances and applied to the current efference spectrum",
+    "why_not_same_family_retry": "The held-out command has no stored sensory trace. Prediction composes a command-specific efference with a command-independent learned forward path, rather than comparing two replays of the same waveform."
+  },
+  "representation": {
+    "sample_rate_hz": 16000,
+    "window_ms": 600,
+    "channel_rule": "mean the two captured host channels before feature extraction",
+    "bands": 12,
+    "band_edges_hz": "the unchanged 13 log-geometric edges from 80 through 7600 Hz used by spectral-v3",
+    "log_band_vector": "Mean-center PCM, apply a Hann window, compute full-window power, sum power within each band, add 1e-12, and take natural log.",
+    "gain_removal": "subtract the mean of the 12 log-band values",
+    "calibration_path_signature": "centered microphone self-calibration log bands minus centered commanded-source log bands",
+    "local_update": "one-pass running arithmetic mean in frozen chronological artifact order; update = old + (observation - old) / count",
+    "held_out_prediction": "centered held-out command log bands plus the learned path signature; mean-center and L2-normalize",
+    "current_observation": "mean-center and L2-normalize current captured log bands",
+    "world_evidence": "Euclidean distance between held-out predicted-self and current-observation vectors",
+    "runtime_labels_consumed": false,
+    "held_out_utterance_calibration_consumed": false
+  },
+  "bounded_state": {
+    "shared_path_scalars": 12,
+    "shared_path_count_scalars": 1,
+    "workspace_binding_slots": 3,
+    "per_utterance_sensory_templates": 0,
+    "cross_session_growth": false
+  },
+  "spent_development_data": {
+    "template_v2_result": {
+      "path": "docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-result.json",
+      "sha256": "6695504cbad6213381e8221d242fce367a65a2ab7074d7e3741c1d7730f2c6f7",
+      "self_commands": ["KRA06D.wav", "MES11D.wav", "TSI09D.wav", "ACO12D.wav", "HAD04D.wav", "LIM04D.wav"],
+      "self_probe_count": 6,
+      "overlap_count": 3,
+      "world_only_count": 6
+    },
+    "spectral_v3_result": {
+      "path": "docs/evidence/2026-07-11-natural-speech-workspace-spectral-v3-real-result.json",
+      "sha256": "0525fa614ca1ab1655415448eb0c9c7c2e2d4c357bdd73f723ae036fe8d821c7",
+      "self_commands": ["KRA07D.wav", "MES01D.wav", "TSI10D.wav"],
+      "self_probe_count": 3,
+      "overlap_count": 3,
+      "world_only_count": 3
+    },
+    "total_distinct_self_commands": 9,
+    "total_scored_trials": 24,
+    "all_capture_and_source_hashes_must_match_retained_results": true,
+    "all_material_already_spent": true
+  },
+  "development_evaluation": {
+    "split": "nine leave-one-command-out folds",
+    "training_each_fold": "the other eight self-calibration command/capture pairs in the fixed v2-then-v3 order above",
+    "held_out_each_fold": "the self probe for the omitted command; also its overlap when one exists; the omitted self-calibration capture is never consumed by that fold",
+    "world_only_rule": "all nine world-only trials contain no matching efference and are admitted without consulting the forward model",
+    "threshold_rule": "If and only if the minimum of six held-out overlap distances is strictly greater than the maximum of nine held-out self-probe distances, set threshold = maximum_self + 0.10 * (minimum_overlap - maximum_self). Otherwise record no threshold and fail.",
+    "threshold_tie_rule": "distance below threshold is predicted self-only; distance at or above threshold is predicted world-usable",
+    "strategies": ["flat", "fixed_self_window", "scheduled_identity_plus_same_source_forward_model"],
+    "capacity_sweep": [1, 2, 3, 4],
+    "selected_capacity": 3
+  },
+  "baselines": {
+    "raw_efference": "distance from normalized centered commanded-source bands directly to the current capture, with no learned path signature",
+    "flat_workspace": "admit every scored event",
+    "fixed_self_window": "suppress every event with a bound efference identity",
+    "exact_replay_spectral_v3": "reported descriptively only because it uses a target-utterance calibration unavailable to this task"
+  },
+  "acceptance": {
+    "clean_self_overlap_distance_gap_required": true,
+    "all_nine_self_probe_forward_distances_below_raw_efference_distances": true,
+    "selected_capacity_scheduled_f1_min": 0.90,
+    "selected_capacity_scheduled_minus_flat_f1_min": 0.20,
+    "selected_capacity_world_recall_min": 0.90,
+    "selected_capacity_self_suppression_specificity_min": 0.90,
+    "fixed_window_world_recall_must_be_below_scheduled": true,
+    "capacity_one_f1_must_be_below_capacity_three": true,
+    "capacity_three_f1_must_equal_capacity_four": true,
+    "all_nine_leave_one_command_out_folds_required": true,
+    "all_artifact_hashes_verified": true,
+    "maximum_shared_model_scalars": 13,
+    "confirmation_audio_accessed": false
+  },
+  "stop_rule": "Implement and evaluate this exact representation once. A failed gate is retained without changing bands, averaging, threshold fraction, fold composition, distance, or state size on these captures. A pass permits a separately hash-frozen fresh live protocol; it does not itself extend H3.",
+  "fresh_data_boundary": {
+    "fresh_live_sources_selected": false,
+    "fresh_live_playback_under_this_document": false,
+    "existing_physical_geometry_changed": false,
+    "protected_stage2_or_h4_data_accessed": false
+  },
+  "promotion_allowed": false,
+  "claim_boundary": "A development pass would show that a bounded same-source acoustic forward model is credible for fresh testing at one fixed geometry. It would not establish speaker identity, room or geometry transfer, generalized self voice, semantic speech processing, biological corollary discharge, or H3 promotion beyond the existing exact-efference result."
+}
