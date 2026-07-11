@@ -19,7 +19,7 @@ the repository.
 | Parentese-relevant saliency | Mixed; not promoted | Cohort alignment remains the best development candidate at F1 0.681. A later locally learned nonlinear temporal codebook was healthy but reached only F1 0.535. The vocal front gate remains positive; reserved confirmation fieldsites remain untouched |
 | Local predictive hierarchy | H2 supported within tested boundaries | Natural event transfer replicated across Wellington and MEN; a separate real room run with known efference masks retained four states through 10/15/20% dropout while improving vowels `+0.614` and tones `+0.474`. Unknown-timing world dropout and semantics remain outside scope |
 | Workspace binding | H3 supported within tested boundaries | Structured tones and exact-utterance natural speech passed at zero clipping. A later no-replay same-source forward model failed on three unseen commands at F1/recall/specificity `0.727/0.667/0.667`, so the exact-efference boundary remains |
-| Analysis by synthesis | H4 open; three frozen candidates failed | Fixed-formant and continuous acoustic-coordinate candidates failed recorded-voice gates. A later geometric synthetic candidate learned its forward surface but failed plant `/u/` validity and inverse closure (`0.80` identity, `0.60` agreement); protected confirmation remains untouched |
+| Analysis by synthesis | H4 open; frozen candidates remain stopped | A factorized five-gesture plant fixed the earlier `/u/` problem and passed five-vowel expressivity (`15/95/33 Hz` F1/F2/F3 MAE), but failed its all-state contract because 9/1024 arbitrary states lacked three in-band resonances. Learning did not run; protected confirmation remains untouched |
 | Efficiency | H5 supported within tested boundary | A six-fieldsite speech panel kept salient p95 at 10.17–10.38 ms with clean playback intervals, but two runs clipped only in trailing quiet and failed whole-capture integrity. Same-host energy was 27.36 µJ/frame versus 11.08 µJ/frame for the simpler baseline |
 
 New to the terminology? Start with the [data dictionary](docs/DATA_DICTIONARY.md),
@@ -672,3 +672,7 @@ current claim boundary is defined by `VISION.md` and this README.
 The frozen Option D mechanism and its retained synthetic failure are documented
 in [Option D: geometrically constrained articulatory synthesis](docs/H4_OPTION_D_GEOMETRIC_ARTICULATORY_SYNTHESIS.md).
 It does not authorize a retry or recorded-speech access.
+
+The subsequent [Option E factorized plant](docs/H4_OPTION_E_FACTORIZED_FIVE_GESTURE_PLANT.md)
+passed its intended five-vowel expressivity test but failed a stricter all-state
+resonance gate. Its stop rule fired before forward learning or inverse search.

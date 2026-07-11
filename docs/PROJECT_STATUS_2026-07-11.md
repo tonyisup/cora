@@ -16,10 +16,9 @@ For acronyms, corpus codes, metrics, and common report fields, see the
   evidence, but four families of cross-cultural register models failed to
   generalize reliably.
 - H2, H3, and H5 are supported only inside their measured boundaries.
-- H4 remains open as a broad hypothesis, but all three frozen candidates failed
-  their gates. The geometric candidate passed local forward generalization but
-  failed synthetic plant calibration and inverse closure, without accessing
-  recorded audio.
+- H4 remains open. The factorized five-gesture plant fixed the prior `/u/`
+  expressivity failure but missed its all-state resonance gate at `1015/1024`;
+  its stop rule fired before learning, without accessing recorded audio.
 - No new reserved Stage 2 or H4 confirmation data was consumed after its
   applicable development stop rule fired. Wellington had already been consumed
   for a separate H2 target and is not fieldsite-pristine for Stage 2.
@@ -33,7 +32,7 @@ For acronyms, corpus codes, metrics, and common report fields, see the
 | 2 — Parentese-relevant saliency | Mixed; not promoted | [narrow Beijing confirmation](evidence/2026-07-10-ids-confirmation.json), [Mentawai/Toposa mode-scoped pass](evidence/2026-07-10-mode-scoped-register-result.json), [vocal front-gate pass](evidence/2026-07-10-yin-vocal-gate-v2-result.json) | [final paired-summary failure](evidence/2026-07-10-expanded-register-v6-result.json), [six-phase failure](evidence/2026-07-11-temporal-register-development-result.json), [predictive-dynamics failure](evidence/2026-07-11-predictive-register-dynamics-result.json), [cohort-adaptive failure](evidence/2026-07-11-cohort-adaptive-register-result.json), and [nonlinear-codebook failure](evidence/2026-07-11-nonlinear-predictive-codebook-result.json) block general promotion |
 | 3 — Predictive hierarchy | H2 supported within tested boundaries | Natural transfer replicated on Wellington and MEN; controlled real known-efference dropout retained four states and improved tone/vowel prediction | Unknown dropout timing, arbitrary missing world input, semantics, and room transfer remain outside the claim |
 | 4 — Workspace binding | H3 supported within structured-tone and exact-efference speech boundaries | [structured attempt 3](evidence/2026-07-10-structured-workspace-real-attempt-3-result.json) and the [fresh spectral-template v3 run](evidence/2026-07-11-natural-speech-workspace-spectral-v3-real-result.json) both passed scheduled F1/recall/specificity and zero-clipping gates | A [no-replay same-source extension](evidence/2026-07-11-h3-same-source-forward-model-real-result.json) failed at F1/recall/specificity `0.727/0.667/0.667`; the supported natural result still requires a prior replay of the exact utterance and does not establish generalized self voice, semantics, transfer, or neural dynamics |
-| 5 — Perception-production closure | H4 open; three frozen candidates failed | The geometric candidate's label-free local forward learner passed held-out synthetic generalization with median distance `0.0871` | [Option D result](evidence/2026-07-11-h4-option-d-synthetic-result.json) failed plant `/u/` calibration and inverse identity/agreement at `0.80/0.60`; no recorded or protected data was accessed |
+| 5 — Perception-production closure | H4 open; plant-first Option E stopped | [Option E confirmation](evidence/2026-07-11-h4-option-e-plant-confirmation-result.json) passed five-vowel expressivity with local robustness and `15/95/33 Hz` formant MAE | P0 failed because 9/1024 arbitrary states lacked three in-band resonances; no forward learner, inverse search, recorded audio, or protected data was used |
 | 6 — Real-time efficiency | H5 supported within measured host boundary | Quiet and structured callback gates passed; [lower-volume natural-speech gate](evidence/2026-07-11-stage6-natural-speech-hardware-volume-diagnostic-result.json) passed at 10.34–10.42 ms salient p95; [six-fieldsite timing panel](evidence/2026-07-11-stage6-diverse-natural-speech-result.json) retained 10.17–10.38 ms salient p95 with clean playback intervals; [energy result](evidence/2026-07-11-stage6-energy-result.json) is measured | Two diverse-panel runs clipped only in trailing quiet and failed whole-capture integrity; energy is a 2.47× baseline cost; XMOS internal, wall-plug, acoustic, and cross-device energy remain open |
 
 ## H3 same-source generalization failure
@@ -175,6 +174,23 @@ maximum of 17 forward predictions against the limit of 23. No recorded audio
 or protected data was accessed. The frozen stop rule prohibits tuning or a
 same-point retry.
 
+## H4 factorized plant outcome
+
+The next plant separated five functional controls and used a frozen design-only
+search before opening disjoint Halton indices `8193–9216`. On those untouched
+points, P2 expressivity passed every gate: all five target identities and local
+neighborhoods were valid, minimum pairwise sensory distance was `0.4017`, and
+F1/F2/F3 MAE was `15/95/33 Hz`. The selected `/u/` was
+`330/895/2175 Hz`, resolving Option D's `/u/`→`/e/` collapse.
+
+P0 nevertheless required three separated analytic formants for every arbitrary
+confirmation state. Nine states did not satisfy that rule, yielding
+`1015/1024`; all geometry, finite-transfer, waveform, and determinism checks
+passed. The overall plant result is therefore retained as failed, and the
+preregistered stop rule blocked babbling and inversion. This is positive
+evidence for the factorization's vowel-region expressivity, not permission to
+waive the domain-wide gate after inspection.
+
 ## Protected data
 
 | Program | Development/spent | Protected and untouched |
@@ -212,7 +228,7 @@ analog/device-front-end transient.
 
 ## Verification state
 
-At this checkpoint the full test suite reports `424 passed, 3 skipped`. The
+At this checkpoint the full test suite reports `429 passed, 3 skipped`. The
 skips are intentional hardware/environment-dependent tests, not hidden failures.
 The working branch is `codex/vision-evidence`; the latest research checkpoints
 include:
@@ -233,15 +249,18 @@ include:
 - `43ecf5f` — hash-bound no-replay H3 real preregistration.
 - `0c08f9a` — exact Option D synthetic preregistration.
 - `62c9535` — frozen Option D implementation before candidate metrics.
+- `68d7e42` — frozen Option E plant-confirmation preregistration.
+- `6ce2dc1` — frozen Option E confirmation implementation before metrics.
 
 ## Decisions required before further Stage 2 or H4 empirical work
 
 1. Decide whether Stage 2 should now record broad cross-cultural register
    detection as falsified or authorize a deep/global mechanism outside the
    current local-learning contract.
-2. Decide whether H4 should stop active work after the retained geometric
-   failure or later authorize another genuinely different representation.
-   Same-candidate tuning and protected-data access are not options.
+2. Decide whether H4 should stop active work or later authorize a new motor-
+   domain mechanism that defines physically usable states before confirmation.
+   Waiving Option E's failed all-state gate, same-candidate tuning, and
+   protected-data access are not options.
 
 Until those decisions are made, no pristine USD/TOR or additional WEL
 confirmation data should be fetched and no same-family threshold,

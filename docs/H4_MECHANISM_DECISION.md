@@ -178,3 +178,12 @@ The companion
 [preregistration draft](evidence/2026-07-11-h4-option-e-five-gesture-plant-preregistration-draft.json)
 contains unresolved coefficients and gates and is not execution-ready. This
 design decision does not authorize a candidate run or recorded audio.
+
+That draft was subsequently resolved through a retained 64-family design-only
+search and an untouched
+[plant confirmation](evidence/2026-07-11-h4-option-e-plant-confirmation-result.json).
+Option E passed its five-vowel expressivity gate, including `/u/`, but failed
+the required all-state plant contract because `9/1024` arbitrary motor states
+did not expose three separated resonances in the frozen analysis band. The
+result therefore does not authorize the planned local learner. No recorded or
+protected data was accessed.

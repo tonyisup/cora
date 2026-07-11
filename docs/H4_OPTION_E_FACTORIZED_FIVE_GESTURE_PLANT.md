@@ -1,8 +1,10 @@
 # H4 Option E — factorized five-gesture tract plant
 
-Status: plant family selected and design search completed. The selected mapping
-and one untouched synthetic confirmation are frozen in the
-[confirmation preregistration](evidence/2026-07-11-h4-option-e-plant-confirmation-preregistration.json).
+Status: frozen plant confirmation executed once and retained as a failed
+overall gate. Five-vowel expressivity passed, but the all-state resonance
+contract failed. The exact protocol and measurements are in the
+[confirmation preregistration](evidence/2026-07-11-h4-option-e-plant-confirmation-preregistration.json)
+and [retained result](evidence/2026-07-11-h4-option-e-plant-confirmation-result.json).
 No forward learning, inverse search, recorded audio, or protected-data access
 is authorized.
 
@@ -60,6 +62,22 @@ Family 23 won the preregistered lexicographic selection rule with five valid
 vowels, `1.0` minimum neighborhood validity, and worst target relative formant
 RMSE `0.1073`. Its numerical mapping is now immutable for confirmation; the
 untouched range is `8193–9216`.
+
+## Retained confirmation outcome
+
+The plant solved the motivating expressivity problem. On untouched points, the
+selected `a/e/i/o/u` targets all mapped to their intended identity, every
+target's 11-point local neighborhood was valid, and mean F1/F2/F3 error was
+`15/95/33 Hz`, within the frozen `75/150/150 Hz` bounds. The smallest pairwise
+sensory distance was `0.4017`, above `0.25`. In particular, `/u/` reached
+`330/895/2175 Hz` and remained distinct from `/e/`.
+
+The overall protocol still failed P0. Only `1015/1024` arbitrary confirmation
+states exposed three separated analytic peaks inside the frozen `80–3500 Hz`
+band; the preregistration required all `1024`. Geometry, transfer finiteness,
+waveform bounds, and determinism passed. Because every plant gate was required,
+the workflow stopped before babbling or inverse search. The nine missing-peak
+states cannot be waived or used to redefine the domain after inspection.
 
 ### P0 — numerical and physical contract
 

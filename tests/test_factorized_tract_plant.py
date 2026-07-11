@@ -1,5 +1,8 @@
 """Contracts for the Option E design-stage factorized tract plant."""
 
+import json
+from pathlib import Path
+
 import numpy as np
 
 from cora_infans.factorized_tract_plant import (
@@ -58,3 +61,22 @@ def test_option_e_frozen_confirmation_config_and_waveform() -> None:
     assert first.shape == (2560,)
     assert float(np.max(np.abs(first))) < 1.0
     np.testing.assert_array_equal(first, second)
+
+
+def test_retained_option_e_confirmation_preserves_stop_boundary() -> None:
+    root = Path(__file__).resolve().parents[1]
+    result = json.loads(
+        (
+            root
+            / "docs/evidence/2026-07-11-h4-option-e-plant-confirmation-result.json"
+        ).read_text()
+    )
+
+    assert result["p0_numerical_physical"]["gate_passed"] is False
+    assert result["p2_expressivity"]["gate_passed"] is True
+    assert result["all_plant_gates_passed"] is False
+    assert result["forward_learning_executed"] is False
+    assert result["inverse_search_executed"] is False
+    assert result["recorded_audio_accessed"] is False
+    assert result["protected_data_accessed"] is False
+    assert result["provenance"]["implementation_commit"] == "6ce2dc1"

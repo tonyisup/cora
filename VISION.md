@@ -663,10 +663,18 @@ Current recorded-human result:
   acoustic/equivalence agreement `0.60`, and F1/F2/F3 MAE `7/12/56 Hz` versus
   required `0.95`, `0.90`, and at most `30 Hz` each. No recorded audio was
   accessed.
+- a later factorized five-gesture plant separated jaw aperture, constriction
+  magnitude and position, lip aperture, and protrusion. On untouched synthetic
+  points it passed the motivating five-vowel expressivity gate: every target
+  and local neighborhood retained identity, `/u/` was distinct, and F1/F2/F3
+  MAE was `15/95/33 Hz`. The overall protocol nevertheless stopped because
+  `9/1024` arbitrary motor states lacked three separated peaks within the frozen
+  analysis band. No learner or inverse search ran.
 
 H4 remains open, but the fixed-formant, continuous acoustic-coordinate, and
-first geometric/local-forward candidates are retained failures. Tuning any of
-them after observing their frozen outcomes is prohibited. More tuning toward a
+first geometric/local-forward candidates are retained failures; the factorized
+plant is also stopped at its stricter all-state gate. Tuning any of them after
+observing their frozen outcomes is prohibited. More tuning toward a
 learned phone classifier—or changing the five-vowel mapping after seeing these
 errors—risks replacing the narrow perception-production closure claim with
 general supervised identity classification. No motor-learning claim is made.
