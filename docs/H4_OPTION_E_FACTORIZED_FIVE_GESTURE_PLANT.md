@@ -1,8 +1,10 @@
 # H4 Option E — factorized five-gesture tract plant
 
-Status: plant family selected for design. Exact coefficients and the
-expressivity protocol are not yet frozen. No candidate execution, recorded
-audio, or protected-data access is authorized by this memo.
+Status: plant family selected and design search completed. The selected mapping
+and one untouched synthetic confirmation are frozen in the
+[confirmation preregistration](evidence/2026-07-11-h4-option-e-plant-confirmation-preregistration.json).
+No forward learning, inverse search, recorded audio, or protected-data access
+is authorized.
 
 ## Decision
 
@@ -51,6 +53,13 @@ new candidate.
 ## Plant-only evidence ladder
 
 Learning is deliberately excluded from the first protocol.
+
+The frozen [design-only search](evidence/2026-07-11-h4-option-e-plant-design-result.json)
+retains all 64 declared coefficient families over Halton indices `4097–5120`.
+Family 23 won the preregistered lexicographic selection rule with five valid
+vowels, `1.0` minimum neighborhood validity, and worst target relative formant
+RMSE `0.1073`. Its numerical mapping is now immutable for confirmation; the
+untouched range is `8193–9216`.
 
 ### P0 — numerical and physical contract
 
@@ -137,4 +146,3 @@ and length mapping is the new plant hypothesis.
 5. Freeze untouched confirmation indices and local-neighborhood construction.
 6. Freeze absolute/relative formant, identity, and region-separation gates.
 7. Freeze the rule for advancing—or stopping—after the plant result.
-
