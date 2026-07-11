@@ -19,7 +19,7 @@ the repository.
 | Parentese-relevant saliency | Mixed; not promoted | Cohort alignment remains the best development candidate at F1 0.681. A later locally learned nonlinear temporal codebook was healthy but reached only F1 0.535. The vocal front gate remains positive; reserved confirmation fieldsites remain untouched |
 | Local predictive hierarchy | H2 supported within tested boundaries | Natural event transfer replicated across Wellington and MEN; a separate real room run with known efference masks retained four states through 10/15/20% dropout while improving vowels `+0.614` and tones `+0.474`. Unknown-timing world dropout and semantics remain outside scope |
 | Workspace binding | H3 supported within tested boundaries | Structured tones and exact-utterance natural speech passed at zero clipping. A later no-replay same-source forward model failed on three unseen commands at F1/recall/specificity `0.727/0.667/0.667`, so the exact-efference boundary remains |
-| Analysis by synthesis | H4 open; expanded-band plant passed | A factorized five-gesture plant with a 5 kHz structural readout passed all-state and five-vowel plant gates on 1,024 disjoint points (`15/56/100 Hz` F1/F2/F3 MAE). This is plant evidence only; local learning and inverse closure remain untested and protected data untouched |
+| Analysis by synthesis | H4 open; local closure failed | The expanded-band plant passed, and its local learner preserved `20/20` vowel identities, but forward distance `0.264`, agreement `0.40`, and reconstruction MAE `16/54/142 Hz` failed frozen gates. Protected data remains untouched |
 | Efficiency | H5 supported within tested boundary | A six-fieldsite speech panel kept salient p95 at 10.17–10.38 ms with clean playback intervals, but two runs clipped only in trailing quiet and failed whole-capture integrity. Same-host energy was 27.36 µJ/frame versus 11.08 µJ/frame for the simpler baseline |
 
 New to the terminology? Start with the [data dictionary](docs/DATA_DICTIONARY.md),
@@ -680,3 +680,7 @@ resonance gate. Its stop rule fired before forward learning or inverse search.
 A disjoint [Option F expanded-band confirmation](docs/H4_OPTION_F_EXPANDED_BAND_PLANT.md)
 then passed every plant gate. It authorizes only a new synthetic learner
 preregistration; H4 and recorded-speech access remain unpromoted.
+
+The resulting [Option G local-closure candidate](docs/H4_OPTION_G_EXPANDED_LOCAL_CLOSURE.md)
+retained perfect post-hoc identity but failed continuous forward accuracy and
+equivalence-aware reconstruction. Its spent points cannot be used for tuning.

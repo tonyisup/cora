@@ -209,3 +209,9 @@ affine map learned from label-free five-dimensional babbling, followed by a
 [preregistration](evidence/2026-07-11-h4-option-g-expanded-local-closure-preregistration.json)
 must pass both forward generalization and perception-production closure before
 any recorded-speech discussion.
+
+The [Option G result](evidence/2026-07-11-h4-option-g-expanded-local-closure-result.json)
+failed both gates. It preserved vowel identity perfectly and beat all three
+forward baselines frequently, but median forward distance was `0.264`, combined
+agreement `0.40`, and F1/F2/F3 reconstruction MAE `16/54/142 Hz`. This supports
+neither H4 promotion nor a same-candidate retry.

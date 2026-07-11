@@ -1,7 +1,8 @@
 # H4 Option G — expanded-band local perception-production closure
 
-Status: exact synthetic-only candidate preregistered before implementation or
-metrics. Recorded audio and protected data remain unauthorized.
+Status: exact synthetic-only candidate executed once and retained as failed.
+The [result](evidence/2026-07-11-h4-option-g-expanded-local-closure-result.json)
+does not authorize a retry, recorded audio, or protected-data access.
 
 ## Question
 
@@ -40,3 +41,17 @@ observed S --> bounded local inverse --> motor m' --> physical plant --> S'
 The exact constants and stop rule are authoritative in the companion
 [preregistration](evidence/2026-07-11-h4-option-g-expanded-local-closure-preregistration.json).
 
+## Retained outcome
+
+The local map beat neutral, nearest-prototype, and persistence baselines on
+`0.965/0.885/0.977` of 512 held-out points, but median unit-vector distance was
+`0.264`, above the frozen `0.18` gate. Error was highest in several
+high-constriction orthants, and the hard winner-local partition did not meet the
+required surface accuracy.
+
+Inverse trials preserved all five vowel identities (`20/20`) and respected all
+bounds with at most 20 predictions. That categorical success did not establish
+shared geometric closure: combined acoustic/equivalence agreement was `0.40`,
+and target-to-final F1/F2/F3 MAE was `16/54/142 Hz`. The result therefore fails
+both forward and closure gates. Same-point capacity, threshold, or search-step
+tuning is prohibited.

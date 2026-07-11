@@ -1,5 +1,8 @@
 """Contracts for the frozen H4 Option G local closure candidate."""
 
+import json
+from pathlib import Path
+
 import numpy as np
 import pytest
 
@@ -41,3 +44,21 @@ def test_expanded_local_map_fails_closed() -> None:
     model = ExpandedLocalForwardMap(centers)
     with pytest.raises(ValueError, match="finalized"):
         model.predict(REST_STATE_5)
+
+
+def test_retained_option_g_result_preserves_failed_boundary() -> None:
+    root = Path(__file__).resolve().parents[1]
+    result = json.loads(
+        (
+            root
+            / "docs/evidence/2026-07-11-h4-option-g-expanded-local-closure-result.json"
+        ).read_text()
+    )
+
+    assert result["forward_generalization"]["gate_passed"] is False
+    assert result["inverse_closure"]["gate_passed"] is False
+    assert result["inverse_closure"]["identity_accuracy"] == 1.0
+    assert result["all_synthetic_gates_passed"] is False
+    assert result["recorded_audio_accessed"] is False
+    assert result["protected_data_accessed"] is False
+    assert result["provenance"]["implementation_commit"] == "d6dbc03"

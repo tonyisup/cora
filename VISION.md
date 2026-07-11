@@ -675,6 +675,11 @@ Current recorded-human result:
   through 5 kHz; five-vowel targets and neighborhoods passed, with F1/F2/F3 MAE
   `15/56/100 Hz`. This supports the synthetic plant/readout only. Forward
   learning and inverse closure remain required before any H4 claim.
+- the first expanded-band local learner then beat neutral, nearest-prototype,
+  and persistence baselines frequently and retained `20/20` vowel identities.
+  It nevertheless failed continuous closure: median forward distance was
+  `0.264` versus `0.18`, combined agreement `0.40` versus `0.90`, and F1/F2/F3
+  reconstruction MAE `16/54/142 Hz` versus `30 Hz` each.
 
 H4 remains open, but the fixed-formant, continuous acoustic-coordinate, and
 first geometric/local-forward candidates are retained failures; the factorized

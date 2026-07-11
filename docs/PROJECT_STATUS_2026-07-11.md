@@ -16,9 +16,9 @@ For acronyms, corpus codes, metrics, and common report fields, see the
   evidence, but four families of cross-cultural register models failed to
   generalize reliably.
 - H2, H3, and H5 are supported only inside their measured boundaries.
-- H4 remains open. A disjoint expanded-band confirmation rescued the structural
-  plant boundary at `1024/1024` and passed five-vowel expressivity. No local
-  forward learning or inverse closure has yet run on this representation.
+- H4 remains open. The expanded-band plant passed, but its first winner-local
+  learner failed forward accuracy and equivalence-aware closure despite perfect
+  post-hoc vowel identity.
 - No new reserved Stage 2 or H4 confirmation data was consumed after its
   applicable development stop rule fired. Wellington had already been consumed
   for a separate H2 target and is not fieldsite-pristine for Stage 2.
@@ -32,7 +32,7 @@ For acronyms, corpus codes, metrics, and common report fields, see the
 | 2 — Parentese-relevant saliency | Mixed; not promoted | [narrow Beijing confirmation](evidence/2026-07-10-ids-confirmation.json), [Mentawai/Toposa mode-scoped pass](evidence/2026-07-10-mode-scoped-register-result.json), [vocal front-gate pass](evidence/2026-07-10-yin-vocal-gate-v2-result.json) | [final paired-summary failure](evidence/2026-07-10-expanded-register-v6-result.json), [six-phase failure](evidence/2026-07-11-temporal-register-development-result.json), [predictive-dynamics failure](evidence/2026-07-11-predictive-register-dynamics-result.json), [cohort-adaptive failure](evidence/2026-07-11-cohort-adaptive-register-result.json), and [nonlinear-codebook failure](evidence/2026-07-11-nonlinear-predictive-codebook-result.json) block general promotion |
 | 3 — Predictive hierarchy | H2 supported within tested boundaries | Natural transfer replicated on Wellington and MEN; controlled real known-efference dropout retained four states and improved tone/vowel prediction | Unknown dropout timing, arbitrary missing world input, semantics, and room transfer remain outside the claim |
 | 4 — Workspace binding | H3 supported within structured-tone and exact-efference speech boundaries | [structured attempt 3](evidence/2026-07-10-structured-workspace-real-attempt-3-result.json) and the [fresh spectral-template v3 run](evidence/2026-07-11-natural-speech-workspace-spectral-v3-real-result.json) both passed scheduled F1/recall/specificity and zero-clipping gates | A [no-replay same-source extension](evidence/2026-07-11-h3-same-source-forward-model-real-result.json) failed at F1/recall/specificity `0.727/0.667/0.667`; the supported natural result still requires a prior replay of the exact utterance and does not establish generalized self voice, semantics, transfer, or neural dynamics |
-| 5 — Perception-production closure | H4 open; Option F plant/readout passed | [Option F result](evidence/2026-07-11-h4-option-f-expanded-band-plant-result.json) passed all `1024` states and five-vowel expressivity with `15/56/100 Hz` formant MAE | Plant evidence does not establish a learned shared representation or inverse closure; recorded and protected data remain untouched |
+| 5 — Perception-production closure | H4 open; Option G local closure failed | Option F passed the plant; [Option G](evidence/2026-07-11-h4-option-g-expanded-local-closure-result.json) preserved `20/20` vowel identities and beat all forward baselines frequently | Median forward distance `0.264`, combined agreement `0.40`, and F1/F2/F3 reconstruction MAE `16/54/142 Hz` failed; protected data remains untouched |
 | 6 — Real-time efficiency | H5 supported within measured host boundary | Quiet and structured callback gates passed; [lower-volume natural-speech gate](evidence/2026-07-11-stage6-natural-speech-hardware-volume-diagnostic-result.json) passed at 10.34–10.42 ms salient p95; [six-fieldsite timing panel](evidence/2026-07-11-stage6-diverse-natural-speech-result.json) retained 10.17–10.38 ms salient p95 with clean playback intervals; [energy result](evidence/2026-07-11-stage6-energy-result.json) is measured | Two diverse-panel runs clipped only in trailing quiet and failed whole-capture integrity; energy is a 2.47× baseline cost; XMOS internal, wall-plug, acoustic, and cross-device energy remain open |
 
 ## H3 same-source generalization failure
@@ -198,6 +198,14 @@ target identities and neighborhoods, waveform integrity, and pairwise
 separation; F1/F2/F3 MAE was `15/56/100 Hz`. The result advances the synthetic
 plant/readout to learner design, not H4 promotion.
 
+Option G then learned 128 winner-local affine regions from 2,048 label-free
+babbling points and evaluated on disjoint forward and inverse sets. It retained
+all five post-hoc vowel identities and stayed inside its 23-prediction budget,
+but the continuous representation did not close: median held-out sensory error
+was `0.264`, combined acoustic/equivalence agreement `0.40`, and F1/F2/F3
+reconstruction MAE `16/54/142 Hz`. The frozen failure blocks capacity or search
+tuning on these points.
+
 ## Protected data
 
 | Program | Development/spent | Protected and untouched |
@@ -235,7 +243,7 @@ analog/device-front-end transient.
 
 ## Verification state
 
-At this checkpoint the full test suite reports `431 passed, 3 skipped`. The
+At this checkpoint the full test suite reports `435 passed, 3 skipped`. The
 skips are intentional hardware/environment-dependent tests, not hidden failures.
 The working branch is `codex/vision-evidence`; the latest research checkpoints
 include:
@@ -260,6 +268,8 @@ include:
 - `6ce2dc1` — frozen Option E confirmation implementation before metrics.
 - `b476ac7` — frozen Option F expanded-band preregistration.
 - `3e97516` — frozen Option F implementation before metrics.
+- `e1bcd09` — frozen Option G local-closure preregistration.
+- `d6dbc03` — frozen Option G implementation before metrics.
 
 ## Decisions required before further Stage 2 or H4 empirical work
 
