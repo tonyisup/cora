@@ -25,6 +25,8 @@ the repository.
 New to the terminology? Start with the [data dictionary](docs/DATA_DICTIONARY.md),
 especially the distinction between the classifier **F1 score** and acoustic
 **F1/F2/F3 formants**.
+The current stage-by-stage claim boundary is summarized in the
+[VISION evidence audit](docs/VISION_EVIDENCE_AUDIT_2026-07-11.md).
 
 ## Hardware boundary
 

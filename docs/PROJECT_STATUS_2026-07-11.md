@@ -7,6 +7,8 @@ are authoritative.
 
 For acronyms, corpus codes, metrics, and common report fields, see the
 [data dictionary](DATA_DICTIONARY.md).
+The final requirement-by-requirement checkpoint is retained in the
+[VISION evidence audit](VISION_EVIDENCE_AUDIT_2026-07-11.md).
 
 ## Executive outcome
 

@@ -1,0 +1,68 @@
+# VISION evidence audit — 2026-07-11
+
+This audit compares the current repository with [VISION.md](../VISION.md). It
+does not equate implementation with empirical support and does not reinterpret a
+failed gate as partial promotion.
+
+## Stage-by-stage disposition
+
+| Stage | VISION requirement | Authoritative evidence | Audit verdict |
+|---|---|---|---|
+| 0 — Substrate | Deterministic bounded pipeline, explicit live/offline modes, fail-loud I/O | Full test suite; CLI and adapter contracts | Implemented |
+| 1 — Real audio | End-to-end real-frame manifests and auditable held-out metrics | Prior-art replay, Music Lab manifests, recorded WAV/NumPy paths | Passed in bounded licensed corpora; broader conditions remain outside claim |
+| 2 — Parentese saliency | Participant-disjoint improvement with controlled false positives and cross-field reliability | [Final Stage 2 disposition](evidence/2026-07-11-stage2-broad-register-disposition.json) plus retained register results | Broad cross-cultural IDS/ADS detection falsified for tested families; vocal front gate remains narrow evidence |
+| 3 — Predictive hierarchy | Bounded local updates, bottom-up/top-down use, held-out advantage, ablations | Natural Wellington/MEN transfer and controlled known-efference dropout results | H2 supported only within tested event-target and known-efference boundaries |
+| 4 — Workspace binding | Capacity-limited admission/suppression with flat and fixed-window comparisons | Structured-tone attempt 3 and exact-efference natural-speech spectral-v3 result | H3 supported within exact commanded-utterance boundary; no-replay same-source extension failed |
+| 5 — Perception-production closure | Learned/adapted motor plans, identity plus continuous acoustic/motor closure | [Final H4 disposition](evidence/2026-07-11-h4-bounded-local-family-disposition.json) and Options F–H | Tested bounded-local family falsified; successful plant retained as infrastructure only |
+| 6 — Efficiency | Named-host latency, RTF, CPU, memory, and measurable energy | Device-timestamp, salient/natural speech, diverse panel, and energy artifacts | H5 supported within measured host/software boundary; embodied and XMOS-internal measurements remain outside claim |
+
+## Requirement audit
+
+### Evidence and governance
+
+- Development, held-out, confirmation, and reserve roles remain explicit in
+  retained manifests and preregistrations.
+- Failed frozen candidates remain checked in with their original thresholds and
+  stop decisions.
+- Post-hoc analyses are labeled descriptive and do not replace candidate
+  results.
+- Broad Stage 2 and bounded-local H4 now have explicit user-selected governance
+  artifacts rather than unresolved prose.
+- No global/deep replacement, supervised phone model, weakened categorical H4
+  claim, or cohort false-positive-control claim is silently promoted.
+
+### Protected material
+
+- Stage 2 San Diego (`USD`) and Toronto (`TOR`) remain pristine; Wellington is
+  protected from new Stage 2 use but was previously spent by H2.
+- VocalSet `female6`, `female7`, `female9`, `male9`, and `male11` remain
+  untouched.
+- CMU Arctic confirmation `rms`, `awb`, `axb`, `eey`, and `ljm`, plus the
+  documented reserve speakers, remain untouched.
+- Third-party audio remains outside Git.
+
+### Verification
+
+- Full suite: `438 passed, 3 skipped`.
+- The skips are intentional hardware/environment-dependent tests.
+- Evidence-link existence and final Stage 2/H4 disposition fields are asserted
+  by `tests/test_consolidated_status.py`.
+- The working branch is `codex/vision-evidence`.
+
+## Remaining work boundary
+
+No further autonomous empirical run is authorized by the current evidence:
+
+- Stage 2 and active H4 work are stopped by explicit final dispositions.
+- Extending H2 to arbitrary-world missingness or semantics requires a new
+  observation protocol and broader claim.
+- Extending H3 beyond exact efference requires a new generalized-self mechanism
+  and likely new physical room/geometry trials.
+- Extending H5 to wall-plug/embodied energy or XMOS-internal latency requires
+  external instrumentation or firmware-level access.
+- Broader Stage 1 demographic/device coverage requires a new licensed-data or
+  collection decision.
+
+Those are future user-authorized programs, not unfinished retries of the frozen
+work. The repository is internally consistent with its current claim boundary.
+
