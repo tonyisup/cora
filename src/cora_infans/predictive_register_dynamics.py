@@ -217,11 +217,28 @@ class LinearGaussianDynamics:
     def mean_log_likelihood(self, sequence: np.ndarray) -> float:
         if len(sequence) < MINIMUM_SEQUENCE_FRAMES:
             raise ValueError("predictive dynamics sequence is too short")
+        return self.mean_log_likelihood_pairs(sequence[:-1], sequence[1:])
+
+    def mean_log_likelihood_pairs(
+        self,
+        previous: np.ndarray,
+        current: np.ndarray,
+    ) -> float:
+        """Score transition pairs, including independently aligned pairs."""
+
+        previous = np.asarray(previous, dtype=np.float64)
+        current = np.asarray(current, dtype=np.float64)
+        if previous.ndim != 2 or current.ndim != 2:
+            raise ValueError("predictive dynamics pairs must be matrices")
+        if previous.shape != current.shape or not len(previous):
+            raise ValueError("predictive dynamics requires matched transition pairs")
         intercept = np.asarray(self.intercept)
         transition = np.asarray(self.transition)
         variance = np.asarray(self.residual_variance)
-        prediction = intercept + sequence[:-1] @ transition
-        residual = sequence[1:] - prediction
+        if previous.shape[1] != len(intercept):
+            raise ValueError("predictive dynamics pair feature count does not match")
+        prediction = intercept + previous @ transition
+        residual = current - prediction
         log_likelihood = -0.5 * (
             np.log(2.0 * np.pi * variance) + residual * residual / variance
         )
