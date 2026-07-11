@@ -79,6 +79,15 @@ waveform bounds, and determinism passed. Because every plant gate was required,
 the workflow stopped before babbling or inverse search. The nine missing-peak
 states cannot be waived or used to redefine the domain after inspection.
 
+The retained
+[post-hoc failure analysis](evidence/2026-07-11-h4-option-e-plant-failure-analysis.json)
+shows why a motor-domain restriction is not supported. Every missing state had
+two peaks below 3.5 kHz and a third at `3525–3990 Hz`; all nine exposed at least
+three separated peaks by 5 kHz. Their areas and lengths were valid, and no
+rectangular motor bound separates them from the successful vowel targets. This
+does not rescue the frozen result, but it motivates a separately preregistered,
+disjoint expanded-band sensory candidate rather than post-hoc motor filtering.
+
 ### P0 — numerical and physical contract
 
 Every authorized design and confirmation point must have:
