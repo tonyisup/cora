@@ -146,6 +146,36 @@ def test_native_stream_lowers_float_pcm_without_ffmpeg() -> None:
     assert float(np.mean(array.last_pcm)) == pytest.approx(0.375)
 
 
+def test_callback_stream_reblocks_pcm_and_preserves_adc_timestamp() -> None:
+    class FakeNativeStream:
+        latency = 0.042
+        blocksize = 0
+        time = 100.05
+
+    class TimeInfo:
+        def __init__(self, adc_time):
+            self.inputBufferAdcTime = adc_time
+
+    array = LiveMicArray(sample_rate=16000, stream_backend="callback")
+    array._native_stream = FakeNativeStream()
+    array._callback_enabled = True
+    array.active_stream_backend = "sounddevice_portaudio_coreaudio_callback"
+    first = np.full((200, 2), 0.25, dtype=np.float32)
+    second = np.full((200, 2), 0.5, dtype=np.float32)
+
+    array._native_input_callback(first, 200, TimeInfo(100.0), None)
+    array._native_input_callback(second, 200, TimeInfo(100.0125), None)
+    frame = array.capture_frame(duration_ms=25)
+    timing = array.device_frame_latency_at_decision()
+
+    assert frame.channel_energies == pytest.approx([0.3952847, 0.3952847])
+    assert array.last_pcm is not None and len(array.last_pcm) == 400
+    assert timing is not None
+    assert timing["adc_frame_onset_to_workspace_decision_ms"] == pytest.approx(50.0)
+    assert timing["adc_frame_end_to_workspace_decision_ms"] == pytest.approx(25.0)
+    assert array.callback_timestamp_discontinuity_count == 0
+
+
 @pytest.mark.skipif(shutil.which("ffmpeg") is None, reason="ffmpeg not available")
 def test_live_capture_runs_end_to_end_if_device_present() -> None:
     """Skips (does not fake) when the board is not connected."""

@@ -29,3 +29,27 @@ def test_runtime_latency_tracker_reports_deadlines_and_boundary() -> None:
     assert report["estimated_adc_to_workspace_latency_ms"]["p50"] == 36.0
     assert report["input_overflow_count"] == 1
     assert report["input_overflow_rate"] == 0.5
+
+
+def test_runtime_tracker_reports_device_timestamped_frame_latency() -> None:
+    tracker = RuntimeLatencyTracker(deadline_ms=25.0)
+    tracker.record(
+        capture_ms=25.0,
+        pipeline_ms=1.0,
+        total_ms=26.0,
+        adc_onset_to_decision_ms=51.0,
+        adc_end_to_decision_ms=26.0,
+    )
+
+    report = tracker.summary(
+        capture_backend="sounddevice_portaudio_coreaudio_callback",
+        real_capture=True,
+    )
+
+    device = report["device_timestamped_frame_latency_ms"]
+    assert report["timestamp_quality"] == "portaudio_inputBufferAdcTime_to_stream_time"
+    assert device["adc_frame_onset_to_workspace_decision"]["p95"] == 51.0
+    assert device["adc_frame_end_to_workspace_decision"]["p95"] == 26.0
+    assert report["device_timestamped_strict_deadline_miss_count"] == 1
+    assert report["device_timestamped_deadline_miss_count"] == 0
+    assert "hardware_adc_sample_onset" not in report["excluded"]

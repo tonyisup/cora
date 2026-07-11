@@ -926,10 +926,26 @@ class LiveListener:
             capture_ended_ns = time.perf_counter_ns()
             event = pipeline.process_frame(frame)
             decision_ended_ns = time.perf_counter_ns()
+            device_timing_fn = getattr(
+                self.array, "device_frame_latency_at_decision", None
+            )
+            device_timing = (
+                device_timing_fn() if callable(device_timing_fn) else None
+            )
             latency_tracker.record(
                 capture_ms=(capture_ended_ns - capture_started_ns) / 1_000_000.0,
                 pipeline_ms=(decision_ended_ns - capture_ended_ns) / 1_000_000.0,
                 total_ms=(decision_ended_ns - capture_started_ns) / 1_000_000.0,
+                adc_onset_to_decision_ms=(
+                    device_timing["adc_frame_onset_to_workspace_decision_ms"]
+                    if device_timing is not None
+                    else None
+                ),
+                adc_end_to_decision_ms=(
+                    device_timing["adc_frame_end_to_workspace_decision_ms"]
+                    if device_timing is not None
+                    else None
+                ),
             )
             is_salient = event is not None
             frame_is_salient.append(is_salient)
@@ -1150,6 +1166,12 @@ class LiveListener:
                 self.array, "stream_fallback_reason", None
             ),
             "capture_stream_metadata": getattr(self.array, "stream_metadata", None),
+            "capture_callback_status_count": int(
+                getattr(self.array, "callback_status_count", 0)
+            ),
+            "capture_callback_timestamp_discontinuity_count": int(
+                getattr(self.array, "callback_timestamp_discontinuity_count", 0)
+            ),
             "active_attention": (
                 {
                     "enabled": with_attention,

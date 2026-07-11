@@ -43,6 +43,8 @@ class RuntimeLatencyTracker:
         self.capture_ms: list[float] = []
         self.pipeline_ms: list[float] = []
         self.total_ms: list[float] = []
+        self.adc_onset_to_decision_ms: list[float] = []
+        self.adc_end_to_decision_ms: list[float] = []
 
     def record(
         self,
@@ -50,12 +52,21 @@ class RuntimeLatencyTracker:
         capture_ms: float,
         pipeline_ms: float,
         total_ms: float,
+        adc_onset_to_decision_ms: float | None = None,
+        adc_end_to_decision_ms: float | None = None,
     ) -> None:
         if min(capture_ms, pipeline_ms, total_ms) < 0.0:
             raise ValueError("latencies must be non-negative")
         self.capture_ms.append(float(capture_ms))
         self.pipeline_ms.append(float(pipeline_ms))
         self.total_ms.append(float(total_ms))
+        if (adc_onset_to_decision_ms is None) != (adc_end_to_decision_ms is None):
+            raise ValueError("ADC onset and end latencies must be recorded together")
+        if adc_onset_to_decision_ms is not None and adc_end_to_decision_ms is not None:
+            if min(adc_onset_to_decision_ms, adc_end_to_decision_ms) < 0.0:
+                raise ValueError("ADC latencies must be non-negative")
+            self.adc_onset_to_decision_ms.append(float(adc_onset_to_decision_ms))
+            self.adc_end_to_decision_ms.append(float(adc_end_to_decision_ms))
 
     def summary(
         self,
@@ -70,6 +81,12 @@ class RuntimeLatencyTracker:
         strict_misses = sum(value > self.deadline_ms for value in self.total_ms)
         operational_limit = self.deadline_ms + self.deadline_tolerance_ms
         misses = sum(value > operational_limit for value in self.total_ms)
+        device_strict_misses = sum(
+            value > self.deadline_ms for value in self.adc_end_to_decision_ms
+        )
+        device_misses = sum(
+            value > operational_limit for value in self.adc_end_to_decision_ms
+        )
         total_measured_ms = sum(self.total_ms)
         represented_ms = len(self.total_ms) * self.deadline_ms
         steady_state = self.total_ms[1:]
@@ -77,7 +94,11 @@ class RuntimeLatencyTracker:
         report: dict[str, object] = {
             "mode": "live_capture_to_workspace_latency",
             "measurement_boundary": "capture_frame_call_start_to_workspace_decision",
-            "timestamp_quality": "host_monotonic_call_boundary_not_audio_device_onset",
+            "timestamp_quality": (
+                "portaudio_inputBufferAdcTime_to_stream_time"
+                if self.adc_end_to_decision_ms
+                else "host_monotonic_call_boundary_not_audio_device_onset"
+            ),
             "capture_backend": capture_backend,
             "real_capture": real_capture,
             "deadline_ms": self.deadline_ms,
@@ -92,6 +113,22 @@ class RuntimeLatencyTracker:
             "input_overflow_count": input_overflow_count,
             "input_overflow_rate": (
                 input_overflow_count / len(self.total_ms) if self.total_ms else 0.0
+            ),
+            "device_timestamped_strict_deadline_miss_count": (
+                device_strict_misses if self.adc_end_to_decision_ms else None
+            ),
+            "device_timestamped_strict_deadline_miss_rate": (
+                device_strict_misses / len(self.adc_end_to_decision_ms)
+                if self.adc_end_to_decision_ms
+                else None
+            ),
+            "device_timestamped_deadline_miss_count": (
+                device_misses if self.adc_end_to_decision_ms else None
+            ),
+            "device_timestamped_deadline_miss_rate": (
+                device_misses / len(self.adc_end_to_decision_ms)
+                if self.adc_end_to_decision_ms
+                else None
             ),
             "dropped_frame_proxy": (
                 "PortAudio input-overflow flag per requested analysis frame"
@@ -112,8 +149,24 @@ class RuntimeLatencyTracker:
             "capture_call_latency_ms": _distribution(self.capture_ms),
             "pipeline_decision_latency_ms": _distribution(self.pipeline_ms),
             "capture_to_workspace_latency_ms": _distribution(self.total_ms),
+            "device_timestamped_frame_latency_ms": (
+                {
+                    "adc_frame_onset_to_workspace_decision": _distribution(
+                        self.adc_onset_to_decision_ms
+                    ),
+                    "adc_frame_end_to_workspace_decision": _distribution(
+                        self.adc_end_to_decision_ms
+                    ),
+                    "timestamp_source": (
+                        "PortAudioCallbackTimeInfo.inputBufferAdcTime and "
+                        "Pa_GetStreamTime"
+                    ),
+                }
+                if self.adc_end_to_decision_ms
+                else None
+            ),
             "excluded": [
-                "hardware_adc_sample_onset",
+                *([] if self.adc_end_to_decision_ms else ["hardware_adc_sample_onset"]),
                 "xmos_internal_dsp_latency",
                 "coreaudio_backend_timestamp",
                 "attention_usb_steer_after_workspace_decision",

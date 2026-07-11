@@ -26,7 +26,9 @@ from __future__ import annotations
 import shutil
 import subprocess
 import tempfile
+import threading
 import time
+from collections import deque
 from contextlib import contextmanager
 from typing import Any, Iterator
 
@@ -70,8 +72,8 @@ class LiveMicArray:
         capture_seconds: float = 0.25,
         stream_backend: str = "auto",
     ) -> None:
-        if stream_backend not in ("auto", "native", "ffmpeg"):
-            raise ValueError("stream_backend must be auto, native, or ffmpeg")
+        if stream_backend not in ("auto", "native", "callback", "ffmpeg"):
+            raise ValueError("stream_backend must be auto, native, callback, or ffmpeg")
         self.device = device
         self.sample_rate = sample_rate
         self.capture_seconds = capture_seconds
@@ -84,6 +86,15 @@ class LiveMicArray:
         self.stream_metadata: dict[str, object] | None = None
         self.last_input_overflowed = False
         self.input_overflow_count = 0
+        self.callback_status_count = 0
+        self.callback_timestamp_discontinuity_count = 0
+        self.last_device_frame_timing: dict[str, float] | None = None
+        self._callback_enabled = False
+        self._callback_closed = False
+        self._callback_condition = threading.Condition()
+        self._callback_chunks: deque[tuple[np.ndarray, float]] = deque()
+        self._callback_available_frames = 0
+        self._callback_last_adc_end_time: float | None = None
         self.is_real_capture = True
         # Retained raw PCM of the most recent capture, so downstream consumers
         # (e.g. the motor-imitation loop's analyze_vowel) have a waveform to
@@ -95,6 +106,12 @@ class LiveMicArray:
 
         if self._stream_process is not None or self._native_stream is not None:
             return
+        if self.stream_backend == "callback":
+            try:
+                self._start_callback_stream()
+                return
+            except Exception as exc:
+                raise LiveMicError(f"callback CoreAudio stream failed: {exc}") from exc
         if self.stream_backend in ("auto", "native"):
             try:
                 self._start_native_stream()
@@ -129,7 +146,65 @@ class LiveMicArray:
             "requested_latency": "low",
             "reported_input_latency_ms": float(stream.latency) * 1000.0,
             "reported_blocksize": int(stream.blocksize),
+            "device_timestamp_source": None,
         }
+
+    def _start_callback_stream(self) -> None:
+        import sounddevice as sd
+
+        device_index = self._resolve_sounddevice_input(sd)
+        with self._callback_condition:
+            self._callback_closed = False
+            self._callback_chunks.clear()
+            self._callback_available_frames = 0
+            self._callback_last_adc_end_time = None
+        self._callback_enabled = True
+        stream = sd.InputStream(
+            samplerate=self.sample_rate,
+            blocksize=0,
+            device=device_index,
+            channels=CAPTURE_CHANNELS,
+            dtype="float32",
+            latency="low",
+            callback=self._native_input_callback,
+        )
+        stream.start()
+        self._native_stream = stream
+        self._channel_count = CAPTURE_CHANNELS
+        self.active_stream_backend = "sounddevice_portaudio_coreaudio_callback"
+        self.stream_metadata = {
+            "sample_rate": self.sample_rate,
+            "channel_count": CAPTURE_CHANNELS,
+            "requested_latency": "low",
+            "reported_input_latency_ms": float(stream.latency) * 1000.0,
+            "reported_blocksize": int(stream.blocksize),
+            "device_timestamp_source": "PortAudioCallbackTimeInfo.inputBufferAdcTime",
+        }
+
+    def _native_input_callback(
+        self, indata: np.ndarray, frames: int, time_info: Any, status: Any
+    ) -> None:
+        if status:
+            self.callback_status_count += 1
+            if bool(getattr(status, "input_overflow", False)):
+                self.input_overflow_count += 1
+        data = np.asarray(indata, dtype=np.float32).copy()
+        if data.shape != (frames, CAPTURE_CHANNELS):
+            self.callback_status_count += 1
+            return
+        adc_start = float(time_info.inputBufferAdcTime)
+        adc_end = adc_start + frames / self.sample_rate
+        with self._callback_condition:
+            if (
+                self._callback_last_adc_end_time is not None
+                and abs(adc_start - self._callback_last_adc_end_time)
+                > 2.0 / self.sample_rate
+            ):
+                self.callback_timestamp_discontinuity_count += 1
+            self._callback_last_adc_end_time = adc_end
+            self._callback_chunks.append((data, adc_start))
+            self._callback_available_frames += frames
+            self._callback_condition.notify_all()
 
     def _resolve_sounddevice_input(self, sounddevice_module: Any) -> int:
         devices = sounddevice_module.query_devices()
@@ -192,6 +267,9 @@ class LiveMicArray:
         }
 
     def stop_stream(self) -> None:
+        with self._callback_condition:
+            self._callback_closed = True
+            self._callback_condition.notify_all()
         native_stream = self._native_stream
         self._native_stream = None
         if native_stream is not None:
@@ -199,6 +277,7 @@ class LiveMicArray:
                 native_stream.stop()
             finally:
                 native_stream.close()
+        self._callback_enabled = False
         process = self._stream_process
         self._stream_process = None
         if process is None:
@@ -269,6 +348,18 @@ class LiveMicArray:
         seconds = (duration_ms / 1000.0) if duration_ms is not None else self.capture_seconds
         if self._native_stream is not None:
             sample_count = max(1, int(round(seconds * self.sample_rate)))
+            if self._callback_enabled:
+                data = self._read_callback_samples(sample_count)
+                frame = self._frame_from_float_data(
+                    data,
+                    sample_rate=self.sample_rate,
+                    dominant_frequency_hz=dominant_frequency_hz,
+                )
+                if self.last_device_frame_timing is not None:
+                    self.last_device_frame_timing["capture_return_stream_time_s"] = (
+                        float(self._native_stream.time)
+                    )
+                return frame
             data, overflowed = self._native_stream.read(sample_count)
             self.last_input_overflowed = bool(overflowed)
             self.input_overflow_count += int(self.last_input_overflowed)
@@ -319,6 +410,58 @@ class LiveMicArray:
             sample_rate=sr,
             dominant_frequency_hz=dominant_frequency_hz,
         )
+
+    def _read_callback_samples(self, sample_count: int) -> np.ndarray:
+        deadline = time.monotonic() + max(2.0, sample_count / self.sample_rate * 4.0)
+        pieces: list[np.ndarray] = []
+        frame_adc_onset: float | None = None
+        frame_adc_end: float | None = None
+        with self._callback_condition:
+            while self._callback_available_frames < sample_count:
+                if self._callback_closed:
+                    raise LiveMicError("callback stream closed before a frame was available")
+                remaining = deadline - time.monotonic()
+                if remaining <= 0.0:
+                    raise LiveMicError("timed out waiting for callback audio")
+                self._callback_condition.wait(timeout=remaining)
+            remaining_samples = sample_count
+            while remaining_samples > 0:
+                data, adc_start = self._callback_chunks.popleft()
+                take = min(remaining_samples, len(data))
+                if frame_adc_onset is None:
+                    frame_adc_onset = adc_start
+                pieces.append(data[:take])
+                frame_adc_end = adc_start + take / self.sample_rate
+                if take < len(data):
+                    self._callback_chunks.appendleft((data[take:], frame_adc_end))
+                self._callback_available_frames -= take
+                remaining_samples -= take
+        if frame_adc_onset is None or frame_adc_end is None:
+            raise LiveMicError("callback frame had no ADC timestamp")
+        self.last_device_frame_timing = {
+            "adc_frame_onset_stream_time_s": frame_adc_onset,
+            "adc_frame_end_stream_time_s": frame_adc_end,
+        }
+        return np.concatenate(pieces, axis=0)
+
+    def device_frame_latency_at_decision(self) -> dict[str, float] | None:
+        timing = self.last_device_frame_timing
+        stream = self._native_stream
+        if timing is None or stream is None or not self._callback_enabled:
+            return None
+        decision_time = float(stream.time)
+        return {
+            **timing,
+            "workspace_decision_stream_time_s": decision_time,
+            "adc_frame_onset_to_workspace_decision_ms": (
+                decision_time - timing["adc_frame_onset_stream_time_s"]
+            )
+            * 1000.0,
+            "adc_frame_end_to_workspace_decision_ms": (
+                decision_time - timing["adc_frame_end_stream_time_s"]
+            )
+            * 1000.0,
+        }
 
     def _read_stream_bytes(self, expected_bytes: int) -> bytes:
         process = self._stream_process

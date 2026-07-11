@@ -392,7 +392,7 @@ def listen_live(args: list[str] | None = None) -> dict[str, object]:
             if sample_rate <= 0:
                 raise ValueError("invalid sample rate")
         elif option == "--capture-backend":
-            if value not in ("auto", "native", "ffmpeg"):
+            if value not in ("auto", "native", "callback", "ffmpeg"):
                 raise ValueError("invalid capture backend")
             capture_backend = value
         elif option == "--output-device-index":
@@ -2264,7 +2264,7 @@ def main(argv: list[str] | None = None) -> int:
         "[--timestamp-ms N --dominant-frequency-hz F --channel-energies a,b,c,d --initial-prediction-hz F --mic-geometry l0,l1,l2,l3 --saliency-threshold F --output json|pretty] "
         "[--family sweep|zigzag|gap|multi_gap|delayed_recovery] [--with-scheduling] "
         "[--capture-live [--device :0] [--duration-ms N]] "
-        "[--listen-live [--duration-ms N] [--frame-ms N] [--sample-rate N] [--capture-backend auto|native|ffmpeg] [--with-stimulus] [--with-attention] [--with-scheduling] [--saliency-threshold F] [--with-motor-imitation [--real-io [--output-device-index 2] [--imitation-device-index 3] [--with-self-subtraction] [--volume-db F] [--latency-anchor PATH]]]] "
+        "[--listen-live [--duration-ms N] [--frame-ms N] [--sample-rate N] [--capture-backend auto|native|callback|ffmpeg] [--with-stimulus] [--with-attention] [--with-scheduling] [--saliency-threshold F] [--with-motor-imitation [--real-io [--output-device-index 2] [--imitation-device-index 3] [--with-self-subtraction] [--volume-db F] [--latency-anchor PATH]]]] "
         "[--eval-corpus --root DIR --label-csv FILE [--saliency-threshold F] [--frame-ms N] [--score-mode peak_rms|spatial_contrast] [--input-mode wav|recorded_npy|synthetic_fixture] [--compare-baselines] [--evaluate-prediction FEATURE] [--evaluate-online-safety FEATURE[,FEATURE]] [--positive-label LABEL[,LABEL]]] "
         "[--synthesize-vowel a|e|i|o|u --out PATH.wav [--duration-ms N] [--sample-rate N] [--f0-hz F] [--analyze]] "
         "[--evaluate-vowel-loop [--duration-ms N] [--minimum-accuracy F]] "
