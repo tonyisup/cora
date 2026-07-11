@@ -95,6 +95,10 @@ from .structured_workspace_binding import (
     run_fake_workspace_binding_protocol,
     run_workspace_binding_acquisition,
 )
+from .natural_speech_workspace_binding import (
+    build_natural_speech_protocol,
+    run_spent_natural_speech_design_gate,
+)
 from .live_speak_smoke import (
     StimulusSpec,
     capture_to_wav,
@@ -1289,6 +1293,19 @@ def structured_workspace_binding_cli(args: list[str]) -> dict[str, object]:
     )
 
 
+def natural_speech_workspace_binding_cli(args: list[str]) -> dict[str, object]:
+    """Plan or run the non-promoting spent-speech H3 design gate."""
+
+    if args == ["--evaluate-natural-speech-workspace-binding"]:
+        return build_natural_speech_protocol()
+    if len(args) == 4 and args[1] == "--spent-design" and args[2] == "--root":
+        return run_spent_natural_speech_design_gate(args[3])
+    raise ValueError(
+        "natural-speech workspace binding accepts no options or "
+        "--spent-design --root DIR"
+    )
+
+
 def synthesize_vowel_cli(args: list[str] | None = None) -> dict[str, object]:
     """Option C CLI: synthesize a vowel (motor-plan production) to a WAV file.
 
@@ -2202,6 +2219,13 @@ def main(argv: list[str] | None = None) -> int:
         except (ValueError, OSError) as exc:
             print(str(exc), file=sys.stderr)
             return 2
+    if args and args[0] == "--evaluate-natural-speech-workspace-binding":
+        try:
+            print(json.dumps(natural_speech_workspace_binding_cli(args)))
+            return 0
+        except (ValueError, OSError) as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
     if args and args[0] == "--synthesize-vowel":
         try:
             print(json.dumps(synthesize_vowel_cli(args)))
@@ -2336,6 +2360,7 @@ def main(argv: list[str] | None = None) -> int:
         "[--evaluate-real-workspace-design --root COROLLARY_M2_BASELINE_DIR] "
         "[--evaluate-recorded-vowels --root VOCALSET_SUBSET_DIR --manifest FILE] "
         "[--evaluate-structured-workspace-binding [--fake-io | --real-io --out-dir DIR --preregistration FILE --authorize-bounded-playback]] "
+        "[--evaluate-natural-speech-workspace-binding [--spent-design --root DIR]] "
         "[--simulate-self-suppression [--vowel a|e|i|o|u] [--world-vowel a|e|i|o|u] [--world-gain F] [--duration-ms N] [--sample-rate N]] "
         "[--learn-self-forward-model [--vowel a|e|i|o|u] [--observed-delay-ms F] [--observed-attenuation F] [--observed-echo-decay F] [--world-vowel a|e|i|o|u] [--world-gain F]] "
         "[--sweep-self-forward-model [--vowel a|e|i|o|u] [--delay-errors-ms csv] [--attenuation-scales csv] [--echo-decay-scales csv] [--world-vowel a|e|i|o|u] [--world-gain F]] "
