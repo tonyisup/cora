@@ -505,6 +505,11 @@ Current structured Cora protocol:
   self/world tracks stay separate, overlap sources start concurrently, one
   source owns the alignment chirp, and explicitly aligned two-channel captures
   feed the same frozen metric;
+- a bounded acquisition runner now retains separate self/world/capture WAVs and
+  hashes for all 15 trials, verifies stream position and chirp alignment, and
+  fails closed on a source-start error. Its injected-I/O path is capped at 25
+  seconds of playback and 45 seconds of capture; real-hardware claims are still
+  rejected before any callback runs;
 - no hardware route is exposed. The complete device mapping, physical geometry,
   and levels must be frozen in a separate preregistration before the CLI can
   play this task.

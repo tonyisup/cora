@@ -453,7 +453,12 @@ developmental language learning.
 - Generic live plumbing now keeps self/world PCM separate, starts overlap tracks
   through a concurrent source abstraction, assigns one chirp reference source,
   and evaluates explicitly aligned mono or two-channel captures. Injected-I/O
-  tests pass. The external-world route is now user-frozen at output device 2
+  tests pass. A bounded acquisition runner now exercises all 15 trials through
+  injected source-specific callbacks, retains separate self/world/capture WAVs
+  and hashes, verifies capture stream position and chirp alignment, and aborts
+  on source-start failure. It caps playback at 25 seconds and capture at 45
+  seconds; real-hardware claims remain structurally rejected. The external-world
+  route is user-frozen at output device 2
   (`External Headphones`), 180 degrees, and 50 cm until explicitly changed. The
   Mac mini self-source geometry and level remain unfrozen, so the complete H3
   setup is not preregistered and no live H3 audio ran.

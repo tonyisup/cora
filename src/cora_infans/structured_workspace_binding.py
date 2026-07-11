@@ -1,16 +1,26 @@
-"""Structured H3 self/world binding protocol with no live I/O wiring."""
+"""Structured H3 self/world binding protocol and device-agnostic acquisition."""
 
 from __future__ import annotations
 
+import hashlib
 import math
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict, dataclass
+from pathlib import Path
 from typing import Callable
 
 import numpy as np
 
-from .io.motor_plan import synthesize_chirp, synthesize_tone
+from .io.motor_plan import synthesize_chirp, synthesize_tone, write_wav
+from .io.wav_frames import read_pcm_wav
+from .live_speak_smoke import _capture_during_playback, estimate_playback_latency_ms
 from .real_workspace_binding import BoundedEfferenceWorkspace
+
+
+MAX_WORKSPACE_TRIAL_PLAYBACK_SECONDS = 2.0
+MAX_WORKSPACE_TOTAL_PLAYBACK_SECONDS = 25.0
+MAX_WORKSPACE_CAPTURE_TAIL_MS = 1000
+MAX_WORKSPACE_TOTAL_CAPTURE_SECONDS = 45.0
 
 
 @dataclass(frozen=True)
@@ -120,6 +130,31 @@ def build_workspace_binding_protocol(
         ),
         "live_io_wired": False,
     }
+
+
+def _validate_acquisition_bounds(config: WorkspaceBindingConfig) -> None:
+    if (
+        config.alignment_chirp_ms <= 0
+        or config.alignment_silence_ms < 0
+        or config.stimulus_ms <= 0
+        or config.tail_silence_ms < 0
+    ):
+        raise ValueError("workspace segment durations must be positive/non-negative")
+    protocol = build_workspace_binding_protocol(config)
+    seconds_per_trial = float(protocol["seconds_per_trial"])
+    total_seconds = float(protocol["maximum_total_playback_seconds"])
+    if seconds_per_trial <= 0 or seconds_per_trial > MAX_WORKSPACE_TRIAL_PLAYBACK_SECONDS:
+        raise ValueError("workspace trial playback exceeds the frozen 2 second bound")
+    if total_seconds > MAX_WORKSPACE_TOTAL_PLAYBACK_SECONDS:
+        raise ValueError("workspace protocol playback exceeds the frozen 25 second bound")
+    if config.sample_rate <= 0:
+        raise ValueError("workspace sample rate must be positive")
+    if not (0.0 < config.self_gain <= 0.25 and 0.0 < config.world_gain <= 0.25):
+        raise ValueError("workspace source gains must be in (0, 0.25]")
+
+
+def _sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
 def render_workspace_binding_tracks(
@@ -383,6 +418,173 @@ def evaluate_workspace_binding_captures(
         **build_workspace_binding_protocol(config),
         **_score_workspace_binding_evidence(trials, evidence),
         "evidence_class": "provided_chirp_aligned_capture_arrays",
+        "promotion_allowed": False,
+    }
+
+
+def run_workspace_binding_acquisition(
+    *,
+    out_dir: str | Path,
+    self_playback: Callable[[str], dict[str, object]],
+    world_playback: Callable[[str], dict[str, object]],
+    capture_fn: Callable[..., dict[str, object]],
+    config: WorkspaceBindingConfig | None = None,
+    capture_preroll_ms: int = 100,
+    capture_tail_ms: int = 500,
+    real_hardware_claim: bool = False,
+) -> dict[str, object]:
+    """Acquire every trial through injected, source-specific I/O callbacks.
+
+    This runner deliberately has no device discovery, CLI route, or concrete
+    hardware callback. Until the complete physical preregistration is frozen,
+    ``real_hardware_claim`` is rejected. The acquisition and artifact path can
+    therefore be verified without making or accidentally executing a hardware
+    claim.
+    """
+
+    config = config or WorkspaceBindingConfig()
+    _validate_acquisition_bounds(config)
+    if not (0 <= capture_tail_ms <= MAX_WORKSPACE_CAPTURE_TAIL_MS):
+        raise ValueError("workspace capture tail must be between 0 and 1000 ms")
+    if capture_preroll_ms < 0 or capture_preroll_ms > 1000:
+        raise ValueError("workspace capture preroll must be between 0 and 1000 ms")
+    if real_hardware_claim:
+        raise ValueError(
+            "real H3 hardware execution remains disabled until the complete "
+            "device, geometry, and level preregistration is frozen"
+        )
+
+    protocol = build_workspace_binding_protocol(config)
+    bounded_total_capture_seconds = float(protocol["maximum_total_playback_seconds"]) + (
+        capture_preroll_ms + capture_tail_ms
+    ) / 1000.0 * int(protocol["trial_count"])
+    if bounded_total_capture_seconds > MAX_WORKSPACE_TOTAL_CAPTURE_SECONDS:
+        raise ValueError("workspace protocol capture exceeds the frozen 45 second bound")
+
+    output = Path(out_dir)
+    output.mkdir(parents=True, exist_ok=True)
+    captures: dict[str, np.ndarray] = {}
+    alignments: dict[str, int] = {}
+    artifacts: list[dict[str, object]] = []
+    total_playback_seconds = 0.0
+
+    for trial in build_workspace_binding_trials():
+        rendered = render_workspace_binding_tracks(trial, config)
+        self_path = output / f"{trial.trial_id}_self.wav"
+        world_path = output / f"{trial.trial_id}_world.wav"
+        capture_path = output / f"{trial.trial_id}_capture.wav"
+        write_wav(str(self_path), rendered.self_pcm, config.sample_rate)
+        write_wav(str(world_path), rendered.world_pcm, config.sample_rate)
+        capture_duration_ms = int(
+            math.ceil(len(rendered.reference_pcm) * 1000.0 / config.sample_rate)
+        ) + capture_preroll_ms + capture_tail_ms
+        playback_started = False
+
+        def _play_sources(_reference_path: str) -> dict[str, object]:
+            nonlocal playback_started
+            playback_started = True
+            report = play_workspace_tracks_concurrently(
+                self_path=(str(self_path) if trial.self_frequency_hz is not None else None),
+                world_path=(str(world_path) if trial.world_frequency_hz is not None else None),
+                self_playback=self_playback,
+                world_playback=world_playback,
+            )
+            if not report["started"]:
+                raise RuntimeError("one or more workspace sources did not start")
+            return report
+
+        try:
+            io_report = _capture_during_playback(
+                capture_path=str(capture_path),
+                playback_path=(
+                    str(self_path) if rendered.chirp_source == "self" else str(world_path)
+                ),
+                sample_rate=config.sample_rate,
+                capture_duration_ms=capture_duration_ms,
+                capture_fn=capture_fn,
+                playback_fn=_play_sources,
+                capture_preroll_ms=capture_preroll_ms,
+            )
+            captured_samples, captured_rate = read_pcm_wav(capture_path)
+            if captured_rate != config.sample_rate:
+                raise ValueError("workspace capture sample rate mismatch")
+            chirp_samples = int(config.alignment_chirp_ms * config.sample_rate / 1000)
+            detected_onset_ms = estimate_playback_latency_ms(
+                efference_pcm=rendered.reference_pcm[:chirp_samples],
+                captured_pcm=np.mean(captured_samples, axis=1),
+                sample_rate=config.sample_rate,
+                expected_onset_ms=float(io_report["playback_offset_from_capture_ms"]),
+                causal_window_ms=500.0,
+                min_peak_correlation=0.08,
+            )
+            if detected_onset_ms is None:
+                raise ValueError("workspace alignment chirp was not recovered")
+            alignment_samples = int(
+                round(detected_onset_ms * config.sample_rate / 1000.0)
+            )
+        except Exception as exc:  # noqa: BLE001
+            return {
+                **build_workspace_binding_protocol(config),
+                "verdict": "acquisition_failed",
+                "real_hardware": False,
+                "live_playback": False,
+                "playback_callback_started": playback_started,
+                "failed_trial_id": trial.trial_id,
+                "completed_trial_count": len(artifacts),
+                "bounded_total_capture_seconds": bounded_total_capture_seconds,
+                "error": f"{type(exc).__name__}: {exc}",
+                "artifacts": artifacts,
+                "promotion_allowed": False,
+            }
+
+        captures[trial.trial_id] = captured_samples
+        alignments[trial.trial_id] = alignment_samples
+        total_playback_seconds += len(rendered.reference_pcm) / config.sample_rate
+        artifacts.append(
+            {
+                "trial_id": trial.trial_id,
+                "condition": trial.condition,
+                "chirp_source": rendered.chirp_source,
+                "self_wav": str(self_path.resolve()),
+                "self_sha256": _sha256(self_path),
+                "world_wav": str(world_path.resolve()),
+                "world_sha256": _sha256(world_path),
+                "captured_wav": str(capture_path.resolve()),
+                "captured_sha256": _sha256(capture_path),
+                "alignment_samples": alignment_samples,
+                "alignment_onset_ms": detected_onset_ms,
+                "io_timing": {
+                    key: io_report[key]
+                    for key in (
+                        "playback_offset_samples",
+                        "playback_offset_from_capture_ms",
+                        "overlap_verified",
+                        "stream_position_verified",
+                        "timestamp_source",
+                    )
+                },
+                "playback": io_report["playback"],
+                "capture": io_report["capture"],
+            }
+        )
+
+    evaluation = evaluate_workspace_binding_captures(
+        captures=captures,
+        alignment_samples=alignments,
+        config=config,
+    )
+    return {
+        **evaluation,
+        "verdict": "injected_acquisition_complete",
+        "capture_acceptance_verdict": evaluation["verdict"],
+        "real_hardware": False,
+        "live_playback": False,
+        "playback_callback_started": True,
+        "completed_trial_count": len(artifacts),
+        "measured_total_playback_seconds": round(total_playback_seconds, 6),
+        "bounded_total_capture_seconds": round(bounded_total_capture_seconds, 6),
+        "artifacts": artifacts,
+        "error": None,
         "promotion_allowed": False,
     }
 

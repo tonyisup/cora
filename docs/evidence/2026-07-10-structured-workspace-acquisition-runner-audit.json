@@ -1,0 +1,63 @@
+{
+  "experiment": "structured_workspace_binding_acquisition_runner_audit",
+  "date": "2026-07-10",
+  "status": "injected_acquisition_verified_real_hardware_locked",
+  "implementation_sha256": "155972d1ee2f69533b5d2d893927e1f5dbad81dd03358bf1ca003531361ccebd",
+  "tests_sha256": "767f0fba380e0a93c7343cf16106d4c5da61a14cbbe813ef0d306e3da458d585",
+  "protocol_sha256": "5b4be8f2ecc97a23e20f576ffd0110f9551762abad0422877040de7cc55df3dd",
+  "fake_result_sha256": "10350b3deba26237f41e0cf1370ff98b49bac50e98e65060862ec807d24eb268",
+  "standing_world_geometry_sha256": "ba5d882c544c72ada6e43442df4bc41a71b1ae53de5ef0aa68bf8ad70218cd83",
+  "verification": {
+    "targeted_tests": "9 passed",
+    "full_suite": "320 passed, 3 skipped",
+    "json_validation": "passed",
+    "diff_check": "passed"
+  },
+  "injected_acquisition": {
+    "trial_count": 15,
+    "retained_wav_count": 45,
+    "source_playback_invocation_count": 18,
+    "measured_total_playback_seconds": 19.5,
+    "bounded_total_capture_seconds": 28.5,
+    "selected_capacity": 3,
+    "scheduled_f1": 1.0,
+    "flat_f1": 0.8,
+    "fixed_window_world_recall": 0.5,
+    "verdict": "injected_acquisition_complete",
+    "capture_acceptance_verdict": "capture_acceptance_passed",
+    "promotion_allowed": false
+  },
+  "verified_contracts": {
+    "all_15_trials_use_the_same_capture_and_evaluation_path": true,
+    "self_world_and_capture_wavs_are_retained_per_trial": true,
+    "all_retained_wavs_are_sha256_hashed": true,
+    "only_present_sources_are_played": true,
+    "overlap_sources_use_the_concurrent_two_source_abstraction": true,
+    "capture_stream_position_is_verified_before_playback": true,
+    "alignment_chirp_is_recovered_for_every_trial": true,
+    "capture_acceptance_uses_the_preexisting_frozen_metric": true,
+    "source_start_failure_aborts_without_completed_trials": true,
+    "per_trial_playback_is_capped_at_2_seconds": true,
+    "total_playback_is_capped_at_25_seconds": true,
+    "total_capture_is_capped_at_45_seconds": true,
+    "real_hardware_claim_is_rejected_before_callbacks_run": true
+  },
+  "standing_hardware_state": {
+    "input": "XVF3800 channel :0",
+    "world_output": "device 2 External Headphones",
+    "world_angle_degrees": 180,
+    "world_distance_cm": 50,
+    "world_level": "hardware_volume_max",
+    "self_output": "device 3 Mac mini Speakers",
+    "self_angle_degrees": null,
+    "self_distance_cm": null,
+    "self_output_level": null
+  },
+  "remaining_before_live_execution": [
+    "confirm and freeze the Mac mini self-source angle and distance",
+    "confirm and freeze the Mac mini output level",
+    "commit the complete real-run preregistration with final implementation hashes",
+    "enable the concrete device callbacks and CLI only after the preregistration exists"
+  ],
+  "claim_boundary": "This is an injected-I/O orchestration and artifact-retention audit. It contains no fresh microphone capture, does not promote H3, and deliberately leaves real hardware execution unavailable."
+}
