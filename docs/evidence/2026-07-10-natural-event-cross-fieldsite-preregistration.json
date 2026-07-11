@@ -1,0 +1,66 @@
+{
+  "experiment": "natural_event_prediction_beijing_to_wellington_transfer",
+  "date": "2026-07-10",
+  "status": "fully_preregistered_before_fresh_audio_fetch",
+  "design_audit_sha256": "2b3016b4710161a4dbfe5942c355e9878bacf0a743cdd71fdcbafb096258165d",
+  "implementation_sha256": "3265aa790f9d3677ca87d89816a960230d5650a5c54d286352db5ad38889ee29",
+  "cli_sha256": "204ac7afea766a1333204d2dc808e841474492904556fb92beb9a6279080084b",
+  "dataset": {
+    "name": "Human vocalization corpus: recordings of infant-directed and adult-directed speech and song in 21 societies",
+    "doi": "10.5281/zenodo.5525161",
+    "official_record": "https://zenodo.org/records/5525161",
+    "license": "CC BY-NC-SA 4.0",
+    "archive": "IDS-corpus-edited.zip",
+    "use_boundary": "personal non-commercial research"
+  },
+  "development": {
+    "fieldsite": "Beijing",
+    "participants": ["BEJ06", "BEJ07", "BEJ11", "BEJ21"],
+    "conditions": ["B", "D"],
+    "clip_count": 8,
+    "all_audio_previously_spent_as_development": true
+  },
+  "held_out": {
+    "fieldsite": "Wellington",
+    "participant_selection_rule": "four numerically lowest participant IDs with both B and D files, selected from ZIP metadata before audio fetch",
+    "participants": ["WEL01", "WEL02", "WEL03", "WEL04"],
+    "conditions": ["B", "D"],
+    "clip_count": 8,
+    "audio_fetched_before_freeze": false,
+    "participant_overlap_count": 0
+  },
+  "observation_target": {
+    "frame_ms": 50,
+    "calibration_ms": 2000,
+    "quiet_threshold": "clip-local first-two-second log-RMS quantile 0.40",
+    "novelty_threshold": "clip-local first-two-second consecutive spectral-distance quantile 0.75",
+    "states": {
+      "0": "quiet",
+      "1": "active onset or recovery after quiet",
+      "2": "stable active",
+      "3": "spectral change"
+    },
+    "state_definition_uses_only_current_and_past_frames": true,
+    "ids_ads_labels_consumed_by_learner": false,
+    "ids_ads_labels_consumed_by_scoring": false
+  },
+  "learner": {
+    "model": "four-by-four smoothed local transition counts",
+    "bounded_state_scalars": 16,
+    "top_down_next_event_prediction_consumed": true,
+    "baselines": ["persistence", "development unigram", "causal moving state"]
+  },
+  "frozen_acceptance_rule": {
+    "required_held_out_clip_count": 8,
+    "minimum_clip_wins": 6,
+    "minimum_mean_accuracy_improvement": 0.05,
+    "minimum_worst_clip_improvement": -0.05,
+    "minimum_each_clip_state_occupancy": 3,
+    "maximum_bounded_state_scalars": 16,
+    "top_down_prediction_must_be_consumed": true,
+    "participant_overlap_count": 0,
+    "every_held_out_wav_must_match_a_recorded_sha256": true
+  },
+  "failure_policy": "Any failed gate is retained. No frame size, calibration duration, quantile, state definition, participant list, threshold, or baseline may be changed after held-out audio fetch.",
+  "claim_boundary": "A pass supports cross-fieldsite prediction of causal unlabeled acoustic event dynamics in paired natural speech streams. It does not identify speech content, distinguish IDS from ADS, establish semantic prediction, or by itself complete H2 across arbitrary languages and recording conditions."
+}

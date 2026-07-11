@@ -286,6 +286,22 @@ research contract and implements the first vertical evidence path.
   median spectrum, `100/200/400 ms` frames, and `1/2/4`-frame horizons all
   failed. The best won `2/8` clips, mean improvement was `0.0036`, and worst-
   clip improvement was `-0.0989`. No fresh natural participant was consumed.
+- Reframed the observation target as causal acoustic events—quiet, onset or
+  recovery, stable active, and spectral change—rather than another calibrated
+  fixed-frame codebook. A spent-only Beijing grid selected `50 ms` frames,
+  quiet quantile `0.40`, and novelty quantile `0.75`, winning `8/8` participant-
+  held-out clips with mean improvement `0.0952`.
+- Froze that design, implementation hashes, Wellington participants, audio-hash
+  requirement, and pass/fail thresholds before retrieving held-out audio. The
+  official archive's mixed ZIP64 offsets were handled by exact HTTP byte ranges;
+  all eight WAVs verified against uncompressed size, CRC32, and SHA-256.
+- The untouched Beijing-to-Wellington transfer passed every gate: `8/8` clip
+  wins, mean improvement `0.0751`, worst improvement `0.0107`, minimum state
+  occupancy `3`, zero participant overlap, top-down predictions consumed, and
+  bounded state of 16 scalars. B/D labels entered neither learning nor scoring.
+- This is positive cross-fieldsite natural event-dynamics evidence. It does not
+  establish semantic/content prediction, IDS/ADS recognition, arbitrary-
+  language transfer, or repair the separate controlled-dropout collapse.
 
 ### Prior-art real-capture replay
 
@@ -420,9 +436,11 @@ These numbers are a microbenchmark, not end-to-end auditory latency.
    mechanism passes clean, F0-shift, and noise conditions, but dropout collapses
    one vowel state despite strong prediction. Any dropout-aware revision must
    be designed on development/synthetic data and confirmed on fresh conditions;
-   recorded-speaker and natural-stream transfer remain separate later gates.
-   The first label-blind natural-stream codebook audit also failed before fresh
-   data, so another fixed-frame/fixed-horizon tuning pass is not justified.
+   recorded-speaker transfer remains a separate later gate. Natural event-
+   dynamics transfer now passes Beijing-to-Wellington, while the earlier fixed-
+   frame codebook remains retired; the next H2 work should be the required
+   hierarchy/workspace/saliency ablations and a second independent natural
+   context, not threshold retuning on Wellington.
 4. Add recorded-vowel speakers not used to tune LPC selection and run a separate
    confusion matrix.
 5. Instrument the live capture path for microphone-to-event latency and dropped

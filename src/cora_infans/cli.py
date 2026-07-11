@@ -77,6 +77,11 @@ from .structured_prediction import (
     run_structured_prediction_protocol,
 )
 from .natural_prediction_audit import audit_natural_prediction_grid
+from .natural_event_prediction import (
+    NaturalEventConfig,
+    audit_natural_event_grid,
+    evaluate_natural_event_cross_fieldsite,
+)
 from .live_speak_smoke import (
     StimulusSpec,
     capture_to_wav,
@@ -1066,6 +1071,44 @@ def natural_prediction_design_cli(args: list[str]) -> dict[str, object]:
     return audit_natural_prediction_grid(root=root, participants=participants)
 
 
+def natural_event_cli(args: list[str]) -> dict[str, object]:
+    """Run the fixed event design audit or frozen cross-fieldsite transfer."""
+
+    values: dict[str, str] = {}
+    i = 1
+    while i < len(args):
+        option = args[i]
+        if i + 1 >= len(args):
+            raise ValueError(f"missing value for {option}")
+        values[option] = args[i + 1]
+        i += 2
+    command = args[0]
+    if command == "--evaluate-natural-event-design":
+        if {"--root", "--participants"} - values.keys():
+            raise ValueError("--root and --participants are required")
+        return audit_natural_event_grid(
+            root=values["--root"],
+            participants=tuple(values["--participants"].split(",")),
+        )
+    required = {
+        "--development-root",
+        "--development-participants",
+        "--held-out-root",
+        "--held-out-participants",
+    }
+    if required - values.keys():
+        raise ValueError("development and held-out roots/participants are required")
+    return evaluate_natural_event_cross_fieldsite(
+        development_root=values["--development-root"],
+        development_participants=tuple(
+            values["--development-participants"].split(",")
+        ),
+        held_out_root=values["--held-out-root"],
+        held_out_participants=tuple(values["--held-out-participants"].split(",")),
+        config=NaturalEventConfig(),
+    )
+
+
 def synthesize_vowel_cli(args: list[str] | None = None) -> dict[str, object]:
     """Option C CLI: synthesize a vowel (motor-plan production) to a WAV file.
 
@@ -1924,6 +1967,16 @@ def main(argv: list[str] | None = None) -> int:
         except (ValueError, OSError) as exc:
             print(str(exc), file=sys.stderr)
             return 2
+    if args and args[0] in {
+        "--evaluate-natural-event-design",
+        "--evaluate-natural-event-transfer",
+    }:
+        try:
+            print(json.dumps(natural_event_cli(args)))
+            return 0
+        except (ValueError, OSError) as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
     if args and args[0] == "--synthesize-vowel":
         try:
             print(json.dumps(synthesize_vowel_cli(args)))
@@ -2044,6 +2097,8 @@ def main(argv: list[str] | None = None) -> int:
         "[--eval-register-pipeline --model MODEL.json --vocal-root DIR --vocal-label-csv FILE --environmental-root DIR --environmental-label-csv FILE] "
         "[--evaluate-structured-prediction --out-dir DIR [--variant original|calibrated_v2|robustness_v3|dropout_v4] [--fake-io | --real-io --authorize-bounded-playback --input-device :0 --output-device-index 2 --speaker-distance-cm N --speaker-orientation TEXT --quiet-room-confirmed]] "
         "[--evaluate-natural-prediction-design --root DIR --participants ID,ID,ID] "
+        "[--evaluate-natural-event-design --root DIR --participants ID,ID,ID] "
+        "[--evaluate-natural-event-transfer --development-root DIR --development-participants ID,ID --held-out-root DIR --held-out-participants ID,ID] "
         "[--simulate-self-suppression [--vowel a|e|i|o|u] [--world-vowel a|e|i|o|u] [--world-gain F] [--duration-ms N] [--sample-rate N]] "
         "[--learn-self-forward-model [--vowel a|e|i|o|u] [--observed-delay-ms F] [--observed-attenuation F] [--observed-echo-decay F] [--world-vowel a|e|i|o|u] [--world-gain F]] "
         "[--sweep-self-forward-model [--vowel a|e|i|o|u] [--delay-errors-ms csv] [--attenuation-scales csv] [--echo-decay-scales csv] [--world-vowel a|e|i|o|u] [--world-gain F]] "

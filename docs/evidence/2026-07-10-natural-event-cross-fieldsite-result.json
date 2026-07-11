@@ -1,0 +1,361 @@
+{
+  "experiment": "natural_event_prediction_beijing_to_wellington_transfer",
+  "date": "2026-07-10",
+  "evidence_class": "fresh_cross_fieldsite_external_corpus_audio",
+  "preregistration": "2026-07-10-natural-event-cross-fieldsite-preregistration.json",
+  "frozen_hash_verification": {
+    "design_audit_sha256": "2b3016b4710161a4dbfe5942c355e9878bacf0a743cdd71fdcbafb096258165d",
+    "implementation_sha256": "3265aa790f9d3677ca87d89816a960230d5650a5c54d286352db5ad38889ee29",
+    "cli_sha256": "204ac7afea766a1333204d2dc808e841474492904556fb92beb9a6279080084b",
+    "verified_immediately_before_evaluation": true
+  },
+  "dataset": {
+    "doi": "10.5281/zenodo.5525161",
+    "official_record": "https://zenodo.org/records/5525161",
+    "archive": "IDS-corpus-edited.zip",
+    "license": "CC BY-NC-SA 4.0",
+    "repository_contains_audio": false
+  },
+  "held_out_audio_manifest": [
+    {
+      "basename": "WEL01B.wav",
+      "raw_header_offset": 5476034662,
+      "actual_header_offset": 1181067366,
+      "compressed_size": 1951529,
+      "file_size": 7194154,
+      "crc32": "9ec1e811",
+      "sha256": "18f068c2ac96f9fa93a3887ac3a237013ef31fe4b83c2a38c3e69475e6d0a9e0",
+      "archive_size_and_crc_verified": true
+    },
+    {
+      "basename": "WEL01D.wav",
+      "raw_header_offset": 4612428609,
+      "actual_header_offset": 317461313,
+      "compressed_size": 3974330,
+      "file_size": 14671370,
+      "crc32": "194a9a68",
+      "sha256": "a3eb8803b4136b125095894a614aa14876262a36ab5e2d630213cd355943d81c",
+      "archive_size_and_crc_verified": true
+    },
+    {
+      "basename": "WEL02B.wav",
+      "raw_header_offset": 4918666667,
+      "actual_header_offset": 4918666667,
+      "compressed_size": 1609881,
+      "file_size": 5881210,
+      "crc32": "e5caa594",
+      "sha256": "d799c39a0a229474849dddd2ebf370a7ea34e6c694924ddf04bf8b3629aaa273",
+      "archive_size_and_crc_verified": true
+    },
+    {
+      "basename": "WEL02D.wav",
+      "raw_header_offset": 5637435653,
+      "actual_header_offset": 5637435653,
+      "compressed_size": 1381792,
+      "file_size": 4685658,
+      "crc32": "b4a5f948",
+      "sha256": "f39491b1c7274fe42434aea1445a5108f7d0912eb3ba765d628d76653ecec9f6",
+      "archive_size_and_crc_verified": true
+    },
+    {
+      "basename": "WEL03B.wav",
+      "raw_header_offset": 5165175143,
+      "actual_header_offset": 5165175143,
+      "compressed_size": 691971,
+      "file_size": 2661066,
+      "crc32": "503027fb",
+      "sha256": "628fb90c7444fd4cb2047a628e67490b502efa2b33fa820a4fccbeab7813e65e",
+      "archive_size_and_crc_verified": true
+    },
+    {
+      "basename": "WEL03D.wav",
+      "raw_header_offset": 4457901940,
+      "actual_header_offset": 4457901940,
+      "compressed_size": 2856570,
+      "file_size": 10595354,
+      "crc32": "6c3b0341",
+      "sha256": "97f7feb0dfff9c68382180bca88a0190bdd1d37fdeb6f6e30c9daeffc07aaa78",
+      "archive_size_and_crc_verified": true
+    },
+    {
+      "basename": "WEL04B.wav",
+      "raw_header_offset": 7593522209,
+      "actual_header_offset": 3298554913,
+      "compressed_size": 2324575,
+      "file_size": 8958682,
+      "crc32": "2dec24a2",
+      "sha256": "b3c329b9ef75fe363094e0cf2256e06d4c78095ba60f73e5aac8e5fd299e405f",
+      "archive_size_and_crc_verified": true
+    },
+    {
+      "basename": "WEL04D.wav",
+      "raw_header_offset": 8225604679,
+      "actual_header_offset": 3930637383,
+      "compressed_size": 3412564,
+      "file_size": 12002634,
+      "crc32": "f42021f7",
+      "sha256": "5b9c3fd2cc112cbe5a94d9348b86e472a0ec50b07f0aabf320565d73047834db",
+      "archive_size_and_crc_verified": true
+    }
+  ],
+  "report": {
+    "mode": "natural_event_prediction_cross_fieldsite",
+    "config": {
+      "frame_ms": 50,
+      "calibration_ms": 2000,
+      "quiet_quantile": 0.4,
+      "novelty_quantile": 0.75
+    },
+    "labels_consumed_by_learner": false,
+    "development_participants": [
+      "BEJ06",
+      "BEJ07",
+      "BEJ11",
+      "BEJ21"
+    ],
+    "held_out_participants": [
+      "WEL01",
+      "WEL02",
+      "WEL03",
+      "WEL04"
+    ],
+    "participant_overlap_count": 0,
+    "clip_count": 8,
+    "wins": 8,
+    "mean_accuracy_improvement": 0.07513241683797751,
+    "worst_clip_improvement": 0.010695187165775444,
+    "minimum_clip_state_occupancy": 3,
+    "bounded_state_scalars": 16,
+    "acceptance": {
+      "minimum_six_of_eight_clip_wins": true,
+      "minimum_mean_accuracy_improvement": true,
+      "maximum_worst_clip_regret": true,
+      "minimum_each_clip_state_occupancy": true,
+      "top_down_prediction_consumed": true,
+      "bounded_state_passed": true
+    },
+    "all_acceptance_gates_passed": true,
+    "clips": [
+      {
+        "clip_id": "WEL01B",
+        "participant": "WEL01",
+        "condition_suffix": "B",
+        "prediction_count": 162,
+        "state_occupancy": 3,
+        "state_counts": [
+          113,
+          9,
+          41,
+          0
+        ],
+        "thresholds": {
+          "quiet_log_rms_threshold": -3.376069878207022,
+          "novelty_distance_threshold": 2.127622637463863
+        },
+        "transition_accuracy": 0.8827160493827161,
+        "baselines": {
+          "persistence": 0.8395061728395061,
+          "development_unigram": 0.24691358024691357,
+          "causal_moving_state": 0.8395061728395061
+        },
+        "best_baseline_accuracy": 0.8395061728395061,
+        "accuracy_improvement": 0.04320987654320996,
+        "prediction_residual_count": 19
+      },
+      {
+        "clip_id": "WEL01D",
+        "participant": "WEL01",
+        "condition_suffix": "D",
+        "prediction_count": 374,
+        "state_occupancy": 4,
+        "state_counts": [
+          321,
+          16,
+          21,
+          17
+        ],
+        "thresholds": {
+          "quiet_log_rms_threshold": -3.2885041274373994,
+          "novelty_distance_threshold": 1.5859489667858186
+        },
+        "transition_accuracy": 0.8689839572192514,
+        "baselines": {
+          "persistence": 0.8582887700534759,
+          "development_unigram": 0.05614973262032086,
+          "causal_moving_state": 0.8582887700534759
+        },
+        "best_baseline_accuracy": 0.8582887700534759,
+        "accuracy_improvement": 0.010695187165775444,
+        "prediction_residual_count": 49
+      },
+      {
+        "clip_id": "WEL02B",
+        "participant": "WEL02",
+        "condition_suffix": "B",
+        "prediction_count": 125,
+        "state_occupancy": 4,
+        "state_counts": [
+          104,
+          12,
+          9,
+          1
+        ],
+        "thresholds": {
+          "quiet_log_rms_threshold": -3.492719435023272,
+          "novelty_distance_threshold": 3.393619745057962
+        },
+        "transition_accuracy": 0.8,
+        "baselines": {
+          "persistence": 0.776,
+          "development_unigram": 0.064,
+          "causal_moving_state": 0.776
+        },
+        "best_baseline_accuracy": 0.776,
+        "accuracy_improvement": 0.02400000000000002,
+        "prediction_residual_count": 25
+      },
+      {
+        "clip_id": "WEL02D",
+        "participant": "WEL02",
+        "condition_suffix": "D",
+        "prediction_count": 91,
+        "state_occupancy": 4,
+        "state_counts": [
+          48,
+          14,
+          22,
+          8
+        ],
+        "thresholds": {
+          "quiet_log_rms_threshold": -3.2512642877660847,
+          "novelty_distance_threshold": 3.6130005407154826
+        },
+        "transition_accuracy": 0.6043956043956044,
+        "baselines": {
+          "persistence": 0.4945054945054945,
+          "development_unigram": 0.24175824175824176,
+          "causal_moving_state": 0.4945054945054945
+        },
+        "best_baseline_accuracy": 0.4945054945054945,
+        "accuracy_improvement": 0.10989010989010983,
+        "prediction_residual_count": 36
+      },
+      {
+        "clip_id": "WEL03B",
+        "participant": "WEL03",
+        "condition_suffix": "B",
+        "prediction_count": 34,
+        "state_occupancy": 4,
+        "state_counts": [
+          14,
+          6,
+          12,
+          3
+        ],
+        "thresholds": {
+          "quiet_log_rms_threshold": -4.78150144238359,
+          "novelty_distance_threshold": 3.020915998495436
+        },
+        "transition_accuracy": 0.5588235294117647,
+        "baselines": {
+          "persistence": 0.4117647058823529,
+          "development_unigram": 0.35294117647058826,
+          "causal_moving_state": 0.4117647058823529
+        },
+        "best_baseline_accuracy": 0.4117647058823529,
+        "accuracy_improvement": 0.1470588235294118,
+        "prediction_residual_count": 15
+      },
+      {
+        "clip_id": "WEL03D",
+        "participant": "WEL03",
+        "condition_suffix": "D",
+        "prediction_count": 259,
+        "state_occupancy": 4,
+        "state_counts": [
+          243,
+          10,
+          6,
+          1
+        ],
+        "thresholds": {
+          "quiet_log_rms_threshold": -3.3971516375970685,
+          "novelty_distance_threshold": 2.5288509573298334
+        },
+        "transition_accuracy": 0.918918918918919,
+        "baselines": {
+          "persistence": 0.9034749034749034,
+          "development_unigram": 0.023166023166023165,
+          "causal_moving_state": 0.9073359073359073
+        },
+        "best_baseline_accuracy": 0.9073359073359073,
+        "accuracy_improvement": 0.011583011583011671,
+        "prediction_residual_count": 21
+      },
+      {
+        "clip_id": "WEL04B",
+        "participant": "WEL04",
+        "condition_suffix": "B",
+        "prediction_count": 212,
+        "state_occupancy": 4,
+        "state_counts": [
+          85,
+          27,
+          88,
+          13
+        ],
+        "thresholds": {
+          "quiet_log_rms_threshold": -4.399028385415017,
+          "novelty_distance_threshold": 2.4764673577117566
+        },
+        "transition_accuracy": 0.6933962264150944,
+        "baselines": {
+          "persistence": 0.5424528301886793,
+          "development_unigram": 0.41509433962264153,
+          "causal_moving_state": 0.5424528301886793
+        },
+        "best_baseline_accuracy": 0.5424528301886793,
+        "accuracy_improvement": 0.15094339622641506,
+        "prediction_residual_count": 65
+      },
+      {
+        "clip_id": "WEL04D",
+        "participant": "WEL04",
+        "condition_suffix": "D",
+        "prediction_count": 299,
+        "state_occupancy": 4,
+        "state_counts": [
+          97,
+          35,
+          164,
+          4
+        ],
+        "thresholds": {
+          "quiet_log_rms_threshold": -3.6268346315324305,
+          "novelty_distance_threshold": 2.826814780924748
+        },
+        "transition_accuracy": 0.7525083612040134,
+        "baselines": {
+          "persistence": 0.6488294314381271,
+          "development_unigram": 0.5451505016722408,
+          "causal_moving_state": 0.6488294314381271
+        },
+        "best_baseline_accuracy": 0.6488294314381271,
+        "accuracy_improvement": 0.10367892976588633,
+        "prediction_residual_count": 74
+      }
+    ],
+    "verdict": "natural_event_transfer_passed"
+  },
+  "gate_interpretation": {
+    "frozen_gate_passed": true,
+    "observed_clip_wins": "8/8",
+    "observed_mean_accuracy_improvement": 0.07513241683797751,
+    "observed_worst_clip_improvement": 0.010695187165775444,
+    "observed_minimum_clip_state_occupancy": 3,
+    "participant_overlap_count": 0,
+    "labels_consumed_by_learner_or_scoring": false
+  },
+  "decision": "Retain the causal natural-event representation as positive cross-fieldsite evidence and stop treating natural-stream transfer as wholly open. Do not promote semantic, content, IDS/ADS, arbitrary-language, cold-start, or dropout-robust prediction claims.",
+  "claim_boundary": "This pass supports a 16-scalar locally learned next-event transition mechanism for causal unlabeled acoustic event dynamics from Beijing development clips to eight participant-disjoint Wellington clips. It does not identify speech content, distinguish IDS from ADS, establish semantic prediction, demonstrate arbitrary-language generality, or resolve the separate controlled-dropout representation failure."
+}

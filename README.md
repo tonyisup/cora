@@ -17,7 +17,7 @@ the repository.
 | Reproducible substrate | Implemented | Synthetic/live contracts, deterministic reports, and tests exist |
 | Real-audio evaluation | First replay passed | WAV and prior-art captured NumPy PCM are measured directly with dev/held-out provenance; developmental-speech breadth is still open |
 | Parentese-relevant saliency | Mixed; not promoted | The final 16-fieldsite refit reached F1 0.600 on untouched Enga/Turku clips and failed its 0.65 gate; the separately tested vocal front gate remains positive |
-| Local predictive hierarchy | Controlled mechanism passed; robustness mixed | Fresh real F0-shift and 10 dB noise conditions retained four states and strong advantage; 10% dropout still improved `+0.579` but collapsed `u` into the `i` state, so robustness and natural H2 remain open |
+| Local predictive hierarchy | Natural event-transfer gate passed; broader robustness open | A frozen 16-scalar event predictor trained on Beijing beat every causal baseline on 8/8 participant-disjoint Wellington clips (`+0.0751` mean, `+0.0107` worst); this supports unlabeled event dynamics, not semantics, while controlled dropout stability and required ablations remain open |
 | Workspace binding | Synthetic ablation passed | Matching self-audio identity plus phase improves synthetic self-echo handling without suppressing a legitimate overlap; real-audio validation remains open |
 | Analysis by synthesis | Clean synthetic gate passed | Five vowels round-trip across multiple F0 values and 16/48 kHz; recorded-speaker validation remains open |
 | Efficiency | Host boundary measured on hardware | Core microbenchmarks and native XVF3800 capture-call-to-workspace latency are reported; device-onset timestamps, live CPU/memory, and energy remain excluded |
@@ -232,6 +232,19 @@ python3 -m cora_infans --evaluate-natural-prediction-design \
 
 The default grid is a design audit only and cannot promote spent audio.
 
+Evaluate the frozen causal event representation across fieldsites:
+
+```bash
+python3 -m cora_infans --evaluate-natural-event-transfer \
+  --development-root /path/to/beijing-development-wavs \
+  --development-participants BEJ06,BEJ07,BEJ11,BEJ21 \
+  --held-out-root /path/to/wellington-held-out-wavs \
+  --held-out-participants WEL01,WEL02,WEL03,WEL04
+```
+
+The retained preregistration and result record all external WAV hashes. The
+learner and scoring never consume the B/D condition labels.
+
 Replay retained Corollary real-capture arrays without copying them:
 
 ```bash
@@ -348,6 +361,13 @@ developmental language learning.
 - A label-blind natural-stream audit over eight spent Beijing speech clips then
   tested 18 frame/horizon variants. None advanced; the best won `2/8` clips,
   mean improvement was only `+0.0036`, and worst-clip regret was `9.9%`.
+- A genuinely different causal event target was then selected on those spent
+  clips and frozen before any Wellington audio was fetched. Trained on Beijing,
+  its 16 transition counts beat the strongest causal baseline on all eight
+  participant-disjoint Wellington clips: mean improvement `+0.0751`, worst
+  improvement `+0.0107`, and at least three occupied states per clip. This is
+  positive cross-fieldsite event-dynamics evidence, not content, semantic, or
+  IDS/ADS prediction.
 - Theta/gamma scheduling is an event-timing model, not measured neural dynamics.
 - The vowel table uses adult reference targets and clean synthetic success does
   not imply recorded infant/adult speech performance.
@@ -362,6 +382,7 @@ developmental language learning.
 - `predictive_learning.py` — bounded local hierarchy and baseline evaluation
 - `structured_prediction.py` — gated continuous-stream protocol and local state transitions
 - `natural_prediction_audit.py` — participant-held-out, label-blind natural-stream design audit
+- `natural_event_prediction.py` — causal quiet/onset/stable/change states and cross-fieldsite transfer
 - `register_saliency.py` — long-window vocal, speech/song, and adaptive IDS gates
 - `io/motor_plan.py` — source-filter synthesis, LPC perception, and vowel gate
 - `benchmark.py` — explicit-boundary event-pipeline microbenchmark

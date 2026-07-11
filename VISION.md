@@ -234,7 +234,8 @@ Current environmental-control result:
 
 ### Stage 3 — Predictive hierarchy
 
-Status: controlled mechanism gate passed; H2 remains open for natural transfer.
+Status: natural event-transfer gate passed; Stage 3 remains open for required
+ablations and broader robustness.
 Phase-template evidence remains positive in bounded settings, and a safer
 online learner passed a fresh-fieldsite regret gate but failed superiority. The
 first real structured-stream mechanism passed tones but failed vowels; a
@@ -355,15 +356,33 @@ Current evidence:
 - no fresh participant or fieldsite was consumed. Frame-size/fixed-horizon
   tuning of this four-state natural representation is retired. Natural H2 needs
   a different observation target or explicit novelty/missing-event mechanism.
+- a genuinely different causal observation target was then defined from only
+  current and past frames: quiet, onset/recovery, stable active, and spectral
+  change. Thresholds come from each clip's first two seconds; B/D condition
+  labels enter neither learning nor scoring;
+- on the same eight spent Beijing clips, a fixed grid selected `50 ms` frames,
+  quiet quantile `0.40`, and novelty quantile `0.75`. That representation won
+  all `8/8` participant-held-out clips with mean improvement `+0.0952` and was
+  frozen before Wellington audio was fetched;
+- trained only on Beijing participants, the 16-scalar local transition learner
+  then beat the strongest persistence, development-unigram, or causal-moving-
+  state baseline on all eight fresh participant-disjoint Wellington clips.
+  Mean held-out accuracy improvement was `+0.0751`, the worst clip remained
+  positive at `+0.0107`, and every clip occupied at least three states;
+- this passes the preregistered natural cross-fieldsite event-dynamics gate. It
+  materially supports H2's core bounded local-prediction claim on natural audio,
+  but it is not semantic prediction, IDS/ADS discrimination, arbitrary-language
+  generality, or evidence that the separate controlled-dropout failure is fixed.
 
 Promotion criterion:
 
 - statistically or practically meaningful held-out error reduction across more
   than one recording or synthetic family, without unbounded state growth.
 
-Controlled structured-stream success, if obtained on real playback/capture,
-would validate the mechanism on those families only. H2 still requires a later
-transfer to an unconstrained natural acoustic stream.
+The controlled mechanism and one preregistered Beijing-to-Wellington natural
+event transfer are now positive. Full Stage 3 promotion still requires the
+specified hierarchy/workspace/saliency ablations and evidence that the result
+is not confined to this event definition and fieldsite pair.
 
 ### Stage 4 — Workspace binding
 
