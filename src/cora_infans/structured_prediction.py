@@ -38,9 +38,42 @@ HELD_OUT_SEEDS = (4409, 5501, 6607)
 CALIBRATED_V2_DEVELOPMENT_SEEDS = (7703, 8807, 9901)
 CALIBRATED_V2_HELD_OUT_SEEDS = (10103, 11213, 12323)
 CALIBRATED_V2_STD_FLOOR = 0.30
+ROBUST_V3_DEVELOPMENT_SEEDS = (13001, 13006, 13015)
+ROBUST_V3_HELD_OUT_SEEDS = (13016, 13017, 13023)
 
 PlaybackFn = Callable[[str], dict[str, object]]
 CaptureFn = Callable[..., dict[str, object]]
+
+
+def build_robust_v3_trial_conditions() -> dict[str, dict[str, object]]:
+    """Fresh condition matrix for calibrated speaker/noise/dropout transfer."""
+
+    by_seed: dict[int, dict[str, object]] = {
+        13001: {"name": "clean_speaker_f0_110", "vowel_f0_hz": 110.0},
+        13006: {"name": "clean_speaker_f0_140", "vowel_f0_hz": 140.0},
+        13015: {"name": "clean_speaker_f0_170", "vowel_f0_hz": 170.0},
+        13016: {"name": "speaker_shift_f0_200", "vowel_f0_hz": 200.0},
+        13017: {
+            "name": "speaker_shift_f0_200_noise_10db",
+            "vowel_f0_hz": 200.0,
+            "additive_noise_snr_db": 10.0,
+        },
+        13023: {
+            "name": "speaker_shift_f0_200_grammar_dropout_10pct",
+            "vowel_f0_hz": 200.0,
+            "grammar_dropout_fraction": 0.10,
+            "dropout_burst_ms": 5.0,
+        },
+    }
+    return {
+        f"{family}_{split}_{seed}": dict(by_seed[seed])
+        for family in ("tones", "vowels")
+        for split, seeds in (
+            ("dev", ROBUST_V3_DEVELOPMENT_SEEDS),
+            ("held_out", ROBUST_V3_HELD_OUT_SEEDS),
+        )
+        for seed in seeds
+    }
 
 
 @dataclass(frozen=True)
@@ -169,6 +202,7 @@ def build_structured_protocol_manifest(
     held_out_seeds: tuple[int, ...] | None = None,
     protocol_variant: str | None = None,
     calibration_normalization_std_floor: float | None = None,
+    trial_conditions: dict[str, dict[str, object]] | None = None,
 ) -> dict[str, object]:
     config = config or StructuredProtocolConfig()
     development_seeds = development_seeds or DEVELOPMENT_SEEDS
@@ -198,6 +232,15 @@ def build_structured_protocol_manifest(
         + (len(CALIBRATION_SEQUENCE) + config.grammar_token_count)
         * (config.token_duration_ms + config.gap_duration_ms)
     ) / 1000.0
+    trial_payloads = []
+    for trial in trials:
+        payload = asdict(trial)
+        if trial_conditions is not None:
+            condition = trial_conditions.get(trial.trial_id)
+            if condition is None:
+                raise ValueError(f"missing condition for trial {trial.trial_id}")
+            payload["condition"] = dict(condition)
+        trial_payloads.append(payload)
     manifest: dict[str, object] = {
         "mode": "structured_continuous_prediction_protocol",
         "config": asdict(config),
@@ -210,7 +253,7 @@ def build_structured_protocol_manifest(
         "trial_count": len(trials),
         "seconds_per_trial": seconds_per_trial,
         "maximum_total_playback_seconds": seconds_per_trial * len(trials),
-        "trials": [asdict(trial) for trial in trials],
+        "trials": trial_payloads,
         "label_boundary": (
             "scheduled token identities are post-hoc ground truth only and do not "
             "enter codebook or transition fitting"
@@ -235,6 +278,7 @@ def _token_pcm(
     token: int,
     *,
     config: StructuredProtocolConfig,
+    vowel_f0_hz: float = 140.0,
 ) -> np.ndarray:
     if not 0 <= token < TOKEN_COUNT:
         raise ValueError("unknown token")
@@ -249,7 +293,7 @@ def _token_pcm(
             VOWEL_TOKENS[token],
             duration_ms=config.token_duration_ms,
             sample_rate=config.sample_rate,
-            f0_hz=140.0,
+            f0_hz=vowel_f0_hz,
         )
     else:
         raise ValueError(f"unknown structured stimulus family: {family!r}")
@@ -259,8 +303,25 @@ def _token_pcm(
 def render_structured_trial(
     plan: StructuredTrialPlan,
     config: StructuredProtocolConfig | None = None,
+    *,
+    stimulus_condition: dict[str, object] | None = None,
 ) -> RenderedStructuredTrial:
     config = config or StructuredProtocolConfig()
+    condition = stimulus_condition or {}
+    vowel_f0_hz = float(condition.get("vowel_f0_hz", 140.0))
+    noise_snr = condition.get("additive_noise_snr_db")
+    grammar_dropout_fraction = float(
+        condition.get("grammar_dropout_fraction", 0.0)
+    )
+    dropout_burst_ms = float(condition.get("dropout_burst_ms", 5.0))
+    if vowel_f0_hz <= 0.0:
+        raise ValueError("vowel F0 must be positive")
+    if noise_snr is not None and not math.isfinite(float(noise_snr)):
+        raise ValueError("additive noise SNR must be finite")
+    if not 0.0 <= grammar_dropout_fraction < 1.0:
+        raise ValueError("grammar dropout fraction must be in [0, 1)")
+    if dropout_burst_ms <= 0.0:
+        raise ValueError("dropout burst must be positive")
     chirp = synthesize_chirp(
         250.0,
         3500.0,
@@ -278,8 +339,39 @@ def render_structured_trial(
     cursor = len(chirp) + len(silence)
     windows: list[tuple[int, int]] = []
     sequence = (*plan.calibration_sequence, *plan.grammar_sequence)
-    for token in sequence:
-        token_pcm = _token_pcm(plan.family, token, config=config)
+    for observation_index, token in enumerate(sequence):
+        token_pcm = _token_pcm(
+            plan.family,
+            token,
+            config=config,
+            vowel_f0_hz=vowel_f0_hz,
+        )
+        rng = np.random.default_rng(plan.seed * 1000 + observation_index + 43)
+        if noise_snr is not None:
+            signal_rms = math.sqrt(float(np.mean(token_pcm * token_pcm)))
+            noise_rms = signal_rms / (10.0 ** (float(noise_snr) / 20.0))
+            token_pcm = token_pcm + rng.normal(
+                0.0, noise_rms, size=len(token_pcm)
+            ).astype(np.float32)
+        if (
+            observation_index >= len(plan.calibration_sequence)
+            and grammar_dropout_fraction > 0.0
+        ):
+            burst = max(
+                1, int(round(dropout_burst_ms * config.sample_rate / 1000.0))
+            )
+            erased = int(round(len(token_pcm) * grammar_dropout_fraction))
+            burst_count = max(1, int(math.ceil(erased / burst)))
+            maximum_start = max(1, len(token_pcm) - burst)
+            starts = rng.choice(
+                maximum_start,
+                size=min(burst_count, maximum_start),
+                replace=False,
+            )
+            token_pcm = token_pcm.copy()
+            for dropout_start in starts:
+                token_pcm[dropout_start : dropout_start + burst] = 0.0
+        token_pcm = np.clip(token_pcm, -1.0, 1.0).astype(np.float32)
         start = cursor
         end = start + len(token_pcm)
         windows.append((start, end))
@@ -407,6 +499,8 @@ def _evaluate_family(
     family: str,
     rendered: list[RenderedStructuredTrial],
     signatures: dict[str, list[np.ndarray]],
+    *,
+    trial_conditions: dict[str, dict[str, object]] | None = None,
 ) -> dict[str, object]:
     development = [trial for trial in rendered if trial.plan.split == "dev"]
     held_out = [trial for trial in rendered if trial.plan.split == "held_out"]
@@ -468,6 +562,15 @@ def _evaluate_family(
                     expected != observed
                     for expected, observed in zip(predicted, actual)
                 ),
+                "state_occupancy": len(set(states)),
+                "post_hoc_token_cluster_purity": _best_cluster_purity(
+                    states, tokens
+                ),
+                "condition": (
+                    trial_conditions.get(trial.plan.trial_id)
+                    if trial_conditions is not None
+                    else None
+                ),
             }
         )
         all_states.extend(states)
@@ -516,7 +619,11 @@ def _acceptance_gates(
     *,
     profile: str,
 ) -> dict[str, dict[str, bool]]:
-    if profile not in {"original", "h2_predictive_advantage_v2"}:
+    if profile not in {
+        "original",
+        "h2_predictive_advantage_v2",
+        "h2_condition_robustness_v3",
+    }:
         raise ValueError(f"unknown structured acceptance profile: {profile}")
     gates: dict[str, dict[str, bool]] = {}
     for family, report in family_reports.items():
@@ -550,6 +657,21 @@ def _acceptance_gates(
             common["each_trial_improvement_passed"] = float(
                 report["minimum_trial_improvement"]
             ) >= 0.15
+            if profile == "h2_condition_robustness_v3":
+                trial_reports = report["reports"]
+                assert isinstance(trial_reports, list)
+                common["each_condition_occupancy_passed"] = all(
+                    int(trial["state_occupancy"]) == TOKEN_COUNT
+                    for trial in trial_reports
+                )
+                common["three_named_conditions_passed"] = (
+                    len(trial_reports) == 3
+                    and all(
+                        isinstance(trial["condition"], dict)
+                        and bool(trial["condition"].get("name"))
+                        for trial in trial_reports
+                    )
+                )
         gates[family] = common
     return gates
 
@@ -582,7 +704,12 @@ def _run_real_structured_protocol(
             calibration_sequence=tuple(trial_payload["calibration_sequence"]),
             grammar_sequence=tuple(trial_payload["grammar_sequence"]),
         )
-        rendered_trial = render_structured_trial(trial, config)
+        condition = trial_payload.get("condition")
+        rendered_trial = render_structured_trial(
+            trial,
+            config,
+            stimulus_condition=(condition if isinstance(condition, dict) else None),
+        )
         efference_path = out_dir / f"{trial.trial_id}_efference.wav"
         captured_path = out_dir / f"{trial.trial_id}_real_capture.wav"
         write_wav(str(efference_path), rendered_trial.pcm, config.sample_rate)
@@ -685,6 +812,7 @@ def _run_real_structured_protocol(
                 },
                 "playback": playback_report,
                 "capture": capture_report,
+                "condition": condition,
             }
         )
 
@@ -694,11 +822,17 @@ def _run_real_structured_protocol(
             signatures,
             standard_deviation_floor=calibration_normalization_std_floor,
         )
+    conditions_by_trial = {
+        str(payload["trial_id"]): dict(payload["condition"])
+        for payload in trial_payloads
+        if isinstance(payload.get("condition"), dict)
+    }
     family_reports = {
         family: _evaluate_family(
             family,
             [trial for trial in rendered if trial.plan.family == family],
             signatures,
+            trial_conditions=conditions_by_trial or None,
         )
         for family in ("tones", "vowels")
     }
@@ -742,6 +876,7 @@ def run_structured_prediction_protocol(
     protocol_variant: str | None = None,
     calibration_normalization_std_floor: float | None = None,
     acceptance_profile: str = "original",
+    trial_conditions: dict[str, dict[str, object]] | None = None,
 ) -> dict[str, object]:
     """Plan or run the fake protocol; never perform real I/O in this helper."""
 
@@ -754,6 +889,7 @@ def run_structured_prediction_protocol(
         held_out_seeds=held_out_seeds,
         protocol_variant=protocol_variant,
         calibration_normalization_std_floor=calibration_normalization_std_floor,
+        trial_conditions=trial_conditions,
     )
     if real_io:
         if not bounded_playback_authorized:
@@ -805,7 +941,12 @@ def run_structured_prediction_protocol(
             calibration_sequence=tuple(trial_payload["calibration_sequence"]),
             grammar_sequence=tuple(trial_payload["grammar_sequence"]),
         )
-        rendered_trial = render_structured_trial(trial, config)
+        condition = trial_payload.get("condition")
+        rendered_trial = render_structured_trial(
+            trial,
+            config,
+            stimulus_condition=(condition if isinstance(condition, dict) else None),
+        )
         efference_path = output / f"{trial.trial_id}_efference.wav"
         captured_path = output / f"{trial.trial_id}_fake_capture.wav"
         write_wav(str(efference_path), rendered_trial.pcm, config.sample_rate)
@@ -830,6 +971,7 @@ def run_structured_prediction_protocol(
                 "captured_sha256": _sha256(captured_path),
                 "capture_provenance": "synthetic_fake_acoustic_channel",
                 "alignment_samples": delay,
+                "condition": condition,
             }
         )
 
@@ -839,11 +981,20 @@ def run_structured_prediction_protocol(
             signatures,
             standard_deviation_floor=calibration_normalization_std_floor,
         )
+    fake_trial_payloads = manifest["trials"]
+    assert isinstance(fake_trial_payloads, list)
+    conditions_by_trial = {
+        str(payload["trial_id"]): dict(payload["condition"])
+        for payload in fake_trial_payloads
+        if isinstance(payload, dict)
+        and isinstance(payload.get("condition"), dict)
+    }
     family_reports = {
         family: _evaluate_family(
             family,
             [trial for trial in rendered if trial.plan.family == family],
             signatures,
+            trial_conditions=conditions_by_trial or None,
         )
         for family in ("tones", "vowels")
     }

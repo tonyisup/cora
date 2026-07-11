@@ -1,0 +1,522 @@
+{
+  "mode": "structured_continuous_prediction_protocol",
+  "config": {
+    "sample_rate": 16000,
+    "token_duration_ms": 200,
+    "gap_duration_ms": 50,
+    "alignment_chirp_ms": 120,
+    "alignment_silence_ms": 180,
+    "grammar_token_count": 20,
+    "fake_delay_ms": 30,
+    "fake_attenuation": 0.35,
+    "fake_echo_delay_ms": 18,
+    "fake_echo_attenuation": 0.08,
+    "fake_noise_rms": 0.002,
+    "maximum_real_playback_db": -18
+  },
+  "families": {
+    "tones": [
+      300,
+      500,
+      800,
+      1200
+    ],
+    "vowels": [
+      "a",
+      "e",
+      "i",
+      "u"
+    ]
+  },
+  "development_seeds": [
+    13001,
+    13006,
+    13015
+  ],
+  "held_out_seeds": [
+    13016,
+    13017,
+    13023
+  ],
+  "trial_count": 12,
+  "seconds_per_trial": 6.3,
+  "maximum_total_playback_seconds": 75.6,
+  "trials": [
+    {
+      "trial_id": "tones_dev_13001",
+      "family": "tones",
+      "split": "dev",
+      "seed": 13001,
+      "calibration_sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "grammar_sequence": [
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2,
+        3,
+        0,
+        1
+      ],
+      "condition": {
+        "name": "clean_speaker_f0_110",
+        "vowel_f0_hz": 110
+      }
+    },
+    {
+      "trial_id": "tones_dev_13006",
+      "family": "tones",
+      "split": "dev",
+      "seed": 13006,
+      "calibration_sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "grammar_sequence": [
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2,
+        3,
+        0,
+        1
+      ],
+      "condition": {
+        "name": "clean_speaker_f0_140",
+        "vowel_f0_hz": 140
+      }
+    },
+    {
+      "trial_id": "tones_dev_13015",
+      "family": "tones",
+      "split": "dev",
+      "seed": 13015,
+      "calibration_sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "grammar_sequence": [
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2,
+        3,
+        0,
+        1
+      ],
+      "condition": {
+        "name": "clean_speaker_f0_170",
+        "vowel_f0_hz": 170
+      }
+    },
+    {
+      "trial_id": "tones_held_out_13016",
+      "family": "tones",
+      "split": "held_out",
+      "seed": 13016,
+      "calibration_sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "grammar_sequence": [
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2,
+        0,
+        1
+      ],
+      "condition": {
+        "name": "speaker_shift_f0_200",
+        "vowel_f0_hz": 200
+      }
+    },
+    {
+      "trial_id": "tones_held_out_13017",
+      "family": "tones",
+      "split": "held_out",
+      "seed": 13017,
+      "calibration_sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "grammar_sequence": [
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2,
+        0,
+        1
+      ],
+      "condition": {
+        "name": "speaker_shift_f0_200_noise_10db",
+        "vowel_f0_hz": 200,
+        "additive_noise_snr_db": 10
+      }
+    },
+    {
+      "trial_id": "tones_held_out_13023",
+      "family": "tones",
+      "split": "held_out",
+      "seed": 13023,
+      "calibration_sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "grammar_sequence": [
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2,
+        0,
+        1
+      ],
+      "condition": {
+        "name": "speaker_shift_f0_200_grammar_dropout_10pct",
+        "vowel_f0_hz": 200,
+        "grammar_dropout_fraction": 0.1,
+        "dropout_burst_ms": 5
+      }
+    },
+    {
+      "trial_id": "vowels_dev_13001",
+      "family": "vowels",
+      "split": "dev",
+      "seed": 13001,
+      "calibration_sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "grammar_sequence": [
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2,
+        3,
+        0,
+        1
+      ],
+      "condition": {
+        "name": "clean_speaker_f0_110",
+        "vowel_f0_hz": 110
+      }
+    },
+    {
+      "trial_id": "vowels_dev_13006",
+      "family": "vowels",
+      "split": "dev",
+      "seed": 13006,
+      "calibration_sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "grammar_sequence": [
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2,
+        3,
+        0,
+        1
+      ],
+      "condition": {
+        "name": "clean_speaker_f0_140",
+        "vowel_f0_hz": 140
+      }
+    },
+    {
+      "trial_id": "vowels_dev_13015",
+      "family": "vowels",
+      "split": "dev",
+      "seed": 13015,
+      "calibration_sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "grammar_sequence": [
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2,
+        3,
+        0,
+        1
+      ],
+      "condition": {
+        "name": "clean_speaker_f0_170",
+        "vowel_f0_hz": 170
+      }
+    },
+    {
+      "trial_id": "vowels_held_out_13016",
+      "family": "vowels",
+      "split": "held_out",
+      "seed": 13016,
+      "calibration_sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "grammar_sequence": [
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2,
+        0,
+        1
+      ],
+      "condition": {
+        "name": "speaker_shift_f0_200",
+        "vowel_f0_hz": 200
+      }
+    },
+    {
+      "trial_id": "vowels_held_out_13017",
+      "family": "vowels",
+      "split": "held_out",
+      "seed": 13017,
+      "calibration_sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "grammar_sequence": [
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2,
+        0,
+        1
+      ],
+      "condition": {
+        "name": "speaker_shift_f0_200_noise_10db",
+        "vowel_f0_hz": 200,
+        "additive_noise_snr_db": 10
+      }
+    },
+    {
+      "trial_id": "vowels_held_out_13023",
+      "family": "vowels",
+      "split": "held_out",
+      "seed": 13023,
+      "calibration_sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "grammar_sequence": [
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2,
+        0,
+        1
+      ],
+      "condition": {
+        "name": "speaker_shift_f0_200_grammar_dropout_10pct",
+        "vowel_f0_hz": 200,
+        "grammar_dropout_fraction": 0.1,
+        "dropout_burst_ms": 5
+      }
+    }
+  ],
+  "label_boundary": "scheduled token identities are post-hoc ground truth only and do not enter codebook or transition fitting",
+  "real_io_requires_explicit_authorization": true,
+  "protocol_variant": "robustness_v3",
+  "representation": {
+    "base": "12_band_log_geometric_spectrum",
+    "unlabeled_trial_calibration": "featurewise_zscore_then_unit_norm",
+    "calibration_observation_count": 4,
+    "standard_deviation_floor": 0.3,
+    "selection_boundary": "selected on attempt-2 development captures only"
+  },
+  "verdict": "planned_no_io",
+  "real_hardware": false,
+  "live_playback": false
+}
+

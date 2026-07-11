@@ -1,0 +1,86 @@
+{
+  "experiment": "calibrated_structured_condition_robustness_real_hardware",
+  "date": "2026-07-10",
+  "status": "fully_preregistered_standing_live_audio_authorization",
+  "design_audit_sha256": "a0400171ae5009dc27599b2e81405109442472b168ff1e58adba211c1823a243",
+  "protocol_sha256": "29545f769deb5c8a6289f010e41e72278e6e71816b0e723309ed6073bcc44fff",
+  "fake_result_sha256": "7844293d6c03070952d2b523aa987233f07a366acc4747a1d32ef779d367cde0",
+  "predictor_implementation_sha256": "898a7a2de2b8177c682e12032a62de29bd98232722b068ea662c147be3c4b4b7",
+  "cli_implementation_sha256": "f3f5fb2ff1b32d29059b4df01f83361311c8f8cccafe1f549e6eef836a8616a1",
+  "io_runner_sha256": "1cf10155c49dc32406b4936504f5af452be335ea73ee08f2d7a6fc7437f3f34b",
+  "representation": {
+    "base": "calibrated-v2 12-band log spectrum",
+    "standard_deviation_floor": 0.30,
+    "retained_state_scalars": 68,
+    "change_from_passing_calibrated_v2": "stimulus conditions and per-condition reporting only; learner, representation, calibration floor, baselines, and state bound unchanged"
+  },
+  "freshness": {
+    "development_seeds": [13001, 13006, 13015],
+    "held_out_seeds": [13016, 13017, 13023],
+    "disjoint_from_all_prior_structured_seeds": true,
+    "prior_held_out_data_used_for_condition_selection": false
+  },
+  "condition_matrix": {
+    "development": [
+      {"name": "clean_speaker_f0_110", "vowel_f0_hz": 110.0},
+      {"name": "clean_speaker_f0_140", "vowel_f0_hz": 140.0},
+      {"name": "clean_speaker_f0_170", "vowel_f0_hz": 170.0}
+    ],
+    "held_out": [
+      {"name": "speaker_shift_f0_200", "vowel_f0_hz": 200.0},
+      {"name": "speaker_shift_f0_200_noise_10db", "vowel_f0_hz": 200.0, "additive_noise_snr_db": 10.0, "noise_applies_to_calibration_and_grammar": true},
+      {"name": "speaker_shift_f0_200_grammar_dropout_10pct", "vowel_f0_hz": 200.0, "grammar_dropout_fraction": 0.10, "dropout_burst_ms": 5.0, "calibration_is_clean": true}
+    ],
+    "tone_boundary": "F0 profiles affect vowels only. Tones provide a reference family for room/noise/dropout effects and do not support a speaker-change claim."
+  },
+  "device_boundary": {
+    "target_input": "XVF3800 input :0, two fused CoreAudio channels",
+    "target_output": "CoreAudio output device index 2",
+    "maximum_playback_gain_db": -18.0,
+    "trial_count": 12,
+    "maximum_total_playback_seconds": 75.6,
+    "one_trial_at_a_time": true,
+    "stop_after_first_infrastructure_failure": true
+  },
+  "frozen_physical_geometry": {
+    "speaker_count": 2,
+    "speaker_arrangement": "small left and right speakers stacked vertically with both acoustic centers on the board's 180 degree radial axis",
+    "speaker_aim": "both speakers facing the XVF3800 microphone array center",
+    "speaker_distance_cm": 50.0,
+    "distance_reference": "speaker grilles to XVF3800 board center",
+    "board_azimuth_degrees": 180,
+    "hardware_volume_knob": "maximum",
+    "software_playback_gain_db": -18.0
+  },
+  "room_condition": {
+    "operator_description": "semi-quiet room",
+    "known_background_source": "laptop fan",
+    "accepted_as_fixed_run_condition": true
+  },
+  "operator_authorization": {
+    "standing_live_audio_authorization": true,
+    "authorized_date": "2026-07-10",
+    "user_scope": "as many live audio runs as necessary for the project goal",
+    "this_run_scope": "one fixed 12-trial robustness confirmation, capped at 75.6 seconds total playback"
+  },
+  "frozen_acceptance_rule_each_family": {
+    "required_named_held_out_conditions": 3,
+    "required_each_condition_state_occupancy": 4,
+    "minimum_pooled_accuracy_improvement_over_best_causal_baseline": 0.20,
+    "minimum_each_condition_improvement": 0.15,
+    "maximum_bounded_state_scalars": 68,
+    "top_down_prediction_must_be_consumed": true,
+    "post_hoc_purity": "diagnostic_only",
+    "absolute_transition_accuracy": "diagnostic_only"
+  },
+  "global_acceptance_rule": {
+    "both_tone_and_vowel_families_must_pass": true,
+    "all_trials_must_have_synchronized_real_capture": true,
+    "all_alignment_and_acoustic_features_must_be_finite": true,
+    "every_efference_and_capture_artifact_must_have_sha256": true,
+    "no_easy_condition_may_mask_a_failed_condition": true,
+    "no_manifest_condition_threshold_representation_or_code_change_after_freeze": true
+  },
+  "failure_policy": "Any failed family or condition gate is retained. These captures may not confirm a revised perturbation, threshold, representation, calibration rule, or predictor.",
+  "claim_boundary": "A pass supports the controlled calibrated mechanism under an unseen synthetic F0 plus named 10 dB noise and 10 percent dropout perturbations after real room transfer. It does not establish transfer across recorded human speakers, arbitrary noise, geometry changes, or unconstrained natural streams."
+}

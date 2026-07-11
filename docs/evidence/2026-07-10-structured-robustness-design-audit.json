@@ -1,0 +1,46 @@
+{
+  "experiment": "calibrated_structured_condition_robustness_design_audit",
+  "date": "2026-07-10",
+  "data_boundary": "calibrated-v2 development captures only for captured-audio noise/dropout selection; no calibrated-v2 held-out capture entered selection",
+  "prior_art_boundary": "Prior Cora M9 and Corollary evidence identify representation normalization and ambient-noise sensitivity as active risks; geometry remains fixed until a stable condition gate exists.",
+  "noise_audit": {
+    "perturbation": "deterministic white sensor noise at a token-relative RMS SNR",
+    "tested_snr_db": [20, 15, 12, 10, 8, 5],
+    "grammar_only_result": "Predictive improvement remained positive at 10 dB but at least one state disappeared; 8 dB collapsed predictive advantage.",
+    "same_condition_calibration_result": "With the same noise present in all four unlabeled calibration observations and grammar tokens, every leave-one-development-trial-out fold retained four states and beat its best causal baseline at 10 dB.",
+    "selected_snr_db": 10.0,
+    "minimum_selected_fold_improvement": 0.31578947368421056,
+    "minimum_selected_fold_occupancy": 4
+  },
+  "dropout_audit": {
+    "perturbation": "deterministic grammar-only 5 ms zeroed bursts",
+    "tested_erased_fractions": [0.05, 0.10, 0.15, 0.20, 0.25, 0.30],
+    "selected_erased_fraction": 0.10,
+    "selection_reason": "10 percent was the strongest tested condition for which every leave-one-development-trial-out fold retained all four states; at 15 percent one fold lost a state.",
+    "minimum_selected_fold_improvement": 0.5263157894736842,
+    "minimum_selected_fold_occupancy": 4
+  },
+  "speaker_shift_audit": {
+    "perturbation": "synthetic source F0 profile change with unchanged formant targets",
+    "development_f0_hz": [110.0, 140.0, 170.0],
+    "prospective_held_out_f0_hz": 200.0,
+    "synthetic_200hz_occupancy": 4,
+    "synthetic_200hz_accuracy_improvement": 0.631578947368421,
+    "boundary": "F0 variation is a controlled synthetic-speaker proxy, not evidence of transfer across recorded human speakers."
+  },
+  "selected_condition_matrix": {
+    "development": [
+      "clean_speaker_f0_110",
+      "clean_speaker_f0_140",
+      "clean_speaker_f0_170"
+    ],
+    "held_out": [
+      "speaker_shift_f0_200",
+      "speaker_shift_f0_200_noise_10db",
+      "speaker_shift_f0_200_grammar_dropout_10pct"
+    ],
+    "combined_shift": "All held-out vowel trials use the unseen 200 Hz F0; noise and dropout conditions add one perturbation each."
+  },
+  "design_gate": "Advance only because the selected noise, dropout, and prospective F0 conditions preserve four states and at least 0.20 predictive improvement in their respective development/synthetic audits.",
+  "claim_boundary": "This is design evidence only. A real pass would support calibrated adaptation under three controlled perturbation conditions, not recorded-speaker or natural-stream robustness."
+}

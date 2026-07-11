@@ -267,6 +267,13 @@ research contract and implements the first vertical evidence path.
 - This promotes the controlled two-family mechanism only. The representation
   still partially mixes `i/u`, uses known calibration slots and one synthetic
   voice, and has not passed noise, dropout, speaker, or natural-stream transfer.
+- A subsequent fresh robustness protocol used an unseen `200 Hz` synthetic F0,
+  same-condition `10 dB` noise, and grammar-only `10%` dropout. Every condition
+  beat its best causal baseline; pooled vowel improvement was `0.561`.
+- F0 shift and noise retained all four vowel states. Dropout scored accuracy
+  `0.842` versus baseline `0.263` but mapped every `u` token to the `i`-dominated
+  state, leaving occupancy `3`. The frozen per-condition occupancy gate fails,
+  so predictive robustness is positive but representation robustness is mixed.
 
 ### Prior-art real-capture replay
 
@@ -398,11 +405,10 @@ These numbers are a microbenchmark, not end-to-end auditory latency.
 2. Separately design a causal calibration path before any cold-start or live
    parentese claim.
 3. Keep the safe expert mixture as a fallback. The calibrated structured
-   mechanism now passes two controlled real families, but both real manifests
-   are spent. Next test calibration robustness under frozen noise/dropout and
-   speaker changes, then attempt a separately preregistered natural-stream
-   transfer; frame-to-frame persistence and stronger causal means remain
-   unbeaten on the current natural clips.
+   mechanism passes clean, F0-shift, and noise conditions, but dropout collapses
+   one vowel state despite strong prediction. Any dropout-aware revision must
+   be designed on development/synthetic data and confirmed on fresh conditions;
+   recorded-speaker and natural-stream transfer remain separate later gates.
 4. Add recorded-vowel speakers not used to tune LPC selection and run a separate
    confusion matrix.
 5. Instrument the live capture path for microphone-to-event latency and dropped

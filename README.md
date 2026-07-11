@@ -17,7 +17,7 @@ the repository.
 | Reproducible substrate | Implemented | Synthetic/live contracts, deterministic reports, and tests exist |
 | Real-audio evaluation | First replay passed | WAV and prior-art captured NumPy PCM are measured directly with dev/held-out provenance; developmental-speech breadth is still open |
 | Parentese-relevant saliency | Mixed; not promoted | The final 16-fieldsite refit reached F1 0.600 on untouched Enga/Turku clips and failed its 0.65 gate; the separately tested vocal front gate remains positive |
-| Local predictive hierarchy | Controlled mechanism passed; natural H2 open | Unlabeled trial calibration passed a fresh real two-family run: tones improved `+0.614` and vowels `+0.421` over their best causal baselines; speaker/noise/natural-stream transfer remains open |
+| Local predictive hierarchy | Controlled mechanism passed; robustness mixed | Fresh real F0-shift and 10 dB noise conditions retained four states and strong advantage; 10% dropout still improved `+0.579` but collapsed `u` into the `i` state, so robustness and natural H2 remain open |
 | Workspace binding | Synthetic ablation passed | Matching self-audio identity plus phase improves synthetic self-echo handling without suppressing a legitimate overlap; real-audio validation remains open |
 | Analysis by synthesis | Clean synthetic gate passed | Five vowels round-trip across multiple F0 values and 16/48 kHz; recorded-speaker validation remains open |
 | Efficiency | Host boundary measured on hardware | Core microbenchmarks and native XVF3800 capture-call-to-workspace latency are reported; device-onset timestamps, live CPU/memory, and energy remain excluded |
@@ -327,6 +327,10 @@ developmental language learning.
   real 12-trial manifest: tones scored `0.895` versus `0.281`, vowels `0.702`
   versus `0.281`, and every held-out trial improved by at least `0.368`. This
   validates the bounded controlled mechanism; natural H2 remains open.
+- A later fresh robustness run retained strong predictive advantage under an
+  unseen `200 Hz` synthetic F0, `10 dB` noise, and `10%` dropout. F0/noise kept
+  four vowel states, but dropout merged every `u` into the `i`-dominated state;
+  the strict robustness verdict therefore fails despite `+0.579` improvement.
 - Theta/gamma scheduling is an event-timing model, not measured neural dynamics.
 - The vowel table uses adult reference targets and clean synthetic success does
   not imply recorded infant/adult speech performance.

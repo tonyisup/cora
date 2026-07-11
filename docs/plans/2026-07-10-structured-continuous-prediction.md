@@ -117,3 +117,17 @@ families. Tones improved `0.614` over the best baseline; vowels improved
 controlled bounded mechanism only. The remaining Stage-3 boundary is robustness
 and transfer beyond one synthetic voice, grammar, geometry, and calibration
 schedule.
+
+## Condition robustness result
+
+A later protocol froze three fresh held-out conditions: unseen synthetic F0 at
+`200 Hz`, the same F0 with `10 dB` additive noise present during calibration and
+grammar, and the same F0 with clean calibration plus `10%` grammar-only dropout.
+Every tone and vowel condition beat its best causal baseline by at least
+`0.316`. F0 shift and noise retained four vowel states.
+
+The dropout condition achieved `0.842` accuracy versus `0.263` for its best
+baseline, but all `u` tokens entered the `i`-dominated state and occupancy fell
+to three. The frozen per-condition occupancy rule makes the overall robustness
+verdict a failure. The result supports controlled predictive robustness, not
+dropout-stable representation or natural-stream H2.

@@ -322,6 +322,19 @@ Current evidence:
   mechanism gate, not natural or semantic speech prediction;
 - the calibrated-v2 captures are spent. H2 still requires stability under
   noise/dropout/speaker change and transfer to an unconstrained natural stream.
+- a fresh condition-transfer protocol then tested an unseen synthetic F0 of
+  `200 Hz`, same-condition additive noise at `10 dB` SNR, and grammar-only
+  `10%` dropout after real room transfer;
+- every held-out tone and vowel condition beat its best causal baseline by at
+  least `0.316`. Vowel F0 shift and noise each retained four states; the pooled
+  vowel improvement was `0.561`;
+- the vowel dropout condition improved `0.579` over baseline but collapsed all
+  `u` observations into the `i`-dominated state, leaving occupancy `3`. Because
+  four states per condition were frozen as mandatory, robustness-v3 fails;
+- the supported evidence is predictive advantage under all three controlled
+  perturbations and representation stability under F0/noise. Dropout
+  representation stability, recorded-speaker transfer, and natural-stream
+  transfer remain open.
 
 Promotion criterion:
 

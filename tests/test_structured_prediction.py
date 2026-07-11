@@ -16,8 +16,13 @@ from cora_infans.structured_prediction import (
     CALIBRATED_V2_STD_FLOOR,
     DEVELOPMENT_SEEDS,
     HELD_OUT_SEEDS,
+    ROBUST_V3_DEVELOPMENT_SEEDS,
+    ROBUST_V3_HELD_OUT_SEEDS,
     LocalAcousticCodebook,
+    StructuredTrialPlan,
     build_structured_protocol_manifest,
+    build_robust_v3_trial_conditions,
+    render_structured_trial,
     run_structured_prediction_protocol,
 )
 from cora_infans.io.motor_plan import write_wav
@@ -58,6 +63,63 @@ def test_calibrated_v2_manifest_uses_fresh_disjoint_seeds() -> None:
     )
     assert manifest["protocol_variant"] == "calibrated_v2"
     assert manifest["representation"]["standard_deviation_floor"] == 0.30
+
+
+def test_robust_v3_manifest_has_fresh_named_conditions() -> None:
+    prior = (
+        set(DEVELOPMENT_SEEDS)
+        | set(HELD_OUT_SEEDS)
+        | set(CALIBRATED_V2_DEVELOPMENT_SEEDS)
+        | set(CALIBRATED_V2_HELD_OUT_SEEDS)
+    )
+    fresh = set(ROBUST_V3_DEVELOPMENT_SEEDS) | set(ROBUST_V3_HELD_OUT_SEEDS)
+    conditions = build_robust_v3_trial_conditions()
+    manifest = build_structured_protocol_manifest(
+        development_seeds=ROBUST_V3_DEVELOPMENT_SEEDS,
+        held_out_seeds=ROBUST_V3_HELD_OUT_SEEDS,
+        protocol_variant="robustness_v3",
+        calibration_normalization_std_floor=CALIBRATED_V2_STD_FLOOR,
+        trial_conditions=conditions,
+    )
+
+    assert prior.isdisjoint(fresh)
+    assert len(conditions) == 12
+    assert all(trial["condition"]["name"] for trial in manifest["trials"])
+    held_names = {
+        trial["condition"]["name"]
+        for trial in manifest["trials"]
+        if trial["family"] == "vowels" and trial["split"] == "held_out"
+    }
+    assert held_names == {
+        "speaker_shift_f0_200",
+        "speaker_shift_f0_200_noise_10db",
+        "speaker_shift_f0_200_grammar_dropout_10pct",
+    }
+
+
+def test_robust_v3_dropout_leaves_calibration_clean_and_masks_grammar() -> None:
+    plan = StructuredTrialPlan(
+        trial_id="vowels_held_out_13023",
+        family="vowels",
+        split="held_out",
+        seed=13023,
+        calibration_sequence=(0, 1, 2, 3),
+        grammar_sequence=(0, 1, 2, 3, 0, 1, 2, 3),
+    )
+    clean = render_structured_trial(
+        plan, stimulus_condition={"vowel_f0_hz": 200.0}
+    )
+    dropout = render_structured_trial(
+        plan,
+        stimulus_condition=build_robust_v3_trial_conditions()[plan.trial_id],
+    )
+
+    for start, end in clean.token_windows[:4]:
+        assert np.array_equal(clean.pcm[start:end], dropout.pcm[start:end])
+    assert any(
+        not np.array_equal(clean.pcm[start:end], dropout.pcm[start:end])
+        for start, end in clean.token_windows[4:]
+    )
 
 
 def test_frozen_protocol_and_implementation_hashes_match_source() -> None:
@@ -132,6 +194,48 @@ def test_calibrated_v2_preregistration_matches_frozen_code_and_protocol(
         ("design_audit_sha256", audit_path),
         ("protocol_sha256", protocol_path),
         ("fake_result_sha256", fake_path),
+    ):
+        assert preregistration[field] == hashlib.sha256(path.read_bytes()).hexdigest()
+    assert preregistration["predictor_implementation_sha256"] == (
+        "417bb4482871a7314ffa5199874752aaa3ab875655610569462ac86ad3b93b61"
+    )
+    assert preregistration["cli_implementation_sha256"] == (
+        "3ed88d19be7608423d1714af820a47d85688d3c0eb585fb98a8c884d817dc803"
+    )
+    assert preregistration["io_runner_sha256"] == (
+        "1cf10155c49dc32406b4936504f5af452be335ea73ee08f2d7a6fc7437f3f34b"
+    )
+
+
+def test_robust_v3_preregistration_matches_frozen_code_and_protocol(
+    tmp_path,
+) -> None:
+    root = Path(__file__).resolve().parents[1]
+    evidence = root / "docs/evidence"
+    protocol_path = evidence / "2026-07-10-structured-robustness-protocol.json"
+    audit_path = evidence / "2026-07-10-structured-robustness-design-audit.json"
+    fake_path = evidence / "2026-07-10-structured-robustness-fake-result.json"
+    preregistration = json.loads(
+        (
+            evidence
+            / "2026-07-10-structured-robustness-real-preregistration.json"
+        ).read_text()
+    )
+    generated = run_structured_prediction_protocol(
+        out_dir=tmp_path,
+        development_seeds=ROBUST_V3_DEVELOPMENT_SEEDS,
+        held_out_seeds=ROBUST_V3_HELD_OUT_SEEDS,
+        protocol_variant="robustness_v3",
+        calibration_normalization_std_floor=CALIBRATED_V2_STD_FLOOR,
+        acceptance_profile="h2_condition_robustness_v3",
+        trial_conditions=build_robust_v3_trial_conditions(),
+    )
+
+    assert json.loads(protocol_path.read_text()) == json.loads(json.dumps(generated))
+    for field, path in (
+        ("design_audit_sha256", audit_path),
+        ("protocol_sha256", protocol_path),
+        ("fake_result_sha256", fake_path),
         (
             "predictor_implementation_sha256",
             root / "src/cora_infans/structured_prediction.py",
@@ -190,6 +294,36 @@ def test_calibrated_v2_retained_real_result_passes_with_hashed_artifacts() -> No
     assert result["family_reports"]["vowels"]["accuracy_improvement"] >= 0.20
     for artifact in result["artifacts"]:
         assert artifact["io_timing"]["stream_position_verified"] is True
+        for kind in ("efference", "captured"):
+            retained = artifact_root / Path(artifact[f"{kind}_wav"]).name
+            assert retained.exists()
+            assert hashlib.sha256(retained.read_bytes()).hexdigest() == artifact[
+                f"{kind}_sha256"
+            ]
+
+
+def test_robust_v3_retained_failure_preserves_condition_and_artifact_evidence() -> None:
+    root = Path(__file__).resolve().parents[1]
+    evidence = root / "docs/evidence"
+    result = json.loads(
+        (evidence / "2026-07-10-structured-robustness-real-result.json").read_text()
+    )
+    artifact_root = evidence / "2026-07-10-structured-robustness-real-artifacts"
+
+    assert result["verdict"] == "real_io_acceptance_failed"
+    assert result["all_acceptance_gates_passed"] is False
+    assert all(result["acceptance"]["tones"].values())
+    assert result["acceptance"]["vowels"]["each_condition_occupancy_passed"] is False
+    vowel_reports = result["family_reports"]["vowels"]["reports"]
+    assert all(trial["accuracy_improvement"] >= 0.15 for trial in vowel_reports)
+    dropout = next(
+        trial
+        for trial in vowel_reports
+        if trial["condition"]["name"].endswith("dropout_10pct")
+    )
+    assert dropout["state_occupancy"] == 3
+    assert len(result["artifacts"]) == 12
+    for artifact in result["artifacts"]:
         for kind in ("efference", "captured"):
             retained = artifact_root / Path(artifact[f"{kind}_wav"]).name
             assert retained.exists()
@@ -308,6 +442,28 @@ def test_calibrated_v2_fake_path_uses_fresh_manifest_and_predictive_gates(
         assert family["held_out_codebook_occupancy"] == 4
         assert family["accuracy_improvement"] >= 0.20
         assert family["minimum_trial_improvement"] >= 0.15
+
+
+def test_robust_v3_fake_path_passes_every_named_condition(tmp_path) -> None:
+    report = structured_prediction_cli(
+        [
+            "--evaluate-structured-prediction",
+            "--out-dir",
+            str(tmp_path),
+            "--variant",
+            "robustness_v3",
+            "--fake-io",
+        ]
+    )
+
+    assert report["verdict"] == "fake_io_plumbing_passed"
+    assert report["protocol_variant"] == "robustness_v3"
+    assert report["development_seeds"] == list(ROBUST_V3_DEVELOPMENT_SEEDS)
+    assert report["held_out_seeds"] == list(ROBUST_V3_HELD_OUT_SEEDS)
+    for family in report["family_reports"].values():
+        assert family["minimum_trial_improvement"] >= 0.15
+        assert all(trial["state_occupancy"] == 4 for trial in family["reports"])
+        assert all(trial["condition"]["name"] for trial in family["reports"])
 
 
 def test_local_codebook_updates_only_nearest_bounded_centroid() -> None:

@@ -68,6 +68,9 @@ from .structured_prediction import (
     CALIBRATED_V2_DEVELOPMENT_SEEDS,
     CALIBRATED_V2_HELD_OUT_SEEDS,
     CALIBRATED_V2_STD_FLOOR,
+    ROBUST_V3_DEVELOPMENT_SEEDS,
+    ROBUST_V3_HELD_OUT_SEEDS,
+    build_robust_v3_trial_conditions,
     run_structured_prediction_protocol,
 )
 from .live_speak_smoke import (
@@ -939,7 +942,7 @@ def structured_prediction_cli(args: list[str]) -> dict[str, object]:
             elif option == "--speaker-orientation":
                 speaker_orientation = value
             else:
-                if value not in {"original", "calibrated_v2"}:
+                if value not in {"original", "calibrated_v2", "robustness_v3"}:
                     raise ValueError("unknown structured protocol variant")
                 variant = value
             i += 2
@@ -976,7 +979,8 @@ def structured_prediction_cli(args: list[str]) -> dict[str, object]:
             device=input_device,
             **kwargs,
         )
-    calibrated = variant == "calibrated_v2"
+    calibrated = variant in {"calibrated_v2", "robustness_v3"}
+    robust = variant == "robustness_v3"
     return run_structured_prediction_protocol(
         out_dir=out_dir,
         fake_io=fake_io,
@@ -986,15 +990,26 @@ def structured_prediction_cli(args: list[str]) -> dict[str, object]:
         capture_fn=capture_fn,
         geometry=geometry,
         real_hardware_claim=bool(real_io and bounded_playback_authorized),
-        development_seeds=(CALIBRATED_V2_DEVELOPMENT_SEEDS if calibrated else None),
-        held_out_seeds=(CALIBRATED_V2_HELD_OUT_SEEDS if calibrated else None),
+        development_seeds=(
+            ROBUST_V3_DEVELOPMENT_SEEDS
+            if robust
+            else CALIBRATED_V2_DEVELOPMENT_SEEDS if calibrated else None
+        ),
+        held_out_seeds=(
+            ROBUST_V3_HELD_OUT_SEEDS
+            if robust
+            else CALIBRATED_V2_HELD_OUT_SEEDS if calibrated else None
+        ),
         protocol_variant=(variant if calibrated else None),
         calibration_normalization_std_floor=(
             CALIBRATED_V2_STD_FLOOR if calibrated else None
         ),
         acceptance_profile=(
-            "h2_predictive_advantage_v2" if calibrated else "original"
+            "h2_condition_robustness_v3"
+            if robust
+            else "h2_predictive_advantage_v2" if calibrated else "original"
         ),
+        trial_conditions=(build_robust_v3_trial_conditions() if robust else None),
     )
 
 
@@ -1967,7 +1982,7 @@ def main(argv: list[str] | None = None) -> int:
         "[--fit-register-scorer --source ROOT::LABEL_CSV [--source ROOT::LABEL_CSV] --out MODEL.json] "
         "[--eval-register-scorer --model MODEL.json --root DIR --label-csv FILE] "
         "[--eval-register-pipeline --model MODEL.json --vocal-root DIR --vocal-label-csv FILE --environmental-root DIR --environmental-label-csv FILE] "
-        "[--evaluate-structured-prediction --out-dir DIR [--variant original|calibrated_v2] [--fake-io | --real-io --authorize-bounded-playback --input-device :0 --output-device-index 2 --speaker-distance-cm N --speaker-orientation TEXT --quiet-room-confirmed]] "
+        "[--evaluate-structured-prediction --out-dir DIR [--variant original|calibrated_v2|robustness_v3] [--fake-io | --real-io --authorize-bounded-playback --input-device :0 --output-device-index 2 --speaker-distance-cm N --speaker-orientation TEXT --quiet-room-confirmed]] "
         "[--simulate-self-suppression [--vowel a|e|i|o|u] [--world-vowel a|e|i|o|u] [--world-gain F] [--duration-ms N] [--sample-rate N]] "
         "[--learn-self-forward-model [--vowel a|e|i|o|u] [--observed-delay-ms F] [--observed-attenuation F] [--observed-echo-decay F] [--world-vowel a|e|i|o|u] [--world-gain F]] "
         "[--sweep-self-forward-model [--vowel a|e|i|o|u] [--delay-errors-ms csv] [--attenuation-scales csv] [--echo-decay-scales csv] [--world-vowel a|e|i|o|u] [--world-gain F]] "
