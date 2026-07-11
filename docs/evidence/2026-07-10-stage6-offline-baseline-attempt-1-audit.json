@@ -1,0 +1,20 @@
+{
+  "experiment": "stage6_offline_baseline_attempt_1_audit",
+  "date": "2026-07-10",
+  "status": "invalid_comparison_retained",
+  "measurement_occurred_after_preregistration_commit": "de52425",
+  "cora": {
+    "p95_latency_ms": 0.004125,
+    "real_time_factor": 0.00016802500002086163
+  },
+  "baseline": {
+    "p95_latency_ms": 0.014337149999999996,
+    "real_time_factor": 0.0006148100001155399
+  },
+  "invalidity": [
+    "The baseline used NumPy array allocation and reductions for two scalar channel energies, so it was not a credible conventional resource floor.",
+    "The baseline saliency threshold was 0.004 while Cora used 0.02, so the baseline performed identity and memory work on frames Cora rejected."
+  ],
+  "promotion_allowed": false,
+  "disposition": "Retain the result, correct the baseline to scalar operations and the same 0.02 saliency threshold, commit the amendment, then rerun once. No live measurement had started when the defect was found."
+}

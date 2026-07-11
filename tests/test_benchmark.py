@@ -1,4 +1,13 @@
 from cora_infans.benchmark import benchmark_event_pipeline
+from cora_infans.benchmark import _ConventionalFrameBaseline
+from cora_infans.pipeline import AudioFrame
+
+
+def test_conventional_baseline_uses_same_saliency_gate() -> None:
+    baseline = _ConventionalFrameBaseline()
+
+    assert baseline.process_frame(AudioFrame(0, [0.03, 0.02], 300.0)) is None
+    assert baseline.process_frame(AudioFrame(25, [0.07, 0.01], 500.0)) == (0, 1)
 
 
 def test_event_pipeline_benchmark_reports_explicit_boundary() -> None:

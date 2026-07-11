@@ -26,14 +26,20 @@ class _ConventionalFrameBaseline:
 
     def __init__(self) -> None:
         self.events: deque[tuple[int, int]] = deque(maxlen=10)
-        self.prototypes_hz = np.asarray([300.0, 500.0, 700.0, 900.0])
+        self.prototypes_hz = (300.0, 500.0, 700.0, 900.0)
 
     def process_frame(self, frame: AudioFrame) -> tuple[int, int] | None:
-        energies = np.asarray(frame.channel_energies, dtype=np.float64)
-        if float(np.max(energies) - np.mean(energies)) < 0.004:
+        energies = frame.channel_energies
+        peak = max(energies)
+        if peak - sum(energies) / len(energies) < 0.02:
             return None
-        identity = int(np.argmin(np.abs(self.prototypes_hz - frame.dominant_frequency_hz)))
-        event = (int(np.argmax(energies)), identity)
+        identity = min(
+            range(len(self.prototypes_hz)),
+            key=lambda index: abs(
+                self.prototypes_hz[index] - frame.dominant_frequency_hz
+            ),
+        )
+        event = (energies.index(peak), identity)
         self.events.append(event)
         return event
 
