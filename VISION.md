@@ -541,8 +541,8 @@ Current structured Cora protocol:
 
 ### Stage 5 — Perception-production closure
 
-Status: mechanism demonstrated; a CC BY 4.0 five-vowel, five-unseen-singer
-VocalSet confirmation is preregistered before its selected audio is fetched.
+Status: mechanism demonstrated; the first preregistered five-vowel,
+five-unseen-singer VocalSet confirmation failed.
 
 Required evidence:
 
@@ -551,6 +551,23 @@ Required evidence:
 - formant error reported separately for F1, F2, and F3;
 - held-out voices or formant targets not used to tune the estimator;
 - motor plans learned or adapted from error before claiming motor learning.
+
+Current recorded-human result:
+
+- clean synthetic identity remained `1.0`, with F1/F2/F3 MAE near
+  `24/41/49 Hz`;
+- the untouched five-singer VocalSet straight-long-tone set scored `9/25`
+  (`0.36`) against the frozen `0.80` gate;
+- vowel recall was `a/e/i/o/u = 0.4/0.8/0.0/0.4/0.2`; singer accuracy ranged
+  from `0.0` to `0.6`;
+- recorded F1/F2/F3 MAE was approximately `528/647/440 Hz` relative to Cora's
+  fixed adult reference targets;
+- all 25 external hashes and the five-by-five confusion matrix are retained,
+  but third-party audio remains outside Git under CC BY 4.0;
+- these five singers are spent and cannot tune the next estimator. H4 remains
+  open; a valid retry must develop speaker normalization or a stronger formant
+  representation on disjoint voices, then freeze it before another untouched
+  singer group. No motor-learning claim is made.
 
 ### Stage 6 — Real-time efficiency
 

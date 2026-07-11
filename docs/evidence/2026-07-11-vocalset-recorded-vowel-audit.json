@@ -1,0 +1,48 @@
+{
+  "experiment": "vocalset_held_out_recorded_vowel_audit",
+  "date": "2026-07-11",
+  "status": "recorded_vowel_gate_failed",
+  "preregistration_sha256": "25b1caebea5222a53d2b0e4ad83fe230aa2dc8e49ada0af1375894d3b51d8ce5",
+  "manifest_sha256": "dee3c0c12ba8d2855145fa4e76350d419a08519f22d8efa6973f1e685fe671c3",
+  "result_sha256": "b2f1312e683c111a451fc3bfc64d62851812b0efb520840e8ebffbaf117a057f",
+  "synthetic": {
+    "accuracy": 1.0,
+    "formant_mae_hz": {
+      "f1": 23.801423921725693,
+      "f2": 41.0569769795603,
+      "f3": 49.14952814682988
+    }
+  },
+  "recorded": {
+    "trial_count": 25,
+    "correct_count": 9,
+    "accuracy": 0.36,
+    "minimum_required_accuracy": 0.8,
+    "vowel_recall": {
+      "a": 0.4,
+      "e": 0.8,
+      "i": 0.0,
+      "o": 0.4,
+      "u": 0.2
+    },
+    "singer_accuracy": {
+      "female1": 0.2,
+      "female3": 0.0,
+      "male1": 0.4,
+      "male2": 0.6,
+      "male4": 0.6
+    },
+    "formant_mae_hz": {
+      "f1": 527.555882515082,
+      "f2": 646.6043831897351,
+      "f3": 439.71731520749205
+    },
+    "all_25_hashes_verified": true,
+    "full_scale_analysis_windows": 0
+  },
+  "promotion_allowed": false,
+  "data_boundary": "The five confirmation singers are spent and may not be used to tune or select a replacement estimator.",
+  "diagnosis": "The fixed adult target table and generic LPC pole selection transfer poorly across unseen sung voices, especially /i/ and /u/. Clean synthetic closure does not predict recorded-human closure.",
+  "next_valid_experiment": "Develop speaker normalization or a more robust formant representation on a disjoint VocalSet development group, then freeze it before evaluating a still-untouched confirmation group.",
+  "claim_boundary": "H4 remains open. This is a falsification on straight sung long tones, not ordinary speech, and no motor-learning claim is made."
+}

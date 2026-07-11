@@ -1,0 +1,160 @@
+{
+  "source": "VocalSet 1.0",
+  "doi": "10.5281/zenodo.1193957",
+  "license": "CC BY 4.0",
+  "archive_url": "https://zenodo.org/api/records/1193957/files/VocalSet.zip/content",
+  "archive_size": 2077087366,
+  "central_directory_sha256": "dc801568a8d5f2f6c67be28dba53b2badadb7088715b9047c922b38aae1d8626",
+  "members": [
+    {
+      "member": "FULL/female1/long_tones/straight/f1_long_straight_a.wav",
+      "bytes": 1042802,
+      "crc32": "a46ec217",
+      "sha256": "e1ff90d89de7e30a4dd717dd642173e57b083832f38e74eb8033d349c02bc340"
+    },
+    {
+      "member": "FULL/female1/long_tones/straight/f1_long_straight_e.wav",
+      "bytes": 938526,
+      "crc32": "da71b899",
+      "sha256": "7ace6fbcd3f8b80a4170370731b374e6736ffa26b77a196d0a9e6d3b7e81f9b0"
+    },
+    {
+      "member": "FULL/female1/long_tones/straight/f1_long_straight_i.wav",
+      "bytes": 969808,
+      "crc32": "d46ac763",
+      "sha256": "27b9cdb2cc4996f13d46b4d611d7b5c73de1e613b75ea7bb02c7f870769dd40f"
+    },
+    {
+      "member": "FULL/female1/long_tones/straight/f1_long_straight_o.wav",
+      "bytes": 938526,
+      "crc32": "a5fba487",
+      "sha256": "6bca6f86e963cb79dfdb9729c2577ebda5a89779959a17c844f3868a40d94e5f"
+    },
+    {
+      "member": "FULL/female1/long_tones/straight/f1_long_straight_u.wav",
+      "bytes": 969810,
+      "crc32": "ddee3a99",
+      "sha256": "6eb6c64b7c9d9a53a0e6ca192689dde027dde7addef89c97929b3848de730d42"
+    },
+    {
+      "member": "FULL/female3/long_tones/straight/f3_long_straight_a.wav",
+      "bytes": 981448,
+      "crc32": "dd0b6eda",
+      "sha256": "01953e7b2f44625e3ca42452620570d5f2c59158d64e4766c8f03ea80b0f5818"
+    },
+    {
+      "member": "FULL/female3/long_tones/straight/f3_long_straight_e.wav",
+      "bytes": 931826,
+      "crc32": "824372da",
+      "sha256": "b019a2fc6b7eb10242efebd1212bc5771cd269a62722866d19b7eb6cd9a3e17b"
+    },
+    {
+      "member": "FULL/female3/long_tones/straight/f3_long_straight_i.wav",
+      "bytes": 942854,
+      "crc32": "af2bb3aa",
+      "sha256": "36fa8042e682cdf0895f9ae8ba1dbffaddf40a33175de2ad14fa48bdf9b7217e"
+    },
+    {
+      "member": "FULL/female3/long_tones/straight/f3_long_straight_o.wav",
+      "bytes": 959394,
+      "crc32": "304f241d",
+      "sha256": "2b3ce2add3e07c67871b514b89250e8916f19001958183a28aa582c5072d8303"
+    },
+    {
+      "member": "FULL/female3/long_tones/straight/f3_long_straight_u.wav",
+      "bytes": 876690,
+      "crc32": "291afdd0",
+      "sha256": "87f40b6115eac0770d49019a74ee56b2a477dcf09647a30b712f7deb5cdecb5c"
+    },
+    {
+      "member": "FULL/male1/long_tones/straight/m1_long_straight_a.wav",
+      "bytes": 897668,
+      "crc32": "9ecaebc1",
+      "sha256": "27abc074bca36086b1abc0093e920bc750e30ac37a52bd22ae9de1e89620dd72"
+    },
+    {
+      "member": "FULL/male1/long_tones/straight/m1_long_straight_e.wav",
+      "bytes": 937386,
+      "crc32": "950017ba",
+      "sha256": "bd19aec6c3ea4299c17839b8aecd86b88dc669036db8fbbc15525eca4eabf7ee"
+    },
+    {
+      "member": "FULL/male1/long_tones/straight/m1_long_straight_i.wav",
+      "bytes": 897668,
+      "crc32": "913c6e28",
+      "sha256": "d2ea9c62b30bc542991d3c9ed1b32e3c08a451614c7672fa0b8f4cbac3f15f52"
+    },
+    {
+      "member": "FULL/male1/long_tones/straight/m1_long_straight_o.wav",
+      "bytes": 897668,
+      "crc32": "1e09351b",
+      "sha256": "20d9d4a9a1cccc3df4ff2308ad663cefb6b95e731f271b1e4b40e0b14c70cc39"
+    },
+    {
+      "member": "FULL/male1/long_tones/straight/m1_long_straight_u.wav",
+      "bytes": 834120,
+      "crc32": "4e4473cd",
+      "sha256": "533177fc95db9c7272195d310b20603f7cd7a895bb1d3ca0acd9b27afeb4fc25"
+    },
+    {
+      "member": "FULL/male2/long_tones/straight/m2_long_straight_a.wav",
+      "bytes": 760274,
+      "crc32": "4e6b18ef",
+      "sha256": "d82342655730126bfe78d0f351714a0bab8438bb23a4a4dccd6426633eb3610e"
+    },
+    {
+      "member": "FULL/male2/long_tones/straight/m2_long_straight_e.wav",
+      "bytes": 846106,
+      "crc32": "ceac9a77",
+      "sha256": "f872c5d81fb22f5644b7eed67eb060c15ec17671fd3e43c4c3cb25e925913db0"
+    },
+    {
+      "member": "FULL/male2/long_tones/straight/m2_long_straight_i.wav",
+      "bytes": 805234,
+      "crc32": "3745a3c7",
+      "sha256": "6df61ec7415355514af516cdd363be6c9722405e695801020f0fce0efbf9c63b"
+    },
+    {
+      "member": "FULL/male2/long_tones/straight/m2_long_straight_o.wav",
+      "bytes": 694876,
+      "crc32": "c0931e08",
+      "sha256": "a992349c744f67efd6f15ab1167a38df65fc4d6dc7ff38b3104014385b031118"
+    },
+    {
+      "member": "FULL/male2/long_tones/straight/m2_long_straight_u.wav",
+      "bytes": 764362,
+      "crc32": "885f5c5c",
+      "sha256": "1da7e550015119636d15c09585fb59aae00471145e161e1c0da4b6273c22c3a7"
+    },
+    {
+      "member": "FULL/male4/long_tones/straight/m4_long_straight_a.wav",
+      "bytes": 697310,
+      "crc32": "c68345b1",
+      "sha256": "09eb6dd466b2b9c13cf2a39e4710359b9e1d3aafb43521b59335b92c36245872"
+    },
+    {
+      "member": "FULL/male4/long_tones/straight/m4_long_straight_e.wav",
+      "bytes": 613346,
+      "crc32": "5924d9b7",
+      "sha256": "12ece28339c32f2a7389647dbce735cdfac27036d7c94cfa312842eba11f3799"
+    },
+    {
+      "member": "FULL/male4/long_tones/straight/m4_long_straight_i.wav",
+      "bytes": 660804,
+      "crc32": "279cad02",
+      "sha256": "5994fbbde27eba5b3b3a5c048127ea4c22e9787451923f4db4e8db7d5a0224d3"
+    },
+    {
+      "member": "FULL/male4/long_tones/straight/m4_long_straight_o.wav",
+      "bytes": 649850,
+      "crc32": "4658d24a",
+      "sha256": "f6d869d5011481ed3a574dcc0a2bd12ae38653545ffd9e48f127c2fee4a0b19f"
+    },
+    {
+      "member": "FULL/male4/long_tones/straight/m4_long_straight_u.wav",
+      "bytes": 569538,
+      "crc32": "6c278fc6",
+      "sha256": "5807c32d2e062a6ea0228ecd979394b2a3b275676d440af23699806bce7cdd73"
+    }
+  ]
+}

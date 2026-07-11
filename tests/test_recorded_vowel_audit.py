@@ -81,3 +81,20 @@ def test_recorded_vowel_evaluator_rejects_hash_drift(tmp_path) -> None:
         assert "hash mismatch" in str(exc)
     else:
         raise AssertionError("corpus hash drift must fail")
+
+
+def test_retained_vocalset_confirmation_preserves_falsification() -> None:
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    result = json.loads(
+        (root / "docs/evidence/2026-07-11-vocalset-recorded-vowel-result.json").read_text()
+    )
+
+    assert result["verdict"] == "recorded_vowel_gate_failed"
+    assert result["promotion_allowed"] is False
+    assert result["synthetic"]["accuracy"] == 1.0
+    assert result["recorded"]["accuracy"] == 0.36
+    assert result["recorded"]["vowel_recall"]["i"] == 0.0
+    assert result["recorded"]["vowel_recall"]["u"] == 0.2
+    assert result["criteria"]["all_member_hashes_verified"] is True
