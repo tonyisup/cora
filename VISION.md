@@ -499,6 +499,12 @@ Current structured Cora protocol:
   `0.667`; capacity `1/2/3/4` reached `0.857/0.923/1.0/1.0`;
 - this is synthetic plumbing only. Live I/O remains deliberately unwired until
   both source geometries and levels are confirmed and frozen.
+- the device-agnostic live boundary is nevertheless implemented and tested:
+  self/world tracks stay separate, overlap sources start concurrently, one
+  source owns the alignment chirp, and explicitly aligned two-channel captures
+  feed the same frozen metric;
+- no hardware route is exposed. Device indices, physical geometry, and levels
+  must be frozen in a separate preregistration before the CLI can play this task.
 
 ### Stage 5 — Perception-production closure
 

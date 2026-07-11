@@ -417,6 +417,11 @@ research contract and implements the first vertical evidence path.
   `0.667`; capacity `1/2/3/4` produced `0.857/0.923/1.0/1.0`. This remains
   non-promoting synthetic plumbing, and live device I/O is intentionally
   unwired pending exact source geometry.
+- Added and tested the generic live boundary without enabling devices: distinct
+  self/world PCM tracks, concurrent overlap playback abstraction, one-source
+  chirp ownership, explicit per-trial alignment maps, stimulus-window bounds,
+  and mono/two-channel capture evaluation. Injected aligned captures pass the
+  same gate. No H3 hardware playback occurred and promotion remains prohibited.
 
 ### Analysis-by-synthesis repair
 

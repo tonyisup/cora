@@ -324,7 +324,8 @@ python3 -m cora_infans --evaluate-structured-workspace-binding --fake-io
 
 The protocol uses held-out self/world frequency bands, self-only/world-only/
 overlap conditions, flat and fixed-window baselines, and a 1–4 binding-slot
-sweep. Live device I/O is intentionally not wired yet.
+sweep. Generic dual-track concurrency and chirp-aligned two-channel capture
+evaluation are tested, but live CLI device I/O is intentionally not wired yet.
 
 The ablation compares flat, fixed-window, and theta-gamma handling on aligned
 self echo and legitimate world/motor overlap. Scheduling suppression requires
@@ -449,6 +450,10 @@ developmental language learning.
   `0.857/0.923/1.0/1.0`. The first symmetric midpoint threshold is retained as
   a failure because it suppressed two equal-gain overlaps; the corrected rule
   uses the lowest decile of the clean development gap. Live I/O remains unwired.
+- Generic live plumbing now keeps self/world PCM separate, starts overlap tracks
+  through a concurrent source abstraction, assigns one chirp reference source,
+  and evaluates explicitly aligned mono or two-channel captures. Injected-I/O
+  tests pass; devices and geometry remain unfrozen and no live H3 audio ran.
 - Theta/gamma scheduling is an event-timing model, not measured neural dynamics.
 - The vowel table uses adult reference targets and clean synthetic success does
   not imply recorded infant/adult speech performance.

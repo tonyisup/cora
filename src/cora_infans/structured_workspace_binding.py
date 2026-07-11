@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import math
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict, dataclass
+from typing import Callable
 
 import numpy as np
 
@@ -35,6 +37,16 @@ class WorkspaceBindingTrial:
     world_frequency_hz: float | None
     efference_id: str | None
     expected_world_usable: bool
+
+
+@dataclass(frozen=True)
+class RenderedWorkspaceBindingTracks:
+    trial: WorkspaceBindingTrial
+    self_pcm: np.ndarray
+    world_pcm: np.ndarray
+    reference_pcm: np.ndarray
+    stimulus_window: tuple[int, int]
+    chirp_source: str
 
 
 SELF_DEVELOPMENT_HZ = (380.0, 520.0, 680.0)
@@ -110,10 +122,10 @@ def build_workspace_binding_protocol(
     }
 
 
-def _render_trial(
+def render_workspace_binding_tracks(
     trial: WorkspaceBindingTrial,
     config: WorkspaceBindingConfig,
-) -> tuple[np.ndarray, tuple[int, int]]:
+) -> RenderedWorkspaceBindingTracks:
     chirp = synthesize_chirp(
         250.0,
         3500.0,
@@ -125,15 +137,16 @@ def _render_trial(
         dtype=np.float32,
     )
     stimulus_length = int(config.stimulus_ms * config.sample_rate / 1000)
-    stimulus = np.zeros(stimulus_length, dtype=np.float32)
+    self_stimulus = np.zeros(stimulus_length, dtype=np.float32)
+    world_stimulus = np.zeros(stimulus_length, dtype=np.float32)
     if trial.self_frequency_hz is not None:
-        stimulus += config.self_gain * synthesize_tone(
+        self_stimulus += config.self_gain * synthesize_tone(
             trial.self_frequency_hz,
             duration_ms=config.stimulus_ms,
             sample_rate=config.sample_rate,
         )
     if trial.world_frequency_hz is not None:
-        stimulus += config.world_gain * synthesize_tone(
+        world_stimulus += config.world_gain * synthesize_tone(
             trial.world_frequency_hz,
             duration_ms=config.stimulus_ms,
             sample_rate=config.sample_rate,
@@ -143,10 +156,58 @@ def _render_trial(
         dtype=np.float32,
     )
     start = len(chirp) + len(pre)
-    return (
-        np.concatenate((chirp, pre, np.clip(stimulus, -1.0, 1.0), tail)),
-        (start, start + stimulus_length),
+    empty_chirp = np.zeros_like(chirp)
+    if trial.self_frequency_hz is not None:
+        self_chirp, world_chirp, chirp_source = chirp, empty_chirp, "self"
+    else:
+        self_chirp, world_chirp, chirp_source = empty_chirp, chirp, "world"
+    self_pcm = np.concatenate(
+        (self_chirp, pre, np.clip(self_stimulus, -1.0, 1.0), tail)
+    ).astype(np.float32)
+    world_pcm = np.concatenate(
+        (world_chirp, pre, np.clip(world_stimulus, -1.0, 1.0), tail)
+    ).astype(np.float32)
+    return RenderedWorkspaceBindingTracks(
+        trial=trial,
+        self_pcm=self_pcm,
+        world_pcm=world_pcm,
+        reference_pcm=self_pcm if chirp_source == "self" else world_pcm,
+        stimulus_window=(start, start + stimulus_length),
+        chirp_source=chirp_source,
     )
+
+
+def _render_trial(
+    trial: WorkspaceBindingTrial,
+    config: WorkspaceBindingConfig,
+) -> tuple[np.ndarray, tuple[int, int]]:
+    tracks = render_workspace_binding_tracks(trial, config)
+    return tracks.self_pcm + tracks.world_pcm, tracks.stimulus_window
+
+
+def play_workspace_tracks_concurrently(
+    *,
+    self_path: str | None,
+    world_path: str | None,
+    self_playback: Callable[[str], dict[str, object]],
+    world_playback: Callable[[str], dict[str, object]],
+) -> dict[str, object]:
+    """Start non-empty self/world tracks together and retain both reports."""
+
+    jobs = []
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        if self_path is not None:
+            jobs.append(("self", executor.submit(self_playback, self_path)))
+        if world_path is not None:
+            jobs.append(("world", executor.submit(world_playback, world_path)))
+        reports = {name: future.result() for name, future in jobs}
+    if not reports:
+        raise ValueError("workspace playback requires at least one source track")
+    return {
+        "backend": "concurrent_explicit_output_tracks",
+        "started": all(bool(report.get("started")) for report in reports.values()),
+        "sources": reports,
+    }
 
 
 def _fake_capture(
@@ -223,21 +284,9 @@ def _evaluate(
     }
 
 
-def run_fake_workspace_binding_protocol(
-    config: WorkspaceBindingConfig | None = None,
+def _score_workspace_binding_evidence(
+    trials: list[WorkspaceBindingTrial], evidence: dict[str, float]
 ) -> dict[str, object]:
-    """Exercise the full structured H3 scoring path through a fake channel."""
-
-    config = config or WorkspaceBindingConfig()
-    trials = list(build_workspace_binding_trials())
-    evidence = {}
-    for index, trial in enumerate(trials):
-        pcm, (start, end) = _render_trial(trial, config)
-        captured, delay = _fake_capture(pcm, seed=17000 + index, config=config)
-        evidence[trial.trial_id] = _world_band_ratio(
-            captured[delay + start : delay + end],
-            config.sample_rate,
-        )
     development = [trial for trial in trials if trial.split == "development"]
     held_out = [trial for trial in trials if trial.split == "held_out"]
     max_self = max(evidence[trial.trial_id] for trial in development if not trial.expected_world_usable)
@@ -288,10 +337,7 @@ def run_fake_workspace_binding_protocol(
         ),
     }
     return {
-        **build_workspace_binding_protocol(config),
-        "verdict": "fake_io_plumbing_passed" if all(criteria.values()) else "fake_io_gate_failed",
-        "evidence_class": "synthetic_fake_acoustic_channel",
-        "promotion_allowed": False,
+        "verdict": "capture_acceptance_passed" if all(criteria.values()) else "capture_acceptance_failed",
         "world_evidence": evidence,
         "world_evidence_threshold": threshold,
         "world_evidence_threshold_rule": (
@@ -302,3 +348,67 @@ def run_fake_workspace_binding_protocol(
         "reports": reports,
         "criteria": criteria,
     }
+
+
+def evaluate_workspace_binding_captures(
+    *,
+    captures: dict[str, np.ndarray],
+    alignment_samples: dict[str, int],
+    config: WorkspaceBindingConfig | None = None,
+) -> dict[str, object]:
+    """Score chirp-aligned captures without performing acquisition or playback."""
+
+    config = config or WorkspaceBindingConfig()
+    trials = list(build_workspace_binding_trials())
+    expected = {trial.trial_id for trial in trials}
+    if set(captures) != expected or set(alignment_samples) != expected:
+        raise ValueError("workspace capture and alignment maps must cover every trial")
+    evidence = {}
+    for trial in trials:
+        samples = np.asarray(captures[trial.trial_id], dtype=np.float64)
+        if samples.ndim == 2:
+            samples = np.mean(samples, axis=1)
+        if samples.ndim != 1:
+            raise ValueError("workspace captures must be mono or frame-by-channel")
+        tracks = render_workspace_binding_tracks(trial, config)
+        start, end = tracks.stimulus_window
+        aligned_start = int(alignment_samples[trial.trial_id]) + start
+        aligned_end = int(alignment_samples[trial.trial_id]) + end
+        if aligned_start < 0 or aligned_end > len(samples):
+            raise ValueError(f"capture does not contain stimulus window: {trial.trial_id}")
+        evidence[trial.trial_id] = _world_band_ratio(
+            samples[aligned_start:aligned_end], config.sample_rate
+        )
+    return {
+        **build_workspace_binding_protocol(config),
+        **_score_workspace_binding_evidence(trials, evidence),
+        "evidence_class": "provided_chirp_aligned_capture_arrays",
+        "promotion_allowed": False,
+    }
+
+
+def run_fake_workspace_binding_protocol(
+    config: WorkspaceBindingConfig | None = None,
+) -> dict[str, object]:
+    """Exercise the full structured H3 scoring path through a fake channel."""
+
+    config = config or WorkspaceBindingConfig()
+    captures = {}
+    alignments = {}
+    for index, trial in enumerate(build_workspace_binding_trials()):
+        pcm, _window = _render_trial(trial, config)
+        captured, delay = _fake_capture(pcm, seed=17000 + index, config=config)
+        captures[trial.trial_id] = captured
+        alignments[trial.trial_id] = delay
+    report = evaluate_workspace_binding_captures(
+        captures=captures,
+        alignment_samples=alignments,
+        config=config,
+    )
+    report["evidence_class"] = "synthetic_fake_acoustic_channel"
+    report["verdict"] = (
+        "fake_io_plumbing_passed"
+        if all(bool(value) for value in report["criteria"].values())
+        else "fake_io_gate_failed"
+    )
+    return report
