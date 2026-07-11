@@ -145,6 +145,15 @@ def _artifact_by_trial(result: dict[str, object]) -> dict[str, dict[str, object]
     return {str(item["trial_id"]): item for item in artifacts}
 
 
+def _validate_result_modes(
+    template_v2: dict[str, object], spectral_v3: dict[str, object]
+) -> None:
+    if template_v2.get("mode") != "natural_speech_workspace_template_v2_real_failure_audit":
+        raise ValueError("unexpected template-v2 result mode")
+    if spectral_v3.get("mode") != "natural_speech_workspace_spectral_v3_real_result":
+        raise ValueError("unexpected spectral-v3 result mode")
+
+
 def _alignment(artifact: dict[str, object]) -> int:
     value = artifact.get("alignment_samples")
     if value is None:
@@ -214,10 +223,7 @@ def load_spent_commands(
 ) -> tuple[SpentCommand, ...]:
     v2 = json.loads(Path(template_v2_result).read_text())
     v3 = json.loads(Path(spectral_v3_result).read_text())
-    if v2.get("mode") != "natural_speech_workspace_template_v2_protocol":
-        raise ValueError("unexpected template-v2 result mode")
-    if v3.get("mode") != "natural_speech_workspace_spectral_v3_real_result":
-        raise ValueError("unexpected spectral-v3 result mode")
+    _validate_result_modes(v2, v3)
     v2_artifacts = _artifact_by_trial(v2)
     v3_artifacts = _artifact_by_trial(v3)
     v2_root = Path(template_v2_artifacts)

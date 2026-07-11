@@ -5,6 +5,7 @@ import pytest
 
 from cora_infans.same_source_forward_model import (
     SameSourceForwardModel,
+    _validate_result_modes,
     centered_log_bands,
     forward_distance,
     raw_efference_distance,
@@ -74,3 +75,15 @@ def test_log_band_shape_is_gain_invariant() -> None:
 def test_model_rejects_use_before_calibration() -> None:
     with pytest.raises(ValueError, match="no calibration"):
         SameSourceForwardModel().predict(np.arange(12, dtype=np.float64))
+
+
+def test_retained_result_modes_fail_closed() -> None:
+    _validate_result_modes(
+        {"mode": "natural_speech_workspace_template_v2_real_failure_audit"},
+        {"mode": "natural_speech_workspace_spectral_v3_real_result"},
+    )
+    with pytest.raises(ValueError, match="template-v2"):
+        _validate_result_modes(
+            {"mode": "natural_speech_workspace_template_v2_protocol"},
+            {"mode": "natural_speech_workspace_spectral_v3_real_result"},
+        )
