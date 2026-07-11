@@ -1,0 +1,86 @@
+{
+  "experiment": "stage6_callback_natural_speech_timing_attempt_1",
+  "date": "2026-07-11",
+  "status": "timing_passed_capture_quality_failed",
+  "preregistration": {
+    "path": "docs/evidence/2026-07-11-stage6-natural-speech-timing-preregistration.json",
+    "sha256": "07f26b67533182e61551c1fa568b87edfef00a4882d8bf5eb46303816b94fc8b",
+    "commit": "cdbb7b0"
+  },
+  "implementation_commit": "2d06d54",
+  "stimulus": {
+    "filename": "ACO02B.wav",
+    "sha256": "c58a46a68782fb318cd885e6c670025104cc844bb3d8e4080b69b1f995c2c410",
+    "playback_gain_db": -12.0
+  },
+  "runs": [
+    {
+      "run": 1,
+      "raw_report_sha256": "3dbaf1101a2e2ad892f4e88184db7662a66682aedbac38061fe99a36f5ed5fd9",
+      "frame_count": 400,
+      "salient_frame_count": 230,
+      "clipped_sample_count": 90,
+      "capture_peak_absolute": 1.0,
+      "salient_adc_frame_end_to_workspace_p95_ms": 10.568449999846052,
+      "quiet_adc_frame_end_to_workspace_p95_ms": 10.355789097593515,
+      "device_deadline_miss_count": 0,
+      "input_overflow_count": 0,
+      "callback_status_count": 0,
+      "timestamp_discontinuity_count": 0,
+      "steady_state_real_time_factor": 0.9972908533333333,
+      "average_process_cpu_percent": 4.495413938484451,
+      "peak_resident_memory_megabytes": 64.96875
+    },
+    {
+      "run": 2,
+      "raw_report_sha256": "65cb88e06291e9ef102b651c9a3db2f18cb636ce948bdbd6969e10b18ec3fa98",
+      "frame_count": 400,
+      "salient_frame_count": 230,
+      "clipped_sample_count": 3,
+      "capture_peak_absolute": 1.0,
+      "salient_adc_frame_end_to_workspace_p95_ms": 10.269145945494529,
+      "quiet_adc_frame_end_to_workspace_p95_ms": 10.091248247408657,
+      "device_deadline_miss_count": 0,
+      "input_overflow_count": 0,
+      "callback_status_count": 0,
+      "timestamp_discontinuity_count": 0,
+      "steady_state_real_time_factor": 0.9973306350877192,
+      "average_process_cpu_percent": 4.408723229587592,
+      "peak_resident_memory_megabytes": 65.078125
+    },
+    {
+      "run": 3,
+      "raw_report_sha256": "b376b6282f2f0dd916a9aa33c51cb3ebfd0d89afca3776b8c3d6bcd1091ddb69",
+      "frame_count": 400,
+      "salient_frame_count": 235,
+      "clipped_sample_count": 0,
+      "capture_peak_absolute": 0.893798828125,
+      "salient_adc_frame_end_to_workspace_p95_ms": 10.223991897510132,
+      "quiet_adc_frame_end_to_workspace_p95_ms": 10.207825600809882,
+      "device_deadline_miss_count": 0,
+      "input_overflow_count": 0,
+      "callback_status_count": 0,
+      "timestamp_discontinuity_count": 0,
+      "steady_state_real_time_factor": 0.9972904516290727,
+      "average_process_cpu_percent": 4.443060924554693,
+      "peak_resident_memory_megabytes": 64.84375
+    }
+  ],
+  "aggregate": {
+    "frame_count": 1200,
+    "salient_frame_count": 695,
+    "clipped_sample_count": 93,
+    "device_deadline_miss_count": 0,
+    "input_overflow_count": 0,
+    "callback_status_count": 0,
+    "timestamp_discontinuity_count": 0
+  },
+  "criteria": {
+    "timing_and_resource_criteria_passed": true,
+    "minimum_salient_frames_passed": true,
+    "zero_clipped_samples_each_passed": false
+  },
+  "overall_criteria_passed": false,
+  "promotion_allowed": false,
+  "retry_decision": "The preregistered gain-only retry condition is satisfied. Freeze -18 dB before one final three-run attempt; do not change stimulus, thresholds, geometry, devices, timing, or other criteria."
+}
