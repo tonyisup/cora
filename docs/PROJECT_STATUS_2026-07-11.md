@@ -115,6 +115,11 @@ stream-integrity failures and zero clipping during active playback. KRA and MES
 nevertheless contributed `71` full-scale samples during trailing quiet, so the
 strict whole-capture gate failed. Four of six runs were completely clean; the
 telemetry does not identify the source of the two quiet-interval transients.
+The retained [post-hoc localization](evidence/2026-07-11-stage6-diverse-natural-speech-failure-analysis.json)
+shows smooth, low-frequency, channel-0-dominant input envelopes seconds after
+playback, with no callback or timestamp fault. This rejects a software-stream
+corruption explanation but cannot distinguish an unobserved room sound from an
+analog/device-front-end transient.
 
 ## Verification state
 

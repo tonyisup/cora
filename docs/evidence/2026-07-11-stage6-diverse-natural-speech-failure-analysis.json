@@ -1,0 +1,64 @@
+{
+  "analysis": "stage6_diverse_natural_speech_trailing_quiet_failure",
+  "date": "2026-07-11",
+  "status": "post_hoc_localization_without_gate_revision_or_retry",
+  "parent_result": {
+    "path": "docs/evidence/2026-07-11-stage6-diverse-natural-speech-result.json",
+    "sha256_before_analysis": "41dc61e644f4878341e6235c13eda2a268565c113f5d24d4e7b8359f045a46da"
+  },
+  "question": "Do the two trailing-quiet clipping failures look like callback/sample corruption, stimulus playback overlap, or coherent input transients?",
+  "observations": {
+    "KRA01D.wav": [
+      {
+        "frames": [285, 286, 287, 288, 289],
+        "clipped_frame": 287,
+        "clipped_sample_count": 1,
+        "time_after_playback_process_ended_ms": 2275,
+        "channel_rms_at_clipped_frame": [0.30147239565849304, 0.024335026741027832],
+        "dominant_frequency_hz_at_clipped_frame": 280.0,
+        "neighbor_peak_envelope": [0.645233154296875, 0.804962158203125, 1.0, 0.79510498046875, 0.584686279296875]
+      },
+      {
+        "frames": [626, 627, 628, 629, 630, 631, 632],
+        "clipped_frames": [628, 629, 630],
+        "clipped_sample_counts": [2, 14, 2],
+        "time_after_playback_process_ended_ms_at_first_clip": 10800,
+        "channel_rms_at_peak_clipped_frame": [0.4931718707084656, 0.0555715374648571],
+        "dominant_frequency_hz_across_clipped_frames": [520.0, 360.0, 520.0],
+        "neighbor_peak_envelope": [0.352020263671875, 0.54315185546875, 1.0, 1.0, 1.0, 0.536529541015625, 0.54803466796875]
+      }
+    ],
+    "MES06D.wav": [
+      {
+        "frames": [428, 429, 430, 431, 432, 433],
+        "clipped_frames": [430, 431],
+        "clipped_sample_counts": [32, 20],
+        "time_after_playback_process_ended_ms_at_first_clip": 6325,
+        "channel_rms_at_peak_clipped_frame": [0.7078695297241211, 0.10855861753225327],
+        "dominant_frequency_hz_across_clipped_frames": [480.0, 440.0],
+        "neighbor_peak_envelope": [0.240814208984375, 0.908660888671875, 1.0, 1.0, 0.486541748046875, 0.238189697265625]
+      }
+    ],
+    "stream_health_during_all_six_runs": {
+      "input_overflow_count": 0,
+      "callback_status_count": 0,
+      "timestamp_discontinuity_count": 0,
+      "fallback_count": 0
+    }
+  },
+  "inference": {
+    "callback_corruption_supported": false,
+    "stimulus_playback_overlap_supported": false,
+    "coherent_input_transient_supported": true,
+    "basis": "The failures form smooth multi-frame amplitude envelopes with stable low-frequency content and strong but nonexclusive channel-0 energy. They are separated from playback completion by seconds and coincide with no digital-stream health event.",
+    "physical_source_identified": false,
+    "physical_source_boundary": "The retained telemetry cannot distinguish an unobserved room sound from an analog/device-front-end transient. No raw capture or synchronized scene monitor exists, so naming the source would exceed the evidence."
+  },
+  "disposition": {
+    "software_fix_justified": false,
+    "replacement_run_allowed": false,
+    "parent_overall_gate_remains_failed": true,
+    "parent_timing_result_remains_positive": true,
+    "future_protocol_requirement": "If whole-capture integrity is revisited, monitor or control the acoustic scene and retain channel-resolved diagnostic PCM or equivalent non-content telemetry under a new preregistration. Do not retroactively weaken the whole-capture criterion or replace these runs."
+  }
+}
