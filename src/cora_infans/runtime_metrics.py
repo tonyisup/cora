@@ -166,9 +166,12 @@ class RuntimeLatencyTracker:
                 else None
             ),
             "excluded": [
-                *([] if self.adc_end_to_decision_ms else ["hardware_adc_sample_onset"]),
+                *(
+                    ["raw_coreaudio_AudioTimeStamp"]
+                    if self.adc_end_to_decision_ms
+                    else ["hardware_adc_sample_onset", "coreaudio_backend_timestamp"]
+                ),
                 "xmos_internal_dsp_latency",
-                "coreaudio_backend_timestamp",
                 "attention_usb_steer_after_workspace_decision",
                 "energy_measurement",
             ],

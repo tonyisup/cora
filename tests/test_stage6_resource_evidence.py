@@ -47,3 +47,22 @@ def test_retained_native_rate_retry_preserves_deadline_failure() -> None:
         "operational_deadline_miss_rate_each_max_0_05"
     ] is False
     assert result["promotion_allowed"] is False
+
+
+def test_retained_device_timestamp_gate_preserves_bounded_pass() -> None:
+    root = Path(__file__).resolve().parents[1]
+    result = json.loads(
+        (root / "docs/evidence/2026-07-10-stage6-device-timestamp-result.json").read_text()
+    )
+
+    assert result["aggregate"]["frame_count"] == 1200
+    assert result["aggregate"]["device_timestamped_frame_count"] == 1200
+    assert result["aggregate"]["input_overflow_count"] == 0
+    assert result["aggregate"]["callback_status_count"] == 0
+    assert result["aggregate"]["timestamp_discontinuity_count"] == 0
+    assert result["aggregate"]["device_operational_deadline_miss_rate"] == 0.0
+    assert max(
+        result["aggregate"]["device_adc_end_to_workspace_p95_ms_range"]
+    ) < 30.0
+    assert result["overall_criteria_passed"] is True
+    assert result["promotion_allowed"] is True

@@ -53,3 +53,4 @@ def test_runtime_tracker_reports_device_timestamped_frame_latency() -> None:
     assert report["device_timestamped_strict_deadline_miss_count"] == 1
     assert report["device_timestamped_deadline_miss_count"] == 0
     assert "hardware_adc_sample_onset" not in report["excluded"]
+    assert "raw_coreaudio_AudioTimeStamp" in report["excluded"]

@@ -20,7 +20,7 @@ the repository.
 | Local predictive hierarchy | H2 supported within tested boundaries | Natural event transfer replicated across Wellington and MEN; a separate real room run with known efference masks retained four states through 10/15/20% dropout while improving vowels `+0.614` and tones `+0.474`. Unknown-timing world dropout and semantics remain outside scope |
 | Workspace binding | H3 supported within tested boundaries | The preregistered -18 dB synchronized run passed every classifier and zero-clipping gate: scheduled F1/recall/specificity 1.0/1.0/1.0 versus flat F1 0.8 and fixed-window F1 0.667; capacity improved through three slots and plateaued at four |
 | Analysis by synthesis | Recorded-human gate failed; retry paused | Clean synthesis remained 100%, but the preregistered VocalSet confirmation scored 36%; a disjoint development ladder peaked at 56%, so the reserved confirmation singers remain untouched and H4 stays open |
-| Efficiency | Resources measured; deadline gate failed | Three native XVF3800 runs had zero overflow flags, RTF below 1.0, CPU below 3.8%, and RSS below 63 MiB, but 11.75–18.5% exceeded the 30 ms operational deadline; ADC-onset timestamps and energy remain open |
+| Efficiency | Quiet-path device timing passed | Three callback XVF3800 runs completed 1,200 timestamped frames with zero device-deadline misses; ADC frame-end-to-workspace p95 was 10.19–10.21 ms, CPU below 4.2%, and RSS below 62.3 MiB. Salient timing, XMOS DSP delay, and energy remain open |
 
 ## Hardware boundary
 
@@ -361,6 +361,7 @@ verified self-audio identity; temporal coincidence by itself is insufficient.
 python3 -m cora_infans --capture-live --device :0 --duration-ms 250
 python3 -m cora_infans --listen-live --duration-ms 2000 --with-attention
 python3 -m cora_infans --listen-live --duration-ms 1000 --frame-ms 25 --sample-rate 16000 --capture-backend native
+python3 -m cora_infans --listen-live --duration-ms 1000 --frame-ms 25 --sample-rate 16000 --capture-backend callback
 python3 -m cora_infans --snapshot-firmware
 python3 -m cora_infans --tune-raw-linear
 ```
@@ -395,6 +396,13 @@ ADC-to-workspace p95 to roughly 73 ms. It did not improve the deadline gate:
 14.25–18.5% of frames still exceeded 30 ms. The unresolved jitter is therefore
 at the callback-quantum/blocking-read boundary rather than in pipeline compute
 or host sample-rate conversion.
+
+The callback backend preserves PortAudio's ADC buffer timestamp and reblocks
+variable callback quanta into exact analysis frames. In three frozen quiet-path
+runs, ADC frame-end-to-workspace p95 was 10.19–10.21 ms with zero 30 ms device
+deadline misses. Frame-onset latency was 35.19–35.21 ms because it correctly
+includes the 25 ms needed to acquire a complete frame. These are backend ADC
+timestamps, not raw CoreAudio timestamps, and they exclude XMOS internal DSP.
 
 The bounded speaking and self-subtraction paths require explicit real-I/O
 authorization. They must not be treated as evidence of conversational or
@@ -514,9 +522,10 @@ developmental language learning.
 - Theta/gamma scheduling is an event-timing model, not measured neural dynamics.
 - The vowel table uses adult reference targets and clean synthetic success does
   not imply recorded infant/adult speech performance.
-- Process CPU/RSS, native-overflow proxy, host-boundary latency, and an offline
-  conventional comparison are measured. The deadline gate failed; ADC-onset
-  timing, salient live workload timing, and energy remain open.
+- Process CPU/RSS, native-overflow proxy, host/device-boundary latency, and an
+  offline conventional comparison are measured. The quiet-path device timing
+  gate passed; salient live workload timing, raw CoreAudio timestamps, XMOS
+  internal DSP latency, and energy remain open.
 
 ## Main modules
 

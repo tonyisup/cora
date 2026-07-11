@@ -580,9 +580,9 @@ classification. No motor-learning claim is made.
 
 ### Stage 6 — Real-time efficiency
 
-Status: offline/live resource use and host call-boundary timing measured on real
-hardware; the preregistered operational deadline gate failed. Device-onset
-timestamps and energy remain open.
+Status: offline/live resources and callback ADC-frame timing measured on real
+hardware; the quiet-path device-timestamp gate passed. Salient live timing,
+XMOS internal delay, and energy remain open.
 
 The native CoreAudio path has a measured sub-40 ms *host capture-call* p95 at a
 25 ms frame size. PortAudio reports an additional nominal input latency near
@@ -607,6 +607,22 @@ advertised native `16 kHz`. Reported input latency fell from `95.3 ms` to
 the deadline failure did not improve. The remaining timing problem is bounded
 to the PortAudio/CoreAudio callback-quantum-to-blocking-read interface rather
 than pipeline compute or host sample-rate conversion.
+
+A preregistered callback/reblocking path then preserved PortAudio
+`inputBufferAdcTime` for every exact 25 ms frame and compared it with stream
+time at the workspace decision. Three eligible 10-second quiet-path runs
+completed `1,200/1,200` timestamped frames with zero overflow, callback-status,
+timestamp-discontinuity, fallback, or 30 ms device-deadline misses. ADC frame
+end-to-workspace p95 was `10.19–10.21 ms`; onset-to-workspace p95, including
+25 ms frame accumulation, was `35.19–35.21 ms`. CPU remained below `4.2%` and
+peak RSS below `62.3 MiB`. The quiet-path device-timestamp gate therefore
+passes. One originally scheduled third run stalled during teardown without
+emitting a report; it is retained as incomplete, and its single frozen
+replacement used non-draining PortAudio shutdown.
+
+This closes the device-timestamped quiet-path latency requirement on this
+hardware only. Salient live workload timing, raw CoreAudio `AudioTimeStamp`,
+XMOS internal DSP delay, and energy remain open.
 
 Required evidence:
 
