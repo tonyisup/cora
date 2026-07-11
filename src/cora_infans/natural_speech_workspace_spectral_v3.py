@@ -236,19 +236,25 @@ def audit_spectral_live_preregistration(preregistration: Mapping[str, object], *
     if preregistration.get("mode") != "natural_speech_workspace_spectral_v3_real_preregistration": blockers.append("mode mismatch")
     if preregistration.get("status") != "preregistered_before_live_execution": blockers.append("status mismatch")
     if preregistration.get("bounded_playback_capture_authorized") is not True: blockers.append("authorization missing")
+    if preregistration.get("spent_design_gate_passed") is not True: blockers.append("spent design gate missing")
     frozen = preregistration.get("frozen_hashes")
     if not isinstance(frozen, Mapping): blockers.append("frozen_hashes missing")
     else:
         for name, actual in current_hashes.items():
             if frozen.get(name) != actual: blockers.append(f"frozen hash mismatch: {name}")
     hardware = preregistration.get("hardware") if isinstance(preregistration.get("hardware"), Mapping) else {}
-    expected = {"input": {"avfoundation_device": ":0", "channels": 2, "sample_rate": 16000}, "self_source": {"output_device_index": 3, "vertical_distance_cm": 4, "system_volume_percent": 100, "playback_gain_db": -24.0}, "world_source": {"output_device_index": 2, "angle_degrees": 180, "distance_cm": 50, "hardware_volume": "approximately_50_percent_mechanical_travel", "playback_gain_db": -3.0}}
+    expected = {"input": {"avfoundation_device": ":0", "device": "reSpeaker XVF3800 4-Mic Array", "channels": 2, "sample_rate": 16000}, "self_source": {"output_device_index": 3, "output_device": "Mac mini Speakers", "placement": "centered_directly_below_xvf3800", "vertical_distance_cm": 4, "system_volume_percent": 100, "playback_gain_db": -24.0}, "world_source": {"output_device_index": 2, "output_device": "External Headphones", "angle_degrees": 180, "distance_cm": 50, "hardware_volume": "approximately_50_percent_mechanical_travel", "playback_gain_db": -3.0}}
     for route, fields in expected.items():
         actual = hardware.get(route) if isinstance(hardware.get(route), Mapping) else {}
         for field, value in fields.items():
             if actual.get(field) != value: blockers.append(f"{route} mismatch: {field}")
     bounds = preregistration.get("bounds"); expected_bounds = {"trial_count": 12, "planned_playback_seconds": 11.04, "planned_capture_seconds": 18.24}
     if not isinstance(bounds, Mapping) or any(bounds.get(k) != v for k, v in expected_bounds.items()): blockers.append("bounds mismatch")
+    environment = hardware.get("environment") if isinstance(hardware.get("environment"), Mapping) else {}
+    if environment.get("room") != "semi-quiet" or environment.get("known_background") != "laptop fan": blockers.append("environment mismatch")
+    acceptance = preregistration.get("acceptance")
+    expected_acceptance = {"selected_capacity": 3, "scheduled_f1_min": 0.9, "scheduled_minus_flat_f1_min": 0.2, "scheduled_world_recall_min": 0.9, "scheduled_self_suppression_specificity_min": 0.9, "fixed_window_world_recall_must_be_below_scheduled": True, "capacity_one_f1_must_be_below_capacity_three": True, "capacity_three_f1_must_equal_capacity_four": True, "all_12_captures_and_alignments_required": True, "no_clipped_capture_samples_required": True}
+    if not isinstance(acceptance, Mapping) or any(acceptance.get(k) != v for k, v in expected_acceptance.items()): blockers.append("acceptance mismatch")
     if preregistration.get("unresolved_fields") != []: blockers.append("unresolved fields remain")
     return {"verdict": "preregistration_ready" if not blockers else "preregistration_blocked", "ready": not blockers, "blockers": blockers}
 
