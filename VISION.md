@@ -570,13 +570,21 @@ Current recorded-human result:
   learned continuous spectral-to-formant map `0.52`, and a spectral-centroid
   classifier that emits canonical motor coordinates `0.56`. All used
   leave-one-singer-out scoring and remained below the frozen `0.80` gate;
+- a separately frozen ordinary-read-speech test then used 500 aligned CMU
+  Arctic vowel tokens from five development speakers. The fixed shared LPC
+  estimator peaked at `0.572` (120 ms, order 20), with recall
+  `a/e/i/o/u = 0.86/0.95/0.62/0.13/0.30`. Accuracy ranged from `0.33` to
+  `0.77` by speaker. Ordinary speech therefore did not rescue the mechanism,
+  and the five CMU Arctic confirmation speakers also remain unfetched;
 - the reserved five-singer confirmation set remains unfetched and untouched.
   It must not be consumed until the corpus/domain/mechanism direction is chosen
   and a development candidate reaches a credible preregistration point.
 
-H4 remains open. More tuning of a sung-vowel classifier risks replacing the
-narrow perception-production closure claim with general supervised identity
-classification. No motor-learning claim is made.
+H4 remains open. Both sung and ordinary read speech now falsify the current
+shared fixed-formant route at development scale. More tuning toward a learned
+phone classifier—or changing the frozen five-vowel mapping after seeing these
+errors—risks replacing the narrow perception-production closure claim with
+general supervised identity classification. No motor-learning claim is made.
 
 ### Stage 6 — Real-time efficiency
 

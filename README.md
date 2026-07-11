@@ -19,7 +19,7 @@ the repository.
 | Parentese-relevant saliency | Mixed; not promoted | The final 16-fieldsite refit reached F1 0.600 on untouched Enga/Turku clips and failed its 0.65 gate; the separately tested vocal front gate remains positive |
 | Local predictive hierarchy | H2 supported within tested boundaries | Natural event transfer replicated across Wellington and MEN; a separate real room run with known efference masks retained four states through 10/15/20% dropout while improving vowels `+0.614` and tones `+0.474`. Unknown-timing world dropout and semantics remain outside scope |
 | Workspace binding | H3 supported within tested boundaries | The preregistered -18 dB synchronized run passed every classifier and zero-clipping gate: scheduled F1/recall/specificity 1.0/1.0/1.0 versus flat F1 0.8 and fixed-window F1 0.667; capacity improved through three slots and plateaued at four |
-| Analysis by synthesis | Recorded-human gate failed; retry paused | Clean synthesis remained 100%, but the preregistered VocalSet confirmation scored 36%; a disjoint development ladder peaked at 56%, so the reserved confirmation singers remain untouched and H4 stays open |
+| Analysis by synthesis | Recorded-human gate failed; mechanism decision required | Clean synthesis remained 100%, but the preregistered VocalSet confirmation scored 36%; disjoint sung and ordinary-speech development peaked at 56% and 57.2%, so both reserved confirmation sets remain untouched and H4 stays open |
 | Efficiency | H5 supported within tested boundary | Quiet and structured-salient device timing passed; same-host estimated CPU energy was 27.36 µJ/frame for Cora versus 11.08 µJ/frame for the simpler baseline. Wall-plug/acoustic/device energy, natural speech timing, and XMOS delay remain open |
 
 ## Hardware boundary
@@ -301,6 +301,14 @@ mapping, and spectral centroids reached at most 28%, 40%, 52%, and 56%
 respectively under leave-one-singer-out scoring. Because none approached the
 frozen 80% gate, the next reserved five-singer confirmation set has not been
 fetched or inspected.
+
+A second, independently frozen development test used 500 aligned ordinary
+read-speech vowel tokens from five CMU Arctic speakers. The same shared LPC
+formant route peaked at 57.2% (120 ms, order 20); `/o/` and `/u/` recall were
+only 13% and 30%. The five CMU Arctic confirmation speakers remain unfetched.
+This makes the next step a mechanism decision, not another parameter sweep:
+adopting a learned speaker-normalized phone model or changing the frozen vowel
+mapping would materially revise H4's analysis-by-synthesis claim.
 
 Synthesize and inspect one vowel:
 

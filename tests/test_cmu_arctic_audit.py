@@ -63,3 +63,24 @@ def test_cmu_arctic_audit_selects_label_blind_candidate(monkeypatch, tmp_path) -
     assert report["selected_report"]["accuracy"] == 1.0
     assert report["confirmation_audio_or_labels_accessed"] is False
     assert report["promotion_allowed"] is False
+
+
+def test_retained_cmu_arctic_development_result_preserves_stop_decision() -> None:
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    result = json.loads(
+        (
+            root
+            / "docs/evidence/2026-07-11-cmu-arctic-development-result.json"
+        ).read_text()
+    )
+
+    assert result["status"] == "development_candidate_failed_confirmation_readiness"
+    assert result["token_count"] == 500
+    assert result["selected_candidate"] == "window_120ms_order_20"
+    assert result["selected_report"]["accuracy"] == 0.572
+    assert result["selected_report"]["vowel_recall"]["o"] == 0.13
+    assert result["selected_report"]["vowel_recall"]["u"] == 0.3
+    assert result["confirmation_audio_or_labels_accessed"] is False
+    assert result["promotion_allowed"] is False
