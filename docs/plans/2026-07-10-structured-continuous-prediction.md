@@ -141,3 +141,18 @@ improved only `0.105`. The variant is retained as a falsified design, and its
 real-I/O CLI path is explicitly blocked. Further window/dropout-percentage
 tuning on this family is retired; a new attempt requires an explicit missing-
 observation mechanism or a different research rationale.
+
+## Natural-stream transfer design stop
+
+A reproducible external-corpus harness evaluated the calibrated four-state
+codebook on eight already-spent continuous Beijing speech clips. Four folds held
+out both IDS and ADS clips from one participant; direction labels never entered
+calibration, codebook learning, transition learning, or scoring. Eighteen fixed
+frame/horizon/signature candidates were compared with persistence, development
+unigram, and causal moving-state baselines.
+
+No candidate advanced. The best used 200 ms frames and an 800 ms horizon, won
+only 2/8 clips, improved mean accuracy by `0.0036`, and regressed its worst clip
+by `0.0989`. No fresh participant or fieldsite was consumed. Further fixed-
+frame/fixed-horizon tuning of this representation is retired; natural H2 needs
+a different observation target or explicit novelty/missing-event mechanism.

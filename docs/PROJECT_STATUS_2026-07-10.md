@@ -279,6 +279,13 @@ research contract and implements the first vertical evidence path.
   failed before hardware: pooled vowel improvement `0.193`; `15%` and `20%`
   dropout improved only `0.105`. The CLI blocks real I/O for this variant. No
   new live capture was spent, and short-window/dropout-percentage tuning stops.
+- Added a reproducible label-blind natural-stream design harness and reacquired
+  only eight already-spent Beijing development clips by corrected ZIP64 byte
+  ranges; every SHA-256 matched the earlier evidence.
+- Across four participant-held-out folds, 18 combinations of full/temporal-
+  median spectrum, `100/200/400 ms` frames, and `1/2/4`-frame horizons all
+  failed. The best won `2/8` clips, mean improvement was `0.0036`, and worst-
+  clip improvement was `-0.0989`. No fresh natural participant was consumed.
 
 ### Prior-art real-capture replay
 
@@ -414,6 +421,8 @@ These numbers are a microbenchmark, not end-to-end auditory latency.
    one vowel state despite strong prediction. Any dropout-aware revision must
    be designed on development/synthetic data and confirmed on fresh conditions;
    recorded-speaker and natural-stream transfer remain separate later gates.
+   The first label-blind natural-stream codebook audit also failed before fresh
+   data, so another fixed-frame/fixed-horizon tuning pass is not justified.
 4. Add recorded-vowel speakers not used to tune LPC selection and run a separate
    confusion matrix.
 5. Instrument the live capture path for microphone-to-event latency and dropped

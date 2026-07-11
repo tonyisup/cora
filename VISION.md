@@ -345,6 +345,16 @@ Current evidence:
 - short-window aggregation/dropout-percentage tuning is therefore retired for
   this family. A future dropout design needs explicit missing-observation
   handling or another genuinely different mechanism.
+- the calibrated codebook was then audited on eight already-spent continuous
+  Beijing speech clips with four participant-held-out folds. The learner saw no
+  IDS/ADS labels; 18 fixed frame/horizon/representation candidates were compared
+  with persistence, development-unigram, and causal moving-state baselines;
+- no candidate cleared the natural-stream design gate. The best (`200 ms`
+  frames, `800 ms` horizon) won only `2/8` clips, improved mean accuracy by
+  `0.0036`, and regressed the worst clip by `0.0989`;
+- no fresh participant or fieldsite was consumed. Frame-size/fixed-horizon
+  tuning of this four-state natural representation is retired. Natural H2 needs
+  a different observation target or explicit novelty/missing-event mechanism.
 
 Promotion criterion:
 

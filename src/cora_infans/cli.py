@@ -76,6 +76,7 @@ from .structured_prediction import (
     build_dropout_v4_trial_conditions,
     run_structured_prediction_protocol,
 )
+from .natural_prediction_audit import audit_natural_prediction_grid
 from .live_speak_smoke import (
     StimulusSpec,
     capture_to_wav,
@@ -1040,6 +1041,31 @@ def structured_prediction_cli(args: list[str]) -> dict[str, object]:
     )
 
 
+def natural_prediction_design_cli(args: list[str]) -> dict[str, object]:
+    """Run the label-blind natural-stream design grid on external WAVs."""
+
+    root: str | None = None
+    participants: tuple[str, ...] | None = None
+    i = 1
+    while i < len(args):
+        option = args[i]
+        if i + 1 >= len(args):
+            raise ValueError(f"missing value for {option}")
+        value = args[i + 1]
+        if option == "--root":
+            root = value
+        elif option == "--participants":
+            participants = tuple(
+                item.strip() for item in value.split(",") if item.strip()
+            )
+        else:
+            raise ValueError(f"unknown option: {option}")
+        i += 2
+    if root is None or participants is None:
+        raise ValueError("--root and --participants are required")
+    return audit_natural_prediction_grid(root=root, participants=participants)
+
+
 def synthesize_vowel_cli(args: list[str] | None = None) -> dict[str, object]:
     """Option C CLI: synthesize a vowel (motor-plan production) to a WAV file.
 
@@ -1891,6 +1917,13 @@ def main(argv: list[str] | None = None) -> int:
         except (ValueError, OSError) as exc:
             print(str(exc), file=sys.stderr)
             return 2
+    if args and args[0] == "--evaluate-natural-prediction-design":
+        try:
+            print(json.dumps(natural_prediction_design_cli(args)))
+            return 0
+        except (ValueError, OSError) as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
     if args and args[0] == "--synthesize-vowel":
         try:
             print(json.dumps(synthesize_vowel_cli(args)))
@@ -2010,6 +2043,7 @@ def main(argv: list[str] | None = None) -> int:
         "[--eval-register-scorer --model MODEL.json --root DIR --label-csv FILE] "
         "[--eval-register-pipeline --model MODEL.json --vocal-root DIR --vocal-label-csv FILE --environmental-root DIR --environmental-label-csv FILE] "
         "[--evaluate-structured-prediction --out-dir DIR [--variant original|calibrated_v2|robustness_v3|dropout_v4] [--fake-io | --real-io --authorize-bounded-playback --input-device :0 --output-device-index 2 --speaker-distance-cm N --speaker-orientation TEXT --quiet-room-confirmed]] "
+        "[--evaluate-natural-prediction-design --root DIR --participants ID,ID,ID] "
         "[--simulate-self-suppression [--vowel a|e|i|o|u] [--world-vowel a|e|i|o|u] [--world-gain F] [--duration-ms N] [--sample-rate N]] "
         "[--learn-self-forward-model [--vowel a|e|i|o|u] [--observed-delay-ms F] [--observed-attenuation F] [--observed-echo-decay F] [--world-vowel a|e|i|o|u] [--world-gain F]] "
         "[--sweep-self-forward-model [--vowel a|e|i|o|u] [--delay-errors-ms csv] [--attenuation-scales csv] [--echo-decay-scales csv] [--world-vowel a|e|i|o|u] [--world-gain F]] "

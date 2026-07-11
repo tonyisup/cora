@@ -221,6 +221,17 @@ A development-only calibration redesign then advanced to entirely fresh seeds
 and passed the controlled real two-family predictive-advantage gate. This does
 not yet establish unconstrained or cross-speaker speech prediction.
 
+Audit a local directory of paired natural speech clips without using condition
+labels in learning or scoring:
+
+```bash
+python3 -m cora_infans --evaluate-natural-prediction-design \
+  --root /path/to/spent-development-wavs \
+  --participants BEJ06,BEJ07,BEJ11,BEJ21
+```
+
+The default grid is a design audit only and cannot promote spent audio.
+
 Replay retained Corollary real-capture arrays without copying them:
 
 ```bash
@@ -334,6 +345,9 @@ developmental language learning.
 - A temporal-median dropout revision passed development folds but failed a
   fresh synthetic gate (`+0.193` pooled; `+0.105` at 15–20% dropout), so its
   real-I/O path is blocked and no additional live evidence was consumed.
+- A label-blind natural-stream audit over eight spent Beijing speech clips then
+  tested 18 frame/horizon variants. None advanced; the best won `2/8` clips,
+  mean improvement was only `+0.0036`, and worst-clip regret was `9.9%`.
 - Theta/gamma scheduling is an event-timing model, not measured neural dynamics.
 - The vowel table uses adult reference targets and clean synthetic success does
   not imply recorded infant/adult speech performance.
@@ -347,6 +361,7 @@ developmental language learning.
 - `io/offline_eval.py` — confusion metrics and dev/held-out baseline comparison
 - `predictive_learning.py` — bounded local hierarchy and baseline evaluation
 - `structured_prediction.py` — gated continuous-stream protocol and local state transitions
+- `natural_prediction_audit.py` — participant-held-out, label-blind natural-stream design audit
 - `register_saliency.py` — long-window vocal, speech/song, and adaptive IDS gates
 - `io/motor_plan.py` — source-filter synthesis, LPC perception, and vowel gate
 - `benchmark.py` — explicit-boundary event-pipeline microbenchmark
