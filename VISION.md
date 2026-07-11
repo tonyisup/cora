@@ -580,15 +580,25 @@ classification. No motor-learning claim is made.
 
 ### Stage 6 — Real-time efficiency
 
-Status: software-core and host call-boundary timing measured on real hardware;
-device-onset timestamps and energy comparison remain open.
+Status: offline/live resource use and host call-boundary timing measured on real
+hardware; the preregistered operational deadline gate failed. Device-onset
+timestamps and energy remain open.
 
 The native CoreAudio path has a measured sub-40 ms *host capture-call* p95 at a
 25 ms frame size. PortAudio reports an additional nominal input latency near
 95 ms, yielding an estimated ADC-to-workspace p95 near 127 ms. Callback-quantum
-jitter still fails the stricter 30 ms host-call deadline on some frames. This is
-low-latency evidence, not yet a hard real-time guarantee or a device-timestamped
-measurement.
+jitter still fails the 30 ms host-call deadline on some frames. Three frozen
+10-second native runs completed `1,200/1,200` frames with zero PortAudio overflow
+flags, steady-state RTF `0.998` or lower, process CPU below `3.8%`, and peak RSS
+below `63 MiB`. However, their operational deadline-miss rates were
+`18.5%/14.0%/11.75%`, all above the `5%` gate. The live workload was a quiet
+path with no emitted events.
+
+The 1,000-frame offline path reached p95 `0.0039 ms` and RTF `0.000167`. A
+same-input, same-instrumentation conventional fixed-threshold/prototype baseline
+reached p95 `0.000834 ms` and was about `4.7x` faster, as expected for a simpler
+resource floor. This is measured efficiency evidence, not yet a hard real-time
+guarantee, device-timestamped measurement, or energy result.
 
 Required evidence:
 

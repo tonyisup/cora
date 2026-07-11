@@ -20,7 +20,7 @@ the repository.
 | Local predictive hierarchy | H2 supported within tested boundaries | Natural event transfer replicated across Wellington and MEN; a separate real room run with known efference masks retained four states through 10/15/20% dropout while improving vowels `+0.614` and tones `+0.474`. Unknown-timing world dropout and semantics remain outside scope |
 | Workspace binding | H3 supported within tested boundaries | The preregistered -18 dB synchronized run passed every classifier and zero-clipping gate: scheduled F1/recall/specificity 1.0/1.0/1.0 versus flat F1 0.8 and fixed-window F1 0.667; capacity improved through three slots and plateaued at four |
 | Analysis by synthesis | Recorded-human gate failed; retry paused | Clean synthesis remained 100%, but the preregistered VocalSet confirmation scored 36%; a disjoint development ladder peaked at 56%, so the reserved confirmation singers remain untouched and H4 stays open |
-| Efficiency | Host boundary measured on hardware | Core microbenchmarks and native XVF3800 capture-call-to-workspace latency are reported; device-onset timestamps, live CPU/memory, and energy remain excluded |
+| Efficiency | Resources measured; deadline gate failed | Three native XVF3800 runs had zero overflow flags, RTF below 1.0, CPU below 3.8%, and RSS below 63 MiB, but 11.75–18.5% exceeded the 30 ms operational deadline; ADC-onset timestamps and energy remain open |
 
 ## Hardware boundary
 
@@ -366,9 +366,9 @@ python3 -m cora_infans --tune-raw-linear
 ```
 
 Every listener report includes host-monotonic capture-call, pipeline-decision,
-deadline-miss, and real-time-factor metrics. The boundary is the start of
-`capture_frame()` to the workspace decision—not ADC sample onset or an
-audio-backend timestamp.
+deadline-miss, real-time-factor, process CPU, process-lifetime peak RSS, and
+native input-overflow metrics. The boundary is the start of `capture_frame()`
+to the workspace decision—not ADC sample onset or an audio-backend timestamp.
 
 When the native backend provides a nominal input-latency value, the report also
 adds it to the host call measurements as an explicitly estimated
@@ -381,6 +381,13 @@ project. `--capture-backend ffmpeg` is an explicit real-audio fallback. Auto
 fallback reasons are included in reports; neither path substitutes synthetic
 audio. Reports separate cold-start latency from steady state and expose both
 strict and jitter-tolerant deadline misses.
+
+The frozen Stage 6 resource run completed three native 10-second replicates
+without overflow or fallback. CPU, RSS, and real-time-factor criteria passed,
+but the 30 ms operational deadline-miss rate was 11.75–18.5% versus a 5% gate.
+All frames were quiet-path frames, so this does not establish salient-workload
+timing. The offline Cora core was about 4.7 times slower at p95 than a much
+simpler fixed-threshold/prototype baseline while remaining far below real time.
 
 The bounded speaking and self-subtraction paths require explicit real-I/O
 authorization. They must not be treated as evidence of conversational or
@@ -500,8 +507,9 @@ developmental language learning.
 - Theta/gamma scheduling is an event-timing model, not measured neural dynamics.
 - The vowel table uses adult reference targets and clean synthetic success does
   not imply recorded infant/adult speech performance.
-- No end-to-end latency, CPU utilization, or energy comparison has passed the
-  efficiency stage gate.
+- Process CPU/RSS, native-overflow proxy, host-boundary latency, and an offline
+  conventional comparison are measured. The deadline gate failed; ADC-onset
+  timing, salient live workload timing, and energy remain open.
 
 ## Main modules
 

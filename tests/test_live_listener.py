@@ -47,6 +47,8 @@ def test_listener_reports_capture_to_workspace_latency_boundary() -> None:
     assert performance["capture_backend"] == "FakeArray"
     assert performance["real_capture"] is False
     assert performance["capture_to_workspace_latency_ms"]["p95"] >= 0.0
+    assert report["runtime_resources"]["peak_resident_memory_bytes"] > 0
+    assert report["runtime_resources"]["average_process_cpu_percent"] >= 0.0
 
 
 def test_play_efference_requires_passed_gate() -> None:

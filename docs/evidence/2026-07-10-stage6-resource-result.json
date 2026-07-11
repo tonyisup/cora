@@ -1,0 +1,153 @@
+{
+  "experiment": "stage6_live_resource_and_offline_baseline_gate",
+  "date": "2026-07-10",
+  "status": "resource_evidence_measured_deadline_gate_failed",
+  "preregistration": {
+    "path": "docs/evidence/2026-07-10-stage6-resource-preregistration.json",
+    "sha256": "9f54fc1ca505417b4bb0608f8a72b22cbfb1827c28dee23d1a5b843a1cc8ba53",
+    "implementation_commit": "de52425b19608f4f3f71c12087ad406a60a27131"
+  },
+  "amendment": {
+    "path": "docs/evidence/2026-07-10-stage6-resource-preregistration-amendment-1.json",
+    "sha256": "45ab615741514a0113f39b60538f0ceaf755119fab9a209be09c9fb7d9513a14",
+    "implementation_commit": "4c6b2425708678aa3ee3023f67f4a9cc339713a8",
+    "invalid_attempt_audit_sha256": "57521a9e3be84879e72c6d31803a9c654bf2c2a0cfc35c866f6593decae49376"
+  },
+  "offline": {
+    "iterations": 1000,
+    "frame_ms": 25,
+    "measurement_boundary": "AudioFrame_to_WorkspaceEvent_in_process",
+    "cora": {
+      "latency_ms": {
+        "mean": 0.003800945,
+        "p50": 0.00375,
+        "p95": 0.003917,
+        "p99": 0.0044635799999999965,
+        "max": 0.015042
+      },
+      "real_time_factor": 0.00016693335986929015,
+      "average_process_cpu_percent": 99.96803522715166,
+      "peak_resident_memory_megabytes": 48.75,
+      "resident_workspace_events": 11
+    },
+    "conventional_baseline": {
+      "name": "fixed_threshold_nearest_frequency_bounded_deque",
+      "latency_ms": {
+        "mean": 0.000798522,
+        "p50": 0.000792,
+        "p95": 0.000834,
+        "p99": 0.001042,
+        "max": 0.002375
+      },
+      "real_time_factor": 0.00004535500018391758,
+      "average_process_cpu_percent": 100.01102373732111,
+      "peak_resident_memory_megabytes": 50.203125
+    },
+    "comparison": {
+      "cora_to_baseline_p95_latency_ratio": 4.6966426858513195,
+      "cora_to_baseline_real_time_factor_ratio": 3.6805944039767198,
+      "input_frames_identical": true,
+      "instrumentation_identical": true,
+      "interpretation": "The conventional baseline is intentionally simpler and is a resource floor, not a capability-equivalent competitor."
+    },
+    "criteria": {
+      "real_time_factor_max_1": true,
+      "p95_latency_ms_max_25": true,
+      "baseline_comparison_present": true,
+      "baseline_input_and_instrumentation_identical": true
+    }
+  },
+  "live": {
+    "capture_backend": "sounddevice_portaudio_coreaudio",
+    "sample_rate_hz": 48000,
+    "channel_count": 2,
+    "reported_input_latency_ms": 95.33333333333334,
+    "fallback_occurred": false,
+    "timestamp_quality": "host_monotonic_call_boundary_not_audio_device_onset",
+    "runs": [
+      {
+        "run": 1,
+        "frame_count": 400,
+        "salient_frame_count": 0,
+        "input_overflow_count": 0,
+        "strict_deadline_miss_count": 238,
+        "strict_deadline_miss_rate": 0.595,
+        "operational_deadline_miss_count": 74,
+        "operational_deadline_miss_rate": 0.185,
+        "cold_start_capture_to_workspace_ms": 64.107958,
+        "steady_state_capture_to_workspace_p95_ms": 30.936008399999995,
+        "capture_to_workspace_p95_ms": 31.041383949999997,
+        "estimated_adc_to_workspace_p95_ms": 126.37471728333334,
+        "steady_state_real_time_factor": 0.9979277069674185,
+        "average_process_cpu_percent": 3.604870253339039,
+        "peak_resident_memory_megabytes": 62.71875
+      },
+      {
+        "run": 2,
+        "frame_count": 400,
+        "salient_frame_count": 0,
+        "input_overflow_count": 0,
+        "strict_deadline_miss_count": 259,
+        "strict_deadline_miss_rate": 0.6475,
+        "operational_deadline_miss_count": 56,
+        "operational_deadline_miss_rate": 0.14,
+        "cold_start_capture_to_workspace_ms": 62.584667,
+        "steady_state_capture_to_workspace_p95_ms": 30.9440291,
+        "capture_to_workspace_p95_ms": 30.9492723,
+        "estimated_adc_to_workspace_p95_ms": 126.28260563333335,
+        "steady_state_real_time_factor": 0.9981236761904763,
+        "average_process_cpu_percent": 3.464362912974191,
+        "peak_resident_memory_megabytes": 62.4375
+      },
+      {
+        "run": 3,
+        "frame_count": 400,
+        "salient_frame_count": 0,
+        "input_overflow_count": 0,
+        "strict_deadline_miss_count": 255,
+        "strict_deadline_miss_rate": 0.6375,
+        "operational_deadline_miss_count": 47,
+        "operational_deadline_miss_rate": 0.1175,
+        "cold_start_capture_to_workspace_ms": 62.49775,
+        "steady_state_capture_to_workspace_p95_ms": 30.933024999999997,
+        "capture_to_workspace_p95_ms": 30.97640625,
+        "estimated_adc_to_workspace_p95_ms": 126.30973958333334,
+        "steady_state_real_time_factor": 0.9984448279699248,
+        "average_process_cpu_percent": 3.7560989729326275,
+        "peak_resident_memory_megabytes": 62.03125
+      }
+    ],
+    "aggregate": {
+      "frame_count": 1200,
+      "input_overflow_count": 0,
+      "strict_deadline_miss_count": 752,
+      "strict_deadline_miss_rate": 0.6266666666666667,
+      "operational_deadline_miss_count": 177,
+      "operational_deadline_miss_rate": 0.1475,
+      "capture_to_workspace_p95_ms_range": [
+        30.9492723,
+        31.041383949999997
+      ],
+      "estimated_adc_to_workspace_p95_ms_range": [
+        126.28260563333335,
+        126.37471728333334
+      ],
+      "maximum_steady_state_real_time_factor": 0.9984448279699248,
+      "maximum_average_process_cpu_percent": 3.7560989729326275,
+      "maximum_peak_resident_memory_megabytes": 62.71875
+    },
+    "criteria": {
+      "real_capture": true,
+      "native_backend_without_fallback": true,
+      "frame_count_each_400": true,
+      "input_overflow_count_each_max_0": true,
+      "operational_deadline_miss_rate_each_max_0_05": false,
+      "steady_state_real_time_factor_each_max_1_2": true,
+      "average_process_cpu_percent_each_max_100": true,
+      "peak_resident_memory_megabytes_each_max_512": true
+    }
+  },
+  "overall_criteria_passed": false,
+  "promotion_allowed": false,
+  "claim_boundary": "Offline processing, live process CPU/RSS, native-overflow proxy, live host-call latency, and same-host baseline comparison are measured. All live runs were quiet-path workloads. The operational deadline gate failed, and neither CoreAudio ADC-onset timestamps nor energy were measured."
+}
