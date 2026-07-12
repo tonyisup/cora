@@ -108,6 +108,9 @@ Constraint:
 - Natural-speech support is locked to an exact commanded-utterance boundary: a
   prior playback replay of that exact utterance is required under the tested
   room, geometry, device, and level conditions.
+- Operational reports must identify the command, prior replay, and sensory
+  consequence with retained SHA-256 hashes and must carry the bounded workspace
+  capacity and clipping count.
 - General no-replay self-voice verification, same-source forward
   generalization, arbitrary self spectra, semantics, and geometry transfer are
   unauthorized and unsupported.
@@ -143,6 +146,10 @@ Requirement:
 - Active playback intervals must contain zero clipped samples. Whole-capture
   clipping must still be reported separately; clean active playback does not
   erase a trailing-quiet failure.
+- Every eligible run must be self-describing: the report must include the exact
+  host, input, self-source, world-source, geometry, level, callback backend,
+  frame geometry, stimulus hash, and operator confirmations. A passing metric
+  without matching operating-point metadata is not an operational pass.
 
 Metric boundary:
 

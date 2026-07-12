@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import json
 from importlib.resources import files
+import math
+import re
 from typing import Mapping
 
 
@@ -106,19 +108,45 @@ def evaluate_stage6_operating_point(report: Mapping[str, object]) -> dict[str, o
     """Evaluate a future run against the bounded Stage 6 operating point."""
 
     stage6 = OPERATIONAL_CONTRACT["stage6"]
+    operating_point = report.get("operating_point")
+    if not isinstance(operating_point, Mapping):
+        raise ValueError("missing Stage 6 physical operating-point metadata")
+    metadata_criteria = _operating_point_criteria(operating_point)
     metric = str(stage6["latency_metric"])
     try:
         latency = float(report[metric])
     except (KeyError, TypeError, ValueError) as exc:
         raise ValueError(f"missing finite Stage 6 latency metric: {metric}") from exc
-    if not (latency >= 0.0):
+    if not math.isfinite(latency) or latency < 0.0:
         raise ValueError(f"invalid Stage 6 latency metric: {latency}")
 
     zero_fields = tuple(stage6["required_zero_counts"])
     missing = [field for field in zero_fields if field not in report]
     if missing:
         raise ValueError("missing Stage 6 integrity fields: " + ", ".join(missing))
+    profile = stage6["acceptance_profile"]
+    if not isinstance(profile, Mapping):
+        raise ValueError("Stage 6 contract is missing its acceptance profile")
     criteria = {
+        **metadata_criteria,
+        "real_capture": report.get("real_capture") is True,
+        "callback_backend_matches": report.get("capture_backend")
+        == stage6["capture_backend"],
+        "frame_ms_matches": report.get("frame_ms") == profile["frame_ms"],
+        "frame_count_matches": report.get("frame_count")
+        == profile["target_frame_count"],
+        "minimum_salient_frames_met": int(report.get("salient_frame_count", 0))
+        >= int(profile["minimum_salient_frame_count"]),
+        "active_playback_frames_present": int(
+            report.get("active_playback_frame_count", 0)
+        )
+        > 0,
+        "software_playback_gain_matches": float(
+            report.get("software_playback_gain_db", float("nan"))
+        )
+        == float(profile["software_playback_gain_db"]),
+        "stimulus_hash_matches": report.get("stimulus_sha256")
+        == profile["stimulus_sha256"],
         "salient_p95_at_most_10_5_ms": latency <= float(stage6["latency_max_ms"]),
         **{
             f"{field}_is_zero": int(report[field]) == 0 for field in zero_fields
@@ -132,5 +160,86 @@ def evaluate_stage6_operating_point(report: Mapping[str, object]) -> dict[str, o
         "claim_boundary": (
             "ADC frame end to workspace decision on the named callback path; "
             "frame accumulation and XMOS-internal latency excluded"
+        ),
+    }
+
+
+def _operating_point_criteria(
+    operating_point: Mapping[str, object],
+) -> dict[str, bool]:
+    """Compare a self-described run with every physical VISION invariant."""
+
+    stage6 = OPERATIONAL_CONTRACT["stage6"]
+    attestations = operating_point.get("operator_attestations")
+    if not isinstance(attestations, Mapping):
+        raise ValueError("operating point is missing operator attestations")
+    return {
+        "operating_point_schema_matches": operating_point.get("schema_version")
+        == stage6["operating_point_schema_version"],
+        "host_matches": operating_point.get("host") == stage6["host"],
+        "input_matches": operating_point.get("input") == stage6["input"],
+        "self_source_matches": operating_point.get("self_source")
+        == stage6["self_source"],
+        "world_source_matches": operating_point.get("world_source")
+        == stage6["world_source"],
+        "self_geometry_operator_confirmed": attestations.get(
+            "self_source_geometry_confirmed"
+        )
+        is True,
+        "self_volume_operator_confirmed": attestations.get(
+            "self_source_system_volume_confirmed"
+        )
+        is True,
+        "world_geometry_operator_confirmed": attestations.get(
+            "world_source_geometry_confirmed"
+        )
+        is True,
+        "world_volume_operator_confirmed": attestations.get(
+            "world_source_hardware_volume_within_limit"
+        )
+        is True,
+    }
+
+
+def evaluate_stage4_exact_efference(
+    report: Mapping[str, object],
+) -> dict[str, object]:
+    """Validate an exact-replay self-voice report without broadening H3."""
+
+    stage4 = OPERATIONAL_CONTRACT["stage4"]
+    operating_point = report.get("operating_point")
+    if not isinstance(operating_point, Mapping):
+        raise ValueError("missing Stage 4 physical operating-point metadata")
+    replay = report.get("exact_replay")
+    if not isinstance(replay, Mapping):
+        raise ValueError("missing Stage 4 exact-replay metadata")
+    commanded_hash = str(replay.get("commanded_utterance_sha256", ""))
+    replay_hash = str(replay.get("prior_replay_utterance_sha256", ""))
+    sensory_hash = str(replay.get("sensory_consequence_sha256", ""))
+    hash_pattern = re.compile(r"[0-9a-f]{64}")
+    capacity = int(report.get("workspace_capacity", 0))
+    criteria = {
+        **_operating_point_criteria(operating_point),
+        "exact_replay_performed": replay.get("performed") is True,
+        "commanded_utterance_hash_valid": hash_pattern.fullmatch(commanded_hash)
+        is not None,
+        "prior_replay_hash_valid": hash_pattern.fullmatch(replay_hash) is not None,
+        "prior_replay_matches_command": replay_hash == commanded_hash,
+        "efference_identity_present": bool(replay.get("efference_id")),
+        "sensory_consequence_hash_valid": hash_pattern.fullmatch(sensory_hash)
+        is not None,
+        "workspace_capacity_within_limit": 0 < capacity
+        <= int(stage4["workspace_capacity"]),
+        **{
+            f"{field}_is_zero": int(report.get(field, -1)) == 0
+            for field in stage4["required_zero_counts"]
+        },
+    }
+    return {
+        "criteria": criteria,
+        "exact_efference_passed": all(criteria.values()),
+        "claim_boundary": (
+            "Exact commanded-utterance replay only; no no-replay, semantic, "
+            "speaker-generalization, or geometry-transfer claim"
         ),
     }

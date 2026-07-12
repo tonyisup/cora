@@ -6,6 +6,8 @@ import tempfile
 import time
 from pathlib import Path
 
+import pytest
+
 
 def test_describe_command_prints_json_summary() -> None:
     env = os.environ.copy()
@@ -30,6 +32,9 @@ def test_describe_command_prints_json_summary() -> None:
     }
     assert "machine_enforced_operational_contract" in payload["implemented_subsystems"]
     assert "retained_evidence_readiness_aggregator" in payload["implemented_subsystems"]
+    assert "self_describing_operating_point_validator" in payload["implemented_subsystems"]
+    assert "read_only_operational_preflight" in payload["implemented_subsystems"]
+    assert "bounded_live_operational_acceptance" in payload["implemented_subsystems"]
     assert "predictive_hierarchy" in payload["implemented_subsystems"]
     assert "commanded_active_attention" in payload["implemented_subsystems"]
     assert "offline_corpus_evaluation" in payload["implemented_subsystems"]
@@ -81,6 +86,37 @@ def test_operational_contract_cli_and_stage6_validation(tmp_path) -> None:
     report.write_text(
         json.dumps(
             {
+                "operating_point": {
+                    "schema_version": payload["stage6"][
+                        "operating_point_schema_version"
+                    ],
+                    "host": payload["stage6"]["host"],
+                    "input": payload["stage6"]["input"],
+                    "self_source": payload["stage6"]["self_source"],
+                    "world_source": payload["stage6"]["world_source"],
+                    "operator_attestations": {
+                        "self_source_geometry_confirmed": True,
+                        "self_source_system_volume_confirmed": True,
+                        "world_source_geometry_confirmed": True,
+                        "world_source_hardware_volume_within_limit": True,
+                    },
+                },
+                "real_capture": True,
+                "capture_backend": payload["stage6"]["capture_backend"],
+                "frame_ms": payload["stage6"]["acceptance_profile"]["frame_ms"],
+                "frame_count": payload["stage6"]["acceptance_profile"][
+                    "target_frame_count"
+                ],
+                "salient_frame_count": payload["stage6"]["acceptance_profile"][
+                    "minimum_salient_frame_count"
+                ],
+                "active_playback_frame_count": 250,
+                "software_playback_gain_db": payload["stage6"][
+                    "acceptance_profile"
+                ]["software_playback_gain_db"],
+                "stimulus_sha256": payload["stage6"]["acceptance_profile"][
+                    "stimulus_sha256"
+                ],
                 "salient_adc_frame_end_to_workspace_p95_ms": 10.4,
                 "device_deadline_miss_count": 0,
                 "overflow_count": 0,
@@ -106,6 +142,43 @@ def test_operational_contract_cli_and_stage6_validation(tmp_path) -> None:
         env=env,
     )
     assert json.loads(validation.stdout)["operating_point_passed"] is True
+
+
+def test_operational_preflight_cli_uses_manifest(monkeypatch, tmp_path) -> None:
+    import cora_infans.cli as cli
+
+    manifest = tmp_path / "manifest.json"
+    manifest.write_text(json.dumps({"operating_point": {"schema_version": 1}}))
+    captured = {}
+    monkeypatch.setattr(
+        cli,
+        "build_operational_preflight",
+        lambda payload: captured.update(payload) or {"preflight_passed": True},
+    )
+
+    report = cli.operational_preflight_cli(
+        ["--operational-preflight", "--manifest", str(manifest)]
+    )
+
+    assert report["preflight_passed"] is True
+    assert captured["operating_point"] == {"schema_version": 1}
+
+
+def test_operational_acceptance_cli_requires_authorization() -> None:
+    import cora_infans.cli as cli
+
+    with pytest.raises(ValueError, match="authorize-live-io"):
+        cli.run_operational_acceptance_cli(
+            [
+                "--run-operational-acceptance",
+                "--manifest",
+                "manifest.json",
+                "--stimulus-wav",
+                "stimulus.wav",
+                "--output-dir",
+                "out",
+            ]
+        )
 
 
 

@@ -47,6 +47,18 @@ GitHub Actions runs this readiness gate before the hardware-safe test suite on
 every push and pull request. Live hardware and protected corpora are never
 accessed by CI.
 
+Check the current host and XVF3800 without opening an audio stream:
+
+```bash
+python3 -m cora_infans --operational-preflight \
+  --manifest config/operational-point.json
+```
+
+The bounded live procedure, output files, stop rules, and recovery steps are in
+the [operational runbook](docs/OPERATIONAL_RUNBOOK.md). Live acceptance requires
+an explicit `--authorize-live-io` flag and refuses before playback when
+preflight or stimulus provenance fails.
+
 Validate a future flat Stage 6 run summary against the named 10.5 ms operating
 point:
 

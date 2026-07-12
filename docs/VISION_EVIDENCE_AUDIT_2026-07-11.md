@@ -43,7 +43,7 @@ failed gate as partial promotion.
 
 ### Verification
 
-- Full suite: `449 passed, 3 skipped`.
+- Full suite: `457 passed, 3 skipped`.
 - The skips are intentional hardware/environment-dependent tests.
 - `python3 -m cora_infans --operational-readiness` verifies all required
   retained stage evidence against frozen SHA-256 pins and exits nonzero when
@@ -51,6 +51,10 @@ failed gate as partial promotion.
 - `.github/workflows/ci.yml` makes readiness a required fail-fast workflow step
   before the hardware-safe test suite; it grants only read access to repository
   contents and does not execute live or protected-data runners.
+- The self-describing operating-point validator, read-only preflight, and
+  explicitly authorized bounded acceptance command close the report/procedure
+  gap. The current host preflight is honestly blocked because the XVF3800 is not
+  enumerated; no playback followed that failure.
 - Evidence-link existence and final Stage 2/H4 disposition fields are asserted
   by `tests/test_consolidated_status.py`.
 - The working branch is `codex/vision-evidence`.

@@ -16,6 +16,11 @@ from .operational_readiness import (
     build_operational_readiness_report,
     repository_evidence_dir,
 )
+from .operational_acceptance import (
+    build_operational_preflight,
+    load_operating_point_manifest,
+    run_operational_acceptance,
+)
 from .io.live_listener import LiveListener
 from .benchmark import benchmark_event_pipeline
 from .energy_workload import run_sustained_energy_workload
@@ -147,6 +152,9 @@ def describe() -> dict[str, object]:
         "implemented_subsystems": [
             "machine_enforced_operational_contract",
             "retained_evidence_readiness_aggregator",
+            "self_describing_operating_point_validator",
+            "read_only_operational_preflight",
+            "bounded_live_operational_acceptance",
             "synthetic_mic_array_front_end",
             "live_xvf3800_front_end",
             "native_coreaudio_continuous_front_end",
@@ -1826,6 +1834,78 @@ def operational_readiness_cli(args: list[str] | None = None) -> dict[str, object
     return build_operational_readiness_report(evidence_dir)
 
 
+def operational_preflight_cli(args: list[str] | None = None) -> dict[str, object]:
+    parsed = args or ["--operational-preflight"]
+    if len(parsed) != 3 or parsed[1] != "--manifest":
+        raise ValueError("--operational-preflight requires --manifest FILE.json")
+    return build_operational_preflight(load_operating_point_manifest(parsed[2]))
+
+
+def run_operational_acceptance_cli(
+    args: list[str] | None = None,
+) -> dict[str, object]:
+    parsed = args or ["--run-operational-acceptance"]
+    manifest_path: str | None = None
+    stimulus_wav: str | None = None
+    output_dir: str | None = None
+    authorized = False
+    i = 1
+    while i < len(parsed):
+        option = parsed[i]
+        if option == "--authorize-live-io":
+            authorized = True
+            i += 1
+            continue
+        if i + 1 >= len(parsed):
+            raise ValueError(f"missing value for {option}")
+        value = parsed[i + 1]
+        if option == "--manifest":
+            manifest_path = value
+        elif option == "--stimulus-wav":
+            stimulus_wav = value
+        elif option == "--output-dir":
+            output_dir = value
+        else:
+            raise ValueError(f"unknown option: {option}")
+        i += 2
+    if not authorized:
+        raise ValueError("live operational acceptance requires --authorize-live-io")
+    if manifest_path is None or stimulus_wav is None or output_dir is None:
+        raise ValueError(
+            "--run-operational-acceptance requires --manifest, --stimulus-wav, "
+            "--output-dir, and --authorize-live-io"
+        )
+    profile = OPERATIONAL_CONTRACT["stage6"]["acceptance_profile"]
+
+    def live_runner(path: str) -> dict[str, object]:
+        return listen_live(
+            [
+                "--listen-live",
+                "--device",
+                str(OPERATIONAL_CONTRACT["stage6"]["input"]["device_selector"]),
+                "--duration-ms",
+                str(int(profile["frame_ms"]) * int(profile["target_frame_count"])),
+                "--frame-ms",
+                str(profile["frame_ms"]),
+                "--sample-rate",
+                str(OPERATIONAL_CONTRACT["stage6"]["input"]["sample_rate_hz"]),
+                "--capture-backend",
+                "callback",
+                "--stimulus-wav",
+                path,
+                "--stimulus-volume-db",
+                str(profile["software_playback_gain_db"]),
+            ]
+        )
+
+    return run_operational_acceptance(
+        manifest=load_operating_point_manifest(manifest_path),
+        stimulus_wav=stimulus_wav,
+        output_dir=output_dir,
+        live_runner=live_runner,
+    )
+
+
 def prepare_ids_manifest_cli(args: list[str] | None = None) -> dict[str, object]:
     parsed = args or ["--prepare-ids-manifest"]
     root: str | None = None
@@ -2499,6 +2579,22 @@ def main(argv: list[str] | None = None) -> int:
         ) as exc:
             print(str(exc), file=sys.stderr)
             return 2
+    if args and args[0] == "--operational-preflight":
+        try:
+            report = operational_preflight_cli(args)
+            print(json.dumps(report))
+            return 0 if report["preflight_passed"] is True else 1
+        except (ValueError, OSError, KeyError, TypeError, AttributeError) as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
+    if args and args[0] == "--run-operational-acceptance":
+        try:
+            report = run_operational_acceptance_cli(args)
+            print(json.dumps(report))
+            return 0 if report["operational_acceptance_passed"] is True else 1
+        except (ValueError, OSError, KeyError, TypeError, AttributeError) as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
     if args and args[0] == "--simulate-frame":
         try:
             simulation_params, output_mode = parse_simulation_cli_args(args)
@@ -2742,7 +2838,7 @@ def main(argv: list[str] | None = None) -> int:
             return 2
 
     print(
-        "usage: python -m cora_infans --describe | --show-operational-contract | --operational-readiness [--evidence-dir DIR] | --validate-stage6-operating-point --report REPORT.json | --simulate-frame | --simulate-sequence "
+        "usage: python -m cora_infans --describe | --show-operational-contract | --operational-readiness [--evidence-dir DIR] | --operational-preflight --manifest FILE.json | --run-operational-acceptance --manifest FILE.json --stimulus-wav FILE.wav --output-dir DIR --authorize-live-io | --validate-stage6-operating-point --report REPORT.json | --simulate-frame | --simulate-sequence "
         "[--timestamp-ms N --dominant-frequency-hz F --channel-energies a,b,c,d --initial-prediction-hz F --mic-geometry l0,l1,l2,l3 --saliency-threshold F --output json|pretty] "
         "[--family sweep|zigzag|gap|multi_gap|delayed_recovery] [--with-scheduling] "
         "[--capture-live [--device :0] [--duration-ms N]] "

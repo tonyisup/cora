@@ -25,7 +25,10 @@
     "exact_commanded_utterance_replay_required": true,
     "no_replay_authorized": false,
     "same_source_generalization_authorized": false,
-    "workspace_capacity": 3
+    "workspace_capacity": 3,
+    "required_zero_counts": [
+      "clipped_sample_count"
+    ]
   },
   "stage5": {
     "plant_kind": "factorized_five_gesture_ten_section_transmission_line",
@@ -34,9 +37,22 @@
     "global_inverse_execution_authorized": false
   },
   "stage6": {
+    "operating_point_schema_version": 1,
     "latency_metric": "salient_adc_frame_end_to_workspace_p95_ms",
     "latency_max_ms": 10.5,
     "frame_accumulation_ms_excluded": 25.0,
+    "capture_backend": "sounddevice_portaudio_coreaudio_callback",
+    "acceptance_profile": {
+      "frame_ms": 25,
+      "target_frame_count": 400,
+      "minimum_salient_frame_count": 20,
+      "software_playback_gain_db": -18.0,
+      "stimulus_sha256": "c58a46a68782fb318cd885e6c670025104cc844bb3d8e4080b69b1f995c2c410"
+    },
+    "host": {
+      "device_family": "Mac mini",
+      "operating_system": "macOS"
+    },
     "input": {
       "device_selector": ":0",
       "device": "reSpeaker XVF3800 4-Mic Array",

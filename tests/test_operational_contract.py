@@ -11,12 +11,40 @@ from cora_infans.operational_contract import (
     assert_h4_speaker_allowed,
     assert_program_active,
     assert_stage2_fieldsite_allowed,
+    evaluate_stage4_exact_efference,
     evaluate_stage6_operating_point,
 )
 
 
-def _clean_stage6_report(latency_ms: float = 10.5) -> dict[str, object]:
+def _operating_point() -> dict[str, object]:
+    stage6 = OPERATIONAL_CONTRACT["stage6"]
     return {
+        "schema_version": stage6["operating_point_schema_version"],
+        "host": stage6["host"],
+        "input": stage6["input"],
+        "self_source": stage6["self_source"],
+        "world_source": stage6["world_source"],
+        "operator_attestations": {
+            "self_source_geometry_confirmed": True,
+            "self_source_system_volume_confirmed": True,
+            "world_source_geometry_confirmed": True,
+            "world_source_hardware_volume_within_limit": True,
+        },
+    }
+
+
+def _clean_stage6_report(latency_ms: float = 10.5) -> dict[str, object]:
+    profile = OPERATIONAL_CONTRACT["stage6"]["acceptance_profile"]
+    return {
+        "operating_point": _operating_point(),
+        "real_capture": True,
+        "capture_backend": OPERATIONAL_CONTRACT["stage6"]["capture_backend"],
+        "frame_ms": profile["frame_ms"],
+        "frame_count": profile["target_frame_count"],
+        "salient_frame_count": profile["minimum_salient_frame_count"],
+        "active_playback_frame_count": 250,
+        "software_playback_gain_db": profile["software_playback_gain_db"],
+        "stimulus_sha256": profile["stimulus_sha256"],
         "salient_adc_frame_end_to_workspace_p95_ms": latency_ms,
         "device_deadline_miss_count": 0,
         "overflow_count": 0,
@@ -70,8 +98,42 @@ def test_stage6_operating_point_uses_exact_metric_and_ceiling() -> None:
 
     with pytest.raises(ValueError, match="missing Stage 6 integrity"):
         evaluate_stage6_operating_point(
-            {"salient_adc_frame_end_to_workspace_p95_ms": 10.0}
+            {
+                "operating_point": _operating_point(),
+                "salient_adc_frame_end_to_workspace_p95_ms": 10.0,
+            }
         )
+
+    wrong_geometry = _clean_stage6_report()
+    wrong_geometry["operating_point"]["world_source"] = {
+        **OPERATIONAL_CONTRACT["stage6"]["world_source"],
+        "angle_degrees": 270,
+    }
+    result = evaluate_stage6_operating_point(wrong_geometry)
+    assert result["operating_point_passed"] is False
+    assert result["criteria"]["world_source_matches"] is False
+
+
+def test_stage4_requires_exact_replay_identity_and_bounded_capacity() -> None:
+    digest = "a" * 64
+    report = {
+        "operating_point": _operating_point(),
+        "workspace_capacity": 3,
+        "clipped_sample_count": 0,
+        "exact_replay": {
+            "performed": True,
+            "commanded_utterance_sha256": digest,
+            "prior_replay_utterance_sha256": digest,
+            "efference_id": "command-001",
+            "sensory_consequence_sha256": "b" * 64,
+        },
+    }
+    assert evaluate_stage4_exact_efference(report)["exact_efference_passed"] is True
+
+    report["exact_replay"]["prior_replay_utterance_sha256"] = "c" * 64
+    result = evaluate_stage4_exact_efference(report)
+    assert result["exact_efference_passed"] is False
+    assert result["criteria"]["prior_replay_matches_command"] is False
 
 
 def test_vision_is_the_bounded_operational_source_of_truth() -> None:
