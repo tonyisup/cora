@@ -10,6 +10,7 @@ import pytest
 from cora_infans.factorized_tract_plant import synthesize_factorized
 from cora_infans.speech_learning_demo import CROSS_CONFIGURATION_TARGET_MOTORS
 from cora_infans.vocal_imitation import (
+    _play_start_cue,
     acoustic_sensory,
     build_waveform_repertoire,
     capture_project_owner_take,
@@ -66,6 +67,42 @@ def test_capture_requires_explicit_project_owner_authorization(tmp_path) -> None
             capture_fn=lambda: (_capture_wave("a", 110.0), 16000, {}),
         )
     assert not list(tmp_path.rglob("*.wav"))
+
+
+def test_start_cue_is_pinned_bounded_and_blocking() -> None:
+    calls = []
+
+    class FakeSoundDevice:
+        @staticmethod
+        def query_devices():
+            return [
+                {"name": "External Headphones", "max_output_channels": 2},
+                {"name": "Mac mini Speakers", "max_output_channels": 2},
+            ]
+
+        @staticmethod
+        def play(samples, **kwargs):
+            calls.append((np.asarray(samples), kwargs))
+
+    result = _play_start_cue(FakeSoundDevice)
+
+    assert result == {
+        "played": True,
+        "output_device_index": 1,
+        "output_device_name": "Mac mini Speakers",
+        "frequency_hz": 660.0,
+        "duration_ms": 100,
+        "amplitude": 0.08,
+        "retained_in_capture": False,
+    }
+    samples, kwargs = calls[0]
+    assert len(samples) == 4800
+    assert float(np.max(np.abs(samples))) <= 0.08
+    assert kwargs == {
+        "samplerate": 48000,
+        "device": 1,
+        "blocking": True,
+    }
 
 
 def test_acoustic_sensory_is_label_free_bounded_and_pitch_tolerant() -> None:
@@ -211,3 +248,34 @@ def test_v2_prehuman_calibration_changes_only_capture_envelope() -> None:
         "confirmation_gates_changed": False,
     }
     assert result["production_runner_accepts_this_fixture_as_evidence"] is False
+
+
+def test_v2_acquisition_failure_requires_fresh_cued_v3_session() -> None:
+    path = (
+        Path(__file__).resolve().parents[1]
+        / "docs/evidence/2026-07-12-vocal-imitation-v2-acquisition-failure.json"
+    )
+    result = json.loads(path.read_text())
+
+    assert result["status"] == "candidate_stopped"
+    assert len(result["passing_development_takes_before_stop"]) == 4
+    assert result["quality"]["quality_passed"] is False
+    assert result["disposition"]["passing_takes_reused_by_v3"] is False
+    assert result["disposition"]["v3_fresh_recording_required"] is True
+    assert result["disposition"]["thresholds_changed"] is False
+
+
+def test_v3_start_cue_rehearsal_did_not_consume_a_protocol_take() -> None:
+    path = (
+        Path(__file__).resolve().parents[1]
+        / "docs/evidence/2026-07-12-vocal-imitation-v3-start-cue-rehearsal.json"
+    )
+    result = json.loads(path.read_text())
+
+    assert result["rehearsal_passed"] is True
+    assert result["protocol_take_consumed"] is False
+    assert result["audio_file_written"] is False
+    assert result["audio_samples_discarded"] is True
+    assert result["start_cue"]["output_device_name"] == "Mac mini Speakers"
+    assert result["criteria"]["callback_integrity_clean"] is True
+    assert "not a project-owner development take" in result["claim_boundary"]

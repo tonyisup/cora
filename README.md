@@ -99,8 +99,9 @@ python3 -m cora_infans --capture-vocal-imitation \
 
 Repeat with development take `2` and confirmation take `1`, then do the same
 for `i` and `u`. Capture uses the XVF3800 callback at 16 kHz, retains the two
-fused host channels, hashes every WAV, refuses duplicates, and plays no
-stimulus.
+fused host channels, hashes every WAV, and refuses duplicates. Begin the vowel
+after the short start tone from the Mac mini Speakers; the cue is discarded
+before the retained microphone window.
 
 After all nine takes exist, run the selection-blind confirmation:
 

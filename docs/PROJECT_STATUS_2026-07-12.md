@@ -25,7 +25,7 @@ The operational procedure and stop rules are documented in
 
 - Clean Python 3.13 constrained installation: passed.
 - Hash-pinned operational readiness: passed.
-- Full hardware-safe suite: `478 passed, 3 skipped`.
+- Full hardware-safe suite: `481 passed, 3 skipped`.
 - After the XVF3800 was reconnected, read-only preflight passed the host, input,
   format, output-route, contract, and evidence checks.
 - Operational acceptance attempt 1 completed 400 frames with clean stream
@@ -96,3 +96,10 @@ phoneme recognition, or new H4 evidence.
   leaves every analysis, learning, and confirmation gate unchanged.
   The fresh 4.0-second synthetic fixture passes and is retained separately as
   [v2 pre-human calibration](evidence/2026-07-12-vocal-imitation-v2-prehuman-calibration.json).
+- V2 later retained four valid development takes but missed the `/u/` interval
+  during another delayed tool start. V2 is stopped without reusing those takes.
+  V3 adds a bounded physical start cue on Mac mini Speakers before discarding
+  cue/settle samples and opening the unchanged 4.0-second retained window.
+- The V3 hardware rehearsal emitted the bounded cue on Mac mini Speakers,
+  returned a clean callback, observed a post-cue voiced interval, and discarded
+  all audio without consuming a protocol take.

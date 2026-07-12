@@ -1,0 +1,54 @@
+{
+  "mode": "bounded_project_owner_vocal_imitation_v2_acquisition",
+  "date": "2026-07-12",
+  "status": "candidate_stopped",
+  "protocol": "docs/VOCAL_IMITATION_PROTOCOL.md v2",
+  "session_path": "/private/tmp/cora-vocal-imitation-v2",
+  "passing_development_takes_before_stop": [
+    "a-development-1.wav",
+    "a-development-2.wav",
+    "i-development-1.wav",
+    "i-development-2.wav"
+  ],
+  "failed_target": "u",
+  "failed_role": "development",
+  "failed_take": 1,
+  "capture_sha256": "51262edff94fb4cea63687e4cd0196a358fdbe7685f76f01efdb51d78d82b52b",
+  "sensory_sha256": "4e0a9ce48f36c347f0b9c6c84fe0d899c5c34eea3b63dea0133b7e36a4e4099f",
+  "hardware": {
+    "backend": "sounddevice_portaudio_coreaudio_callback",
+    "device_selector": ":0",
+    "sample_rate_hz": 16000,
+    "channel_count": 2,
+    "frame_count": 64000,
+    "input_overflow_count": 0,
+    "callback_status_count": 0,
+    "callback_timestamp_discontinuity_count": 0,
+    "hardware_contract_passed": true
+  },
+  "quality": {
+    "analysis_start_sample": 33280,
+    "analysis_sample_count": 7680,
+    "analysis_rms": 0.0008939502671564102,
+    "analysis_peak_absolute": 0.005798184871673584,
+    "clipped_sample_count": 0,
+    "estimated_pitch_hz": 163.26530612244898,
+    "pitch_periodicity": 0.23288320383461336,
+    "rms_at_least_0_01": false,
+    "peak_at_least_0_03": false,
+    "pitch_periodicity_at_least_0_30": false,
+    "quality_passed": false
+  },
+  "disposition": {
+    "v2_stopped": true,
+    "failed_take_overwritten": false,
+    "passing_takes_reused_by_v3": false,
+    "thresholds_changed": false,
+    "preprocessing_changed": false,
+    "learner_changed": false,
+    "confirmation_accessed": false,
+    "v3_change": "fresh session with a pre-retention audible start cue on Mac mini Speakers",
+    "v3_fresh_recording_required": true
+  },
+  "claim_boundary": "V2 hardware passed and four development takes were valid, but the fifth capture missed the spoken interval. This is an acquisition synchronization failure, not evidence for or against vocal imitation."
+}

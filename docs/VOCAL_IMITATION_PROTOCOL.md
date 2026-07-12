@@ -1,7 +1,7 @@
 # Project-owner vocal-imitation protocol
 
-Status: v2 frozen after the retained v1 acquisition failure and before any v2
-project-owner recording.
+Status: v3 frozen after the retained v1/v2 acquisition failures and before any
+v3 project-owner recording.
 
 V1 used a 1.8-second capture. Its first `/a/` development take contained no
 eligible vocal interval (RMS `0.00147`, peak `0.0131`, periodicity `0.297`) and
@@ -11,6 +11,17 @@ V2 changes only the capture duration to 4.0 seconds so tool-start latency cannot
 consume the spoken interval. It uses a fresh session and recording set. All
 preprocessing, learning, quality thresholds, confirmation gates, and claim
 boundaries remain unchanged.
+
+V2 produced four passing development takes, then its first `/u/` take again
+missed the spoken interval during a delayed tool start. V2 is stopped and
+retained in
+[`2026-07-12-vocal-imitation-v2-acquisition-failure.json`](evidence/2026-07-12-vocal-imitation-v2-acquisition-failure.json).
+V3 retains the 4.0-second window and adds a 100 ms, 660 Hz, amplitude-0.08
+physical start cue on the pinned Mac mini Speakers. The XVF3800 input stream is
+opened first; cue plus 200 ms settle samples are discarded before the retained
+window begins. The speaker begins after hearing the tone. This changes only
+human/capture synchronization. V3 requires a fresh recording set; thresholds,
+features, learning, and confirmation gates remain unchanged.
 
 This protocol advances the bounded synthetic speech-learning demo to a new,
 project-owner-recorded target. It is a demo-layer experiment, not a retry of
@@ -25,16 +36,17 @@ phoneme recognition, or general human speech.
 - Capture requires the literal `--authorize-project-owner-recording` flag.
 - Input is the XVF3800 callback path at 16 kHz and its two fused host channels.
   No four-microphone geometry is inferred.
-- There is no playback during teacher capture. External-speaker geometry is
-  therefore irrelevant to this stage.
+- A bounded start cue is played only on the Mac mini Speakers before retained
+  teacher samples. Cue and settle samples are discarded. There is no stimulus
+  playback inside the scored window; external-speaker geometry is irrelevant.
 - Each target has exactly two development takes and one confirmation take.
   Confirmation audio is decoded only after the motor association is frozen.
 
 ## 2. Spoken prompt
 
 For each of `/a/`, `/i/`, and `/u/`, produce a comfortable, steady vowel for
-roughly two seconds. Do not imitate a particular pitch. Each capture lasts
-4.0 seconds, allowing tool-start uncertainty plus quiet lead-in and tail.
+roughly two seconds, beginning when the short tone is audible. Do not imitate a
+particular pitch. Each retained capture lasts 4.0 seconds.
 
 The vowel name is capture organization and display metadata. The learner gets
 only an opaque hash and a 30-dimensional auditory vector.

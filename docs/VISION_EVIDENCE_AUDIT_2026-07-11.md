@@ -43,7 +43,7 @@ failed gate as partial promotion.
 
 ### Verification
 
-- Full suite: `478 passed, 3 skipped`.
+- Full suite: `481 passed, 3 skipped`.
 - The skips are intentional hardware/environment-dependent tests.
 - `python3 -m cora_infans --operational-readiness` verifies all required
   retained stage evidence against frozen SHA-256 pins and exits nonzero when

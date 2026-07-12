@@ -14,6 +14,7 @@ import html
 import json
 from pathlib import Path
 import shutil
+import time
 import wave
 
 import numpy as np
@@ -36,8 +37,12 @@ from .speech_learning_demo import (
 )
 
 
-PROTOCOL = "docs/VOCAL_IMITATION_PROTOCOL.md v2"
+PROTOCOL = "docs/VOCAL_IMITATION_PROTOCOL.md v3"
 CAPTURE_DURATION_MS = 4000
+START_CUE_FREQUENCY_HZ = 660.0
+START_CUE_DURATION_MS = 100
+START_CUE_SETTLE_MS = 200
+START_CUE_AMPLITUDE = 0.08
 ANALYSIS_SAMPLE_RATE = 16000
 ANALYSIS_WINDOW_MS = 480
 ANALYSIS_STRIDE_MS = 80
@@ -227,6 +232,50 @@ def _write_multichannel_wav(path: Path, samples: np.ndarray, sample_rate: int) -
         handle.writeframes(pcm.tobytes())
 
 
+def _play_start_cue(sounddevice_module: object | None = None) -> dict[str, object]:
+    """Play a bounded start cue through the pinned self-source output."""
+
+    if sounddevice_module is None:
+        import sounddevice as sounddevice_module
+
+    devices = sounddevice_module.query_devices()
+    device_index = next(
+        (
+            index
+            for index, device in enumerate(devices)
+            if str(device["name"]).lower() == "mac mini speakers"
+            and int(device["max_output_channels"]) >= 1
+        ),
+        None,
+    )
+    if device_index is None:
+        raise ValueError("Mac mini Speakers start-cue output is unavailable")
+    sample_rate = 48000
+    sample_count = int(round(START_CUE_DURATION_MS * sample_rate / 1000.0))
+    timeline = np.arange(sample_count, dtype=np.float64) / sample_rate
+    envelope = np.sin(np.linspace(0.0, np.pi, sample_count)) ** 2
+    cue = (
+        START_CUE_AMPLITUDE
+        * envelope
+        * np.sin(2.0 * np.pi * START_CUE_FREQUENCY_HZ * timeline)
+    ).astype(np.float32)
+    sounddevice_module.play(
+        cue,
+        samplerate=sample_rate,
+        device=device_index,
+        blocking=True,
+    )
+    return {
+        "played": True,
+        "output_device_index": device_index,
+        "output_device_name": str(devices[device_index]["name"]),
+        "frequency_hz": START_CUE_FREQUENCY_HZ,
+        "duration_ms": START_CUE_DURATION_MS,
+        "amplitude": START_CUE_AMPLITUDE,
+        "retained_in_capture": False,
+    }
+
+
 def _default_capture() -> tuple[np.ndarray, int, dict[str, object]]:
     mic = LiveMicArray(
         device=DEFAULT_DEVICE,
@@ -235,6 +284,14 @@ def _default_capture() -> tuple[np.ndarray, int, dict[str, object]]:
         stream_backend="callback",
     )
     with mic.streaming():
+        cue_metadata = _play_start_cue()
+        time.sleep(START_CUE_SETTLE_MS / 1000.0)
+        # The input stream is opened before the cue to eliminate startup
+        # uncertainty. Discard cue/settle samples so only the post-cue teacher
+        # interval enters the retained recording.
+        with mic._callback_condition:
+            mic._callback_chunks.clear()
+            mic._callback_available_frames = 0
         mic.capture_frame(duration_ms=CAPTURE_DURATION_MS)
         samples = mic.last_pcm_channels
         if samples is None:
@@ -246,6 +303,7 @@ def _default_capture() -> tuple[np.ndarray, int, dict[str, object]]:
             "input_overflow_count": mic.input_overflow_count,
             "callback_status_count": mic.callback_status_count,
             "callback_timestamp_discontinuity_count": mic.callback_timestamp_discontinuity_count,
+            "start_cue": cue_metadata,
         }
         return samples, ANALYSIS_SAMPLE_RATE, metadata
 
@@ -325,6 +383,11 @@ def capture_project_owner_take(
         and metadata.get("input_overflow_count") == 0
         and metadata.get("callback_status_count") == 0
         and metadata.get("callback_timestamp_discontinuity_count") == 0
+        and isinstance(metadata.get("start_cue"), dict)
+        and metadata["start_cue"].get("played") is True
+        and metadata["start_cue"].get("output_device_name")
+        == "Mac mini Speakers"
+        and metadata["start_cue"].get("retained_in_capture") is False
     )
     real_capture = hardware_contract_passed
     record = {
