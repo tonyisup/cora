@@ -139,6 +139,12 @@ Constraint:
   [the demo specification](docs/DEMO_SPEC.md). This is authorized only as
   target-specific prototype association and model-based local search. It must
   not be reported as continuous inverse closure or new H4 evidence.
+- After that synthetic gate passes, new project-owner recordings may be used by
+  the separately frozen
+  [vocal-imitation protocol](docs/VOCAL_IMITATION_PROTOCOL.md). This authorization
+  is limited to target-specific association over the finite babbled repertoire;
+  confirmation audio must remain selection-blind, protected corpora remain
+  prohibited, and results must not be promoted to H4 evidence.
 
 ### Stage 6 — Hard efficiency operating point
 

@@ -1,0 +1,72 @@
+{
+  "mode": "bounded_vocal_imitation_v1_prehuman_calibration",
+  "date": "2026-07-12",
+  "status": "synthetic_injected_protocol_fixture_passed",
+  "protocol": "docs/VOCAL_IMITATION_PROTOCOL.md v1",
+  "evidence_class": "synthetic_injected_protocol_fixture",
+  "human_recording_accessed": false,
+  "real_capture_claim": false,
+  "production_runner_accepts_this_fixture_as_evidence": false,
+  "fixture": {
+    "targets": ["a", "i", "u"],
+    "development_f0_hz": [90.0, 140.0],
+    "confirmation_f0_hz": 180.0,
+    "capture_sample_rate_hz": 16000,
+    "capture_channel_count": 2,
+    "manifest_sha256": "567d5bc9809d4bc73b9a6f8089fe16736d499b5a5ae40b45e73ee8eadde0d5c1",
+    "waveform_repertoire_sha256": "380718ff7402e09f67f070d4768058da8f2d9071a3ad565b36c9c585c02e147f",
+    "dashboard_sha256": "1cd164b68b1f7b6e742db4e4352af4c199485eb2f3be49ee057414ed90509bdb"
+  },
+  "targets": {
+    "a": {
+      "development_take_distance": 0.015101594279053158,
+      "development_initial_distance": 0.41694173872290946,
+      "development_final_distance": 0.08519456930336057,
+      "development_improvement_ratio": 0.7956679281755021,
+      "confirmation_rest_distance": 0.42025663498971194,
+      "confirmation_learned_distance": 0.08184901255580093,
+      "confirmation_improvement_ratio": 0.8052404037409079,
+      "learned_halton_index": 15370,
+      "passed": true
+    },
+    "i": {
+      "development_take_distance": 0.022120957388001152,
+      "development_initial_distance": 0.5079130092134085,
+      "development_final_distance": 0.11489482521123319,
+      "development_improvement_ratio": 0.7737903477031082,
+      "confirmation_rest_distance": 0.5169913464113662,
+      "confirmation_learned_distance": 0.13285537530529476,
+      "confirmation_improvement_ratio": 0.7430220520565876,
+      "learned_halton_index": 16184,
+      "passed": true
+    },
+    "u": {
+      "development_take_distance": 0.02634175981572697,
+      "development_initial_distance": 0.25470412519199437,
+      "development_final_distance": 0.09133786628230817,
+      "development_improvement_ratio": 0.641396203483323,
+      "confirmation_rest_distance": 0.21668106510061128,
+      "confirmation_learned_distance": 0.0905325218432732,
+      "confirmation_improvement_ratio": 0.5821853570766031,
+      "learned_halton_index": 16961,
+      "passed": true
+    }
+  },
+  "criteria": {
+    "all_capture_quality_gates_passed": true,
+    "all_development_take_distances_at_most_0_30": true,
+    "all_development_improvements_at_least_0_20": true,
+    "all_development_final_distances_at_most_0_45": true,
+    "all_confirmation_improvements_at_least_0_15": true,
+    "all_confirmation_final_distances_at_most_0_45": true,
+    "confirmation_accessed_after_all_learning": true,
+    "confirmation_did_not_change_associations": true,
+    "label_blind_learning": true,
+    "protected_data_accessed": false,
+    "external_corpus_accessed": false,
+    "live_io_executed": false
+  },
+  "fixture_passed": true,
+  "next_authorized_step": "capture fresh project-owner vowels through the XVF3800 callback without changing this protocol",
+  "claim_boundary": "This proves deterministic protocol plumbing and pitch-perturbed synthetic transfer only. It is not a human-vocal-imitation result, a real-capture result, H4 evidence, or evidence of general speech learning."
+}

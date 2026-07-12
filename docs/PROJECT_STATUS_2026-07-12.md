@@ -25,7 +25,7 @@ The operational procedure and stop rules are documented in
 
 - Clean Python 3.13 constrained installation: passed.
 - Hash-pinned operational readiness: passed.
-- Full hardware-safe suite: `467 passed, 3 skipped`.
+- Full hardware-safe suite: `475 passed, 3 skipped`.
 - After the XVF3800 was reconnected, read-only preflight passed the host, input,
   format, output-route, contract, and evidence checks.
 - Operational acceptance attempt 1 completed 400 frames with clean stream
@@ -73,3 +73,20 @@ learning curves are retained outside Git and SHA-256 identified by the
 V1 and v2 failures remain retained. This demo is finite prototype association
 over synthetic output, not continuous inverse closure, human speech learning,
 phoneme recognition, or new H4 evidence.
+
+## Project-owner vocal-imitation bridge
+
+- A separately frozen protocol now connects new project-owner recordings to
+  the finite 96-prototype learner through a common 30-band waveform feature
+  representation.
+- Capture is fail-loud, authorization-gated, hash-identified, fixed to the
+  XVF3800 16 kHz callback and its two fused host channels, and retains exactly
+  two development plus one confirmation take for each of `/a/`, `/i/`, `/u/`.
+- All associations freeze before confirmation decoding. Confirmation cannot
+  select or replace a motor, protected corpora are inaccessible through this
+  session-local manifest, and a missed gate stops this v1 recording set.
+- The synthetic-injected protocol fixture passes all capture, learning, recall,
+  confirmation, provenance, and dashboard contracts. The first human recording
+  set remains to be captured and is not yet claimed as passing. The distinction
+  is retained in the
+  [pre-human calibration](evidence/2026-07-12-vocal-imitation-v1-prehuman-calibration.json).

@@ -105,6 +105,8 @@ class LiveMicArray:
         # (e.g. the motor-imitation loop's analyze_vowel) have a waveform to
         # analyze. None until the first capture.
         self.last_pcm: np.ndarray | None = None
+        # Preserve the actual fused host channels for auditable recordings.
+        self.last_pcm_channels: np.ndarray | None = None
 
     def start_stream(self) -> None:
         """Open one continuous raw-PCM ffmpeg session for repeated frames."""
@@ -534,7 +536,8 @@ class LiveMicArray:
         self.captured_sample_count += int(data.size)
         self.clipped_sample_count += self.last_frame_clipped_sample_count
 
-        # Retain the raw PCM (mono mix) for downstream waveform analysis.
+        # Retain both the actual fused host channels and a mono analysis mix.
+        self.last_pcm_channels = data.astype(np.float32, copy=True)
         self.last_pcm = data.mean(axis=1).astype(np.float32)
         self.last_pcm_sample_rate = sample_rate
 

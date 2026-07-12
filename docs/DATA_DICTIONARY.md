@@ -301,6 +301,11 @@ The hypothesis number and stage number are separate systems.
 | **Motor repertoire** | Fixed-capacity collection of bounded motor prototypes and their remembered synthetic sensory consequences. The demo repertoire contains 96 entries. |
 | **Prototype association** | Bounded memory linking an opaque target sensory hash to the best discrete motor prototype found for it. It is not a continuous inverse function. |
 | **Competence progress** | Reduction in the best target sensory distance after an attempted action. Positive progress means the current session found a better association. |
+| **Development take** | Project-owner recording that the bounded learner may use to select a motor prototype. The vocal-imitation protocol uses exactly two per target. |
+| **Confirmation take** | Project-owner recording decoded only after every motor association is frozen. It scores recall but cannot select or replace a motor. |
+| **Auditory vector** | Label-free 30-number summary comparing a recorded teacher target with a babbled self-waveform using smoothed spectral-band energy from 150 Hz to 5 kHz. |
+| **RMS** (Root Mean Square) | Signal-level measure used here to reject a steady-vowel window that is too quiet for reliable analysis. |
+| **Selection-blind confirmation** | Rule that confirmation audio can score an already learned motor but cannot choose, tune, or replace it. |
 | **Operating-point manifest** | Machine-readable host, input, self-source, world-source, geometry, volume, and operator confirmations required for an eligible live run. |
 | **Operational acceptance** | One bounded Stage 6 engineering check combining read-only preflight, an already-spent hash-pinned stimulus, self-describing physical metadata, retained raw telemetry, and the hard timing/integrity gate. It is not a new scientific promotion or Stage 4 rerun. |
 | **Participant-disjoint** | No participant appears in both training/development and evaluation groups. |

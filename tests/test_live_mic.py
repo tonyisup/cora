@@ -76,6 +76,8 @@ def test_capture_retains_actual_pcm_sample_rate(monkeypatch) -> None:
     assert array.last_pcm_sample_rate == 48000
     assert array.last_pcm is not None
     assert len(array.last_pcm) == 4800
+    assert array.last_pcm_channels is not None
+    assert array.last_pcm_channels.shape == (4800, 2)
 
 
 def test_streaming_reuses_one_ffmpeg_process_across_frames(monkeypatch) -> None:

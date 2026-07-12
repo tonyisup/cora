@@ -84,6 +84,37 @@ The governing [demo specification](docs/DEMO_SPEC.md) keeps this separate from
 continuous inverse closure, human speech learning, phoneme recognition, and H4
 evidence. It performs no live I/O and accesses no recorded or protected audio.
 
+### Project-owner vocal targets
+
+The next bounded stage records two development takes and one untouched
+confirmation take for each of `/a/`, `/i/`, and `/u/`. For every capture, say a
+comfortable steady vowel for roughly one second:
+
+```bash
+python3 -m cora_infans --capture-vocal-imitation \
+  --session-dir /private/tmp/cora-vocal-imitation \
+  --target a --role development --take 1 \
+  --authorize-project-owner-recording
+```
+
+Repeat with development take `2` and confirmation take `1`, then do the same
+for `i` and `u`. Capture uses the XVF3800 callback at 16 kHz, retains the two
+fused host channels, hashes every WAV, refuses duplicates, and plays no
+stimulus.
+
+After all nine takes exist, run the selection-blind confirmation:
+
+```bash
+python3 -m cora_infans --run-vocal-imitation \
+  --session-dir /private/tmp/cora-vocal-imitation
+```
+
+This produces learned WAVs, `vocal-imitation-result.json`, and
+`vocal-imitation-demo.html`. The frozen
+[project-owner protocol](docs/VOCAL_IMITATION_PROTOCOL.md) requires every motor
+association to freeze before confirmation audio is decoded. This is a
+one-speaker demo boundary, not H4 or general speech-learning evidence.
+
 Validate a future flat Stage 6 run summary against the named 10.5 ms operating
 point:
 

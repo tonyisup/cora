@@ -22,6 +22,10 @@ from .operational_acceptance import (
     run_operational_acceptance,
 )
 from .speech_learning_demo import DEMO_VOWELS, run_speech_learning_demo
+from .vocal_imitation import (
+    capture_project_owner_take,
+    run_project_owner_vocal_imitation,
+)
 from .io.live_listener import LiveListener
 from .benchmark import benchmark_event_pipeline
 from .energy_workload import run_sustained_energy_workload
@@ -157,6 +161,7 @@ def describe() -> dict[str, object]:
             "read_only_operational_preflight",
             "bounded_live_operational_acceptance",
             "bounded_offline_speech_learning_demo",
+            "bounded_project_owner_vocal_imitation",
             "synthetic_mic_array_front_end",
             "live_xvf3800_front_end",
             "native_coreaudio_continuous_front_end",
@@ -1939,6 +1944,53 @@ def speech_learning_demo_cli(
     )
 
 
+def capture_vocal_imitation_cli(args: list[str]) -> dict[str, object]:
+    values: dict[str, str] = {}
+    authorized = False
+    index = 1
+    while index < len(args):
+        option = args[index]
+        if option == "--authorize-project-owner-recording":
+            authorized = True
+            index += 1
+            continue
+        if option not in {"--session-dir", "--target", "--role", "--take"}:
+            raise ValueError(f"unknown option: {option}")
+        if index + 1 >= len(args):
+            raise ValueError(f"missing value for {option}")
+        values[option] = args[index + 1]
+        index += 2
+    for required in ("--session-dir", "--target", "--role", "--take"):
+        if required not in values:
+            raise ValueError(f"--capture-vocal-imitation requires {required}")
+    return capture_project_owner_take(
+        session_dir=values["--session-dir"],
+        target_key=values["--target"],
+        role=values["--role"],
+        take=int(values["--take"]),
+        authorized=authorized,
+    )
+
+
+def run_vocal_imitation_cli(args: list[str]) -> dict[str, object]:
+    values: dict[str, str] = {}
+    index = 1
+    while index < len(args):
+        option = args[index]
+        if option not in {"--session-dir", "--output-dir"}:
+            raise ValueError(f"unknown option: {option}")
+        if index + 1 >= len(args):
+            raise ValueError(f"missing value for {option}")
+        values[option] = args[index + 1]
+        index += 2
+    if "--session-dir" not in values:
+        raise ValueError("--run-vocal-imitation requires --session-dir")
+    return run_project_owner_vocal_imitation(
+        session_dir=values["--session-dir"],
+        output_dir=values.get("--output-dir"),
+    )
+
+
 def prepare_ids_manifest_cli(args: list[str] | None = None) -> dict[str, object]:
     parsed = args or ["--prepare-ids-manifest"]
     root: str | None = None
@@ -2636,6 +2688,22 @@ def main(argv: list[str] | None = None) -> int:
         except (ValueError, OSError, KeyError, TypeError, AttributeError) as exc:
             print(str(exc), file=sys.stderr)
             return 2
+    if args and args[0] == "--capture-vocal-imitation":
+        try:
+            report = capture_vocal_imitation_cli(args)
+            print(json.dumps(report))
+            return 0 if report["capture_passed"] is True else 1
+        except (ValueError, OSError, KeyError, TypeError, AttributeError, LiveMicError) as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
+    if args and args[0] == "--run-vocal-imitation":
+        try:
+            report = run_vocal_imitation_cli(args)
+            print(json.dumps(report))
+            return 0 if report["demo_passed"] is True else 1
+        except (ValueError, OSError, KeyError, TypeError, AttributeError, json.JSONDecodeError) as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
     if args and args[0] == "--simulate-frame":
         try:
             simulation_params, output_mode = parse_simulation_cli_args(args)
@@ -2879,7 +2947,7 @@ def main(argv: list[str] | None = None) -> int:
             return 2
 
     print(
-        "usage: python -m cora_infans --describe | --show-operational-contract | --operational-readiness [--evidence-dir DIR] | --operational-preflight --manifest FILE.json | --run-operational-acceptance --manifest FILE.json --stimulus-wav FILE.wav --output-dir DIR --authorize-live-io | --demo-speech-learning --output-dir DIR [--scenario synthetic-mirror|cross-configuration] [--vowel a|i|u|all] | --validate-stage6-operating-point --report REPORT.json | --simulate-frame | --simulate-sequence "
+        "usage: python -m cora_infans --describe | --show-operational-contract | --operational-readiness [--evidence-dir DIR] | --operational-preflight --manifest FILE.json | --run-operational-acceptance --manifest FILE.json --stimulus-wav FILE.wav --output-dir DIR --authorize-live-io | --demo-speech-learning --output-dir DIR [--scenario synthetic-mirror|cross-configuration] [--vowel a|i|u|all] | --capture-vocal-imitation --session-dir DIR --target a|i|u --role development|confirmation --take N --authorize-project-owner-recording | --run-vocal-imitation --session-dir DIR [--output-dir DIR] | --validate-stage6-operating-point --report REPORT.json | --simulate-frame | --simulate-sequence "
         "[--timestamp-ms N --dominant-frequency-hz F --channel-energies a,b,c,d --initial-prediction-hz F --mic-geometry l0,l1,l2,l3 --saliency-threshold F --output json|pretty] "
         "[--family sweep|zigzag|gap|multi_gap|delayed_recovery] [--with-scheduling] "
         "[--capture-live [--device :0] [--duration-ms N]] "

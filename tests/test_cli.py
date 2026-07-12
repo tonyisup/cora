@@ -36,6 +36,7 @@ def test_describe_command_prints_json_summary() -> None:
     assert "read_only_operational_preflight" in payload["implemented_subsystems"]
     assert "bounded_live_operational_acceptance" in payload["implemented_subsystems"]
     assert "bounded_offline_speech_learning_demo" in payload["implemented_subsystems"]
+    assert "bounded_project_owner_vocal_imitation" in payload["implemented_subsystems"]
     assert "predictive_hierarchy" in payload["implemented_subsystems"]
     assert "commanded_active_attention" in payload["implemented_subsystems"]
     assert "offline_corpus_evaluation" in payload["implemented_subsystems"]
@@ -218,6 +219,39 @@ def test_speech_learning_demo_cli_runs_offline_and_retains_artifacts(
     assert (tmp_path / "a-learned.wav").is_file()
     assert (tmp_path / "speech-learning-session.json").is_file()
     assert (tmp_path / "speech-learning-demo.html").is_file()
+
+
+def test_vocal_imitation_capture_cli_requires_and_forwards_authorization(
+    tmp_path, monkeypatch
+) -> None:
+    import cora_infans.cli as cli
+
+    calls = []
+    monkeypatch.setattr(
+        cli,
+        "capture_project_owner_take",
+        lambda **kwargs: calls.append(kwargs)
+        or {"capture_passed": True, "capture": {}},
+    )
+    report = cli.capture_vocal_imitation_cli(
+        [
+            "--capture-vocal-imitation",
+            "--session-dir",
+            str(tmp_path),
+            "--target",
+            "a",
+            "--role",
+            "development",
+            "--take",
+            "1",
+            "--authorize-project-owner-recording",
+        ]
+    )
+
+    assert report["capture_passed"] is True
+    assert calls[0]["authorized"] is True
+    assert calls[0]["target_key"] == "a"
+    assert calls[0]["take"] == 1
 
 
 
