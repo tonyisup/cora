@@ -25,7 +25,7 @@ The operational procedure and stop rules are documented in
 
 - Clean Python 3.13 constrained installation: passed.
 - Hash-pinned operational readiness: passed.
-- Full hardware-safe suite: `484 passed, 3 skipped`.
+- Full hardware-safe suite: `487 passed, 3 skipped`.
 - After the XVF3800 was reconnected, read-only preflight passed the host, input,
   format, output-route, contract, and evidence checks.
 - Operational acceptance attempt 1 completed 400 frames with clean stream
@@ -111,3 +111,7 @@ phoneme recognition, or new H4 evidence.
 - The disjoint repertoire also passes the complete synthetic V4 fixture across
   development, recall, and held confirmation. That fixture is explicitly not
   human evidence.
+- Before the first V4 recording, confirmation isolation was made machine-hard:
+  exactly six development takes must produce a passing, hash-pinned association
+  freeze; confirmation capture refuses before it, and the final runner must
+  reproduce all frozen target/prototype identifiers before held scoring.

@@ -254,6 +254,29 @@ def test_vocal_imitation_capture_cli_requires_and_forwards_authorization(
     assert calls[0]["take"] == 1
 
 
+def test_vocal_imitation_development_freeze_cli(tmp_path, monkeypatch) -> None:
+    import cora_infans.cli as cli
+
+    calls = []
+    monkeypatch.setattr(
+        cli,
+        "freeze_project_owner_development",
+        lambda **kwargs: calls.append(kwargs)
+        or {"development_passed": True},
+    )
+
+    report = cli.freeze_vocal_imitation_development_cli(
+        [
+            "--freeze-vocal-imitation-development",
+            "--session-dir",
+            str(tmp_path),
+        ]
+    )
+
+    assert report["development_passed"] is True
+    assert calls == [{"session_dir": str(tmp_path)}]
+
+
 
 def test_simulate_frame_command_prints_event_and_workspace_snapshot() -> None:
     env = os.environ.copy()

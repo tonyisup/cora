@@ -8,7 +8,8 @@
   "real_capture_claim": false,
   "production_runner_accepts_this_fixture_as_evidence": false,
   "fixture": {
-    "manifest_sha256": "66d11121cb2ceb4cc9ba6426fbf24f502fff5d78c4c47f264946e546311b3e43",
+    "manifest_sha256": "bfa38c766e7da2d3591eeaa631937fc1a64549151cdc7f914139b310a4e6d519",
+    "development_freeze_sha256": "b8c08688127ebb7dfa0570bf743e2c074c1dd5276661dd2dbf9b7d52e1181d15",
     "repertoire_sha256": "fb07df5ede273436524d22dcb3198bae79907e0b7cf7abd57a14c177381fb0be",
     "dashboard_sha256": "3efa47c636c773d868d60fc3bbb3030051b2ce71ff6b9a686ddf0f3c4bfe9adc",
     "capture_duration_ms": 4000,
@@ -44,6 +45,8 @@
   "criteria": {
     "all_capture_quality_gates_passed": true,
     "all_development_gates_passed": true,
+    "development_associations_frozen_before_confirmation": true,
+    "final_runner_matched_frozen_associations": true,
     "all_confirmation_gates_passed": true,
     "confirmation_accessed_after_all_learning": true,
     "label_blind_learning": true,

@@ -323,6 +323,10 @@ def _manifest_path(session_dir: Path) -> Path:
     return session_dir / "project-owner-vocal-imitation-manifest.json"
 
 
+def _freeze_path(session_dir: Path) -> Path:
+    return session_dir / "frozen-vocal-associations.json"
+
+
 def _load_manifest(session_dir: Path) -> dict[str, object]:
     path = _manifest_path(session_dir)
     if not path.exists():
@@ -377,6 +381,8 @@ def capture_project_owner_take(
         for row in manifest["captures"]
     ):
         raise ValueError("that vocal-imitation take is already registered")
+    if role == "confirmation":
+        _validate_development_freeze(root, manifest)
     filename = f"{target_key}-{role}-{take}.wav"
     path = root / "captures" / filename
     if path.exists():
@@ -458,6 +464,147 @@ def _verified_take(
     return sensory, quality
 
 
+def _development_records(
+    records: list[dict[str, object]], target: str
+) -> list[dict[str, object]]:
+    return sorted(
+        (
+            row
+            for row in records
+            if row["target_key"] == target and row["role"] == "development"
+        ),
+        key=lambda row: row["take"],
+    )
+
+
+def _validate_development_freeze(
+    root: Path, manifest: dict[str, object]
+) -> dict[str, object]:
+    path = _freeze_path(root)
+    if not path.exists():
+        raise ValueError(
+            "confirmation capture requires frozen-vocal-associations.json"
+        )
+    freeze = json.loads(path.read_text())
+    if freeze.get("protocol") != PROTOCOL or freeze.get("development_passed") is not True:
+        raise ValueError("development association freeze is invalid or did not pass")
+    records = manifest["captures"]
+    current_hashes = {
+        str(row["relative_path"]): str(row["sha256"])
+        for row in records
+        if row["role"] == "development"
+    }
+    if current_hashes != freeze.get("development_capture_sha256"):
+        raise ValueError("development captures changed after association freeze")
+    if freeze.get("repertoire_sha256") != build_waveform_repertoire().digest():
+        raise ValueError("frozen development repertoire no longer matches implementation")
+    return freeze
+
+
+def freeze_project_owner_development(
+    *, session_dir: str | Path, allow_test_fixture: bool = False
+) -> dict[str, object]:
+    """Learn and retain V4 associations before confirmation can be captured."""
+
+    root = Path(session_dir).resolve()
+    manifest = _load_manifest(root)
+    records = manifest["captures"]
+    expected = {
+        (target, "development", take)
+        for target in DEMO_VOWELS
+        for take in (1, 2)
+    }
+    observed = {(row["target_key"], row["role"], row["take"]) for row in records}
+    if observed != expected:
+        missing = sorted(expected - observed)
+        extra = sorted(observed - expected)
+        raise ValueError(
+            "development freeze requires exactly six development takes; "
+            f"missing={missing}, extra={extra}"
+        )
+    all_real_captures = all(row.get("real_capture") is True for row in records)
+    if not all_real_captures and not allow_test_fixture:
+        raise ValueError(
+            "development freeze requires XVF3800 callback captures; "
+            "injected fixtures are test-only"
+        )
+
+    repertoire = build_waveform_repertoire()
+    learner = LocalImitationLearner(repertoire, capacity=3)
+    targets: dict[str, object] = {}
+    for target in DEMO_VOWELS:
+        rows = _development_records(records, target)
+        features = [_verified_take(root, row)[0] for row in rows]
+        combined = _unit(np.mean(np.stack(features), axis=0))
+        target_id = _array_sha256(combined)
+        learning = learner.imitate(combined, target_id=target_id)
+        take_distance = sensory_distance(features[0], features[1])
+        final_three = {
+            row["prototype_id"] for row in learning["attempts"][-3:]
+        }
+        criteria = {
+            "development_take_distance_at_most_0_30": take_distance <= 0.30,
+            "development_improvement_at_least_0_20": float(
+                learning["improvement_ratio"]
+            )
+            >= 0.20,
+            "development_final_distance_at_most_0_45": float(
+                learning["final_best_sensory_distance"]
+            )
+            <= 0.45,
+            "final_three_recall_same_prototype": len(final_three) == 1,
+        }
+        targets[target] = {
+            "display_label": target,
+            "label_role": "capture_organization_and_display_only",
+            "learner_received_vowel_label": False,
+            "target_id": target_id,
+            "development_take_distance": take_distance,
+            "initial_distance": learning["initial_sensory_distance"],
+            "final_distance": learning["final_best_sensory_distance"],
+            "improvement_ratio": learning["improvement_ratio"],
+            "learned_prototype_id": learning["learned_prototype_id"],
+            "learned_halton_index": learning["learned_halton_index"],
+            "learned_motor": learning["learned_motor"],
+            "criteria": criteria,
+            "development_passed": all(criteria.values()),
+        }
+
+    aggregate = {
+        "exactly_six_development_takes": len(records) == 6,
+        "every_target_passed": all(
+            row["development_passed"] is True for row in targets.values()
+        ),
+        "association_memory_within_three": len(learner.associations) <= 3,
+        "confirmation_not_captured": True,
+        "confirmation_not_accessed": True,
+        "protected_data_not_accessed": True,
+    }
+    report = {
+        "mode": "bounded_vocal_imitation_development_freeze",
+        "protocol": PROTOCOL,
+        "evidence_class": (
+            "project_owner_real_capture"
+            if all_real_captures
+            else "synthetic_injected_protocol_fixture"
+        ),
+        "development_manifest_sha256": _sha256(_manifest_path(root)),
+        "development_capture_sha256": {
+            str(row["relative_path"]): str(row["sha256"]) for row in records
+        },
+        "repertoire_sha256": repertoire.digest(),
+        "targets": targets,
+        "aggregate_criteria": aggregate,
+        "development_passed": all(aggregate.values()),
+        "claim_boundary": (
+            "Development-only target associations frozen before confirmation; "
+            "not a held-confirmation or general speech-learning result"
+        ),
+    }
+    _write_json(_freeze_path(root), report)
+    return report
+
+
 def _write_learned_wav(path: Path, motor: np.ndarray) -> dict[str, object]:
     production = synthesize_factorized(motor, DEMO_F0_HZ)
     silence = np.zeros(int(round(0.04 * SAMPLE_RATE)), dtype=np.float32)
@@ -519,6 +666,7 @@ def run_project_owner_vocal_imitation(
             "vocal-imitation evidence requires XVF3800 callback captures; "
             "injected fixtures are test-only"
         )
+    frozen_development = _validate_development_freeze(root, manifest)
 
     # Deliberately decode only development records before all associations freeze.
     development_features: dict[str, list[np.ndarray]] = {}
@@ -544,6 +692,28 @@ def run_project_owner_vocal_imitation(
         )
         learned[target] = (learning, combined, take_distance)
     frozen_associations = dict(learner.associations)
+    recomputed_targets = {
+        target: {
+            "target_id": learned[target][0]["target_id"],
+            "learned_prototype_id": learned[target][0]["learned_prototype_id"],
+            "learned_halton_index": learned[target][0]["learned_halton_index"],
+        }
+        for target in DEMO_VOWELS
+    }
+    frozen_targets = {
+        target: {
+            "target_id": frozen_development["targets"][target]["target_id"],
+            "learned_prototype_id": frozen_development["targets"][target][
+                "learned_prototype_id"
+            ],
+            "learned_halton_index": frozen_development["targets"][target][
+                "learned_halton_index"
+            ],
+        }
+        for target in DEMO_VOWELS
+    }
+    if recomputed_targets != frozen_targets:
+        raise ValueError("development associations changed after freeze")
 
     # Confirmation access begins only after every target association is frozen.
     confirmation: dict[str, tuple[np.ndarray, dict[str, object]]] = {}
@@ -614,6 +784,7 @@ def run_project_owner_vocal_imitation(
         "learner_received_no_vowel_labels": all(session["learner_received_vowel_label"] is False for session in sessions),
         "confirmation_accessed_after_all_learning": True,
         "association_memory_within_three": len(learner.associations) <= 3,
+        "development_freeze_verified": recomputed_targets == frozen_targets,
         "every_target_passed": all(session["session_passed"] for session in sessions),
         "external_corpus_not_accessed": True,
         "protected_data_not_accessed": True,

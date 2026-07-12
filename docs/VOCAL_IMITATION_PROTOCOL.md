@@ -54,7 +54,10 @@ phoneme recognition, or general human speech.
   teacher samples. Cue and settle samples are discarded. There is no stimulus
   playback inside the scored window; external-speaker geometry is irrelevant.
 - Each target has exactly two development takes and one confirmation take.
-  Confirmation audio is decoded only after the motor association is frozen.
+  After exactly six development takes, the runner must write a hash-pinned
+  `frozen-vocal-associations.json`. Confirmation capture itself is prohibited
+  until that artifact passes; confirmation audio can therefore neither select
+  nor precede the frozen motor association.
 
 ## 2. Spoken prompt
 
@@ -96,6 +99,9 @@ only an opaque hash and a 30-dimensional auditory vector.
 - After selection and recall finish, decode the confirmation take and score the
   already-frozen learned prototype. Confirmation may never select or replace a
   motor.
+- The final runner must deterministically recompute development learning and
+  match every opaque target ID, prototype ID, and Halton index to the freeze
+  artifact before decoding confirmation.
 
 ## 5. Frozen gates and stop rule
 

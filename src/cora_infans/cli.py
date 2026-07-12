@@ -24,6 +24,7 @@ from .operational_acceptance import (
 from .speech_learning_demo import DEMO_VOWELS, run_speech_learning_demo
 from .vocal_imitation import (
     capture_project_owner_take,
+    freeze_project_owner_development,
     run_project_owner_vocal_imitation,
 )
 from .io.live_listener import LiveListener
@@ -1991,6 +1992,14 @@ def run_vocal_imitation_cli(args: list[str]) -> dict[str, object]:
     )
 
 
+def freeze_vocal_imitation_development_cli(args: list[str]) -> dict[str, object]:
+    if len(args) != 3 or args[1] != "--session-dir":
+        raise ValueError(
+            "--freeze-vocal-imitation-development requires --session-dir DIR"
+        )
+    return freeze_project_owner_development(session_dir=args[2])
+
+
 def prepare_ids_manifest_cli(args: list[str] | None = None) -> dict[str, object]:
     parsed = args or ["--prepare-ids-manifest"]
     root: str | None = None
@@ -2704,6 +2713,14 @@ def main(argv: list[str] | None = None) -> int:
         except (ValueError, OSError, KeyError, TypeError, AttributeError, json.JSONDecodeError) as exc:
             print(str(exc), file=sys.stderr)
             return 2
+    if args and args[0] == "--freeze-vocal-imitation-development":
+        try:
+            report = freeze_vocal_imitation_development_cli(args)
+            print(json.dumps(report))
+            return 0 if report["development_passed"] is True else 1
+        except (ValueError, OSError, KeyError, TypeError, AttributeError, json.JSONDecodeError) as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
     if args and args[0] == "--simulate-frame":
         try:
             simulation_params, output_mode = parse_simulation_cli_args(args)
@@ -2947,7 +2964,7 @@ def main(argv: list[str] | None = None) -> int:
             return 2
 
     print(
-        "usage: python -m cora_infans --describe | --show-operational-contract | --operational-readiness [--evidence-dir DIR] | --operational-preflight --manifest FILE.json | --run-operational-acceptance --manifest FILE.json --stimulus-wav FILE.wav --output-dir DIR --authorize-live-io | --demo-speech-learning --output-dir DIR [--scenario synthetic-mirror|cross-configuration] [--vowel a|i|u|all] | --capture-vocal-imitation --session-dir DIR --target a|i|u --role development|confirmation --take N --authorize-project-owner-recording | --run-vocal-imitation --session-dir DIR [--output-dir DIR] | --validate-stage6-operating-point --report REPORT.json | --simulate-frame | --simulate-sequence "
+        "usage: python -m cora_infans --describe | --show-operational-contract | --operational-readiness [--evidence-dir DIR] | --operational-preflight --manifest FILE.json | --run-operational-acceptance --manifest FILE.json --stimulus-wav FILE.wav --output-dir DIR --authorize-live-io | --demo-speech-learning --output-dir DIR [--scenario synthetic-mirror|cross-configuration] [--vowel a|i|u|all] | --capture-vocal-imitation --session-dir DIR --target a|i|u --role development|confirmation --take N --authorize-project-owner-recording | --freeze-vocal-imitation-development --session-dir DIR | --run-vocal-imitation --session-dir DIR [--output-dir DIR] | --validate-stage6-operating-point --report REPORT.json | --simulate-frame | --simulate-sequence "
         "[--timestamp-ms N --dominant-frequency-hz F --channel-energies a,b,c,d --initial-prediction-hz F --mic-geometry l0,l1,l2,l3 --saliency-threshold F --output json|pretty] "
         "[--family sweep|zigzag|gap|multi_gap|delayed_recovery] [--with-scheduling] "
         "[--capture-live [--device :0] [--duration-ms N]] "

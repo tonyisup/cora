@@ -14,6 +14,7 @@ from cora_infans.vocal_imitation import (
     acoustic_sensory,
     build_waveform_repertoire,
     capture_project_owner_take,
+    freeze_project_owner_development,
     run_project_owner_vocal_imitation,
 )
 
@@ -34,7 +35,6 @@ def _register_complete_session(root: Path) -> None:
         for role, take, f0_hz in (
             ("development", 1, 90.0),
             ("development", 2, 140.0),
-            ("confirmation", 1, 180.0),
         ):
             samples = _capture_wave(target, f0_hz)
             report = capture_project_owner_take(
@@ -54,6 +54,25 @@ def _register_complete_session(root: Path) -> None:
                 ),
             )
             assert report["capture_passed"] is True
+    freeze = freeze_project_owner_development(
+        session_dir=root, allow_test_fixture=True
+    )
+    assert freeze["development_passed"] is True
+    for target in ("a", "i", "u"):
+        samples = _capture_wave(target, 180.0)
+        report = capture_project_owner_take(
+            session_dir=root,
+            target_key=target,
+            role="confirmation",
+            take=1,
+            authorized=True,
+            capture_fn=lambda samples=samples: (
+                samples,
+                16000,
+                {"backend": "synthetic_test_injection"},
+            ),
+        )
+        assert report["capture_passed"] is True
 
 
 def test_capture_requires_explicit_project_owner_authorization(tmp_path) -> None:
@@ -159,6 +178,7 @@ def test_complete_session_learns_before_confirmation_and_passes(tmp_path) -> Non
     assert report["evidence_class"] == "synthetic_injected_protocol_fixture"
     assert report["aggregate_criteria"]["exact_capture_count"] is True
     assert report["aggregate_criteria"]["confirmation_accessed_after_all_learning"] is True
+    assert report["aggregate_criteria"]["development_freeze_verified"] is True
     assert report["aggregate_criteria"]["external_corpus_not_accessed"] is True
     assert report["aggregate_criteria"]["protected_data_not_accessed"] is True
     assert len(report["sessions"]) == 3
@@ -176,6 +196,10 @@ def test_complete_session_learns_before_confirmation_and_passes(tmp_path) -> Non
     dashboard = output / "vocal-imitation-demo.html"
     assert hashlib.sha256(dashboard.read_bytes()).hexdigest() == report["presentation"]["html_sha256"]
     assert "held confirmation" in dashboard.read_text()
+    freeze = json.loads((tmp_path / "frozen-vocal-associations.json").read_text())
+    assert freeze["development_passed"] is True
+    assert freeze["aggregate_criteria"]["confirmation_not_captured"] is True
+    assert freeze["aggregate_criteria"]["confirmation_not_accessed"] is True
 
 
 def test_manifest_hash_tampering_fails_loudly(tmp_path) -> None:
@@ -190,6 +214,7 @@ def test_manifest_hash_tampering_fails_loudly(tmp_path) -> None:
 
 
 def test_confirmation_take_cannot_be_reused_or_overwritten(tmp_path) -> None:
+    _register_complete_session(tmp_path)
     samples = _capture_wave("u", 110.0)
     kwargs = dict(
         session_dir=tmp_path,
@@ -199,9 +224,28 @@ def test_confirmation_take_cannot_be_reused_or_overwritten(tmp_path) -> None:
         authorized=True,
         capture_fn=lambda: (samples, 16000, {"backend": "test"}),
     )
-    capture_project_owner_take(**kwargs)
     with pytest.raises(ValueError, match="already registered"):
         capture_project_owner_take(**kwargs)
+
+
+def test_confirmation_capture_is_refused_before_development_freeze(tmp_path) -> None:
+    samples = _capture_wave("a", 110.0)
+    with pytest.raises(ValueError, match="requires frozen-vocal-associations"):
+        capture_project_owner_take(
+            session_dir=tmp_path,
+            target_key="a",
+            role="confirmation",
+            take=1,
+            authorized=True,
+            capture_fn=lambda: (samples, 16000, {"backend": "test"}),
+        )
+
+
+def test_development_freeze_requires_exactly_six_takes(tmp_path) -> None:
+    with pytest.raises(ValueError, match="exactly six development takes"):
+        freeze_project_owner_development(
+            session_dir=tmp_path, allow_test_fixture=True
+        )
 
 
 def test_retained_prehuman_calibration_cannot_be_claimed_as_real() -> None:
@@ -329,7 +373,10 @@ def test_v4_prehuman_fixture_is_not_human_evidence() -> None:
     assert result["fixture"]["repertoire_sha256"] == (
         "fb07df5ede273436524d22dcb3198bae79907e0b7cf7abd57a14c177381fb0be"
     )
+    assert len(result["fixture"]["development_freeze_sha256"]) == 64
     assert all(row["passed"] for row in result["targets"].values())
     assert result["human_recording_accessed"] is False
     assert result["real_capture_claim"] is False
     assert result["production_runner_accepts_this_fixture_as_evidence"] is False
+    assert result["criteria"]["development_associations_frozen_before_confirmation"] is True
+    assert result["criteria"]["final_runner_matched_frozen_associations"] is True

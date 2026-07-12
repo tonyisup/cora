@@ -97,11 +97,22 @@ python3 -m cora_infans --capture-vocal-imitation \
   --authorize-project-owner-recording
 ```
 
-Repeat with development take `2` and confirmation take `1`, then do the same
-for `i` and `u`. Capture uses the XVF3800 callback at 16 kHz, retains the two
+Repeat development take `2`, then do both development takes for `i` and `u`.
+Capture uses the XVF3800 callback at 16 kHz, retains the two
 fused host channels, hashes every WAV, and refuses duplicates. Begin the vowel
 after the short start tone from the Mac mini Speakers; the cue is discarded
 before the retained microphone window.
+
+Freeze all three learned associations before any confirmation recording:
+
+```bash
+python3 -m cora_infans --freeze-vocal-imitation-development \
+  --session-dir /private/tmp/cora-vocal-imitation
+```
+
+The command refuses unless exactly six eligible development takes exist. Once
+it passes, capture confirmation take `1` for each target. The capture command
+itself refuses confirmation until the frozen-association artifact verifies.
 
 After all nine takes exist, run the selection-blind confirmation:
 
