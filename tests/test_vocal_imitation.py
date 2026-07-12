@@ -77,7 +77,21 @@ def test_acoustic_sensory_is_label_free_bounded_and_pitch_tolerant() -> None:
     assert np.linalg.norm(high) == pytest.approx(1.0)
     assert low_quality["quality_passed"] is True
     assert high_quality["quality_passed"] is True
+    assert low_quality["pitch_periodicity_at_least_0_30"] is True
+    assert high_quality["pitch_periodicity_at_least_0_30"] is True
     assert np.linalg.norm(low - high) / 2.0 < 0.10
+
+
+def test_nonperiodic_background_cannot_pass_as_a_vowel() -> None:
+    rng = np.random.default_rng(4021)
+    background = rng.normal(0.0, 0.03, (28800, 2)).astype(np.float32)
+
+    _sensory, quality = acoustic_sensory(background, 16000)
+
+    assert quality["analysis_rms"] >= 0.01
+    assert quality["peak_at_least_0_03"] is True
+    assert quality["pitch_periodicity_at_least_0_30"] is False
+    assert quality["quality_passed"] is False
 
 
 def test_waveform_repertoire_is_deterministic_and_uses_common_features() -> None:

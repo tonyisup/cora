@@ -37,7 +37,10 @@ only an opaque hash and a 30-dimensional auditory vector.
    resample to 16 kHz when needed.
 3. Select the highest-RMS 480 ms window on an 80 ms stride.
 4. Require finite samples, no sample at or above full scale, selected-window RMS
-   at least `0.01`, and selected-window peak at least `0.03` and below `0.98`.
+   at least `0.01`, selected-window peak at least `0.03` and below `0.98`, an
+   autocorrelation pitch between `70–350 Hz`, and normalized pitch periodicity
+   at least `0.30`. This prevents steady fan/background energy from satisfying
+   the capture gate without a voiced target.
 5. Compute averaged 64 ms Hann-window power spectra at 16 ms hops. At the
    plant's frozen 30 log-spaced frequencies, integrate Gaussian bands whose
    width is `max(80 Hz, 10% of center frequency)`, take log energy, remove the

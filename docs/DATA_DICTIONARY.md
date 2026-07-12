@@ -306,6 +306,7 @@ The hypothesis number and stage number are separate systems.
 | **Auditory vector** | Label-free 30-number summary comparing a recorded teacher target with a babbled self-waveform using smoothed spectral-band energy from 150 Hz to 5 kHz. |
 | **RMS** (Root Mean Square) | Signal-level measure used here to reject a steady-vowel window that is too quiet for reliable analysis. |
 | **Selection-blind confirmation** | Rule that confirmation audio can score an already learned motor but cannot choose, tune, or replace it. |
+| **Pitch periodicity** | Normalized autocorrelation strength at the strongest plausible voice-pitch lag. The vocal-imitation gate requires at least `0.30`, so background energy without a stable voiced pulse cannot pass on loudness alone. |
 | **Operating-point manifest** | Machine-readable host, input, self-source, world-source, geometry, volume, and operator confirmations required for an eligible live run. |
 | **Operational acceptance** | One bounded Stage 6 engineering check combining read-only preflight, an already-spent hash-pinned stimulus, self-describing physical metadata, retained raw telemetry, and the hard timing/integrity gate. It is not a new scientific promotion or Stage 4 rerun. |
 | **Participant-disjoint** | No participant appears in both training/development and evaluation groups. |

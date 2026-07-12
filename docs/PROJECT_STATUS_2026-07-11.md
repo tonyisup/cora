@@ -263,7 +263,7 @@ analog/device-front-end transient.
 ## Verification state
 
 At the 2026-07-12 operational-closure checkpoint the full test suite reports
-`475 passed, 3 skipped`. The
+`476 passed, 3 skipped`. The
 skips are intentional hardware/environment-dependent tests, not hidden failures.
 The bounded readiness command also validates every required retained stage
 artifact against its frozen SHA-256 pin and exits nonzero on a missing,

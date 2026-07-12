@@ -13,7 +13,7 @@
     "confirmation_f0_hz": 180.0,
     "capture_sample_rate_hz": 16000,
     "capture_channel_count": 2,
-    "manifest_sha256": "567d5bc9809d4bc73b9a6f8089fe16736d499b5a5ae40b45e73ee8eadde0d5c1",
+    "manifest_sha256": "96ea2e0dda69cc7f80729dfdee7d8c7aeac57fa2eb717adfc5f567c20b809e8c",
     "waveform_repertoire_sha256": "380718ff7402e09f67f070d4768058da8f2d9071a3ad565b36c9c585c02e147f",
     "dashboard_sha256": "1cd164b68b1f7b6e742db4e4352af4c199485eb2f3be49ee057414ed90509bdb"
   },
@@ -54,6 +54,7 @@
   },
   "criteria": {
     "all_capture_quality_gates_passed": true,
+    "all_pitch_periodicity_gates_passed": true,
     "all_development_take_distances_at_most_0_30": true,
     "all_development_improvements_at_least_0_20": true,
     "all_development_final_distances_at_most_0_45": true,

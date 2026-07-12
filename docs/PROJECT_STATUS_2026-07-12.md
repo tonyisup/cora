@@ -25,7 +25,7 @@ The operational procedure and stop rules are documented in
 
 - Clean Python 3.13 constrained installation: passed.
 - Hash-pinned operational readiness: passed.
-- Full hardware-safe suite: `475 passed, 3 skipped`.
+- Full hardware-safe suite: `476 passed, 3 skipped`.
 - After the XVF3800 was reconnected, read-only preflight passed the host, input,
   format, output-route, contract, and evidence checks.
 - Operational acceptance attempt 1 completed 400 frames with clean stream

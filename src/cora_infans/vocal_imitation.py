@@ -91,6 +91,28 @@ def _select_analysis_window(mono: np.ndarray) -> tuple[np.ndarray, int]:
     return mono[start : start + size], start
 
 
+def _pitch_periodicity(mono: np.ndarray) -> tuple[float | None, float]:
+    """Return bounded autocorrelation pitch and normalized periodicity."""
+
+    centered = np.asarray(mono, dtype=np.float64) - float(np.mean(mono))
+    windowed = centered * np.hanning(len(centered))
+    energy = float(np.dot(windowed, windowed))
+    if energy <= 1e-10:
+        return None, 0.0
+    fft_size = 1 << max(1, (2 * len(windowed) - 1).bit_length())
+    spectrum = np.fft.rfft(windowed, fft_size)
+    autocorrelation = np.fft.irfft(spectrum * np.conjugate(spectrum), fft_size)
+    autocorrelation = autocorrelation[: len(windowed)]
+    minimum_lag = int(ANALYSIS_SAMPLE_RATE / 350.0)
+    maximum_lag = min(len(windowed) - 1, int(ANALYSIS_SAMPLE_RATE / 70.0))
+    search = autocorrelation[minimum_lag : maximum_lag + 1]
+    lag = minimum_lag + int(np.argmax(search))
+    periodicity = max(
+        0.0, min(1.0, float(autocorrelation[lag] / autocorrelation[0]))
+    )
+    return float(ANALYSIS_SAMPLE_RATE / lag), periodicity
+
+
 def acoustic_sensory(waveform: np.ndarray, sample_rate: int) -> tuple[np.ndarray, dict[str, object]]:
     """Extract the frozen label-free 30-band auditory representation."""
 
@@ -109,6 +131,7 @@ def acoustic_sensory(waveform: np.ndarray, sample_rate: int) -> tuple[np.ndarray
     peak = float(np.max(np.abs(selected), initial=0.0))
     rms = float(np.sqrt(np.mean(np.square(selected))))
     clipped = int(np.count_nonzero(np.abs(mono) >= 1.0))
+    pitch_hz, periodicity = _pitch_periodicity(selected)
 
     fft_size = 1024  # 64 ms at 16 kHz
     hop = 256  # 16 ms
@@ -138,11 +161,16 @@ def acoustic_sensory(waveform: np.ndarray, sample_rate: int) -> tuple[np.ndarray
         "analysis_rms": rms,
         "analysis_peak_absolute": peak,
         "clipped_sample_count": clipped,
+        "estimated_pitch_hz": pitch_hz,
+        "pitch_periodicity": periodicity,
         "finite": True,
         "rms_at_least_0_01": rms >= 0.01,
         "peak_at_least_0_03": peak >= 0.03,
         "peak_below_0_98": peak < 0.98,
         "zero_clipped_samples": clipped == 0,
+        "pitch_between_70_and_350_hz": pitch_hz is not None
+        and 70.0 <= pitch_hz <= 350.0,
+        "pitch_periodicity_at_least_0_30": periodicity >= 0.30,
     }
     quality["quality_passed"] = all(
         quality[key] is True
@@ -152,6 +180,8 @@ def acoustic_sensory(waveform: np.ndarray, sample_rate: int) -> tuple[np.ndarray
             "peak_at_least_0_03",
             "peak_below_0_98",
             "zero_clipped_samples",
+            "pitch_between_70_and_350_hz",
+            "pitch_periodicity_at_least_0_30",
         )
     )
     return sensory, quality
