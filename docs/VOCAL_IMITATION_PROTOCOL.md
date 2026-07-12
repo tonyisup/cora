@@ -1,7 +1,7 @@
 # Project-owner vocal-imitation protocol
 
-Status: v3 frozen after the retained v1/v2 acquisition failures and before any
-v3 project-owner recording.
+Status: v4 frozen after retained v1/v2 acquisition failures and the retained v3
+development failure, before any v4 project-owner recording.
 
 V1 used a 1.8-second capture. Its first `/a/` development take contained no
 eligible vocal interval (RMS `0.00147`, peak `0.0131`, periodicity `0.297`) and
@@ -22,6 +22,20 @@ opened first; cue plus 200 ms settle samples are discarded before the retained
 window begins. The speaker begins after hearing the tone. This changes only
 human/capture synchronization. V3 requires a fresh recording set; thresholds,
 features, learning, and confirmation gates remain unchanged.
+
+V3 acquired six clean, mutually consistent development takes and accessed no
+confirmation. Its `/a/` target improved only `10.9%`, below the frozen `20%`
+gate. Exhaustive audit showed the best of all 96 V3 prototypes could improve
+only `12.5%`; the gate was therefore unattainable within that repertoire. V3 is
+stopped and retained in
+[`2026-07-12-vocal-imitation-v3-development-failure.json`](evidence/2026-07-12-vocal-imitation-v3-development-failure.json).
+
+V4 changes only the finite 96-entry babbling repertoire to a disjoint Halton
+schedule: start `20011`, stride `43`, last `24096`. On spent V3 development
+audio, the unchanged local learner reaches improvements of `30.7%`, `72.5%`,
+and `73.1%` for `/a/`, `/i/`, and `/u/`. That audit is design evidence only.
+V4 requires fresh recordings and preserves the cue, preprocessing, 12 attempts,
+memory capacity, thresholds, confirmation gates, and claim boundary.
 
 This protocol advances the bounded synthetic speech-learning demo to a new,
 project-owner-recorded target. It is a demo-layer experiment, not a retry of
@@ -72,8 +86,9 @@ only an opaque hash and a 30-dimensional auditory vector.
 
 ## 4. Bounded learning and confirmation
 
-- Reuse the 96 motors, Halton schedule, local frontier, 12 attempts, three-entry
-  association capacity, and final-three recall contract in `DEMO_SPEC.md`.
+- Use exactly 96 motors from Halton start `20011`, stride `43`, and last `24096`;
+  reuse the local frontier, 12 attempts, three-entry association capacity, and
+  final-three recall contract in `DEMO_SPEC.md`.
 - Recompute each babbled consequence through the same waveform feature path at
   frozen `110 Hz`; human and self targets are therefore compared in one
   operational auditory representation.

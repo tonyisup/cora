@@ -21,6 +21,7 @@ import numpy as np
 
 from .factorized_tract_plant import (
     EXPANDED_SENSORY_FREQUENCIES_HZ,
+    halton5,
     synthesize_factorized,
 )
 from .geometric_articulatory_synthesis import SAMPLE_RATE
@@ -37,12 +38,14 @@ from .speech_learning_demo import (
 )
 
 
-PROTOCOL = "docs/VOCAL_IMITATION_PROTOCOL.md v3"
+PROTOCOL = "docs/VOCAL_IMITATION_PROTOCOL.md v4"
 CAPTURE_DURATION_MS = 4000
 START_CUE_FREQUENCY_HZ = 660.0
 START_CUE_DURATION_MS = 100
 START_CUE_SETTLE_MS = 200
 START_CUE_AMPLITUDE = 0.08
+VOCAL_REPERTOIRE_START_INDEX = 20011
+VOCAL_REPERTOIRE_STRIDE = 43
 ANALYSIS_SAMPLE_RATE = 16000
 ANALYSIS_WINDOW_MS = 480
 ANALYSIS_STRIDE_MS = 80
@@ -195,23 +198,31 @@ def acoustic_sensory(waveform: np.ndarray, sample_rate: int) -> tuple[np.ndarray
 def build_waveform_repertoire() -> MotorRepertoire:
     """Re-express the frozen babbling memory through the microphone feature path."""
 
-    base = MotorRepertoire.babble()
+    motors = tuple(
+        (
+            VOCAL_REPERTOIRE_START_INDEX + offset * VOCAL_REPERTOIRE_STRIDE,
+            halton5(
+                VOCAL_REPERTOIRE_START_INDEX + offset * VOCAL_REPERTOIRE_STRIDE
+            ),
+        )
+        for offset in range(96)
+    )
     return MotorRepertoire(
         MotorPrototype(
-            prototype_id=item.prototype_id,
-            halton_index=item.halton_index,
-            motor=item.motor,
+            prototype_id=f"v4-babble-{offset:03d}",
+            halton_index=halton_index,
+            motor=tuple(float(value) for value in motor),
             sensory=tuple(
                 float(value)
                 for value in acoustic_sensory(
                     np.tile(
-                        synthesize_factorized(item.motor_array(), DEMO_F0_HZ), 3
+                        synthesize_factorized(motor, DEMO_F0_HZ), 3
                     ),
                     SAMPLE_RATE,
                 )[0]
             ),
         )
-        for item in base.prototypes
+        for offset, (halton_index, motor) in enumerate(motors)
     )
 
 

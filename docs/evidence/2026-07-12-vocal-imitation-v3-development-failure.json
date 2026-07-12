@@ -1,0 +1,61 @@
+{
+  "mode": "bounded_project_owner_vocal_imitation_v3_development",
+  "date": "2026-07-12",
+  "status": "candidate_stopped",
+  "protocol": "docs/VOCAL_IMITATION_PROTOCOL.md v3",
+  "session_path": "/private/tmp/cora-vocal-imitation-v3",
+  "manifest_sha256": "6733ae1861116cd3168f5e7ccb01f49b66c6f4469d60e4a1e888ba11057edc69",
+  "capture_count": 6,
+  "all_capture_quality_gates_passed": true,
+  "all_hardware_contracts_passed": true,
+  "confirmation_captured": false,
+  "confirmation_accessed": false,
+  "repertoire_sha256": "380718ff7402e09f67f070d4768058da8f2d9071a3ad565b36c9c585c02e147f",
+  "targets": {
+    "a": {
+      "development_take_distance": 0.0463397718627682,
+      "initial_distance": 0.24848018737838976,
+      "final_distance": 0.2214931431305744,
+      "improvement_ratio": 0.10860843487178738,
+      "learned_prototype_id": "babble-047",
+      "learned_halton_index": 15740,
+      "global_best_distance": 0.21751293925765597,
+      "global_best_improvement_ratio": 0.12462662897777177,
+      "development_gate_passed": false
+    },
+    "i": {
+      "development_take_distance": 0.05296022492401212,
+      "initial_distance": 0.43350796415932363,
+      "final_distance": 0.17793632555760497,
+      "improvement_ratio": 0.5895431219985396,
+      "learned_prototype_id": "babble-059",
+      "learned_halton_index": 16184,
+      "development_gate_passed": true
+    },
+    "u": {
+      "development_take_distance": 0.03754150604145283,
+      "initial_distance": 0.2413909602176736,
+      "final_distance": 0.1201789025402415,
+      "improvement_ratio": 0.502140003785268,
+      "learned_prototype_id": "babble-063",
+      "learned_halton_index": 16332,
+      "development_gate_passed": true
+    }
+  },
+  "failed_gate": "a development improvement ratio 0.1086 < 0.20",
+  "representational_feasibility": {
+    "global_search_would_pass_a": false,
+    "best_possible_a_improvement_ratio": 0.12462662897777177,
+    "failure_is_not_local_search_only": true
+  },
+  "disposition": {
+    "v3_stopped": true,
+    "recordings_reused_by_v4": false,
+    "thresholds_changed": false,
+    "preprocessing_changed": false,
+    "confirmation_gates_changed": false,
+    "v4_change": "fresh disjoint 96-entry Halton repertoire schedule only",
+    "v4_fresh_recording_required": true
+  },
+  "claim_boundary": "V3 cleanly captured consistent human vowels but its finite repertoire could not satisfy the frozen /a/ improvement gate. No confirmation was captured or accessed."
+}

@@ -1,0 +1,56 @@
+{
+  "mode": "bounded_vocal_imitation_v4_prehuman_calibration",
+  "date": "2026-07-12",
+  "status": "synthetic_injected_protocol_fixture_passed",
+  "protocol": "docs/VOCAL_IMITATION_PROTOCOL.md v4",
+  "evidence_class": "synthetic_injected_protocol_fixture",
+  "human_recording_accessed": false,
+  "real_capture_claim": false,
+  "production_runner_accepts_this_fixture_as_evidence": false,
+  "fixture": {
+    "manifest_sha256": "66d11121cb2ceb4cc9ba6426fbf24f502fff5d78c4c47f264946e546311b3e43",
+    "repertoire_sha256": "fb07df5ede273436524d22dcb3198bae79907e0b7cf7abd57a14c177381fb0be",
+    "dashboard_sha256": "3efa47c636c773d868d60fc3bbb3030051b2ce71ff6b9a686ddf0f3c4bfe9adc",
+    "capture_duration_ms": 4000,
+    "capture_sample_rate_hz": 16000,
+    "capture_channel_count": 2
+  },
+  "targets": {
+    "a": {
+      "development_final_distance": 0.04384402854739959,
+      "development_improvement_ratio": 0.8719057232329297,
+      "confirmation_learned_distance": 0.047733555466887234,
+      "confirmation_improvement_ratio": 0.861286209249042,
+      "learned_halton_index": 21860,
+      "passed": true
+    },
+    "i": {
+      "development_final_distance": 0.11136646452485804,
+      "development_improvement_ratio": 0.8178128437384451,
+      "confirmation_learned_distance": 0.10480467953353177,
+      "confirmation_improvement_ratio": 0.8288228401920356,
+      "learned_halton_index": 21989,
+      "passed": true
+    },
+    "u": {
+      "development_final_distance": 0.1223824987758218,
+      "development_improvement_ratio": 0.7056197065400832,
+      "confirmation_learned_distance": 0.11197739983605565,
+      "confirmation_improvement_ratio": 0.7111575066302769,
+      "learned_halton_index": 22247,
+      "passed": true
+    }
+  },
+  "criteria": {
+    "all_capture_quality_gates_passed": true,
+    "all_development_gates_passed": true,
+    "all_confirmation_gates_passed": true,
+    "confirmation_accessed_after_all_learning": true,
+    "label_blind_learning": true,
+    "protected_data_accessed": false,
+    "external_corpus_accessed": false,
+    "live_io_executed": false
+  },
+  "fixture_passed": true,
+  "claim_boundary": "This proves V4 deterministic synthetic plumbing only. It is not fresh human evidence, a real-capture result, H4 evidence, or general speech learning."
+}

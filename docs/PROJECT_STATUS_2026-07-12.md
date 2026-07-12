@@ -25,7 +25,7 @@ The operational procedure and stop rules are documented in
 
 - Clean Python 3.13 constrained installation: passed.
 - Hash-pinned operational readiness: passed.
-- Full hardware-safe suite: `481 passed, 3 skipped`.
+- Full hardware-safe suite: `484 passed, 3 skipped`.
 - After the XVF3800 was reconnected, read-only preflight passed the host, input,
   format, output-route, contract, and evidence checks.
 - Operational acceptance attempt 1 completed 400 frames with clean stream
@@ -103,3 +103,11 @@ phoneme recognition, or new H4 evidence.
 - The V3 hardware rehearsal emitted the bounded cue on Mac mini Speakers,
   returned a clean callback, observed a post-cue voiced interval, and discarded
   all audio without consuming a protocol take.
+- V3 then acquired six clean development takes, but `/a/` improved only `10.9%`
+  against the frozen `20%` gate; even global selection over its old repertoire
+  could reach only `12.5%`. V3 stopped before confirmation. A disjoint 96-entry
+  V4 repertoire (Halton start `20011`, stride `43`) passes the spent design audit
+  with unchanged gates, but requires an entirely fresh recording set.
+- The disjoint repertoire also passes the complete synthetic V4 fixture across
+  development, recall, and held confirmation. That fixture is explicitly not
+  human evidence.

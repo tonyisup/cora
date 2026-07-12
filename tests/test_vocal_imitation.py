@@ -136,7 +136,11 @@ def test_waveform_repertoire_is_deterministic_and_uses_common_features() -> None
     second = build_waveform_repertoire()
 
     assert first.digest() == second.digest()
+    assert first.digest() == "fb07df5ede273436524d22dcb3198bae79907e0b7cf7abd57a14c177381fb0be"
     assert len(first.prototypes) == 96
+    assert [item.halton_index for item in first.prototypes] == [
+        20011 + 43 * offset for offset in range(96)
+    ]
     assert all(len(item.sensory) == 30 for item in first.prototypes)
 
 
@@ -279,3 +283,53 @@ def test_v3_start_cue_rehearsal_did_not_consume_a_protocol_take() -> None:
     assert result["start_cue"]["output_device_name"] == "Mac mini Speakers"
     assert result["criteria"]["callback_integrity_clean"] is True
     assert "not a project-owner development take" in result["claim_boundary"]
+
+
+def test_v3_development_failure_stops_before_confirmation() -> None:
+    path = (
+        Path(__file__).resolve().parents[1]
+        / "docs/evidence/2026-07-12-vocal-imitation-v3-development-failure.json"
+    )
+    result = json.loads(path.read_text())
+
+    assert result["status"] == "candidate_stopped"
+    assert result["capture_count"] == 6
+    assert result["confirmation_captured"] is False
+    assert result["confirmation_accessed"] is False
+    assert result["targets"]["a"]["development_gate_passed"] is False
+    assert result["representational_feasibility"]["global_search_would_pass_a"] is False
+    assert result["disposition"]["recordings_reused_by_v4"] is False
+
+
+def test_v4_spent_design_audit_requires_fresh_recordings() -> None:
+    path = (
+        Path(__file__).resolve().parents[1]
+        / "docs/evidence/2026-07-12-vocal-imitation-v4-spent-design-audit.json"
+    )
+    result = json.loads(path.read_text())
+
+    assert result["status"] == "development_candidate_ready_fresh_recordings_required"
+    assert result["repertoire"]["count"] == 96
+    assert result["repertoire"]["halton_start"] == 20011
+    assert result["repertoire"]["halton_stride"] == 43
+    assert all(row["development_gates_passed"] for row in result["targets"].values())
+    assert result["criteria"]["confirmation_not_accessed"] is True
+    assert result["criteria"]["fresh_v4_recordings_required"] is True
+    assert result["promotion_allowed"] is False
+
+
+def test_v4_prehuman_fixture_is_not_human_evidence() -> None:
+    path = (
+        Path(__file__).resolve().parents[1]
+        / "docs/evidence/2026-07-12-vocal-imitation-v4-prehuman-calibration.json"
+    )
+    result = json.loads(path.read_text())
+
+    assert result["fixture_passed"] is True
+    assert result["fixture"]["repertoire_sha256"] == (
+        "fb07df5ede273436524d22dcb3198bae79907e0b7cf7abd57a14c177381fb0be"
+    )
+    assert all(row["passed"] for row in result["targets"].values())
+    assert result["human_recording_accessed"] is False
+    assert result["real_capture_claim"] is False
+    assert result["production_runner_accepts_this_fixture_as_evidence"] is False
