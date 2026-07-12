@@ -25,7 +25,7 @@ The operational procedure and stop rules are documented in
 
 - Clean Python 3.13 constrained installation: passed.
 - Hash-pinned operational readiness: passed.
-- Full hardware-safe suite: `476 passed, 3 skipped`.
+- Full hardware-safe suite: `478 passed, 3 skipped`.
 - After the XVF3800 was reconnected, read-only preflight passed the host, input,
   format, output-route, contract, and evidence checks.
 - Operational acceptance attempt 1 completed 400 frames with clean stream
@@ -90,3 +90,9 @@ phoneme recognition, or new H4 evidence.
   set remains to be captured and is not yet claimed as passing. The distinction
   is retained in the
   [pre-human calibration](evidence/2026-07-12-vocal-imitation-v1-prehuman-calibration.json).
+- The first live v1 `/a/` take missed the spoken interval and failed unchanged
+  voice-presence gates. V1 is retained and stopped. V2 increases only the
+  acquisition window from 1.8 to 4.0 seconds, requires a fresh session, and
+  leaves every analysis, learning, and confirmation gate unchanged.
+  The fresh 4.0-second synthetic fixture passes and is retained separately as
+  [v2 pre-human calibration](evidence/2026-07-12-vocal-imitation-v2-prehuman-calibration.json).

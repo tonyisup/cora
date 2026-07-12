@@ -88,7 +88,7 @@ evidence. It performs no live I/O and accesses no recorded or protected audio.
 
 The next bounded stage records two development takes and one untouched
 confirmation take for each of `/a/`, `/i/`, and `/u/`. For every capture, say a
-comfortable steady vowel for roughly one second:
+comfortable steady vowel for roughly two seconds:
 
 ```bash
 python3 -m cora_infans --capture-vocal-imitation \

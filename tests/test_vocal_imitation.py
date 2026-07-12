@@ -21,10 +21,10 @@ def _capture_wave(target: str, f0_hz: float) -> np.ndarray:
     production = synthesize_factorized(
         np.asarray(CROSS_CONFIGURATION_TARGET_MOTORS[target]), f0_hz
     ) * 0.6
-    mono = np.resize(production, 22000)
-    capture = np.zeros((28800, 2), dtype=np.float32)
-    capture[3000:25000, 0] = mono
-    capture[3000:25000, 1] = mono * 0.98
+    mono = np.resize(production, 48000)
+    capture = np.zeros((64000, 2), dtype=np.float32)
+    capture[8000:56000, 0] = mono
+    capture[8000:56000, 1] = mono * 0.98
     return capture
 
 
@@ -176,3 +176,38 @@ def test_retained_prehuman_calibration_cannot_be_claimed_as_real() -> None:
     assert result["production_runner_accepts_this_fixture_as_evidence"] is False
     assert result["criteria"]["confirmation_accessed_after_all_learning"] is True
     assert "not a human-vocal-imitation result" in result["claim_boundary"]
+
+
+def test_v1_acquisition_failure_is_retained_without_gate_tuning() -> None:
+    path = (
+        Path(__file__).resolve().parents[1]
+        / "docs/evidence/2026-07-12-vocal-imitation-v1-acquisition-failure.json"
+    )
+    result = json.loads(path.read_text())
+
+    assert result["status"] == "candidate_stopped"
+    assert result["quality"]["quality_passed"] is False
+    assert result["disposition"]["v1_stopped"] is True
+    assert result["disposition"]["take_overwritten"] is False
+    assert result["disposition"]["thresholds_changed"] is False
+    assert result["disposition"]["v2_fresh_recording_required"] is True
+
+
+def test_v2_prehuman_calibration_changes_only_capture_envelope() -> None:
+    path = (
+        Path(__file__).resolve().parents[1]
+        / "docs/evidence/2026-07-12-vocal-imitation-v2-prehuman-calibration.json"
+    )
+    result = json.loads(path.read_text())
+
+    assert result["fixture_passed"] is True
+    assert result["human_recording_accessed"] is False
+    assert result["v2_change"] == {
+        "capture_duration_ms": 4000,
+        "prior_capture_duration_ms": 1800,
+        "preprocessing_changed": False,
+        "quality_thresholds_changed": False,
+        "learner_changed": False,
+        "confirmation_gates_changed": False,
+    }
+    assert result["production_runner_accepts_this_fixture_as_evidence"] is False

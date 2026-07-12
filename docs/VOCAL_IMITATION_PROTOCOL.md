@@ -1,6 +1,16 @@
 # Project-owner vocal-imitation protocol
 
-Status: v1 frozen before the first project-owner recording.
+Status: v2 frozen after the retained v1 acquisition failure and before any v2
+project-owner recording.
+
+V1 used a 1.8-second capture. Its first `/a/` development take contained no
+eligible vocal interval (RMS `0.00147`, peak `0.0131`, periodicity `0.297`) and
+is stopped and retained in
+[`2026-07-12-vocal-imitation-v1-acquisition-failure.json`](evidence/2026-07-12-vocal-imitation-v1-acquisition-failure.json).
+V2 changes only the capture duration to 4.0 seconds so tool-start latency cannot
+consume the spoken interval. It uses a fresh session and recording set. All
+preprocessing, learning, quality thresholds, confirmation gates, and claim
+boundaries remain unchanged.
 
 This protocol advances the bounded synthetic speech-learning demo to a new,
 project-owner-recorded target. It is a demo-layer experiment, not a retry of
@@ -23,8 +33,8 @@ phoneme recognition, or general human speech.
 ## 2. Spoken prompt
 
 For each of `/a/`, `/i/`, and `/u/`, produce a comfortable, steady vowel for
-roughly one second. Do not imitate a particular pitch. Each capture lasts
-1.8 seconds, allowing quiet lead-in and tail.
+roughly two seconds. Do not imitate a particular pitch. Each capture lasts
+4.0 seconds, allowing tool-start uncertainty plus quiet lead-in and tail.
 
 The vowel name is capture organization and display metadata. The learner gets
 only an opaque hash and a 30-dimensional auditory vector.

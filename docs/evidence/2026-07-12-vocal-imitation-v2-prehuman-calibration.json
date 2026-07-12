@@ -1,0 +1,74 @@
+{
+  "mode": "bounded_vocal_imitation_v2_prehuman_calibration",
+  "date": "2026-07-12",
+  "status": "synthetic_injected_protocol_fixture_passed",
+  "protocol": "docs/VOCAL_IMITATION_PROTOCOL.md v2",
+  "parent_failure": "docs/evidence/2026-07-12-vocal-imitation-v1-acquisition-failure.json",
+  "evidence_class": "synthetic_injected_protocol_fixture",
+  "human_recording_accessed": false,
+  "real_capture_claim": false,
+  "production_runner_accepts_this_fixture_as_evidence": false,
+  "v2_change": {
+    "capture_duration_ms": 4000,
+    "prior_capture_duration_ms": 1800,
+    "preprocessing_changed": false,
+    "quality_thresholds_changed": false,
+    "learner_changed": false,
+    "confirmation_gates_changed": false
+  },
+  "fixture": {
+    "targets": ["a", "i", "u"],
+    "development_f0_hz": [90.0, 140.0],
+    "confirmation_f0_hz": 180.0,
+    "capture_sample_rate_hz": 16000,
+    "capture_channel_count": 2,
+    "capture_frame_count": 64000,
+    "manifest_sha256": "e87cfe044a8ee392ccbbb5e744398b9f1d9da62a6f0ccf505cdeb83fed057cc4",
+    "waveform_repertoire_sha256": "380718ff7402e09f67f070d4768058da8f2d9071a3ad565b36c9c585c02e147f",
+    "dashboard_sha256": "1cd164b68b1f7b6e742db4e4352af4c199485eb2f3be49ee057414ed90509bdb"
+  },
+  "targets": {
+    "a": {
+      "development_take_distance": 0.015101394681956584,
+      "development_final_distance": 0.08519490770358133,
+      "development_improvement_ratio": 0.7956669199084184,
+      "confirmation_learned_distance": 0.08183893249171877,
+      "confirmation_improvement_ratio": 0.8052619379885809,
+      "learned_halton_index": 15370,
+      "passed": true
+    },
+    "i": {
+      "development_take_distance": 0.022118172577106177,
+      "development_final_distance": 0.11489160069171148,
+      "development_improvement_ratio": 0.7737948930421764,
+      "confirmation_learned_distance": 0.1328358437276698,
+      "confirmation_improvement_ratio": 0.7430553250931994,
+      "learned_halton_index": 16184,
+      "passed": true
+    },
+    "u": {
+      "development_take_distance": 0.026335626789217415,
+      "development_final_distance": 0.09133925672660366,
+      "development_improvement_ratio": 0.6413936594605089,
+      "confirmation_learned_distance": 0.09053600721098852,
+      "confirmation_improvement_ratio": 0.5821624955341177,
+      "learned_halton_index": 16961,
+      "passed": true
+    }
+  },
+  "criteria": {
+    "all_capture_quality_gates_passed": true,
+    "all_pitch_periodicity_gates_passed": true,
+    "all_development_gates_passed": true,
+    "all_confirmation_gates_passed": true,
+    "confirmation_accessed_after_all_learning": true,
+    "confirmation_did_not_change_associations": true,
+    "label_blind_learning": true,
+    "protected_data_accessed": false,
+    "external_corpus_accessed": false,
+    "live_io_executed": false
+  },
+  "fixture_passed": true,
+  "next_authorized_step": "capture fresh v2 project-owner vowels through the XVF3800 callback without changing gates",
+  "claim_boundary": "This proves v2 deterministic protocol plumbing only. It is not a human-vocal-imitation result, a real-capture result, H4 evidence, or evidence of general speech learning."
+}
