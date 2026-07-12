@@ -28,7 +28,7 @@ def _operating_point() -> dict[str, object]:
             "self_source_geometry_confirmed": True,
             "self_source_system_volume_confirmed": True,
             "world_source_geometry_confirmed": True,
-            "world_source_hardware_volume_within_limit": True,
+            "world_source_hardware_volume_at_approximately_50_percent": True,
         },
     }
 
@@ -91,6 +91,14 @@ def test_stage6_operating_point_uses_exact_metric_and_ceiling() -> None:
 
     slow = evaluate_stage6_operating_point(_clean_stage6_report(10.5001))
     assert slow["operating_point_passed"] is False
+
+    missing_salient_latency = _clean_stage6_report()
+    missing_salient_latency[
+        "salient_adc_frame_end_to_workspace_p95_ms"
+    ] = None
+    missing_result = evaluate_stage6_operating_point(missing_salient_latency)
+    assert missing_result["operating_point_passed"] is False
+    assert missing_result["criteria"]["salient_latency_available"] is False
 
     clipped = _clean_stage6_report()
     clipped["active_playback_clipped_sample_count"] = 1

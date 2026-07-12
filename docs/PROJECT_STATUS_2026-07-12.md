@@ -25,23 +25,31 @@ The operational procedure and stop rules are documented in
 
 - Clean Python 3.13 constrained installation: passed.
 - Hash-pinned operational readiness: passed.
-- Full hardware-safe suite: `457 passed, 3 skipped`.
-- Current read-only host preflight: blocked correctly because CoreAudio exposes
-  External Headphones and Mac mini Speakers but does not currently enumerate
-  the XVF3800 input.
-- No playback or capture was attempted after that failed preflight.
+- Full hardware-safe suite: `460 passed, 3 skipped`.
+- After the XVF3800 was reconnected, read-only preflight passed the host, input,
+  format, output-route, contract, and evidence checks.
+- Operational acceptance attempt 1 completed 400 frames with clean stream
+  integrity but emitted zero salient frames. The operator heard the utterance
+  only barely; active and quiet peaks were nearly identical (`0.0521` and
+  `0.0502`). The attempt is retained as a failed, ineligible acoustic-level run.
+- The zero-salience normalizer defect was corrected offline without replay. Its
+  corrected verdict remains failure because salient latency was unavailable.
+- Preflight now requires a fresh confirmation that the external mechanical knob
+  is at approximately `50%`; accepting any lower level was too permissive.
 - No protected corpus path was accessed.
 
 ## Remaining physical step
 
-Reconnect or restore the XVF3800 so it appears in CoreAudio, then rerun:
+Set the external speaker mechanical knob to approximately `50%`, set the fresh
+confirmation in `config/operational-point.json` to `true`, and rerun:
 
 ```bash
 python3 -m cora_infans --operational-preflight \
   --manifest config/operational-point.json
 ```
 
-Only after a passing preflight may the bounded acceptance command in the
-runbook execute. That run rechecks the current Stage 6 physical path; it does
-not reopen Stage 2 or H4, and it does not represent retained Stage 4 evidence as
-freshly rerun.
+Only after a passing preflight may one corrected bounded acceptance run execute.
+The stimulus, `-18 dB` digital gain, saliency threshold, geometry, frame count,
+and all criteria remain frozen. That run rechecks the current Stage 6 physical
+path; it does not reopen Stage 2 or H4, and it does not represent retained Stage
+4 evidence as freshly rerun.

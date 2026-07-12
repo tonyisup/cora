@@ -169,7 +169,9 @@ Named operating point:
   center. Exact-efference protocols used `100%` system volume with their own
   frozen digital playback gain.
 - External-world source: output device `2`, `180°`, `50 cm`, mechanical knob no
-  higher than approximately `50%`; digital playback gain remains protocol-
+  higher than approximately `50%`. The bounded acceptance profile requires an
+  operator confirmation that the knob is at approximately `50%`, not merely
+  somewhere below the ceiling; digital playback gain remains protocol-
   specific.
 
 Energy boundary:

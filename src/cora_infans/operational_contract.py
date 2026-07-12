@@ -114,11 +114,11 @@ def evaluate_stage6_operating_point(report: Mapping[str, object]) -> dict[str, o
     metadata_criteria = _operating_point_criteria(operating_point)
     metric = str(stage6["latency_metric"])
     try:
-        latency = float(report[metric])
-    except (KeyError, TypeError, ValueError) as exc:
-        raise ValueError(f"missing finite Stage 6 latency metric: {metric}") from exc
-    if not math.isfinite(latency) or latency < 0.0:
-        raise ValueError(f"invalid Stage 6 latency metric: {latency}")
+        latency_value = float(report[metric])
+    except (KeyError, TypeError, ValueError):
+        latency_value = float("nan")
+    latency_available = math.isfinite(latency_value) and latency_value >= 0.0
+    latency = latency_value if latency_available else None
 
     zero_fields = tuple(stage6["required_zero_counts"])
     missing = [field for field in zero_fields if field not in report]
@@ -147,7 +147,9 @@ def evaluate_stage6_operating_point(report: Mapping[str, object]) -> dict[str, o
         == float(profile["software_playback_gain_db"]),
         "stimulus_hash_matches": report.get("stimulus_sha256")
         == profile["stimulus_sha256"],
-        "salient_p95_at_most_10_5_ms": latency <= float(stage6["latency_max_ms"]),
+        "salient_latency_available": latency_available,
+        "salient_p95_at_most_10_5_ms": latency_available
+        and latency_value <= float(stage6["latency_max_ms"]),
         **{
             f"{field}_is_zero": int(report[field]) == 0 for field in zero_fields
         },
@@ -195,7 +197,7 @@ def _operating_point_criteria(
         )
         is True,
         "world_volume_operator_confirmed": attestations.get(
-            "world_source_hardware_volume_within_limit"
+            "world_source_hardware_volume_at_approximately_50_percent"
         )
         is True,
     }

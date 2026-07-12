@@ -13,13 +13,16 @@ Before using any live command, confirm all of the following:
 - Mac mini Speakers centered directly beneath the XVF3800, `4 cm`
   center-to-center, system volume `100%`;
 - External Headphones output device `2`, source at `180°` and `50 cm`, hardware
-  knob no higher than approximately `50%`;
+  knob at approximately `50%` for bounded acceptance and never higher;
 - no intentional change to the room, routes, or protocol-specific digital gain.
 
 The machine-readable standing attestation is
 [`config/operational-point.json`](../config/operational-point.json). If any
 physical fact changes, edit that manifest before running preflight. A mismatched
 manifest must fail; do not modify the contract to make a changed setup pass.
+The repository manifest deliberately stores the 50%-knob confirmation as
+`false`; set it to `true` only after physically checking the knob for the current
+session.
 
 ## 2. Evidence and software readiness
 

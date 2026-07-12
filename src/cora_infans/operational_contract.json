@@ -71,7 +71,7 @@
       "device": "External Headphones",
       "angle_degrees": 180,
       "distance_cm": 50,
-      "hardware_volume_max_percent_approximate": 50
+      "hardware_volume_percent_approximate": 50
     },
     "required_zero_counts": [
       "device_deadline_miss_count",

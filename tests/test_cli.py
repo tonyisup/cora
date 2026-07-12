@@ -98,7 +98,9 @@ def test_operational_contract_cli_and_stage6_validation(tmp_path) -> None:
                         "self_source_geometry_confirmed": True,
                         "self_source_system_volume_confirmed": True,
                         "world_source_geometry_confirmed": True,
-                        "world_source_hardware_volume_within_limit": True,
+                        (
+                            "world_source_hardware_volume_at_approximately_50_percent"
+                        ): True,
                     },
                 },
                 "real_capture": True,

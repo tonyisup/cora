@@ -20,7 +20,11 @@ from cora_infans.operational_contract import (
 
 def _manifest() -> dict[str, object]:
     root = Path(__file__).resolve().parents[1]
-    return load_operating_point_manifest(root / "config/operational-point.json")
+    manifest = load_operating_point_manifest(root / "config/operational-point.json")
+    manifest["operating_point"]["operator_attestations"][
+        "world_source_hardware_volume_at_approximately_50_percent"
+    ] = True
+    return manifest
 
 
 def _passing_probe() -> dict[str, object]:
@@ -41,6 +45,7 @@ def _passing_probe() -> dict[str, object]:
         "xvf3800_16khz_two_channel_supported": True,
         "input_probe_error": None,
         "enumerated_device_count": 4,
+        "portaudio_output_device_names": ["reSpeaker XVF3800 4-Mic Array"],
         "coreaudio_output_device_names": [
             "External Headphones",
             "Mac mini Speakers",
@@ -95,6 +100,34 @@ def test_preflight_validates_evidence_manifest_host_and_device() -> None:
     assert "no audio stream is opened" in report["claim_boundary"]
 
 
+def test_repository_manifest_requires_fresh_fifty_percent_confirmation() -> None:
+    root = Path(__file__).resolve().parents[1]
+    manifest = load_operating_point_manifest(root / "config/operational-point.json")
+
+    report = build_operational_preflight(
+        manifest, device_probe=_passing_probe
+    )
+
+    assert report["preflight_passed"] is False
+    assert report["checks"]["world_volume_operator_confirmed"] is False
+
+
+def test_preflight_uses_coreaudio_not_portaudio_for_output_routes() -> None:
+    probe = _passing_probe()
+    probe["portaudio_output_device_names"] = [
+        "ASUS PB287Q",
+        "reSpeaker XVF3800 4-Mic Array",
+    ]
+
+    report = build_operational_preflight(
+        _manifest(), device_probe=lambda: probe
+    )
+
+    assert report["preflight_passed"] is True
+    assert report["checks"]["external_headphones_discovered"] is True
+    assert report["checks"]["mac_mini_speakers_discovered"] is True
+
+
 def test_listener_report_normalizes_to_complete_operating_point() -> None:
     manifest = _manifest()
     report = stage6_report_from_live_listener(
@@ -105,6 +138,27 @@ def test_listener_report_normalizes_to_complete_operating_point() -> None:
     assert report["active_playback_frame_count"] == 250
     assert report["active_playback_clipped_sample_count"] == 0
     assert evaluation["operating_point_passed"] is True
+
+
+def test_quiet_only_live_report_is_a_retained_gate_failure_not_schema_error() -> None:
+    manifest = _manifest()
+    raw = _raw_listener_report()
+    raw["salient_frame_count"] = 0
+    raw["runtime_performance"]["workload_latency_ms"] = {
+        "quiet": {
+            "adc_frame_end_to_workspace_decision": {"p95": 10.2}
+        }
+    }
+
+    report = stage6_report_from_live_listener(
+        raw, manifest["operating_point"]
+    )
+    evaluation = evaluate_stage6_operating_point(report)
+
+    assert report["salient_adc_frame_end_to_workspace_p95_ms"] is None
+    assert evaluation["operating_point_passed"] is False
+    assert evaluation["criteria"]["minimum_salient_frames_met"] is False
+    assert evaluation["criteria"]["salient_latency_available"] is False
 
 
 def test_live_acceptance_writes_raw_and_normalized_reports(

@@ -1,0 +1,68 @@
+{
+  "mode": "bounded_operational_acceptance_attempt_1_disposition",
+  "date": "2026-07-12",
+  "status": "retained_failed_ineligible_acoustic_level_and_normalizer_defect",
+  "live_execution": {
+    "bounded_duration_seconds": 10,
+    "frame_count": 400,
+    "active_playback_frame_count": 278,
+    "stimulus_sha256": "c58a46a68782fb318cd885e6c670025104cc844bb3d8e4080b69b1f995c2c410",
+    "software_playback_gain_db": -18.0,
+    "output_device_index": 2,
+    "ffmpeg_device_map_after_run": {
+      "0": "ASUS PB287Q",
+      "1": "reSpeaker XVF3800 4-Mic Array",
+      "2": "External Headphones",
+      "3": "Mac mini Speakers"
+    }
+  },
+  "raw_telemetry": {
+    "external_path": "/private/tmp/cora-operational-acceptance-20260712/stage6-live-raw.json",
+    "sha256": "92530b4de56674e6d9cd2fcfb9fabeb326c4534b0c5f9ee8c2bf5ef66e7821ed"
+  },
+  "original_evaluation": {
+    "external_path": "/private/tmp/cora-operational-acceptance-20260712/operational-acceptance.json",
+    "sha256": "4cd643f9e13ff9c085bad5c638428aef072b82780d7a7f94fc43e37e5151e0a0",
+    "error": "invalid live report: 'salient'"
+  },
+  "corrected_offline_evaluation": {
+    "external_path": "/private/tmp/cora-operational-acceptance-20260712/operational-acceptance-corrected-evaluation.json",
+    "sha256": "e7887f33f357ad3e5165d298a11a74fe1e1b281d707cc403718e9b9ed602c041",
+    "replay_performed": false,
+    "operational_acceptance_passed": false,
+    "failed_criteria": [
+      "minimum_salient_frames_met",
+      "salient_latency_available",
+      "salient_p95_at_most_10_5_ms"
+    ]
+  },
+  "measured": {
+    "salient_frame_count": 0,
+    "active_playback_peak_absolute": 0.0521240234375,
+    "trailing_quiet_peak_absolute": 0.05023193359375,
+    "whole_capture_clipped_sample_count": 0,
+    "device_deadline_miss_count": 0,
+    "overflow_count": 0,
+    "callback_status_count": 0,
+    "timestamp_discontinuity_count": 0,
+    "fallback_frame_count": 0
+  },
+  "operator_observation": "The ACO02B speech was audible from the external speakers but barely audible to the operator.",
+  "defects_and_corrections": [
+    {
+      "defect": "Preflight accepted any knob level at or below 50 percent, including a level too quiet to reproduce the frozen operating point.",
+      "correction": "Acceptance now requires a fresh operator confirmation that the mechanical knob is at approximately 50 percent. The stored manifest defaults that confirmation to false."
+    },
+    {
+      "defect": "The normalizer assumed a salient workload key and raised KeyError on a zero-salience completed run.",
+      "correction": "Zero-salience runs now normalize to an explicit failed salient-latency criterion while preserving raw telemetry."
+    },
+    {
+      "defect": "PortAudio omitted built-in outputs from its enumeration while the XVF3800 was connected.",
+      "correction": "Read-only preflight now uses macOS CoreAudio inventory for named output presence and PortAudio only for XVF input-format support."
+    }
+  ],
+  "retry_boundary": "A corrected run is permitted only after restoring the already-frozen approximate-50-percent mechanical knob position and setting the fresh manifest confirmation true. Digital gain, saliency threshold, geometry, stimulus, frame count, and all acceptance criteria remain unchanged.",
+  "protected_data_accessed": false,
+  "claim_boundary": "This is a retained engineering acceptance failure and defect correction record, not a scientific result or promotion."
+}

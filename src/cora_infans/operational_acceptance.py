@@ -78,14 +78,14 @@ def probe_local_operating_environment() -> dict[str, object]:
     input_probe_error: str | None = None
     input_rate_supported = False
     input_device: dict[str, object] | None = None
-    output_device_names: list[str] = []
+    portaudio_output_device_names: list[str] = []
     try:
         import sounddevice as sd
 
         devices = sd.query_devices()
         for index, device in enumerate(devices):
             if int(device.get("max_output_channels", 0)) > 0:
-                output_device_names.append(str(device.get("name", "")))
+                portaudio_output_device_names.append(str(device.get("name", "")))
             if (
                 "respeaker xvf3800" in str(device.get("name", "")).lower()
                 and int(device.get("max_input_channels", 0)) >= 2
@@ -112,6 +112,7 @@ def probe_local_operating_environment() -> dict[str, object]:
     host_model: str | None = None
     host_name: str | None = None
     host_chip: str | None = None
+    coreaudio_output_device_names: list[str] = []
     try:
         hardware = subprocess.run(
             ["system_profiler", "SPHardwareDataType", "-json"],
@@ -127,6 +128,22 @@ def probe_local_operating_environment() -> dict[str, object]:
     except (OSError, ValueError, KeyError, IndexError, TypeError):
         pass
 
+    try:
+        audio = subprocess.run(
+            ["system_profiler", "SPAudioDataType", "-json"],
+            capture_output=True,
+            check=False,
+            text=True,
+        )
+        if audio.returncode == 0:
+            groups = json.loads(audio.stdout)["SPAudioDataType"]
+            for group in groups:
+                for device in group.get("_items", ()):
+                    if int(device.get("coreaudio_device_output", 0)) > 0:
+                        coreaudio_output_device_names.append(str(device["_name"]))
+    except (OSError, ValueError, KeyError, TypeError):
+        pass
+
     return {
         "platform_system": platform.system(),
         "platform_release": platform.release(),
@@ -140,7 +157,8 @@ def probe_local_operating_environment() -> dict[str, object]:
         "xvf3800_16khz_two_channel_supported": input_rate_supported,
         "input_probe_error": input_probe_error,
         "enumerated_device_count": len(devices),
-        "coreaudio_output_device_names": output_device_names,
+        "portaudio_output_device_names": portaudio_output_device_names,
+        "coreaudio_output_device_names": coreaudio_output_device_names,
         "output_index_verification": (
             "operator_attested; ffmpeg AudioToolbox indices are verified only "
             "when the bounded playback process opens each named route"
@@ -231,7 +249,12 @@ def stage6_report_from_live_listener(
 
     performance = raw_report["runtime_performance"]
     workloads = performance["workload_latency_ms"]
-    salient = workloads["salient"]["adc_frame_end_to_workspace_decision"]
+    salient_workload = workloads.get("salient")
+    salient_latency = (
+        salient_workload.get("adc_frame_end_to_workspace_decision")
+        if isinstance(salient_workload, Mapping)
+        else None
+    )
     frames = raw_report["frames"]
     active_frames = [
         frame for frame in frames if frame.get("stimulus_playback_active") is True
@@ -248,7 +271,11 @@ def stage6_report_from_live_listener(
         "active_playback_frame_count": len(active_frames),
         "software_playback_gain_db": float(stimulus["volume_db"]),
         "stimulus_sha256": stimulus["source_wav_sha256"],
-        "salient_adc_frame_end_to_workspace_p95_ms": float(salient["p95"]),
+        "salient_adc_frame_end_to_workspace_p95_ms": (
+            float(salient_latency["p95"])
+            if isinstance(salient_latency, Mapping)
+            else None
+        ),
         "device_deadline_miss_count": int(
             performance["device_timestamped_deadline_miss_count"]
         ),
