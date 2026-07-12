@@ -32,7 +32,7 @@
       "self_source_geometry_confirmed": true,
       "self_source_system_volume_confirmed": true,
       "world_source_geometry_confirmed": true,
-      "world_source_hardware_volume_at_approximately_50_percent": false
+      "world_source_hardware_volume_at_approximately_50_percent": true
     }
   }
 }

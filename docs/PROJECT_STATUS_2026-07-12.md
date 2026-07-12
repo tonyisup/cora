@@ -36,20 +36,23 @@ The operational procedure and stop rules are documented in
   corrected verdict remains failure because salient latency was unavailable.
 - Preflight now requires a fresh confirmation that the external mechanical knob
   is at approximately `50%`; accepting any lower level was too permissive.
+- Corrected acceptance attempt 2 passed at the restored frozen level: `208`
+  salient frames, `10.224 ms` salient ADC-frame-end p95, `277` active playback
+  frames, and zero clipping, overflows, deadline misses, callback faults,
+  timestamp discontinuities, or fallbacks.
+- The retained attempt-2 result is SHA-256 pinned by operational readiness.
 - No protected corpus path was accessed.
 
-## Remaining physical step
+## Operational disposition
 
-Set the external speaker mechanical knob to approximately `50%`, set the fresh
-confirmation in `config/operational-point.json` to `true`, and rerun:
+The bounded VISION is operationally accepted at the named physical point. Future
+sessions begin with readiness and read-only preflight:
 
 ```bash
 python3 -m cora_infans --operational-preflight \
   --manifest config/operational-point.json
 ```
 
-Only after a passing preflight may one corrected bounded acceptance run execute.
 The stimulus, `-18 dB` digital gain, saliency threshold, geometry, frame count,
-and all criteria remain frozen. That run rechecks the current Stage 6 physical
-path; it does not reopen Stage 2 or H4, and it does not represent retained Stage
-4 evidence as freshly rerun.
+and all criteria remain frozen. The accepted run does not reopen Stage 2 or H4,
+and it does not represent retained Stage 4 evidence as freshly rerun.

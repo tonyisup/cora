@@ -100,9 +100,12 @@ def test_preflight_validates_evidence_manifest_host_and_device() -> None:
     assert "no audio stream is opened" in report["claim_boundary"]
 
 
-def test_repository_manifest_requires_fresh_fifty_percent_confirmation() -> None:
+def test_preflight_requires_fresh_fifty_percent_confirmation() -> None:
     root = Path(__file__).resolve().parents[1]
     manifest = load_operating_point_manifest(root / "config/operational-point.json")
+    manifest["operating_point"]["operator_attestations"][
+        "world_source_hardware_volume_at_approximately_50_percent"
+    ] = False
 
     report = build_operational_preflight(
         manifest, device_probe=_passing_probe

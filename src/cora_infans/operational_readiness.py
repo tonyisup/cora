@@ -21,6 +21,7 @@ EVIDENCE_FILES = {
     "stage5_disposition": "2026-07-11-h4-bounded-local-family-disposition.json",
     "stage6_timing": "2026-07-11-stage6-natural-speech-hardware-volume-diagnostic-result.json",
     "stage6_energy": "2026-07-11-stage6-energy-result.json",
+    "operational_acceptance": "2026-07-12-operational-acceptance-attempt-2-result.json",
 }
 
 EXPECTED_EVIDENCE_SHA256 = {
@@ -35,6 +36,7 @@ EXPECTED_EVIDENCE_SHA256 = {
     "stage5_disposition": "ee0bc6f649d15b6b5195e471953255ce04818979674bb24c3378c4a4015cdfd4",
     "stage6_timing": "7f46030d3d159360cb3a5264124998f07db6a6fcf9760bd0b929ff1d469777f7",
     "stage6_energy": "12b6ac10068267589b1aaf484ad30c96cd6ee4678e8155dc85cca5b267633011",
+    "operational_acceptance": "2fac84f4cc0555c870b33aa9cb8b7b92a3d8d57d373f3b147c762ac252fb0627",
 }
 
 
@@ -83,6 +85,7 @@ def build_operational_readiness_report(
     stage5 = loaded["stage5_disposition"]
     timing = loaded["stage6_timing"]
     energy = loaded["stage6_energy"]
+    acceptance = loaded["operational_acceptance"]
 
     timing_aggregate = timing.get("aggregate")
     if not isinstance(timing_aggregate, dict):
@@ -142,6 +145,14 @@ def build_operational_readiness_report(
         )
         == 0,
         "stage6_energy_measurement_passed": energy.get("overall_criteria_passed")
+        is True,
+        "current_operational_acceptance_passed": acceptance.get(
+            "operational_acceptance_passed"
+        )
+        is True,
+        "current_operational_acceptance_integrity_clean": acceptance.get(
+            "criteria", {}
+        ).get("all_required_integrity_counts_zero")
         is True,
         "protected_stage2_pristine_fieldsites_retained": stage2["protected_data"]
         == {

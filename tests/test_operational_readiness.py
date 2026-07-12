@@ -29,6 +29,7 @@ def test_repository_operational_evidence_is_ready() -> None:
         "stage5_local_inverse_closure",
     ]
     assert report["test_suite"] == "not_executed_by_readiness_report"
+    assert report["checks"]["current_operational_acceptance_passed"] is True
 
 
 def test_operational_readiness_fails_loudly_on_missing_evidence(tmp_path) -> None:

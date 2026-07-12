@@ -57,6 +57,9 @@ failed gate as partial promotion.
   Attempt 1 is retained as an ineligible low-level failure with zero salient
   frames; its code-defect correction and unchanged retry boundary are recorded
   in `2026-07-12-operational-acceptance-attempt-1.json`.
+- Corrected attempt 2 passed the complete self-describing operating point at
+  `10.224 ms` salient p95 with `208` salient frames and all required integrity
+  counts at zero. Its result is retained and hash-pinned by readiness.
 - Evidence-link existence and final Stage 2/H4 disposition fields are asserted
   by `tests/test_consolidated_status.py`.
 - The working branch is `codex/vision-evidence`.

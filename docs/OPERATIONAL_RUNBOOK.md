@@ -20,9 +20,9 @@ The machine-readable standing attestation is
 [`config/operational-point.json`](../config/operational-point.json). If any
 physical fact changes, edit that manifest before running preflight. A mismatched
 manifest must fail; do not modify the contract to make a changed setup pass.
-The repository manifest deliberately stores the 50%-knob confirmation as
-`false`; set it to `true` only after physically checking the knob for the current
-session.
+The manifest stores the most recent operator confirmation. Reset it to `false`
+before a future physical session, then set it to `true` only after checking the
+knob position for that session.
 
 ## 2. Evidence and software readiness
 
