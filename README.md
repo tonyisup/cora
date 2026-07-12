@@ -62,6 +62,28 @@ the [operational runbook](docs/OPERATIONAL_RUNBOOK.md). Live acceptance requires
 an explicit `--authorize-live-io` flag and refuses before playback when
 preflight or stimulus provenance fails.
 
+## Bounded speech-learning demo
+
+Run the offline cross-configuration imitation demo:
+
+```bash
+python3 -m cora_infans --demo-speech-learning \
+  --scenario cross-configuration \
+  --vowel all \
+  --output-dir /private/tmp/cora-speech-learning-demo
+```
+
+The agent babbles a fixed 96-action motor repertoire, performs label-blind local
+prototype search for `/a/`, `/i/`, and `/u/`, stores one bounded association per
+target, and recalls it for the final three attempts. The output directory
+contains target/learned WAV pairs and `speech-learning-session.json` with the
+complete learning curve and hashes. Open `speech-learning-demo.html` for audio
+controls and a compact per-target learning dashboard.
+
+The governing [demo specification](docs/DEMO_SPEC.md) keeps this separate from
+continuous inverse closure, human speech learning, phoneme recognition, and H4
+evidence. It performs no live I/O and accesses no recorded or protected audio.
+
 Validate a future flat Stage 6 run summary against the named 10.5 ms operating
 point:
 

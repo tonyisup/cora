@@ -35,6 +35,7 @@ def test_describe_command_prints_json_summary() -> None:
     assert "self_describing_operating_point_validator" in payload["implemented_subsystems"]
     assert "read_only_operational_preflight" in payload["implemented_subsystems"]
     assert "bounded_live_operational_acceptance" in payload["implemented_subsystems"]
+    assert "bounded_offline_speech_learning_demo" in payload["implemented_subsystems"]
     assert "predictive_hierarchy" in payload["implemented_subsystems"]
     assert "commanded_active_attention" in payload["implemented_subsystems"]
     assert "offline_corpus_evaluation" in payload["implemented_subsystems"]
@@ -181,6 +182,42 @@ def test_operational_acceptance_cli_requires_authorization() -> None:
                 "out",
             ]
         )
+
+
+def test_speech_learning_demo_cli_runs_offline_and_retains_artifacts(
+    tmp_path,
+) -> None:
+    env = os.environ.copy()
+    env["PYTHONPATH"] = "src"
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "cora_infans",
+            "--demo-speech-learning",
+            "--scenario",
+            "cross-configuration",
+            "--vowel",
+            "a",
+            "--output-dir",
+            str(tmp_path),
+        ],
+        capture_output=True,
+        check=True,
+        text=True,
+        env=env,
+    )
+
+    report = json.loads(result.stdout)
+    assert report["demo_passed"] is True
+    assert report["vowels"] == ["a"]
+    assert report["sessions"][0]["learning"]["learner_input"][
+        "vowel_label_provided"
+    ] is False
+    assert (tmp_path / "a-target.wav").is_file()
+    assert (tmp_path / "a-learned.wav").is_file()
+    assert (tmp_path / "speech-learning-session.json").is_file()
+    assert (tmp_path / "speech-learning-demo.html").is_file()
 
 
 

@@ -134,6 +134,11 @@ Constraint:
 - The plant is infrastructure only. A global nonlinear inverse, supervised
   phone model, weakened categorical claim, or local-family retry requires an
   explicit revision to this specification.
+- A separate synthetic demonstration may perform bounded selection and recall
+  over a finite, previously babbled motor-prototype repertoire under
+  [the demo specification](docs/DEMO_SPEC.md). This is authorized only as
+  target-specific prototype association and model-based local search. It must
+  not be reported as continuous inverse closure or new H4 evidence.
 
 ### Stage 6 — Hard efficiency operating point
 

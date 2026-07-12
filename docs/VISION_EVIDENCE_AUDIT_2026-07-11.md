@@ -43,7 +43,7 @@ failed gate as partial promotion.
 
 ### Verification
 
-- Full suite: `460 passed, 3 skipped`.
+- Full suite: `467 passed, 3 skipped`.
 - The skips are intentional hardware/environment-dependent tests.
 - `python3 -m cora_infans --operational-readiness` verifies all required
   retained stage evidence against frozen SHA-256 pins and exits nonzero when
@@ -60,6 +60,10 @@ failed gate as partial promotion.
 - Corrected attempt 2 passed the complete self-describing operating point at
   `10.224 ms` salient p95 with `208` salient frames and all required integrity
   counts at zero. Its result is retained and hash-pinned by readiness.
+- The later bounded speech-learning demo is governed separately by
+  `docs/DEMO_SPEC.md`. Its v3 finite-prototype association passes synthetic
+  mirror and cross-configuration panels without changing the stopped H4
+  continuous-closure disposition.
 - Evidence-link existence and final Stage 2/H4 disposition fields are asserted
   by `tests/test_consolidated_status.py`.
 - The working branch is `codex/vision-evidence`.

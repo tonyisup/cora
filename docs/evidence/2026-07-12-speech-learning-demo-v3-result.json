@@ -1,0 +1,71 @@
+{
+  "mode": "bounded_speech_learning_demo_v3_result",
+  "date": "2026-07-12",
+  "status": "offline_demo_passed",
+  "specification": "docs/DEMO_SPEC.md v3",
+  "parents": [
+    "docs/evidence/2026-07-12-speech-learning-demo-v1-design-failure.json",
+    "docs/evidence/2026-07-12-speech-learning-demo-v2-design-failure.json"
+  ],
+  "mechanism": "strided low-discrepancy babbling, local frontier prototype search, and bounded target-specific recall",
+  "repertoire": {
+    "count": 96,
+    "halton_start": 14001,
+    "halton_stride": 37,
+    "halton_last": 17516,
+    "sensory_dimension": 30,
+    "sha256": "2f1024baf6f62acf90fdb8881ac0aaa09ef43fd40a90be3d9e4cd0b6618a60fb"
+  },
+  "synthetic_mirror": {
+    "external_session_path": "/private/tmp/cora-demo-v3-synthetic-mirror/speech-learning-session.json",
+    "session_sha256": "6fa1b533d483d2ed673ebc7a106eea416884bb0a8d0a0958a3c58f9ff549fddd",
+    "dashboard_sha256": "70d65370789aa3fb2d04f475773124995d986d7f729c7f5574e22890de8a5f37",
+    "demo_passed": true,
+    "targets": {
+      "a": {"initial_distance": 0.5303880894450206, "final_distance": 0.0, "improvement_ratio": 1.0, "learned_halton_index": 15370},
+      "i": {"initial_distance": 0.69055957262529, "final_distance": 0.0, "improvement_ratio": 1.0, "learned_halton_index": 16184},
+      "u": {"initial_distance": 0.3765505051187762, "final_distance": 0.0, "improvement_ratio": 1.0, "learned_halton_index": 16961}
+    }
+  },
+  "cross_configuration": {
+    "external_session_path": "/private/tmp/cora-speech-learning-demo-v3/speech-learning-session.json",
+    "session_sha256": "8b0bc54df34a357b1f8c47a084ced819ff82decf783f38f026d49dfeb0ce23cb",
+    "dashboard_sha256": "740736d5d26ba482956107b180984bd0c8d14820bce22e50f0212d8b24b270ca",
+    "demo_passed": true,
+    "targets": {
+      "a": {"initial_distance": 0.5141084559994812, "final_distance": 0.14379744834279112, "improvement_ratio": 0.7202974456756723, "learned_halton_index": 15370},
+      "i": {"initial_distance": 0.6750088380371273, "final_distance": 0.17674401090198602, "improvement_ratio": 0.7381604492528665, "learned_halton_index": 16184},
+      "u": {"initial_distance": 0.41612273116570314, "final_distance": 0.15628063802557757, "improvement_ratio": 0.6244361907656867, "learned_halton_index": 16961}
+    }
+  },
+  "artifact_presentation": {
+    "sample_rate_hz": 16000,
+    "sample_count_each": 18560,
+    "format": "six 160 ms productions separated by 40 ms silence",
+    "cross_configuration_target_wav_sha256": {
+      "a": "827477324b15fa0dbd10cb3e42758747473f6a0175d38bb44f8bd058fd72c35a",
+      "i": "b81cfee99f74758d39d9b0793eec6c6fa8f087ab03080a1db939c53692939c72",
+      "u": "4e1cf720b569e022963a7141583f448fa40001f9df5fc8c26007367a4bcd9a34"
+    },
+    "learned_wav_sha256": {
+      "a": "28c75d258ca6982bfc0ff07bcb5c6582304cfd79b0de7e69d98fd192e17f6bd3",
+      "i": "96cd3521caef86d01eb2814d433e22d143462d53450333d4b2746f0f020f76bf",
+      "u": "b54690d5397500fc986b68dba3d6ba63928cc139ad5f35f97004403014f689af"
+    }
+  },
+  "criteria": {
+    "every_mirror_target_passed": true,
+    "every_cross_configuration_target_passed": true,
+    "every_improvement_ratio_at_least_0_30": true,
+    "every_final_distance_at_most_0_20": true,
+    "every_final_three_attempts_recall_same_prototype": true,
+    "learner_received_no_vowel_labels": true,
+    "association_memory_within_three": true,
+    "waveforms_finite_below_full_scale_and_deterministic": true,
+    "recorded_audio_not_accessed": true,
+    "protected_data_not_accessed": true,
+    "live_io_not_executed": true
+  },
+  "demo_passed": true,
+  "claim_boundary": "Finite target-specific prototype association and model-based local search over synthetic plant output. This is not continuous inverse closure, infant or human speech learning, phoneme recognition, speaker identity, semantics, anatomical fidelity, or new H4 evidence."
+}

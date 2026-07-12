@@ -1,0 +1,30 @@
+{
+  "mode": "bounded_speech_learning_demo_v1_design_failure",
+  "date": "2026-07-12",
+  "status": "candidate_stopped",
+  "specification": "docs/DEMO_SPEC.md v1",
+  "mechanism": "current-best-anchor local prototype search",
+  "repertoire_halton_indices_inclusive": [4097, 4192],
+  "repertoire_count": 96,
+  "attempt_count_each": 12,
+  "failed_gate": "synthetic-mirror /a/ final sensory distance at most 0.20",
+  "observed_final_distance": 0.214,
+  "threshold": 0.20,
+  "other_observations": {
+    "synthetic_mirror_i_passed": true,
+    "synthetic_mirror_u_passed": true,
+    "cross_configuration_a_passed": true,
+    "cross_configuration_i_passed": true,
+    "cross_configuration_u_passed": true
+  },
+  "disposition": {
+    "v1_active": false,
+    "threshold_changed": false,
+    "retry_on_same_repertoire_authorized": false,
+    "replacement_requires_new_mechanism_and_disjoint_repertoire": true
+  },
+  "recorded_audio_accessed": false,
+  "protected_data_accessed": false,
+  "live_io_executed": false,
+  "claim_boundary": "Synthetic demo design failure only; no H4 result or scientific promotion."
+}

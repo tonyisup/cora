@@ -25,7 +25,7 @@ The operational procedure and stop rules are documented in
 
 - Clean Python 3.13 constrained installation: passed.
 - Hash-pinned operational readiness: passed.
-- Full hardware-safe suite: `460 passed, 3 skipped`.
+- Full hardware-safe suite: `467 passed, 3 skipped`.
 - After the XVF3800 was reconnected, read-only preflight passed the host, input,
   format, output-route, contract, and evidence checks.
 - Operational acceptance attempt 1 completed 400 frames with clean stream
@@ -56,3 +56,20 @@ python3 -m cora_infans --operational-preflight \
 The stimulus, `-18 dB` digital gain, saliency threshold, geometry, frame count,
 and all criteria remain frozen. The accepted run does not reopen Stage 2 or H4,
 and it does not represent retained Stage 4 evidence as freshly rerun.
+
+## Bounded speech-learning demo
+
+The offline v3 demo passes synthetic-mirror and cross-configuration imitation
+for `/a/`, `/i/`, and `/u/`. It babbles a deterministic 96-action repertoire,
+uses label-blind local frontier search, stores three target-specific prototype
+associations, and recalls each learned action for the final three attempts.
+
+Cross-configuration sensory distance improves by `72.0%`, `73.8%`, and `62.4%`
+for `/a/`, `/i/`, and `/u/`, ending at `0.144`, `0.177`, and `0.156`. All are
+inside the frozen `0.20` gate. Target and learned presentation WAVs plus complete
+learning curves are retained outside Git and SHA-256 identified by the
+[v3 result](evidence/2026-07-12-speech-learning-demo-v3-result.json).
+
+V1 and v2 failures remain retained. This demo is finite prototype association
+over synthetic output, not continuous inverse closure, human speech learning,
+phoneme recognition, or new H4 evidence.

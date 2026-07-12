@@ -298,6 +298,9 @@ The hypothesis number and stage number are separate systems.
 | **Hash-pinned** | Exact file bytes are identified by a cryptographic digest so the input can be verified later. |
 | **Held out** | Excluded from fitting or threshold selection and used only for evaluation. |
 | **Manifest** | Inventory of selected files and provenance, often including hashes, labels, and split assignments. |
+| **Motor repertoire** | Fixed-capacity collection of bounded motor prototypes and their remembered synthetic sensory consequences. The demo repertoire contains 96 entries. |
+| **Prototype association** | Bounded memory linking an opaque target sensory hash to the best discrete motor prototype found for it. It is not a continuous inverse function. |
+| **Competence progress** | Reduction in the best target sensory distance after an attempted action. Positive progress means the current session found a better association. |
 | **Operating-point manifest** | Machine-readable host, input, self-source, world-source, geometry, volume, and operator confirmations required for an eligible live run. |
 | **Operational acceptance** | One bounded Stage 6 engineering check combining read-only preflight, an already-spent hash-pinned stimulus, self-describing physical metadata, retained raw telemetry, and the hard timing/integrity gate. It is not a new scientific promotion or Stage 4 rerun. |
 | **Participant-disjoint** | No participant appears in both training/development and evaluation groups. |
