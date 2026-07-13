@@ -1,0 +1,45 @@
+{
+  "experiment": "yin_speaker_adaptive_register_fresh_fieldsites",
+  "registered_date": "2026-07-10",
+  "status": "registered_before_selected_audio_fetch",
+  "model_artifact": "2026-07-10-speaker-adaptive-register-model-v2.json",
+  "model_sha256": "4603087555326d27289139363e6f163d36f74cf7d4658dd956efb3c31759a05a",
+  "training_fieldsites": ["ACO", "ARA", "BEJ", "JEN", "KRA", "LIM", "MBE", "QUE"],
+  "unseen_evaluation_fieldsites": ["MES", "TSI"],
+  "selected_participants": {
+    "MES": ["MES01", "MES06", "MES11"],
+    "TSI": ["TSI03", "TSI09", "TSI10"]
+  },
+  "required_conditions_per_participant": [
+    "infant_directed_song",
+    "infant_directed_speech",
+    "adult_directed_song",
+    "adult_directed_speech"
+  ],
+  "change_from_v1": {
+    "new_feature_family": "overlapping FFT-YIN pitch median, IQR, standard deviation, and confidence",
+    "published_pitch_iqr_agreement_before_pearson_r": 0.09340454005682838,
+    "published_pitch_iqr_agreement_after_pearson_r": 0.6891631371025629,
+    "all_other_promotion_logic_unchanged": true
+  },
+  "calibration_boundary": {
+    "method": "unlabeled within-speaker normalization across the supplied batch",
+    "minimum_observations_per_speaker": 2,
+    "expected_observations_per_speaker": 4,
+    "cold_start_claim": false,
+    "strictly_causal_live_claim": false
+  },
+  "frozen_clip_level_baselines": {
+    "intensity_db_median": -46.522474966932535,
+    "pitch_confidence_median": 0.6157772178851884
+  },
+  "acceptance_rule": {
+    "minimum_pooled_f1": 0.65,
+    "minimum_f1_improvement_over_best_frozen_baseline": 0.10,
+    "maximum_pooled_false_positive_rate": 0.15,
+    "maximum_song_false_positive_rate": 0.15,
+    "minimum_each_fieldsite_f1": 0.50,
+    "all_speakers_must_be_calibrated": true
+  },
+  "claim_boundary": "A pass supports only a speaker-adaptive, batch-calibrated long-window register gate."
+}

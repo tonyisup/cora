@@ -1,0 +1,75 @@
+{
+  "analysis": "nonlinear_predictive_codebook_same_data_failure_comparison",
+  "date": "2026-07-11",
+  "status": "post_hoc_analysis_without_model_or_threshold_tuning",
+  "nonlinear_parent": {
+    "path": "docs/evidence/2026-07-11-nonlinear-predictive-codebook-result.json",
+    "checked_in_sha256": "13e727d873b76134be783c0250d76a7d4829b048099ec56ae3e307c2ede49afc",
+    "full_external_result_sha256": "bcad23ad988acc498ca7c22d613f08d44f65f965c8c9cf05b85d9cd28150fe5d"
+  },
+  "linear_comparator": {
+    "path": "docs/evidence/2026-07-11-predictive-register-dynamics-result.json",
+    "same_200_clips": true,
+    "same_18_leave_one_fieldsite_out_folds": true
+  },
+  "question": "Did the nonlinear temporal codebook discover complementary out-of-field structure, or did it mostly reproduce the linear predictive model's ranking and errors?",
+  "paired_score_comparison": {
+    "matched_clip_count": 200,
+    "speech_score_pearson_correlation": 0.8945904250949008,
+    "speech_score_spearman_correlation": 0.8955688892222307,
+    "ids_score_pearson_correlation": 0.8921433274572442,
+    "ids_score_spearman_correlation": 0.8902617565439136
+  },
+  "paired_selected_decisions": {
+    "both_predicted_ids": 31,
+    "nonlinear_only_predicted_ids": 12,
+    "linear_only_predicted_ids": 10,
+    "both_predicted_negative": 147,
+    "agreement_count": 178,
+    "agreement_fraction": 0.89,
+    "nonlinear_rescued_linear_false_negatives": 4,
+    "nonlinear_lost_linear_true_positives": 4,
+    "nonlinear_added_false_positives": 8,
+    "nonlinear_removed_false_positives": 6
+  },
+  "nonlinear_only_predictions": [
+    {"clip_id": "HAD01C", "ground_truth_positive": false},
+    {"clip_id": "HAD04B", "ground_truth_positive": true},
+    {"clip_id": "JEN04A", "ground_truth_positive": false},
+    {"clip_id": "JEN04C", "ground_truth_positive": false},
+    {"clip_id": "KRA06B", "ground_truth_positive": true},
+    {"clip_id": "LIM05B", "ground_truth_positive": true},
+    {"clip_id": "MEN14B", "ground_truth_positive": true},
+    {"clip_id": "NYA07A", "ground_truth_positive": false},
+    {"clip_id": "QUE18D", "ground_truth_positive": false},
+    {"clip_id": "TSI03D", "ground_truth_positive": false},
+    {"clip_id": "TUR01D", "ground_truth_positive": false},
+    {"clip_id": "TUR20C", "ground_truth_positive": false}
+  ],
+  "linear_only_predictions": [
+    {"clip_id": "ACO03D", "ground_truth_positive": false},
+    {"clip_id": "KRA01C", "ground_truth_positive": false},
+    {"clip_id": "MBE03B", "ground_truth_positive": true},
+    {"clip_id": "MES06A", "ground_truth_positive": false},
+    {"clip_id": "MES06B", "ground_truth_positive": true},
+    {"clip_id": "SPA03B", "ground_truth_positive": true},
+    {"clip_id": "TOP01B", "ground_truth_positive": true},
+    {"clip_id": "TSI09A", "ground_truth_positive": false},
+    {"clip_id": "TSI10C", "ground_truth_positive": false},
+    {"clip_id": "TUR10D", "ground_truth_positive": false}
+  ],
+  "inference": {
+    "representation_collapse_supported": false,
+    "complementary_error_structure_supported": false,
+    "threshold_only_failure_supported": false,
+    "basis": "The codebook was fully utilized and reduced quantization error, yet both score rankings correlated about 0.89 with the linear model and selected decisions agreed on 89 percent of clips. The nonlinear model exchanged four true positives for four others while adding two net false positives.",
+    "interpretation": "The learned RBF codebook behaved as a smooth perturbation of the existing prosodic dynamics rather than exposing a new cross-fieldsite IDS/ADS invariant. The remaining limitation is the observation/target relationship, not dead nonlinear units or a single bad cutoff."
+  },
+  "disposition": {
+    "development_readiness_changed": false,
+    "confirmation_allowed": false,
+    "USD_or_TOR_accessed": false,
+    "tuning_allowed": false,
+    "next_boundary": "A materially deeper or globally optimized representation could test a different hypothesis, but it would leave VISION.md's current bounded local-learning mechanism and requires explicit approval."
+  }
+}

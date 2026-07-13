@@ -1,0 +1,82 @@
+{
+  "experiment": "natural_speech_workspace_binding_spectral_template_v3",
+  "date": "2026-07-11",
+  "status": "frozen_before_v3_implementation_or_fresh_live_playback",
+  "parent_failure": "docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-result.json",
+  "research_question": "Does a phase- and gain-invariant spectral-shape comparison to a prior self replay preserve fresh natural-speech world overlap while suppressing a repeated commanded self utterance?",
+  "retry_policy": "This is the final candidate in the natural-speech workspace retry ladder. A fresh-run failure retires the ladder; no further representation or threshold retry may use the v3 held-out captures.",
+  "spent_v2_design_data": {
+    "source": "all six now-spent template-v2 pairs",
+    "self_probe_distances": [0.06083883971921257, 0.06173066940785069, 0.061914416138851985, 0.03275633474755285, 0.038249268591196636, 0.03481150774474982],
+    "overlap_distances": [0.5189363197844835, 0.2323693635375033, 0.46197273022283586],
+    "maximum_self_probe_distance": 0.061914416138851985,
+    "minimum_overlap_distance": 0.2323693635375033,
+    "clean_gap": 0.1704549473986513,
+    "threshold_rule": "maximum spent self-probe distance plus 10 percent of the clean gap to minimum spent overlap distance",
+    "frozen_threshold": 0.07895991087871712,
+    "fresh_v3_data_may_change_threshold": false
+  },
+  "representation": {
+    "name": "prior_self_replay_12_band_spectral_shape_distance",
+    "input_window_ms": 600,
+    "bands": 12,
+    "band_edges_hz": "12 log-geometric bands from 80 through 7600 Hz",
+    "per_capture_transform": "Mean-center PCM, apply a Hann window, compute full-window power spectrum, sum power per band, add 1e-12, take natural log, subtract the 12-band mean, and L2-normalize the vector.",
+    "world_evidence": "Euclidean distance between the stored self-calibration vector and the current matching-efference vector.",
+    "runtime_labels_consumed": false,
+    "template_memory_bound": "three workspace slots retaining one 12-scalar vector each; no cross-session growth",
+    "self_calibration_trials_scored": false
+  },
+  "fresh_panel": [
+    {"index": 0, "self": {"filename": "KRA07D.wav", "sha256": "c75b517f138a200a644967ff1bb7282eea43b7a31b8ec3d365ac12bfa2211994"}, "world": {"filename": "MEN07B.wav", "sha256": "e8c346c7588280b869215f812f27d3df022df3d7eae002a2fb6fd0f7e458f80e"}},
+    {"index": 1, "self": {"filename": "MES01D.wav", "sha256": "9802c4cbb8ab8cbafdce102215420e9c437a6e1f81c81922325a5fdcba3df16f"}, "world": {"filename": "PNG04B.wav", "sha256": "21985524b4d11d2651ea8f97a0974f83fcae4eed9eccacfec7a1be0838113051"}},
+    {"index": 2, "self": {"filename": "TSI10D.wav", "sha256": "309115ede9f7adc19d9fc699031fdc181de7afc1932a70ae052229f094a891a7"}, "world": {"filename": "VAN01B.wav", "sha256": "0ed68329ae7a9a3d1c8923ba5b795e9f24a743cae14fec30248f49e14bd4e12a"}}
+  ],
+  "source_preparation": {
+    "excerpt_rule": "The unchanged v2 600 ms greatest-non-overlapping-RMS rule.",
+    "self_target_rms": 0.04,
+    "self_peak_cap": 0.2,
+    "world_target_rms": 0.1,
+    "world_peak_cap": 0.8
+  },
+  "protocol": {
+    "trial_count": 12,
+    "conditions_each_pair_in_order": ["self_calibration", "self_probe", "world_only", "overlap"],
+    "scored_trial_count": 9,
+    "alignment_chirp_ms": 120,
+    "alignment_silence_ms": 100,
+    "speech_ms": 600,
+    "tail_silence_ms": 100,
+    "seconds_per_trial": 0.92,
+    "planned_total_playback_seconds": 11.04,
+    "strategies": ["flat", "fixed_self_window", "scheduled_identity_plus_spectral_template"],
+    "capacity_sweep": [1, 2, 3, 4]
+  },
+  "levels": {
+    "self_software_playback_gain_db": -24.0,
+    "world_software_playback_gain_db": -3.0,
+    "self_chirp_peak_absolute": 0.12,
+    "world_chirp_peak_absolute": 0.03,
+    "only_change_from_v2": "Reduce world playback by 3 dB because one v2 overlap clipped 18 samples; self level, normalization, chirps, and physical controls remain unchanged.",
+    "calibrated_spl_claimed": false
+  },
+  "acceptance": {
+    "selected_capacity": 3,
+    "scheduled_f1_min": 0.9,
+    "scheduled_minus_flat_f1_min": 0.2,
+    "scheduled_world_recall_min": 0.9,
+    "scheduled_self_suppression_specificity_min": 0.9,
+    "fixed_window_world_recall_must_be_below_scheduled": true,
+    "capacity_one_f1_must_be_below_capacity_three": true,
+    "capacity_three_f1_must_equal_capacity_four": true,
+    "all_12_captures_and_alignments_required": true,
+    "no_clipped_capture_samples_required": true
+  },
+  "live_boundary": {
+    "separate_hash_bound_live_preregistration_required": true,
+    "bounded_playback_capture_authorized": true,
+    "physical_geometry": "Unchanged XVF3800 :0; Mac mini self at 4 cm/100 percent; External Headphones device 2 at 180 degrees/50 cm/approximately 50 percent knob; semi-quiet room with laptop fan",
+    "no_live_execution_under_this_design_document": true
+  },
+  "claim_boundary": "A pass would support exact-efference source binding after one prior replay for three fresh natural-speech pairs at one fixed geometry. Spectral-shape distance is a compact sensory identity trace, not speech recognition, semantics, generalized self-voice learning, or biological fidelity."
+}

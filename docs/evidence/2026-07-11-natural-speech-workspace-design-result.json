@@ -1,0 +1,467 @@
+{
+  "mode": "spent_natural_speech_workspace_design_gate",
+  "trial_count": 15,
+  "seconds_per_trial": 1.3,
+  "maximum_total_playback_seconds": 19.5,
+  "config": {
+    "sample_rate": 16000,
+    "alignment_chirp_ms": 120,
+    "alignment_silence_ms": 180,
+    "speech_ms": 800,
+    "tail_silence_ms": 200,
+    "self_peak_absolute": 0.12,
+    "world_peak_absolute": 0.8,
+    "fir_samples": 128,
+    "deconvolution_ridge_fraction": 0.001
+  },
+  "trials": [
+    {
+      "trial_id": "development_self_only_0",
+      "split": "development",
+      "condition": "self_only",
+      "pair_index": 0,
+      "efference_id": "dev_self_0",
+      "expected_world_usable": false
+    },
+    {
+      "trial_id": "development_world_only_0",
+      "split": "development",
+      "condition": "world_only",
+      "pair_index": 0,
+      "efference_id": null,
+      "expected_world_usable": true
+    },
+    {
+      "trial_id": "development_self_only_1",
+      "split": "development",
+      "condition": "self_only",
+      "pair_index": 1,
+      "efference_id": "dev_self_1",
+      "expected_world_usable": false
+    },
+    {
+      "trial_id": "development_world_only_1",
+      "split": "development",
+      "condition": "world_only",
+      "pair_index": 1,
+      "efference_id": null,
+      "expected_world_usable": true
+    },
+    {
+      "trial_id": "development_self_only_2",
+      "split": "development",
+      "condition": "self_only",
+      "pair_index": 2,
+      "efference_id": "dev_self_2",
+      "expected_world_usable": false
+    },
+    {
+      "trial_id": "development_world_only_2",
+      "split": "development",
+      "condition": "world_only",
+      "pair_index": 2,
+      "efference_id": null,
+      "expected_world_usable": true
+    },
+    {
+      "trial_id": "held_out_self_only_0",
+      "split": "held_out",
+      "condition": "self_only",
+      "pair_index": 0,
+      "efference_id": "held_self_0",
+      "expected_world_usable": false
+    },
+    {
+      "trial_id": "held_out_world_only_0",
+      "split": "held_out",
+      "condition": "world_only",
+      "pair_index": 0,
+      "efference_id": null,
+      "expected_world_usable": true
+    },
+    {
+      "trial_id": "held_out_overlap_0",
+      "split": "held_out",
+      "condition": "overlap",
+      "pair_index": 0,
+      "efference_id": "held_self_0",
+      "expected_world_usable": true
+    },
+    {
+      "trial_id": "held_out_self_only_1",
+      "split": "held_out",
+      "condition": "self_only",
+      "pair_index": 1,
+      "efference_id": "held_self_1",
+      "expected_world_usable": false
+    },
+    {
+      "trial_id": "held_out_world_only_1",
+      "split": "held_out",
+      "condition": "world_only",
+      "pair_index": 1,
+      "efference_id": null,
+      "expected_world_usable": true
+    },
+    {
+      "trial_id": "held_out_overlap_1",
+      "split": "held_out",
+      "condition": "overlap",
+      "pair_index": 1,
+      "efference_id": "held_self_1",
+      "expected_world_usable": true
+    },
+    {
+      "trial_id": "held_out_self_only_2",
+      "split": "held_out",
+      "condition": "self_only",
+      "pair_index": 2,
+      "efference_id": "held_self_2",
+      "expected_world_usable": false
+    },
+    {
+      "trial_id": "held_out_world_only_2",
+      "split": "held_out",
+      "condition": "world_only",
+      "pair_index": 2,
+      "efference_id": null,
+      "expected_world_usable": true
+    },
+    {
+      "trial_id": "held_out_overlap_2",
+      "split": "held_out",
+      "condition": "overlap",
+      "pair_index": 2,
+      "efference_id": "held_self_2",
+      "expected_world_usable": true
+    }
+  ],
+  "capacity_sweep": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "strategies": [
+    "flat",
+    "fixed_self_window",
+    "scheduled_identity_plus_world_residual"
+  ],
+  "label_boundary": "condition and expected_world_usable enter scoring only; runtime consumes a known efference identity, efference PCM, and microphone PCM",
+  "promotion_allowed": false,
+  "verdict": "spent_design_gate_passed",
+  "world_evidence": {
+    "development_self_only_0": 0.3138068715356297,
+    "development_world_only_0": 1.0,
+    "development_self_only_1": 0.37190223024233304,
+    "development_world_only_1": 1.0,
+    "development_self_only_2": 0.3583502585073808,
+    "development_world_only_2": 1.0,
+    "held_out_self_only_0": 0.2685372568068767,
+    "held_out_world_only_0": 1.0,
+    "held_out_overlap_0": 0.9329749807189577,
+    "held_out_self_only_1": 0.28060027577594465,
+    "held_out_world_only_1": 1.0,
+    "held_out_overlap_1": 0.9792579337636239,
+    "held_out_self_only_2": 0.35073036293115667,
+    "held_out_world_only_2": 1.0,
+    "held_out_overlap_2": 0.9811241098147131
+  },
+  "world_evidence_threshold": 0.43471200721809977,
+  "world_evidence_threshold_rule": "maximum development self-only residual ratio plus 10 percent of the clean gap to minimum development world-only ratio",
+  "threshold_selected_from_development_only": true,
+  "reports": {
+    "1": {
+      "flat": {
+        "strategy": "flat",
+        "capacity": 1,
+        "bounded_binding_slots": 1,
+        "world_evidence_threshold_scalars": 1,
+        "metrics": {
+          "tp": 6,
+          "fp": 3,
+          "tn": 0,
+          "fn": 0,
+          "world_recall": 1.0,
+          "self_suppression_specificity": 0.0,
+          "f1": 0.8
+        }
+      },
+      "fixed_self_window": {
+        "strategy": "fixed_self_window",
+        "capacity": 1,
+        "bounded_binding_slots": 1,
+        "world_evidence_threshold_scalars": 1,
+        "metrics": {
+          "tp": 5,
+          "fp": 2,
+          "tn": 1,
+          "fn": 1,
+          "world_recall": 0.8333333333333334,
+          "self_suppression_specificity": 0.3333333333333333,
+          "f1": 0.7692307692307693
+        }
+      },
+      "scheduled_identity_plus_world_residual": {
+        "strategy": "scheduled_identity_plus_world_residual",
+        "capacity": 1,
+        "bounded_binding_slots": 1,
+        "world_evidence_threshold_scalars": 1,
+        "metrics": {
+          "tp": 6,
+          "fp": 2,
+          "tn": 1,
+          "fn": 0,
+          "world_recall": 1.0,
+          "self_suppression_specificity": 0.3333333333333333,
+          "f1": 0.8571428571428571
+        }
+      }
+    },
+    "2": {
+      "flat": {
+        "strategy": "flat",
+        "capacity": 2,
+        "bounded_binding_slots": 2,
+        "world_evidence_threshold_scalars": 1,
+        "metrics": {
+          "tp": 6,
+          "fp": 3,
+          "tn": 0,
+          "fn": 0,
+          "world_recall": 1.0,
+          "self_suppression_specificity": 0.0,
+          "f1": 0.8
+        }
+      },
+      "fixed_self_window": {
+        "strategy": "fixed_self_window",
+        "capacity": 2,
+        "bounded_binding_slots": 2,
+        "world_evidence_threshold_scalars": 1,
+        "metrics": {
+          "tp": 4,
+          "fp": 1,
+          "tn": 2,
+          "fn": 2,
+          "world_recall": 0.6666666666666666,
+          "self_suppression_specificity": 0.6666666666666666,
+          "f1": 0.7272727272727273
+        }
+      },
+      "scheduled_identity_plus_world_residual": {
+        "strategy": "scheduled_identity_plus_world_residual",
+        "capacity": 2,
+        "bounded_binding_slots": 2,
+        "world_evidence_threshold_scalars": 1,
+        "metrics": {
+          "tp": 6,
+          "fp": 1,
+          "tn": 2,
+          "fn": 0,
+          "world_recall": 1.0,
+          "self_suppression_specificity": 0.6666666666666666,
+          "f1": 0.9230769230769231
+        }
+      }
+    },
+    "3": {
+      "flat": {
+        "strategy": "flat",
+        "capacity": 3,
+        "bounded_binding_slots": 3,
+        "world_evidence_threshold_scalars": 1,
+        "metrics": {
+          "tp": 6,
+          "fp": 3,
+          "tn": 0,
+          "fn": 0,
+          "world_recall": 1.0,
+          "self_suppression_specificity": 0.0,
+          "f1": 0.8
+        }
+      },
+      "fixed_self_window": {
+        "strategy": "fixed_self_window",
+        "capacity": 3,
+        "bounded_binding_slots": 3,
+        "world_evidence_threshold_scalars": 1,
+        "metrics": {
+          "tp": 3,
+          "fp": 0,
+          "tn": 3,
+          "fn": 3,
+          "world_recall": 0.5,
+          "self_suppression_specificity": 1.0,
+          "f1": 0.6666666666666666
+        }
+      },
+      "scheduled_identity_plus_world_residual": {
+        "strategy": "scheduled_identity_plus_world_residual",
+        "capacity": 3,
+        "bounded_binding_slots": 3,
+        "world_evidence_threshold_scalars": 1,
+        "metrics": {
+          "tp": 6,
+          "fp": 0,
+          "tn": 3,
+          "fn": 0,
+          "world_recall": 1.0,
+          "self_suppression_specificity": 1.0,
+          "f1": 1.0
+        }
+      }
+    },
+    "4": {
+      "flat": {
+        "strategy": "flat",
+        "capacity": 4,
+        "bounded_binding_slots": 4,
+        "world_evidence_threshold_scalars": 1,
+        "metrics": {
+          "tp": 6,
+          "fp": 3,
+          "tn": 0,
+          "fn": 0,
+          "world_recall": 1.0,
+          "self_suppression_specificity": 0.0,
+          "f1": 0.8
+        }
+      },
+      "fixed_self_window": {
+        "strategy": "fixed_self_window",
+        "capacity": 4,
+        "bounded_binding_slots": 4,
+        "world_evidence_threshold_scalars": 1,
+        "metrics": {
+          "tp": 3,
+          "fp": 0,
+          "tn": 3,
+          "fn": 3,
+          "world_recall": 0.5,
+          "self_suppression_specificity": 1.0,
+          "f1": 0.6666666666666666
+        }
+      },
+      "scheduled_identity_plus_world_residual": {
+        "strategy": "scheduled_identity_plus_world_residual",
+        "capacity": 4,
+        "bounded_binding_slots": 4,
+        "world_evidence_threshold_scalars": 1,
+        "metrics": {
+          "tp": 6,
+          "fp": 0,
+          "tn": 3,
+          "fn": 0,
+          "world_recall": 1.0,
+          "self_suppression_specificity": 1.0,
+          "f1": 1.0
+        }
+      }
+    }
+  },
+  "criteria": {
+    "scheduled_f1_at_least_0_90": true,
+    "scheduled_improves_flat_f1_by_at_least_0_20": true,
+    "scheduled_world_recall_at_least_0_90": true,
+    "scheduled_self_suppression_specificity_at_least_0_90": true,
+    "fixed_window_collision_failure_exposed": true,
+    "capacity_one_worse_than_three": true,
+    "capacity_three_plateaus_at_four": true
+  },
+  "evidence_class": "provided_chirp_aligned_natural_speech_capture_arrays",
+  "design_preregistration": "docs/evidence/2026-07-11-natural-speech-workspace-design-preregistration.json",
+  "source_artifacts": [
+    {
+      "split": "development",
+      "index": 0,
+      "self": {
+        "filename": "KRA01D.wav",
+        "sha256": "8dd90d2bd1ca0322f0c55466439a2079f197d761b7081a966ed928b1ddd25a2c",
+        "selected_start_seconds": 0.0
+      },
+      "world": {
+        "filename": "MBE02B.wav",
+        "sha256": "df5412fde22f6a32050992d7ece263b1dd6542a5b15b9c0234eb7262d139de2e",
+        "selected_start_seconds": 1.6
+      }
+    },
+    {
+      "split": "development",
+      "index": 1,
+      "self": {
+        "filename": "MES06D.wav",
+        "sha256": "bcce51436783e6c836147c962ff4049e72b0472ae7ff397dd6e90ff3b14021f6",
+        "selected_start_seconds": 0.0
+      },
+      "world": {
+        "filename": "PNG01B.wav",
+        "sha256": "538991b4f8bc7339baf8a8979589d85d7e90cd6f95c66b327b46943f173786fd",
+        "selected_start_seconds": 7.2
+      }
+    },
+    {
+      "split": "development",
+      "index": 2,
+      "self": {
+        "filename": "TSI03D.wav",
+        "sha256": "f6af43284674bf221329587ec87681d274069f16f21e893945b06784c858f61e",
+        "selected_start_seconds": 0.0
+      },
+      "world": {
+        "filename": "VAN21B.wav",
+        "sha256": "76b1d5e8e07b2ff9e57a05bb5ebfc250e90ac2a41109d99500ab762e4e3651ef",
+        "selected_start_seconds": 2.4
+      }
+    },
+    {
+      "split": "held_out",
+      "index": 0,
+      "self": {
+        "filename": "ACO13D.wav",
+        "sha256": "35d6701f018d9e6c811fb67b4326f78fa22dbed2a64252f637912a36d71a807b",
+        "selected_start_seconds": 0.8
+      },
+      "world": {
+        "filename": "MEN14B.wav",
+        "sha256": "2da65dc3eb18f0a03e9096044c18821adc25f9331cdd869e7a5f0432a1a3ccb3",
+        "selected_start_seconds": 1.6
+      }
+    },
+    {
+      "split": "held_out",
+      "index": 1,
+      "self": {
+        "filename": "HAD09D.wav",
+        "sha256": "68443f7f8607ed94ab312254b308ef55c99f1b08c6dabb9e6232b2d8e1fe949e",
+        "selected_start_seconds": 34.4
+      },
+      "world": {
+        "filename": "JEN05B.wav",
+        "sha256": "d6919daaf5a873db8753748c6d44a07a2bb032ab5a30631612f11bc192821bc2",
+        "selected_start_seconds": 0.0
+      }
+    },
+    {
+      "split": "held_out",
+      "index": 2,
+      "self": {
+        "filename": "LIM05D.wav",
+        "sha256": "db5837f5d3e04d68f96387153d56287a29164c9b87560da0a833727ea2141946",
+        "selected_start_seconds": 15.2
+      },
+      "world": {
+        "filename": "NYA14B.wav",
+        "sha256": "a2155e3316283a6505025067db7856b7ae57adeb6efb4661e1a8f40823aff05c",
+        "selected_start_seconds": 6.4
+      }
+    }
+  ],
+  "claim_boundary": "Deterministic synthetic acoustic paths over exact already-spent natural-speech PCM. This validates representation and scoring plumbing only; it is not a fresh real binding result and cannot promote H3.",
+  "preregistration": {
+    "path": "docs/evidence/2026-07-11-natural-speech-workspace-design-preregistration.json",
+    "sha256": "74fed69292a79a0073467e35f62c2efdb117bb8abbc2e68e8ab0b16a7852ae36",
+    "commit": "301030c"
+  },
+  "implementation_commit": "b028acb"
+}

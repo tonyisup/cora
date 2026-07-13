@@ -1,0 +1,122 @@
+{
+  "experiment": "stage6_callback_device_timestamp_gate",
+  "date": "2026-07-10",
+  "status": "quiet_path_device_timestamp_gate_passed",
+  "preregistration": {
+    "path": "docs/evidence/2026-07-10-stage6-device-timestamp-preregistration.json",
+    "sha256": "17c44fd2320618af8ffc160544795cdd652861d1095c0d0793bbc1cbe1d4d957",
+    "implementation_commit": "f850598e0d772d4af4649845f83118dbaabcd314"
+  },
+  "amendment": {
+    "path": "docs/evidence/2026-07-10-stage6-device-timestamp-preregistration-amendment-1.json",
+    "sha256": "9a2b59aa63fa3a1b3079af08b9586b392216df7da72b715d5305106e11cb1534",
+    "implementation_commit": "87b9319def3a14f158883931ca476c1c9011a3e1",
+    "incomplete_run_audit_sha256": "dc69e7e91fa07e4323a1c0eb4efcc4d59c1152fb22b1c6eec396fd555587c32d"
+  },
+  "hardware": {
+    "host": "Mac mini Mac16,11, Apple M4 Pro, 24 GB",
+    "input": "XVF3800 through sounddevice/PortAudio/CoreAudio callback",
+    "sample_rate_hz": 16000,
+    "channel_count": 2,
+    "reported_input_latency_ms": 10.0,
+    "frame_ms": 25,
+    "playback": "none"
+  },
+  "timestamp_contract": {
+    "adc_timestamp": "PortAudioCallbackTimeInfo.inputBufferAdcTime",
+    "workspace_decision_clock": "Pa_GetStreamTime",
+    "frame_onset_to_decision": "includes 25 ms frame accumulation",
+    "frame_end_to_decision": "operational response latency after the complete ADC frame is available",
+    "raw_coreaudio_timestamp_exposed": false,
+    "xmos_internal_dsp_latency_included": false
+  },
+  "eligible_runs": [
+    {
+      "run": 1,
+      "frame_count": 400,
+      "salient_frame_count": 0,
+      "input_overflow_count": 0,
+      "callback_status_count": 0,
+      "timestamp_discontinuity_count": 0,
+      "host_operational_deadline_miss_count": 0,
+      "device_operational_deadline_miss_count": 0,
+      "device_adc_onset_to_workspace_p95_ms": 35.209454498181,
+      "device_adc_end_to_workspace_p95_ms": 10.209774995382759,
+      "host_capture_to_workspace_p95_ms": 27.29600415,
+      "steady_state_real_time_factor": 0.997691324310777,
+      "average_process_cpu_percent": 4.18392028821865,
+      "peak_resident_memory_megabytes": 62.15625
+    },
+    {
+      "run": 2,
+      "frame_count": 400,
+      "salient_frame_count": 0,
+      "input_overflow_count": 0,
+      "callback_status_count": 0,
+      "timestamp_discontinuity_count": 0,
+      "host_operational_deadline_miss_count": 0,
+      "device_operational_deadline_miss_count": 0,
+      "device_adc_onset_to_workspace_p95_ms": 35.206772890887805,
+      "device_adc_end_to_workspace_p95_ms": 10.206944044330157,
+      "host_capture_to_workspace_p95_ms": 27.31955175,
+      "steady_state_real_time_factor": 0.9978886711779449,
+      "average_process_cpu_percent": 4.10097846422407,
+      "peak_resident_memory_megabytes": 62.296875
+    },
+    {
+      "run": "3_replacement",
+      "frame_count": 400,
+      "salient_frame_count": 0,
+      "input_overflow_count": 0,
+      "callback_status_count": 0,
+      "timestamp_discontinuity_count": 0,
+      "host_operational_deadline_miss_count": 0,
+      "device_operational_deadline_miss_count": 0,
+      "device_adc_onset_to_workspace_p95_ms": 35.19283364257717,
+      "device_adc_end_to_workspace_p95_ms": 10.193049996087211,
+      "host_capture_to_workspace_p95_ms": 27.38165415,
+      "steady_state_real_time_factor": 0.9978629068671678,
+      "average_process_cpu_percent": 4.138970053070451,
+      "peak_resident_memory_megabytes": 62.234375
+    }
+  ],
+  "aggregate": {
+    "frame_count": 1200,
+    "device_timestamped_frame_count": 1200,
+    "salient_frame_count": 0,
+    "input_overflow_count": 0,
+    "callback_status_count": 0,
+    "timestamp_discontinuity_count": 0,
+    "host_operational_deadline_miss_count": 0,
+    "device_operational_deadline_miss_count": 0,
+    "device_operational_deadline_miss_rate": 0.0,
+    "device_adc_end_to_workspace_p95_ms_range": [
+      10.193049996087211,
+      10.209774995382759
+    ],
+    "device_adc_onset_to_workspace_p95_ms_range": [
+      35.19283364257717,
+      35.209454498181
+    ],
+    "maximum_steady_state_real_time_factor": 0.9978886711779449,
+    "maximum_average_process_cpu_percent": 4.18392028821865,
+    "maximum_peak_resident_memory_megabytes": 62.296875
+  },
+  "criteria": {
+    "real_capture_each": true,
+    "callback_backend_without_fallback_each": true,
+    "frame_count_each_400": true,
+    "device_timestamped_frame_count_each_400": true,
+    "input_overflow_count_each_max_0": true,
+    "callback_status_count_each_max_0": true,
+    "callback_timestamp_discontinuity_count_each_max_0": true,
+    "device_frame_end_to_workspace_p95_ms_each_max_30": true,
+    "device_timestamped_operational_deadline_miss_rate_each_max_0_05": true,
+    "steady_state_real_time_factor_each_max_1_2": true,
+    "average_process_cpu_percent_each_max_100": true,
+    "peak_resident_memory_megabytes_each_max_512": true
+  },
+  "overall_criteria_passed": true,
+  "promotion_allowed": true,
+  "claim_boundary": "Stage 6 device-timestamped latency is supported only for 25 ms quiet-path frames on this XVF3800/M4 Pro configuration. Raw CoreAudio AudioTimeStamp, XMOS internal DSP latency, salient live workload timing, and energy remain open."
+}

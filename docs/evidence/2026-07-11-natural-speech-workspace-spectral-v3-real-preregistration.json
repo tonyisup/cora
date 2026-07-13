@@ -1,0 +1,67 @@
+{
+  "mode": "natural_speech_workspace_spectral_v3_real_preregistration",
+  "date": "2026-07-11",
+  "status": "preregistered_before_live_execution",
+  "bounded_playback_capture_authorized": true,
+  "authorization_basis": "Standing authorization covers bounded live audio runs for natural-speech workspace binding with unchanged physical geometry.",
+  "spent_design_gate_passed": true,
+  "final_retry": true,
+  "implementation_commit": "526c163",
+  "frozen_hashes": {
+    "implementation_sha256": "a42f288c262b458ae475dfb3dc78b8dc55f9be342778cfd552c5ed911339e9f5",
+    "cli_sha256": "85e84b22a8fb603524ff0295636c39a862c3d0fd21351a51ad289d77225ce57b",
+    "io_sha256": "1cf10155c49dc32406b4936504f5af452be335ea73ee08f2d7a6fc7437f3f34b",
+    "design_preregistration_sha256": "b92c1b97f08dbcc6a4a73294ea50c88936d9d656413d2bb8c858164a3e06288d",
+    "design_result_sha256": "1782c148fd4b7fbeed1cd17675b22353e1d1013f475826de844b3e8617656b5c"
+  },
+  "hardware": {
+    "input": {"avfoundation_device": ":0", "device": "reSpeaker XVF3800 4-Mic Array", "channels": 2, "sample_rate": 16000},
+    "self_source": {"output_device_index": 3, "output_device": "Mac mini Speakers", "placement": "centered_directly_below_xvf3800", "vertical_distance_cm": 4, "system_volume_percent": 100, "playback_gain_db": -24.0},
+    "world_source": {"output_device_index": 2, "output_device": "External Headphones", "angle_degrees": 180, "distance_cm": 50, "hardware_volume": "approximately_50_percent_mechanical_travel", "playback_gain_db": -3.0},
+    "environment": {"room": "semi-quiet", "known_background": "laptop fan"}
+  },
+  "stimuli": {
+    "root": "/private/tmp/cora-ids-spent-200",
+    "fresh_panel_and_hashes": "docs/evidence/2026-07-11-natural-speech-workspace-spectral-v3-design-preregistration.json",
+    "all_six_source_hashes_verified_before_output_creation": true,
+    "v1_or_v2_workspace_sources_reused": false,
+    "labels_consumed_by_runtime": false
+  },
+  "frozen_representation": {
+    "name": "prior_self_replay_12_band_spectral_shape_distance",
+    "threshold": 0.07895991087871712,
+    "threshold_source": "spent template-v2 captures only",
+    "fresh_v3_data_may_change_threshold": false,
+    "bands": 12,
+    "frequency_range_hz": [80, 7600],
+    "workspace_slots": 3,
+    "scalars_per_slot": 12,
+    "strategies": ["flat", "fixed_self_window", "scheduled_identity_plus_spectral_template"],
+    "capacity_sweep": [1, 2, 3, 4]
+  },
+  "bounds": {
+    "trial_count": 12,
+    "per_trial_playback_seconds_max": 2.0,
+    "total_playback_seconds_max": 25.0,
+    "total_capture_seconds_max": 45.0,
+    "planned_playback_seconds": 11.04,
+    "planned_capture_seconds": 18.24
+  },
+  "acceptance": {
+    "selected_capacity": 3,
+    "scheduled_f1_min": 0.9,
+    "scheduled_minus_flat_f1_min": 0.2,
+    "scheduled_world_recall_min": 0.9,
+    "scheduled_self_suppression_specificity_min": 0.9,
+    "fixed_window_world_recall_must_be_below_scheduled": true,
+    "capacity_one_f1_must_be_below_capacity_three": true,
+    "capacity_three_f1_must_equal_capacity_four": true,
+    "all_12_captures_and_alignments_required": true,
+    "no_clipped_capture_samples_required": true
+  },
+  "run_policy": "Run all 12 trials once. Retain any post-playback failure. No threshold, representation, source, level, or geometry retry follows a failed v3 run.",
+  "command": ".venv/bin/python -m cora_infans --evaluate-natural-speech-workspace-spectral-v3 --real-io --root /private/tmp/cora-ids-spent-200 --out-dir docs/evidence/2026-07-11-natural-speech-workspace-spectral-v3-real-artifacts --preregistration docs/evidence/2026-07-11-natural-speech-workspace-spectral-v3-real-preregistration.json --authorize-bounded-playback",
+  "interpretation_rule": "A full pass supports exact-efference natural-speech spectral-template binding for three fresh pairs at this geometry. A failure retires this natural-speech retry ladder and preserves only structured-tone H3 support.",
+  "claim_boundary": "This is compact source-identity binding after one replay, not speech recognition, generalized self-voice prediction, semantics, calibrated SPL, or biological fidelity.",
+  "unresolved_fields": []
+}

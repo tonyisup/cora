@@ -24,7 +24,8 @@ explicitly requests theta-gamma scheduling.
 Corollary-discharge scope (honesty boundary, see README cross-check): the
 self-suppression modeled here is a *scheduling-level* proxy — a deterministic
 bookkeeping flag (`self_suppressed`) on events that share a gamma bin / theta
-cycle with a self-generated `motor_intention`. It is deliberately distinct from
+cycle with a self-generated `motor_intention` *and* carry matching self-audio
+evidence. Phase coincidence alone is not treated as identity. It is deliberately distinct from
 the *signal-level* corollary-discharge gate in the sibling `og-cora` project
 (`packages/thalamus/gate.py`), which performs real spectral subtraction of a
 cerebellar forward-model prediction of the agent's own PCM and reports a
@@ -153,9 +154,9 @@ class ThetaGammaScheduler:
             )
         self._active.events.append(event)
         # Corollary discharge / sensory suppression (SCHEDULING-LEVEL PROXY): a
-        # self-generated motor intention in a gamma bin suppresses any concurrent
-        # external salient-audio event in the SAME bin of the SAME cycle (the
-        # agent does not re-process its own vocalization). This is a deterministic
+        # self-generated motor intention can suppress verified self audio in the
+        # SAME bin of the SAME cycle. Phase coincidence alone is insufficient:
+        # legitimate world audio may overlap the motor interval. This deterministic
         # bookkeeping flag on event state -- NOT signal-level spectral subtraction
         # (see module docstring for the distinction vs og-cora's Thalamus gate).
         self._apply_corollary_discharge(event)
@@ -171,6 +172,7 @@ class ThetaGammaScheduler:
                     ev is not event
                     and ev.kind == "salient_audio"
                     and self._gamma_bin(ev) == new_bin
+                    and self._matches_verified_self_audio(ev, event)
                 ):
                     ev.workspace_state["self_suppressed"] = True
         elif event.kind == "salient_audio":
@@ -180,8 +182,21 @@ class ThetaGammaScheduler:
                     ev is not event
                     and ev.kind == "motor_intention"
                     and self._gamma_bin(ev) == new_bin
+                    and self._matches_verified_self_audio(event, ev)
                 ):
                     event.workspace_state["self_suppressed"] = True
+
+    @staticmethod
+    def _matches_verified_self_audio(
+        audio_event: "WorkspaceEvent", motor_event: "WorkspaceEvent"
+    ) -> bool:
+        if audio_event.workspace_state.get("expected_self_audio") is not True:
+            return False
+        audio_id = audio_event.workspace_state.get("efference_id")
+        motor_id = motor_event.workspace_state.get("efference_id")
+        if audio_id and motor_id:
+            return audio_id == motor_id
+        return True
 
     def _consolidate_active(self) -> None:
         if self._active is None:

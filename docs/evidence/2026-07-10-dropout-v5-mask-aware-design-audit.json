@@ -1,0 +1,73 @@
+{
+  "experiment": "efference_masked_dropout_representation_design",
+  "date": "2026-07-10",
+  "status": "design_candidate_available_fresh_synthetic_gate_required",
+  "evidence_class": "spent_dropout_v4_synthetic_design_matrix",
+  "input_boundary": "Only the already-spent dropout-v4 seeds 13025, 13039, 13043, 13045, 13048, and 13051 were used. No fresh synthetic seed or live playback/capture was consumed.",
+  "implementation_sha256": "2f6c6b6381869e6fc7d0fae2d868857f7f7f7a3e3fbd1ab1fdb69adb04ead5d6",
+  "mechanism": {
+    "name": "efference_masked_mean_30_5",
+    "frame_ms": 30,
+    "hop_ms": 5,
+    "rule": "For a self-generated structured token, retain only spectral frames whose source samples do not overlap any intentionally erased efference sample, then average the remaining normalized 12-band signatures.",
+    "token_labels_consumed": false,
+    "missingness_source": "bounded motor/efference validity mask",
+    "arbitrary_world_audio_supported": false,
+    "fallback_if_no_complete_frame": "fail the trial"
+  },
+  "spent_candidate_comparison": [
+    {
+      "candidate": "full_spectrum",
+      "vowel_occupancies_10_15_20pct": [2, 2, 2],
+      "vowel_pooled_improvement": -0.3157894736842105
+    },
+    {
+      "candidate": "linear_inpaint",
+      "vowel_occupancies_10_15_20pct": [2, 2, 1],
+      "vowel_pooled_improvement": -0.6491228070175439
+    },
+    {
+      "candidate": "valid_sample_concatenation",
+      "vowel_occupancies_10_15_20pct": [4, 3, 3],
+      "vowel_pooled_improvement": 0.47368421052631576
+    },
+    {
+      "candidate": "efference_masked_mean_20_5",
+      "vowel_occupancies_10_15_20pct": [4, 4, 4],
+      "vowel_pooled_improvement": 0.49122807017543857,
+      "minimum_vowel_condition_improvement": 0.3684210526315789
+    },
+    {
+      "candidate": "efference_masked_mean_30_5",
+      "vowel_occupancies_10_15_20pct": [4, 4, 4],
+      "vowel_pooled_improvement": 0.543859649122807,
+      "minimum_vowel_condition_improvement": 0.5263157894736843,
+      "tone_pooled_improvement": 0.6666666666666666
+    },
+    {
+      "candidate": "efference_masked_mean_40_5",
+      "vowel_occupancies_10_15_20pct": [4, 4, 4],
+      "vowel_pooled_improvement": 0.543859649122807,
+      "minimum_vowel_condition_improvement": 0.5263157894736843,
+      "tone_pooled_improvement": 0.5614035087719298
+    }
+  ],
+  "selection_rule": "First require four-state occupancy in all vowel conditions, then maximize minimum vowel-condition improvement, then pooled vowel improvement, then tone improvement, then prefer the shorter frame. The 30 ms candidate is selected over the tied 40 ms vowel result by tone improvement.",
+  "selected_spent_result": {
+    "vowels": {
+      "occupancies_10_15_20pct": [4, 4, 4],
+      "condition_improvements_10_15_20pct": [0.5789473684210527, 0.5263157894736843, 0.5263157894736843],
+      "pooled_improvement": 0.543859649122807,
+      "post_hoc_purity": 1.0
+    },
+    "tones": {
+      "occupancies_10_15_20pct": [4, 4, 4],
+      "pooled_improvement": 0.6666666666666666,
+      "post_hoc_purity": 1.0
+    },
+    "bounded_state_scalars": 68,
+    "top_down_prediction_consumed": true
+  },
+  "decision": "Advance only the 30 ms mask-aware mechanism to one fresh synthetic seed matrix. Real I/O remains prohibited until that prospective gate passes and a separate real-run preregistration is committed.",
+  "claim_boundary": "This is positive design evidence on spent synthetic data. The mask is available only for self-generated structured audio with known source erasures. It does not establish live room robustness, arbitrary sensory-dropout detection, or natural-world missing-observation handling."
+}

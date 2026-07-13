@@ -1,0 +1,110 @@
+{
+  "experiment": "natural_speech_workspace_binding_template_v2_design",
+  "date": "2026-07-11",
+  "status": "frozen_before_v2_candidate_implementation_or_new_live_playback",
+  "parent_failure": "docs/evidence/2026-07-11-natural-speech-workspace-real-result.json",
+  "research_question": "Can a bounded sensory template learned from a prior self-only replay support natural-speech self/world binding when source RMS and software levels compensate the measured near-field/far-field path imbalance?",
+  "failure_response": {
+    "v1_observations_used": [
+      "maximum development self-only FIR residual ratio 1.441549",
+      "minimum development world-only normalized residual ratio 1.0",
+      "development gap -0.441549",
+      "self-only speech-window acoustic gain approximately 1.125 to 2.306 relative to pre-callback PCM",
+      "world-only speech-window acoustic gain approximately 0.029 to 0.074 relative to pre-callback PCM",
+      "143 clipped samples across three captures"
+    ],
+    "changes_allowed": [
+      "replace per-trial chirp-deconvolved FIR with a prior self-only sensory template",
+      "RMS-normalize source excerpts with fixed peak caps",
+      "change software playback gains while preserving physical geometry and hardware controls",
+      "use a fresh already-spent corpus panel and keep all new overlap trials held out"
+    ],
+    "changes_not_allowed": [
+      "post-hoc thresholding of the failed v1 run",
+      "reuse of any v1 source in v2",
+      "change to physical speaker or microphone geometry",
+      "use of condition labels by the runtime representation"
+    ]
+  },
+  "stimulus_boundary": {
+    "corpus": "Music Lab speech recordings already spent by prior Cora analyses but not used by workspace v1",
+    "external_root": "/private/tmp/cora-ids-spent-200",
+    "new_corpus_content_allowed": false,
+    "labels_used_by_runtime": false,
+    "excerpt_rule": "Downmix to mono, resample linearly to 16000 Hz, select the 600 ms non-overlapping window with greatest RMS using earliest-index tie breaking, and remove its mean.",
+    "normalization": {
+      "self_target_rms": 0.04,
+      "self_peak_cap": 0.2,
+      "world_target_rms": 0.1,
+      "world_peak_cap": 0.8,
+      "rule": "Scale to target RMS, then uniformly reduce only if the role-specific peak cap would be exceeded."
+    },
+    "development_pairs": [
+      {"index": 0, "self": {"filename": "KRA06D.wav", "sha256": "1601e8db49efe5216be02478420a06c6e15a5c7ed25e8cd8447b70c766bed249"}, "world": {"filename": "MEN05B.wav", "sha256": "87c3c1eff2336a3f998f2f6fc425eb16b74e4a7f99f16ffa00f98cf4b3a3f5cd"}},
+      {"index": 1, "self": {"filename": "MES11D.wav", "sha256": "beb0402501f9ceb53c1c760d3d0544f129af0796747da15330d71347fb78d13f"}, "world": {"filename": "PNG06B.wav", "sha256": "3648395e57e3c6e535d2d92c22d0ce6f703b5b4db3a405ced56aa7f52306319c"}},
+      {"index": 2, "self": {"filename": "TSI09D.wav", "sha256": "a06c60f533a1c1e2af77687ab2f315b76499b1b4afe88de9f25d9aa0c2848a"}, "world": {"filename": "VAN08B.wav", "sha256": "32a10d4468730ef0b726e3ebdf4e1a194520896f78f354b7af3553506c3ee333"}}
+    ],
+    "held_out_pairs": [
+      {"index": 0, "self": {"filename": "ACO12D.wav", "sha256": "58bba429cbe744826b0e5ff319740710a989dff0e039d4fb514c8ea757cb1a29"}, "world": {"filename": "BEJ07B.wav", "sha256": "5e41291a9764cc3f841448d2bdd1535cb0d551d6d3582ad95b4bc76fcfe25c12"}},
+      {"index": 1, "self": {"filename": "HAD04D.wav", "sha256": "4030085e7c5ac21b0c308430285003b24366f2ecb2f728d6cb2ebd23e0b6bda7"}, "world": {"filename": "JEN04B.wav", "sha256": "9f194998d1d9794bda631c9c7c52ed7a8a2f9eb21634f1f828725f9730e405d6"}},
+      {"index": 2, "self": {"filename": "LIM04D.wav", "sha256": "f28fc186e6b3020ac782300db194e2c5f1beacb6a03e364f1fa073c17ce3721e"}, "world": {"filename": "NYA07B.wav", "sha256": "87900ac4792c90e39921422a212052180d9e1c2a14df13c36a51dd618d799fdc"}}
+    ]
+  },
+  "protocol": {
+    "trial_count": 21,
+    "development_conditions_each_pair": ["self_calibration", "self_probe", "world_only"],
+    "held_out_conditions_each_pair": ["self_calibration", "self_probe", "world_only", "overlap"],
+    "scoring_excludes_self_calibration_trials": true,
+    "held_out_scored_trial_count": 9,
+    "alignment_chirp_ms": 120,
+    "alignment_silence_ms": 100,
+    "speech_ms": 600,
+    "tail_silence_ms": 100,
+    "seconds_per_trial": 0.92,
+    "planned_total_playback_seconds": 19.32,
+    "capacity_sweep": [1, 2, 3, 4],
+    "strategies": ["flat", "fixed_self_window", "scheduled_identity_plus_template_residual"],
+    "conditions_enter_scoring_only": true
+  },
+  "candidate_world_evidence": {
+    "name": "prior_self_replay_template_residual_ratio",
+    "runtime_inputs": ["known efference identity", "earlier self-calibration capture for that identity", "chirp-aligned current microphone PCM"],
+    "condition_labels_consumed": false,
+    "method": "Store the chirp-aligned 600 ms sensory consequence from the earlier self-calibration replay. For a later self-bearing event with matching identity, estimate one gain scalar from the current and stored chirp windows, subtract the gain-scaled stored speech template, and divide residual RMS by current captured RMS. World-only evidence is 1.0 because no self template is predicted.",
+    "causal_order_required": "self_calibration precedes self_probe and overlap for every pair",
+    "template_memory_bound": "three workspace slots, each retaining one 600 ms mono template plus one chirp window; no cross-session growth",
+    "threshold_rule": "maximum development self-probe residual ratio plus 10 percent of the clean gap to the minimum development world-only ratio",
+    "threshold_selected_from_development_only": true,
+    "held_out_overlap_used_for_selection": false
+  },
+  "fixed_live_levels_if_design_passes": {
+    "self_software_playback_gain_db": -24.0,
+    "world_software_playback_gain_db": 0.0,
+    "self_chirp_peak_absolute": 0.12,
+    "world_chirp_peak_absolute": 0.03,
+    "derivation": "Use RMS-normalized excerpts and compensate the v1 measured path imbalance without changing physical geometry. Self is reduced 6 dB and world increased 18 dB relative to v1. The world chirp is reduced 12 dB in PCM to limit its net alignment-chirp increase to 6 dB.",
+    "calibrated_spl_claimed": false
+  },
+  "spent_data_design_gate": {
+    "channel": "deterministic repeated-path synthetic captures over the exact fresh v2 speech excerpts",
+    "promotion_allowed": false,
+    "required": {
+      "scheduled_f1_min": 0.9,
+      "scheduled_minus_flat_f1_min": 0.2,
+      "scheduled_world_recall_min": 0.9,
+      "scheduled_self_suppression_specificity_min": 0.9,
+      "fixed_window_world_recall_must_be_below_scheduled": true,
+      "capacity_one_f1_must_be_below_capacity_three": true,
+      "capacity_three_f1_must_equal_capacity_four": true,
+      "all_source_hashes_must_match": true
+    },
+    "decision_rule": "Implement only this frozen v2 candidate. If any gate fails, retain it without tuning on held-out trials. A material template, normalization, level, or threshold change requires a new preregistration."
+  },
+  "live_boundary_if_design_passes": {
+    "new_live_preregistration_required": true,
+    "geometry": "Unchanged XVF3800 :0 / Mac mini self at 4 cm and 100 percent / External Headphones device 2 at 180 degrees and 50 cm with hardware knob approximately 50 percent / semi-quiet room with laptop fan",
+    "bounded_playback_capture_authorized": true,
+    "no_live_execution_under_this_design_document": true
+  },
+  "claim_boundary": "A pass would test exact-efference sensory binding after one prior replay, not a generalized self-voice model, speech understanding, or biological corollary discharge. The 600 ms sensory templates are explicitly bounded episodic state rather than learned semantic representations."
+}

@@ -1,0 +1,51 @@
+{
+  "experiment": "h3_same_source_forward_model_fresh_live",
+  "analysis_type": "post_hoc_failure_decomposition",
+  "date": "2026-07-11",
+  "source_result": "docs/evidence/2026-07-11-h3-same-source-forward-model-real-result.json",
+  "source_result_sha256": "4943088645902d2ba10ceb31c8677b9b30f0bf3da9fc0ad1502fca322780a56b",
+  "configuration_changed": false,
+  "audio_replayed": false,
+  "new_threshold_selected": false,
+  "frozen_threshold": 0.3005643307398186,
+  "pairwise_distances": [
+    {
+      "pair_index": 0,
+      "self_probe": 0.140290884804793,
+      "overlap": 0.2336497693462652,
+      "overlap_minus_self": 0.0933588845414722,
+      "self_decision_correct": true,
+      "overlap_decision_correct": false
+    },
+    {
+      "pair_index": 1,
+      "self_probe": 0.14482496122250987,
+      "overlap": 0.22178054196282243,
+      "overlap_minus_self": 0.07695558074031256,
+      "self_decision_correct": true,
+      "overlap_decision_correct": false
+    },
+    {
+      "pair_index": 2,
+      "self_probe": 0.3705661121332223,
+      "overlap": 0.5613865121474336,
+      "overlap_minus_self": 0.1908204000142113,
+      "self_decision_correct": false,
+      "overlap_decision_correct": true
+    }
+  ],
+  "fresh_global_gap": {
+    "maximum_self_probe": 0.3705661121332223,
+    "minimum_overlap": 0.22178054196282243,
+    "minimum_overlap_minus_maximum_self": -0.1487855701703999,
+    "clean_global_threshold_exists": false
+  },
+  "development_comparison": {
+    "spent_development_gap": 0.013331137343340516,
+    "interpretation": "The already narrow development separation did not transport across session and new command content."
+  },
+  "descriptive_interpretation": "All three within-pair overlap distances exceeded their self-probe distances, so world perturbation remained visible. The failure arose because command/session-dependent offsets were larger than the global margin. Exploiting the paired margins would require target-command calibration or a new uncertainty/normalization mechanism and is not eligible under the frozen no-replay protocol.",
+  "decision": "retain_failure_and_preserve_exact_efference_h3_boundary",
+  "same_data_retry_allowed": false,
+  "promotion_allowed": false
+}

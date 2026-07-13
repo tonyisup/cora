@@ -6,6 +6,8 @@ import tempfile
 import time
 from pathlib import Path
 
+import pytest
+
 
 def test_describe_command_prints_json_summary() -> None:
     env = os.environ.copy()
@@ -22,21 +24,257 @@ def test_describe_command_prints_json_summary() -> None:
     payload = json.loads(result.stdout)
 
     assert payload["project"] == "cora-infans"
-    assert payload["implemented_slice"] == "saliency_workspace_live_attention"
+    assert payload["implemented_slice"] == "bounded_operational_auditory_system"
+    assert payload["operational_contract"] == {
+        "schema_version": 1,
+        "status": "bounded_operational_contract",
+        "authority": "VISION.md",
+    }
+    assert "machine_enforced_operational_contract" in payload["implemented_subsystems"]
+    assert "retained_evidence_readiness_aggregator" in payload["implemented_subsystems"]
+    assert "self_describing_operating_point_validator" in payload["implemented_subsystems"]
+    assert "read_only_operational_preflight" in payload["implemented_subsystems"]
+    assert "bounded_live_operational_acceptance" in payload["implemented_subsystems"]
+    assert "bounded_offline_speech_learning_demo" in payload["implemented_subsystems"]
+    assert "bounded_project_owner_vocal_imitation" in payload["implemented_subsystems"]
     assert "predictive_hierarchy" in payload["implemented_subsystems"]
     assert "commanded_active_attention" in payload["implemented_subsystems"]
     assert "offline_corpus_evaluation" in payload["implemented_subsystems"]
+    assert "prior_art_capture_replay" in payload["implemented_subsystems"]
+    assert "participant_disjoint_parentese_confirmation" in payload["implemented_subsystems"]
+    assert "cross_fieldsite_parentese_falsification" in payload["implemented_subsystems"]
+    assert "speaker_and_mode_adaptive_register_gate" in payload["implemented_subsystems"]
+    assert "long_window_vocal_activity_gate" in payload["implemented_subsystems"]
+    assert "joint_register_pipeline_falsification" in payload["implemented_subsystems"]
+    assert "expanded_register_refit_falsification" in payload["implemented_subsystems"]
+    assert "safe_online_predictor_regret_gate" in payload["implemented_subsystems"]
+    assert "structured_prediction_fake_harness" in payload["implemented_subsystems"]
+    assert "structured_prediction_real_runner" in payload["implemented_subsystems"]
     assert "motor_plan_synthesis" in payload["implemented_subsystems"]
     assert "simulation_only_forward_model_robustness_sweep" in payload["implemented_subsystems"]
     assert "simulation_only_forward_model_promotion_gate" in payload["implemented_subsystems"]
     assert "simulation_only_speaking_policy" in payload["implemented_subsystems"]
     assert "simulation_only_speaking_policy_promotion_gate" in payload["implemented_subsystems"]
     assert "simulation_only_speaking_readiness_gate" in payload["implemented_subsystems"]
-    assert "non_speech_source_localization" in payload["planned_subsystems"]
+    assert payload["planned_subsystems"] == []
+    assert payload["stopped_programs"] == [
+        "stage2_register_detection",
+        "stage5_local_inverse_closure",
+    ]
+    assert "cold_start_parentese_detection" in payload["unsupported_expansions"]
+    assert "generalized_no_replay_self_voice" in payload["unsupported_expansions"]
+    assert "wall_plug_energy" in payload["unsupported_expansions"]
     assert (
         payload["verdicts"]["source_localization"]
         == "speech_stimulus_recoverable_non_speech_negative"
     )
+
+
+def test_operational_contract_cli_and_stage6_validation(tmp_path) -> None:
+    env = os.environ.copy()
+    env["PYTHONPATH"] = "src"
+    contract = subprocess.run(
+        [sys.executable, "-m", "cora_infans", "--show-operational-contract"],
+        capture_output=True,
+        check=True,
+        text=True,
+        env=env,
+    )
+    payload = json.loads(contract.stdout)
+    assert payload["stage6"]["latency_max_ms"] == 10.5
+    assert payload["stage4"]["exact_commanded_utterance_replay_required"] is True
+
+    report = tmp_path / "run.json"
+    report.write_text(
+        json.dumps(
+            {
+                "operating_point": {
+                    "schema_version": payload["stage6"][
+                        "operating_point_schema_version"
+                    ],
+                    "host": payload["stage6"]["host"],
+                    "input": payload["stage6"]["input"],
+                    "self_source": payload["stage6"]["self_source"],
+                    "world_source": payload["stage6"]["world_source"],
+                    "operator_attestations": {
+                        "self_source_geometry_confirmed": True,
+                        "self_source_system_volume_confirmed": True,
+                        "world_source_geometry_confirmed": True,
+                        (
+                            "world_source_hardware_volume_at_approximately_50_percent"
+                        ): True,
+                    },
+                },
+                "real_capture": True,
+                "capture_backend": payload["stage6"]["capture_backend"],
+                "frame_ms": payload["stage6"]["acceptance_profile"]["frame_ms"],
+                "frame_count": payload["stage6"]["acceptance_profile"][
+                    "target_frame_count"
+                ],
+                "salient_frame_count": payload["stage6"]["acceptance_profile"][
+                    "minimum_salient_frame_count"
+                ],
+                "active_playback_frame_count": 250,
+                "software_playback_gain_db": payload["stage6"][
+                    "acceptance_profile"
+                ]["software_playback_gain_db"],
+                "stimulus_sha256": payload["stage6"]["acceptance_profile"][
+                    "stimulus_sha256"
+                ],
+                "salient_adc_frame_end_to_workspace_p95_ms": 10.4,
+                "device_deadline_miss_count": 0,
+                "overflow_count": 0,
+                "callback_status_count": 0,
+                "timestamp_discontinuity_count": 0,
+                "fallback_frame_count": 0,
+                "active_playback_clipped_sample_count": 0,
+            }
+        )
+    )
+    validation = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "cora_infans",
+            "--validate-stage6-operating-point",
+            "--report",
+            str(report),
+        ],
+        capture_output=True,
+        check=True,
+        text=True,
+        env=env,
+    )
+    assert json.loads(validation.stdout)["operating_point_passed"] is True
+
+
+def test_operational_preflight_cli_uses_manifest(monkeypatch, tmp_path) -> None:
+    import cora_infans.cli as cli
+
+    manifest = tmp_path / "manifest.json"
+    manifest.write_text(json.dumps({"operating_point": {"schema_version": 1}}))
+    captured = {}
+    monkeypatch.setattr(
+        cli,
+        "build_operational_preflight",
+        lambda payload: captured.update(payload) or {"preflight_passed": True},
+    )
+
+    report = cli.operational_preflight_cli(
+        ["--operational-preflight", "--manifest", str(manifest)]
+    )
+
+    assert report["preflight_passed"] is True
+    assert captured["operating_point"] == {"schema_version": 1}
+
+
+def test_operational_acceptance_cli_requires_authorization() -> None:
+    import cora_infans.cli as cli
+
+    with pytest.raises(ValueError, match="authorize-live-io"):
+        cli.run_operational_acceptance_cli(
+            [
+                "--run-operational-acceptance",
+                "--manifest",
+                "manifest.json",
+                "--stimulus-wav",
+                "stimulus.wav",
+                "--output-dir",
+                "out",
+            ]
+        )
+
+
+def test_speech_learning_demo_cli_runs_offline_and_retains_artifacts(
+    tmp_path,
+) -> None:
+    env = os.environ.copy()
+    env["PYTHONPATH"] = "src"
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "cora_infans",
+            "--demo-speech-learning",
+            "--scenario",
+            "cross-configuration",
+            "--vowel",
+            "a",
+            "--output-dir",
+            str(tmp_path),
+        ],
+        capture_output=True,
+        check=True,
+        text=True,
+        env=env,
+    )
+
+    report = json.loads(result.stdout)
+    assert report["demo_passed"] is True
+    assert report["vowels"] == ["a"]
+    assert report["sessions"][0]["learning"]["learner_input"][
+        "vowel_label_provided"
+    ] is False
+    assert (tmp_path / "a-target.wav").is_file()
+    assert (tmp_path / "a-learned.wav").is_file()
+    assert (tmp_path / "speech-learning-session.json").is_file()
+    assert (tmp_path / "speech-learning-demo.html").is_file()
+
+
+def test_vocal_imitation_capture_cli_requires_and_forwards_authorization(
+    tmp_path, monkeypatch
+) -> None:
+    import cora_infans.cli as cli
+
+    calls = []
+    monkeypatch.setattr(
+        cli,
+        "capture_project_owner_take",
+        lambda **kwargs: calls.append(kwargs)
+        or {"capture_passed": True, "capture": {}},
+    )
+    report = cli.capture_vocal_imitation_cli(
+        [
+            "--capture-vocal-imitation",
+            "--session-dir",
+            str(tmp_path),
+            "--target",
+            "a",
+            "--role",
+            "development",
+            "--take",
+            "1",
+            "--authorize-project-owner-recording",
+        ]
+    )
+
+    assert report["capture_passed"] is True
+    assert calls[0]["authorized"] is True
+    assert calls[0]["target_key"] == "a"
+    assert calls[0]["take"] == 1
+
+
+def test_vocal_imitation_development_freeze_cli(tmp_path, monkeypatch) -> None:
+    import cora_infans.cli as cli
+
+    calls = []
+    monkeypatch.setattr(
+        cli,
+        "freeze_project_owner_development",
+        lambda **kwargs: calls.append(kwargs)
+        or {"development_passed": True},
+    )
+
+    report = cli.freeze_vocal_imitation_development_cli(
+        [
+            "--freeze-vocal-imitation-development",
+            "--session-dir",
+            str(tmp_path),
+        ]
+    )
+
+    assert report["development_passed"] is True
+    assert calls == [{"session_dir": str(tmp_path)}]
 
 
 
@@ -392,10 +630,21 @@ def test_simulate_sequence_command_accepts_delayed_recovery_family_override() ->
 
 
 def test_eval_corpus_command_runs_offline_smoke(tmp_path) -> None:
+    import wave
+
+    import numpy as np
+
     env = os.environ.copy()
     env["PYTHONPATH"] = "src"
 
-    (tmp_path / "clip01.wav").write_bytes(b"RIFF")
+    sample_rate = 8000
+    tone = 0.4 * np.sin(2.0 * np.pi * 220.0 * np.arange(sample_rate) / sample_rate)
+    samples = np.concatenate([tone, np.zeros(sample_rate)])
+    with wave.open(str(tmp_path / "clip01.wav"), "wb") as wav:
+        wav.setnchannels(1)
+        wav.setsampwidth(2)
+        wav.setframerate(sample_rate)
+        wav.writeframes((samples * 32767.0).astype("<i2").tobytes())
     label_csv = tmp_path / "labels.csv"
     label_csv.write_text(
         "clip_id,start_s,end_s,label\n"
@@ -423,7 +672,10 @@ def test_eval_corpus_command_runs_offline_smoke(tmp_path) -> None:
     payload = json.loads(result.stdout)
     assert payload["clip_loaded"] == 1
     assert payload["clip_count"] == 1
-    assert payload["total_frames"] == 4  # two intervals * (on + quiet) frames
+    assert payload["total_frames"] == 8
+    assert payload["evidence_kind"] == "real_audio"
+    assert payload["input_mode"] == "wav"
+    assert payload["per_clip"][0]["sample_rate"] == sample_rate
     assert payload["per_clip"][0]["clip_id"] == "clip01"
 
 
@@ -947,6 +1199,78 @@ def test_listen_live_saliency_threshold_flag_parses() -> None:
     assert captured.get("saliency_threshold") == 0.2
 
 
+def test_listen_live_sample_rate_flag_reaches_mic_array(monkeypatch) -> None:
+    import cora_infans.cli as cli
+
+    captured = {}
+
+    class _FakeArray:
+        channel_count = 2
+
+        def __init__(self, **kwargs):
+            captured.update(kwargs)
+
+    class _FakeListener:
+        def __init__(self, array=None, **kwargs):
+            pass
+
+        def listen(self, **kwargs):
+            return {"frame_count": 0}
+
+    monkeypatch.setattr(cli, "LiveMicArray", _FakeArray)
+    monkeypatch.setattr(cli, "LiveListener", _FakeListener)
+
+    cli.listen_live(
+        [
+            "--listen-live",
+            "--duration-ms",
+            "25",
+            "--frame-ms",
+            "25",
+            "--sample-rate",
+            "16000",
+            "--capture-backend",
+            "native",
+        ]
+    )
+
+    assert captured == {
+        "device": ":0",
+        "sample_rate": 16000,
+        "stream_backend": "native",
+    }
+
+
+def test_listen_live_stimulus_volume_flag_reaches_stimulus(monkeypatch) -> None:
+    import cora_infans.cli as cli
+
+    captured = {}
+
+    class _FakeListener:
+        def __init__(self, array=None, **kwargs):
+            captured.update(kwargs)
+
+        def listen(self, **kwargs):
+            return {"frame_count": 0}
+
+    monkeypatch.setattr(cli, "LiveListener", _FakeListener)
+    monkeypatch.setattr(cli, "LiveMicArray", lambda **kwargs: object())
+
+    cli.listen_live(
+        [
+            "--listen-live",
+            "--with-stimulus",
+            "--stimulus-volume-db",
+            "-6",
+            "--duration-ms",
+            "25",
+        ]
+    )
+
+    assert captured["stimulus"].volume_db == -6.0
+    assert captured["stimulus"].output_device_index == 2
+
+
 def test_listen_live_with_self_subtraction_requires_real_io() -> None:
     # Phase 2 Task 4: --with-self-subtraction is meaningless without --real-io
     # (no capture to fit/subtract); the CLI must refuse.
@@ -1077,3 +1401,59 @@ def test_listen_live_cli_parses_with_self_subtraction_flag() -> None:
     assert trial["played"] is True
     # Self-subtraction path executed: world_residual is computed per trial.
     assert trial.get("world_residual") is not None
+
+
+def test_structured_workspace_real_cli_blocks_before_audio_callbacks(tmp_path) -> None:
+    import cora_infans.cli as cli
+
+    preregistration = tmp_path / "blocked-preregistration.json"
+    preregistration.write_text(
+        json.dumps(
+            {
+                "mode": "structured_workspace_binding_real_preregistration",
+                "status": "blocked_missing_self_geometry",
+                "bounded_playback_capture_authorized": True,
+                "frozen_hashes": {},
+                "hardware": {
+                    "input": {"avfoundation_device": ":0", "channels": 2},
+                    "self_source": {
+                        "output_device_index": 3,
+                        "playback_gain_db": 0.0,
+                    },
+                    "world_source": {
+                        "output_device_index": 2,
+                        "playback_gain_db": 0.0,
+                    },
+                },
+            }
+        )
+    )
+    output = tmp_path / "must-not-exist"
+    calls = []
+    original_play = cli.play_wav_to_device
+    original_capture = cli.capture_to_wav
+    cli.play_wav_to_device = lambda *args, **kwargs: calls.append((args, kwargs))  # type: ignore[assignment]
+    cli.capture_to_wav = lambda *args, **kwargs: calls.append((args, kwargs))  # type: ignore[assignment]
+    try:
+        try:
+            cli.structured_workspace_binding_cli(
+                [
+                    "--evaluate-structured-workspace-binding",
+                    "--real-io",
+                    "--out-dir",
+                    str(output),
+                    "--preregistration",
+                    str(preregistration),
+                    "--authorize-bounded-playback",
+                ]
+            )
+        except ValueError as exc:
+            assert "preregistration blocked" in str(exc)
+        else:
+            raise AssertionError("incomplete H3 preregistration must block")
+    finally:
+        cli.play_wav_to_device = original_play  # type: ignore[assignment]
+        cli.capture_to_wav = original_capture  # type: ignore[assignment]
+
+    assert calls == []
+    assert not output.exists()

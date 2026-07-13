@@ -1,0 +1,99 @@
+{
+  "experiment": "h4_option_h_smooth_exemplar_local_closure",
+  "date": "2026-07-11",
+  "status": "preregistered_before_implementation_or_candidate_metrics",
+  "authorization": {
+    "basis": "Option G post-hoc analysis supports boundary smoothing; active goal authorizes continued VISION-aligned synthetic work.",
+    "scope": "one synthetic-only smooth local-forward and inverse-closure candidate",
+    "recorded_audio_authorized": false,
+    "protected_data_access_authorized": false
+  },
+  "parent_result": "docs/evidence/2026-07-11-h4-option-g-expanded-local-closure-result.json",
+  "post_hoc_basis": "docs/evidence/2026-07-11-h4-option-g-failure-analysis.json",
+  "design_memo": "docs/H4_OPTION_H_SMOOTH_LOCAL_CLOSURE.md",
+  "plant_and_sensory": "exact frozen Option F five-gesture plant and 30-value 150-5000 Hz normalized sensory representation",
+  "data_isolation": {
+    "sequence": "five-dimensional Halton sequence in bases 2,3,5,7,11",
+    "babbling_indices_inclusive": [28673, 30720],
+    "babbling_count": 2048,
+    "forward_held_out_indices_inclusive": [32769, 33280],
+    "forward_held_out_count": 512,
+    "inverse_target_pool_indices_inclusive": [36865, 37888],
+    "inverse_target_pool_count": 1024,
+    "all_prior_option_ranges_disjoint": true
+  },
+  "babbling_memory": {
+    "stored_per_exemplar": "five motor coordinates and 30 sensory coordinates",
+    "retained_state_scalars": 71680,
+    "training_state_scalars": 71680,
+    "labels_consumed": false,
+    "transition_hop_coordinate_max": 0.20,
+    "interpolation_states_update_memory": false
+  },
+  "smooth_local_predictor": {
+    "neighbor_count": 64,
+    "neighbor_selection": "64 minimum Euclidean motor distances; lower babbling ordinal breaks ties",
+    "bandwidth": "distance to the 64th neighbor; fail if nonpositive",
+    "weights": "exp(-0.5*(distance/bandwidth)^2)",
+    "local_design": "[1, exemplar_motor-query_motor]",
+    "ridge_diagonal": [0.000001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001],
+    "fit": "weighted six-by-six affine ridge solve per query",
+    "query_prediction": "fitted intercept, mean centered and L2 normalized",
+    "global_parameters": false,
+    "global_backpropagation": false,
+    "sequence_model": false
+  },
+  "forward_gate": {
+    "distance": "Euclidean distance between unit 30-value sensory vectors",
+    "baselines": ["neutral tract", "nearest stored exemplar sensory", "previous held-out sensory or neutral for first"],
+    "strict_win_fraction_vs_each_baseline_min": 0.75,
+    "median_unit_vector_distance_max": 0.18,
+    "report_32_motor_orthants": true,
+    "all_state_bounds_required": true
+  },
+  "inverse": {
+    "anchor_subset": "every eighth babbling exemplar starting with ordinal zero, exactly 256 anchors",
+    "initialization": "anchor with minimum stored sensory half-distance; effort then lower anchor ordinal break ties",
+    "rest_state": [0.6, 0.65, 0.5, 0.5, 0.35],
+    "coordinate_order": ["jaw_aperture", "constriction_magnitude", "constriction_position", "lip_aperture", "lip_protrusion"],
+    "direction_order": ["negative", "positive"],
+    "initial_steps": [0.18, 0.18, 0.18, 0.18, 0.18],
+    "rounds": 2,
+    "step_halving": true,
+    "acceptance": "strict total-loss improvement",
+    "sensory_loss": "half Euclidean unit-vector distance",
+    "effort_weight": 0.0005,
+    "continuity_weight": 0.001,
+    "maximum_local_forward_predictions": 21,
+    "rigid_budget": 23
+  },
+  "inverse_targets": {
+    "selection": "unique minimum canonical relative formant RMSE for a/e/i/o/u from the frozen target pool; lower Halton index breaks ties",
+    "trials": "five target motors crossed with F0 90,110,140,180 Hz",
+    "labels_enter_only_selection_and_post_hoc_scoring": true
+  },
+  "equivalence_and_closure_gates": {
+    "jacobian_delta": 0.005,
+    "svd_relative_rank_tolerance": 0.01,
+    "projected_motor_error_max": 0.18,
+    "acoustic_cycle_half_distance_max": 0.10,
+    "combined_agreement_fraction_min": 0.90,
+    "identity_preservation_min": 0.95,
+    "target_to_final_f1_mae_hz_max": 30.0,
+    "target_to_final_f2_mae_hz_max": 30.0,
+    "target_to_final_f3_mae_hz_max": 30.0,
+    "all_losses_no_worse_than_initial": true,
+    "all_bounds_and_prediction_budgets_required": true
+  },
+  "decision_rule": "Checkpoint implementation before opening held-out or target ranges and execute once. Any failure is retained without changing exemplars, neighbor count, kernel, ridge, anchors, search, points, or gates.",
+  "recorded_data_boundary": {
+    "recorded_audio_access_under_this_protocol": false,
+    "vocalset_protected": ["female6", "female7", "female9", "male9", "male11"],
+    "cmu_protected_confirmation": ["rms", "awb", "axb", "eey", "ljm"],
+    "cmu_protected_reserve": ["aew", "ahw", "aup", "fem", "gka", "lnh", "rxr", "slp"]
+  },
+  "promotion_boundary": "A full pass is synthetic-only evidence for this local smooth shared representation. It does not promote H4 or authorize recorded speech.",
+  "unresolved_fields": [],
+  "execution_ready": true,
+  "promotion_allowed": false
+}

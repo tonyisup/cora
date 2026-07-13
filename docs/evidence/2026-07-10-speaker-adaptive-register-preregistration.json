@@ -1,0 +1,46 @@
+{
+  "experiment": "speaker_adaptive_register_fresh_fieldsites",
+  "registered_date": "2026-07-10",
+  "status": "registered_before_selected_audio_fetch",
+  "project_use": "personal_non_commercial_research",
+  "model_artifact": "2026-07-10-speaker-adaptive-register-model.json",
+  "model_sha256": "995e4da1dc9d73955407a5a1e6267111e74b372d455b4c8dae121c1149c05514",
+  "training_fieldsites": ["ACO", "ARA", "BEJ", "KRA", "LIM", "MBE"],
+  "unseen_evaluation_fieldsites": ["JEN", "QUE"],
+  "selected_participants": {
+    "JEN": ["JEN03", "JEN04", "JEN05"],
+    "QUE": ["QUE01", "QUE03", "QUE18"]
+  },
+  "required_conditions_per_participant": [
+    "infant_directed_song",
+    "infant_directed_speech",
+    "adult_directed_song",
+    "adult_directed_speech"
+  ],
+  "calibration_boundary": {
+    "method": "unlabeled within-speaker normalization across the supplied batch",
+    "minimum_observations_per_speaker": 2,
+    "expected_observations_per_speaker": 4,
+    "cold_start_claim": false,
+    "strictly_causal_live_claim": false
+  },
+  "frozen_clip_level_baselines": {
+    "intensity_db_median": {
+      "direction": "higher_is_ids",
+      "threshold": -46.522474966932535
+    },
+    "pitch_confidence_median": {
+      "direction": "higher_is_ids",
+      "threshold": 0.6157772178851884
+    }
+  },
+  "acceptance_rule": {
+    "minimum_pooled_f1": 0.65,
+    "minimum_f1_improvement_over_best_frozen_baseline": 0.10,
+    "maximum_pooled_false_positive_rate": 0.15,
+    "maximum_song_false_positive_rate": 0.15,
+    "minimum_each_fieldsite_f1": 0.50,
+    "all_speakers_must_be_calibrated": true
+  },
+  "claim_boundary": "A pass supports a speaker-adaptive, batch-calibrated long-window register gate. It does not support cold-start, speaker-identification, or causal live detection."
+}

@@ -1,0 +1,64 @@
+{
+  "experiment": "structured_continuous_prediction_real_hardware",
+  "attempt": 2,
+  "date": "2026-07-10",
+  "status": "fully_preregistered_retry_authorized",
+  "protocol": "2026-07-10-structured-prediction-protocol.json",
+  "protocol_sha256": "2b56bdfab508b1d0f456037845bc75d4c0da511dcde8daa921045dea4d2e16ab",
+  "predictor_implementation_sha256": "04d40123872c9af3d73697f39d3915002366d08a3ef061efbd16a125e126d264",
+  "io_runner": "src/cora_infans/live_speak_smoke.py",
+  "io_runner_sha256": "1cf10155c49dc32406b4936504f5af452be335ea73ee08f2d7a6fc7437f3f34b",
+  "prior_attempt_postmortem": "2026-07-10-structured-prediction-real-attempt-1-postmortem.json",
+  "prior_attempt_result_sha256": "e4e07e041e0643613ce1d23bb49620973464ab1c5845150e92e5c0cb86f990de",
+  "retry_justification": "Attempt 1 stopped before playback with zero completed trials because capture readiness observed buffered file growth. The fix changes only raw-output flush timing and does not change stimuli, learner, features, seeds, thresholds, or analysis.",
+  "device_boundary": {
+    "target_input": "XVF3800 input :0, two fused CoreAudio channels",
+    "target_output": "CoreAudio output device index 2",
+    "maximum_playback_gain_db": -18.0,
+    "trial_count": 12,
+    "maximum_total_playback_seconds": 75.6,
+    "one_trial_at_a_time": true,
+    "no_automatic_retry_after_failure": true
+  },
+  "frozen_physical_geometry": {
+    "speaker_count": 2,
+    "speaker_arrangement": "small left and right speakers stacked vertically with both acoustic centers on the board's 180 degree radial axis",
+    "speaker_aim": "both speakers facing the XVF3800 microphone array center",
+    "speaker_distance_cm": 50.0,
+    "distance_reference": "speaker grilles to XVF3800 board center",
+    "board_azimuth_degrees": 180,
+    "hardware_volume_knob": "maximum",
+    "software_playback_gain_db": -18.0
+  },
+  "room_condition": {
+    "operator_description": "semi-quiet room",
+    "known_background_source": "laptop fan",
+    "accepted_as_fixed_run_condition": true
+  },
+  "operator_authorization": {
+    "bounded_playback_and_capture_authorized": true,
+    "authorized_date": "2026-07-10",
+    "scope_if_authorized": "one fixed 12-trial retry only, capped at 75.6 seconds total playback, with no automatic retry"
+  },
+  "frozen_acceptance_rule_each_family": {
+    "required_development_trials": 3,
+    "required_held_out_trials": 3,
+    "required_codebook_occupancy": 4,
+    "minimum_post_hoc_token_cluster_purity": 0.85,
+    "minimum_pooled_transition_accuracy": 0.75,
+    "minimum_accuracy_improvement_over_best_baseline": 0.20,
+    "minimum_each_held_out_trial_improvement": 0.10,
+    "maximum_bounded_state_scalars": 68,
+    "top_down_prediction_must_be_consumed": true
+  },
+  "global_acceptance_rule": {
+    "both_tone_and_vowel_families_must_pass": true,
+    "all_trials_must_have_synchronized_real_capture": true,
+    "all_alignment_and_acoustic_features_must_be_finite": true,
+    "every_efference_and_capture_artifact_must_have_sha256": true,
+    "scheduled_token_labels_may_only_score_post_hoc_purity": true,
+    "no_predictor_hyperparameter_or_manifest_change": true
+  },
+  "failure_policy": "Any failed gate is retained. No threshold, seed, grammar, token, or feature change may reuse captured held-out trials as confirmation.",
+  "claim_boundary": "A pass supports locally learned next-state prediction for two controlled acoustic families after one named playback/capture geometry. It does not support unconstrained or semantic speech prediction and does not complete H2 by itself."
+}

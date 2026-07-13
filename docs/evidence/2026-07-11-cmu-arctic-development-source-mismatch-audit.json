@@ -1,0 +1,33 @@
+{
+  "experiment": "cmu_arctic_ordinary_speech_development_source_integrity_audit",
+  "date": "2026-07-11",
+  "status": "one_upstream_wav_label_pair_excluded_before_scoring",
+  "eligible_metrics_produced_before_failure": false,
+  "mismatch": {
+    "speaker": "jmk",
+    "label": "arctic_a0108.lab",
+    "wav": "arctic_a0108.wav",
+    "wav_duration_seconds": 2.0250625,
+    "label_end_seconds": 3.9361,
+    "delta_seconds": -1.9110375,
+    "selected_tokens_in_pair": [
+      {
+        "vowel": "o",
+        "start_seconds": 1.4051,
+        "end_seconds": 1.5502
+      },
+      {
+        "vowel": "e",
+        "start_seconds": 3.1519,
+        "end_seconds": 3.2802
+      }
+    ]
+  },
+  "all_other_selected_pairs": {
+    "count": 381,
+    "maximum_absolute_wav_label_end_delta_seconds": 0.015062500000000423
+  },
+  "disposition": "Exclude the entire mismatched pair fail-closed and deterministically replace both tokens using the unchanged lexical-label/segment-order rule.",
+  "confirmation_audio_or_labels_accessed": false,
+  "promotion_allowed": false
+}

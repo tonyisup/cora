@@ -1,0 +1,59 @@
+{
+  "experiment": "music_lab_ids_vs_ads_pilot",
+  "date": "2026-07-10",
+  "verdict": "negative_promotion_gate_excessive_false_positives",
+  "evidence_kind": "real_audio",
+  "dataset": {
+    "doi": "10.5281/zenodo.5525161",
+    "license": "CC BY-NC-SA 4.0",
+    "archive": "IDS-corpus-edited.zip",
+    "archive_md5": "143cfcde407b123635b1fbe45b1fabe6",
+    "acquisition": "HTTP byte-range extraction; audio retained outside repository"
+  },
+  "protocol": {
+    "frame_ms": 250,
+    "threshold_selection": "max development F1, then minimum FPR, then accuracy",
+    "positive_label": "infant_directed_speech",
+    "development_participants": ["ACO02", "ACO03", "ACO04", "ACO12"],
+    "held_out_participants": ["ACO13", "ARA11"],
+    "development_clip_count": 8,
+    "held_out_clip_count": 4,
+    "participant_leakage_count": 0
+  },
+  "held_out_metrics": {
+    "peak_rms": {
+      "threshold": 0.0496482959684937,
+      "precision": 0.6428571428571429,
+      "recall": 0.32142857142857145,
+      "f1": 0.42857142857142855,
+      "false_positive_rate": 0.20833333333333334
+    },
+    "pitch_confidence": {
+      "threshold": 0.345237624361029,
+      "precision": 0.574468085106383,
+      "recall": 0.9642857142857143,
+      "f1": 0.72,
+      "false_positive_rate": 0.8333333333333334
+    }
+  },
+  "interpretation": "Pitch confidence beats peak RMS on F1 only by firing on most ADS frames. The pilot falsifies an F1-only promotion rule.",
+  "confirmatory_rule_fixed_after_pilot": {
+    "fresh_participants_required": true,
+    "minimum_f1_improvement_over_peak_rms": 0.05,
+    "maximum_fpr_increase_over_peak_rms": 0.05
+  },
+  "selected_file_sha256": {
+    "ACO02B.wav": "c58a46a68782fb318cd885e6c670025104cc844bb3d8e4080b69b1f995c2c410",
+    "ACO02D.wav": "37b51d8b8a6641bf77105f15b59c55987c7ccc6b704073c36da06d507fd377b5",
+    "ACO03B.wav": "24c17c6c2a142ba745edd55b4ed675ca4d77f1e8803cf2c6fc5ebac881ac24dd",
+    "ACO03D.wav": "74781039b99bab52b885c952bdca29b8d37f3f5af5a012b187056dfed234a0b5",
+    "ACO04B.wav": "099292b490f6c815a16a641264f60dfc414a8db19af8675280bc23b2eb5f064f",
+    "ACO04D.wav": "e24f8407ebd49bb28d5c9b15329839b03d74bb28ab4e5538d64b35c0fb3f289e",
+    "ACO12B.wav": "cdc049b2c2baf1811d3ef7510aa6c8b3917392ebb34f89d2d31faed54c27f1ce",
+    "ACO12D.wav": "58bba429cbe744826b0e5ff319740710a989dff0e039d4fb514c8ea757cb1a29",
+    "ACO13B.wav": "f5390e2d0d894a2fd96550a39c4d15f27649be49dd52b639f4fe2a2af58a3ea3",
+    "ACO13D.wav": "35d6701f018d9e6c811fb67b4326f78fa22dbed2a64252f637912a36d71a807b",
+    "ARA11B.wav": "301bae11101eeeaf96c12e758fad5f3a7720c5f5f644d26ddb3c84a2d85095fb",
+    "ARA11D.wav": "e3dc3dbb1a24704e483272bb0a6b06e1415ba69e46bae360dae21a00b011708c"
+  }
+}

@@ -1,0 +1,96 @@
+{
+  "experiment": "natural_speech_workspace_binding_design",
+  "date": "2026-07-11",
+  "status": "frozen_before_candidate_implementation_or_new_live_playback",
+  "parent_result": "docs/evidence/2026-07-10-structured-workspace-real-attempt-3-result.json",
+  "research_question": "Can bounded efference scheduling preserve an independently arriving natural-speech world source during overlap while suppressing natural speech emitted as commanded self audio?",
+  "claim_boundary": "This candidate extends the Stage 4 structured-tone task to already-spent natural speech at the same fixed self/world geometry. A commanded recording played from the Mac mini is operationally self because its waveform and efference identity are known; it is not Cora-generated language or a biological voice. The spent-data gate is design evidence only and cannot promote H3. Any promotion requires a separately hash-bound, preregistered synchronized live run.",
+  "stimulus_boundary": {
+    "corpus": "Music Lab speech recordings already spent by prior Cora analyses",
+    "external_root": "/private/tmp/cora-ids-spent-200",
+    "new_corpus_content_allowed": false,
+    "labels_used_by_runtime": false,
+    "excerpt_rule": "Downmix to mono, resample linearly to 16000 Hz, select the 800 ms non-overlapping window with greatest RMS using earliest-index tie breaking, remove its mean, and peak-normalize by source role.",
+    "self_peak_absolute": 0.12,
+    "world_peak_absolute": 0.8,
+    "development_pairs": [
+      {
+        "index": 0,
+        "self": {"filename": "KRA01D.wav", "sha256": "8dd90d2bd1ca0322f0c55466439a2079f197d761b7081a966ed928b1ddd25a2c"},
+        "world": {"filename": "MBE02B.wav", "sha256": "df5412fde22f6a32050992d7ece263b1dd6542a5b15b9c0234eb7262d139de2e"}
+      },
+      {
+        "index": 1,
+        "self": {"filename": "MES06D.wav", "sha256": "bcce51436783e6c836147c962ff4049e72b0472ae7ff397dd6e90ff3b14021f6"},
+        "world": {"filename": "PNG01B.wav", "sha256": "538991b4f8bc7339baf8a8979589d85d7e90cd6f95c66b327b46943f173786fd"}
+      },
+      {
+        "index": 2,
+        "self": {"filename": "TSI03D.wav", "sha256": "f6af43284674bf221329587ec87681d274069f16f21e893945b06784c858f61e"},
+        "world": {"filename": "VAN21B.wav", "sha256": "76b1d5e8e07b2ff9e57a05bb5ebfc250e90ac2a41109d99500ab762e4e3651ef"}
+      }
+    ],
+    "held_out_pairs": [
+      {
+        "index": 0,
+        "self": {"filename": "ACO13D.wav", "sha256": "35d6701f018d9e6c811fb67b4326f78fa22dbed2a64252f637912a36d71a807b"},
+        "world": {"filename": "MEN14B.wav", "sha256": "2da65dc3eb18f0a03e9096044c18821adc25f9331cdd869e7a5f0432a1a3ccb3"}
+      },
+      {
+        "index": 1,
+        "self": {"filename": "HAD09D.wav", "sha256": "68443f7f8607ed94ab312254b308ef55c99f1b08c6dabb9e6232b2d8e1fe949e"},
+        "world": {"filename": "JEN05B.wav", "sha256": "d6919daaf5a873db8753748c6d44a07a2bb032ab5a30631612f11bc192821bc2"}
+      },
+      {
+        "index": 2,
+        "self": {"filename": "LIM05D.wav", "sha256": "db5837f5d3e04d68f96387153d56287a29164c9b87560da0a833727ea2141946"},
+        "world": {"filename": "NYA14B.wav", "sha256": "a2155e3316283a6505025067db7856b7ae57adeb6efb4661e1a8f40823aff05c"}
+      }
+    ]
+  },
+  "protocol": {
+    "trial_count": 15,
+    "development_conditions": ["self_only", "world_only"],
+    "held_out_conditions": ["self_only", "world_only", "overlap"],
+    "alignment_chirp_ms": 120,
+    "alignment_silence_ms": 180,
+    "speech_ms": 800,
+    "tail_silence_ms": 200,
+    "capacity_sweep": [1, 2, 3, 4],
+    "strategies": ["flat", "fixed_self_window", "scheduled_identity_plus_world_residual"],
+    "conditions_enter_scoring_only": true
+  },
+  "candidate_world_evidence": {
+    "name": "chirp_conditioned_self_prediction_residual_ratio",
+    "runtime_inputs": ["known self efference waveform", "matching efference identity", "chirp-aligned microphone PCM"],
+    "condition_labels_consumed": false,
+    "method": "Estimate a causal 128-sample self-path FIR independently in every self-bearing trial by regularized deconvolution of the known 120 ms self chirp and its aligned capture. Convolve the known self speech with that FIR. World evidence is residual RMS divided by captured speech-window RMS after subtracting the predicted self waveform. World-only evidence is 1.0 because no self efference is predicted.",
+    "fir_samples": 128,
+    "deconvolution_ridge_fraction": 0.001,
+    "threshold_rule": "maximum development self-only residual ratio plus 10 percent of the clean gap to the minimum development world-only ratio",
+    "threshold_selected_from_development_only": true,
+    "held_out_overlap_used_for_selection": false
+  },
+  "spent_data_design_gate": {
+    "channel": "deterministic synthetic acoustic paths over the exact spent natural-speech excerpts",
+    "promotion_allowed": false,
+    "required": {
+      "scheduled_f1_min": 0.9,
+      "scheduled_minus_flat_f1_min": 0.2,
+      "scheduled_world_recall_min": 0.9,
+      "scheduled_self_suppression_specificity_min": 0.9,
+      "fixed_window_world_recall_must_be_below_scheduled": true,
+      "capacity_one_f1_must_be_below_capacity_three": true,
+      "capacity_three_f1_must_equal_capacity_four": true,
+      "all_source_hashes_must_match": true
+    },
+    "decision_rule": "Implement only this frozen candidate. If any gate fails, retain the failure and do not tune against held-out trials. A materially changed residual representation requires a new preregistration."
+  },
+  "live_boundary_if_design_passes": {
+    "new_live_preregistration_required": true,
+    "geometry": "XVF3800 :0 at 16000 Hz/two fused channels; Mac mini Speakers centered 4 cm below array at 100 percent system volume; External Headphones device 2 at 180 degrees and 50 cm with hardware knob approximately 50 percent; semi-quiet room with laptop fan",
+    "planned_software_gain_db_each_source": -18.0,
+    "bounded_playback_capture_authorized": true,
+    "no_live_execution_under_this_design_document": true
+  }
+}

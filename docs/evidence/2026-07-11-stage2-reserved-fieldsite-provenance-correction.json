@@ -1,0 +1,32 @@
+{
+  "experiment": "stage2_reserved_fieldsite_cross_workflow_provenance_audit",
+  "date": "2026-07-11",
+  "status": "wellington_not_corpus_pristine_stage2_workflow_did_not_reaccess",
+  "trigger": "Consolidated evidence review found that Stage 2 documents used 'untouched' for WEL/USD/TOR even though a separate earlier H2 experiment had already consumed Wellington speech clips.",
+  "wellington_prior_access": {
+    "workflow": "H2 natural-event cross-fieldsite transfer",
+    "artifact": "docs/evidence/2026-07-10-natural-event-cross-fieldsite-result.json",
+    "participants": ["WEL01", "WEL02", "WEL03", "WEL04"],
+    "clips": [
+      "WEL01B.wav", "WEL01D.wav", "WEL02B.wav", "WEL02D.wav",
+      "WEL03B.wav", "WEL03D.wav", "WEL04B.wav", "WEL04D.wav"
+    ],
+    "conditions": ["infant_directed_speech", "adult_directed_speech"],
+    "consequence": "Wellington cannot be described as a corpus-pristine or fieldsite-pristine Stage 2 confirmation. Different Wellington participants or song conditions may remain unused, but fieldsite-level acoustic information has already been observed."
+  },
+  "stage2_workflow_scope": {
+    "six_phase_and_predictive_development_fieldsites": [
+      "ACO", "ARA", "BEJ", "HAD", "JEN", "KRA", "LIM", "MBE", "MEN",
+      "MES", "NYA", "PNG", "QUE", "SPA", "TOP", "TSI", "TUR", "VAN"
+    ],
+    "new_wellington_audio_or_metadata_accessed": false,
+    "meaning_of_existing_false_flag": "confirmation_audio_or_metadata_accessed=false in the 2026-07-11 Stage 2 development artifacts means that those workflows made no new access to their reserved set. It does not erase pre-existing H2 Wellington access."
+  },
+  "repository_wide_filename_audit": {
+    "san_diego_selected_clip_ids_found": false,
+    "toronto_selected_clip_ids_found": false,
+    "interpretation": "USD and TOR remain corpus-pristine in retained project evidence as of this audit; WEL does not."
+  },
+  "corrected_boundary": "No new WEL, USD, or TOR access occurred during the six-phase or predictive Stage 2 development workflows. USD and TOR remain pristine potential register confirmations. WEL is protected from further register use but is already spent at the fieldsite level for H2 and cannot support a pristine three-fieldsite confirmation claim.",
+  "promotion_allowed": false
+}

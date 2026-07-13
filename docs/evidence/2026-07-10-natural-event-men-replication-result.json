@@ -1,0 +1,405 @@
+{
+  "experiment": "natural_event_prediction_beijing_to_men_replication",
+  "date": "2026-07-10",
+  "evidence_class": "fresh_duration_qualified_cross_fieldsite_external_corpus_audio",
+  "preregistration": "2026-07-10-natural-event-men-replication-preregistration.json",
+  "verdict": "natural_event_transfer_passed",
+  "frozen_hash_verification": {
+    "implementation_sha256": "d44754a5dd06095f2767de62755da5b5255b66b3648894ede3b0479c077d6418",
+    "cli_sha256": "0ad4e411f89ae284db3fdb3ef22375b293d93614bb92ce754bc5e2f53387d53c",
+    "wellington_confirmation_sha256": "25f05865c9f984081a3fbdb8005577827f067f070430c836d2d0003c7240882e",
+    "ara_failure_sha256": "12ea5965bee234945c1d4d99b5fdfdf9f5d8cc72903db5281594b4bbf8e48034",
+    "verified_immediately_before_evaluation": true
+  },
+  "eligibility": {
+    "ordered_candidates_fetched": [
+      "MEN01",
+      "MEN02",
+      "MEN03",
+      "MEN04"
+    ],
+    "selected_participants": [
+      "MEN01",
+      "MEN02",
+      "MEN03",
+      "MEN04"
+    ],
+    "rejected_participants": [],
+    "minimum_each_clip_duration_seconds": 2.1,
+    "stopped_immediately_after_four_eligible_participants": true
+  },
+  "held_out_audio_manifest": [
+    {
+      "basename": "MEN01B.wav",
+      "raw_header_offset": 5547800627,
+      "actual_header_offset": 5547800627,
+      "compressed_size": 3522992,
+      "file_size": 12197562,
+      "crc32": "74e2d888",
+      "sha256": "ae4810519c57dc88482055a1eaa4993f38a39c7efcc008c95532f0e614687bba",
+      "archive_size_and_crc_verified": true,
+      "decoded_sample_rate_hz": 44100,
+      "decoded_sample_count": 762344,
+      "decoded_duration_seconds": 17.28671201814059,
+      "participant_eligible": true
+    },
+    {
+      "basename": "MEN01D.wav",
+      "raw_header_offset": 4816885245,
+      "actual_header_offset": 4816885245,
+      "compressed_size": 1697488,
+      "file_size": 6693322,
+      "crc32": "212a1ff9",
+      "sha256": "dc0e35044a89aa1856412221ac8146b4cfeac36d9d2456634e325972ed855f49",
+      "archive_size_and_crc_verified": true,
+      "decoded_sample_rate_hz": 44100,
+      "decoded_sample_count": 418329,
+      "decoded_duration_seconds": 9.485918367346938,
+      "participant_eligible": true
+    },
+    {
+      "basename": "MEN02B.wav",
+      "raw_header_offset": 4462055877,
+      "actual_header_offset": 167088581,
+      "compressed_size": 4458321,
+      "file_size": 17365322,
+      "crc32": "ed811f32",
+      "sha256": "12324a1c9b580a725b0a24bc0c5280bb5117161a7245f2fd180b08f1f0775e06",
+      "archive_size_and_crc_verified": true,
+      "decoded_sample_rate_hz": 44100,
+      "decoded_sample_count": 1085329,
+      "decoded_duration_seconds": 24.610634920634922,
+      "participant_eligible": true
+    },
+    {
+      "basename": "MEN02D.wav",
+      "raw_header_offset": 5363784651,
+      "actual_header_offset": 1068817355,
+      "compressed_size": 5675992,
+      "file_size": 22051658,
+      "crc32": "a106dd1f",
+      "sha256": "967b595a518cfad67184ba858c26b4ccf8f20e619fbb713dc433e5d701e0f116",
+      "archive_size_and_crc_verified": true,
+      "decoded_sample_rate_hz": 44100,
+      "decoded_sample_count": 1378225,
+      "decoded_duration_seconds": 31.252267573696145,
+      "participant_eligible": true
+    },
+    {
+      "basename": "MEN03B.wav",
+      "raw_header_offset": 5826994753,
+      "actual_header_offset": 1532027457,
+      "compressed_size": 1387204,
+      "file_size": 5231002,
+      "crc32": "1b1f895b",
+      "sha256": "2fdc986211651bad01da55e22d1b1e6642dc55826b597cfd4613ae0664fa3504",
+      "archive_size_and_crc_verified": true,
+      "decoded_sample_rate_hz": 44100,
+      "decoded_sample_count": 326934,
+      "decoded_duration_seconds": 7.413469387755102,
+      "participant_eligible": true
+    },
+    {
+      "basename": "MEN03D.wav",
+      "raw_header_offset": 4971801350,
+      "actual_header_offset": 676834054,
+      "compressed_size": 3203441,
+      "file_size": 12250362,
+      "crc32": "8283f82d",
+      "sha256": "0899ca9272efdd250391f5dbe81449366367f7fae988f9a55aaf445f433ef47a",
+      "archive_size_and_crc_verified": true,
+      "decoded_sample_rate_hz": 44100,
+      "decoded_sample_count": 765644,
+      "decoded_duration_seconds": 17.361541950113377,
+      "participant_eligible": true
+    },
+    {
+      "basename": "MEN04B.wav",
+      "raw_header_offset": 6462993866,
+      "actual_header_offset": 2168026570,
+      "compressed_size": 1681459,
+      "file_size": 6377002,
+      "crc32": "7b92037c",
+      "sha256": "d3e717770978f9f68acf1234840f1dfc950fbe548bb9d41f3886f915565de84a",
+      "archive_size_and_crc_verified": true,
+      "decoded_sample_rate_hz": 44100,
+      "decoded_sample_count": 398559,
+      "decoded_duration_seconds": 9.037619047619048,
+      "participant_eligible": true
+    },
+    {
+      "basename": "MEN04D.wav",
+      "raw_header_offset": 7162385571,
+      "actual_header_offset": 2867418275,
+      "compressed_size": 5485223,
+      "file_size": 21236122,
+      "crc32": "cace7a02",
+      "sha256": "4ed222f47ebf06939f3e6fe2734092ca102fab51c2f26599d8f4af44ee79afdc",
+      "archive_size_and_crc_verified": true,
+      "decoded_sample_rate_hz": 44100,
+      "decoded_sample_count": 1327254,
+      "decoded_duration_seconds": 30.096462585034015,
+      "participant_eligible": true
+    }
+  ],
+  "report": {
+    "mode": "natural_event_prediction_cross_fieldsite",
+    "config": {
+      "frame_ms": 50,
+      "calibration_ms": 2000,
+      "quiet_quantile": 0.4,
+      "novelty_quantile": 0.75
+    },
+    "labels_consumed_by_learner": false,
+    "development_participants": [
+      "BEJ06",
+      "BEJ07",
+      "BEJ11",
+      "BEJ21"
+    ],
+    "held_out_participants": [
+      "MEN01",
+      "MEN02",
+      "MEN03",
+      "MEN04"
+    ],
+    "participant_overlap_count": 0,
+    "clip_count": 8,
+    "wins": 8,
+    "mean_accuracy_improvement": 0.11055640787921008,
+    "worst_clip_improvement": 0.06542056074766356,
+    "minimum_clip_state_occupancy": 3,
+    "bounded_state_scalars": 16,
+    "acceptance": {
+      "minimum_six_of_eight_clip_wins": true,
+      "minimum_mean_accuracy_improvement": true,
+      "maximum_worst_clip_regret": true,
+      "minimum_each_clip_state_occupancy": true,
+      "top_down_prediction_consumed": true,
+      "bounded_state_passed": true
+    },
+    "all_acceptance_gates_passed": true,
+    "clips": [
+      {
+        "clip_id": "MEN01B",
+        "participant": "MEN01",
+        "condition_suffix": "B",
+        "prediction_count": 304,
+        "state_occupancy": 4,
+        "state_counts": [
+          64,
+          22,
+          183,
+          36
+        ],
+        "thresholds": {
+          "quiet_log_rms_threshold": -4.008579016410116,
+          "novelty_distance_threshold": 3.349742227258367
+        },
+        "transition_accuracy": 0.7368421052631579,
+        "baselines": {
+          "persistence": 0.6118421052631579,
+          "development_unigram": 0.6019736842105263,
+          "causal_moving_state": 0.6118421052631579
+        },
+        "best_baseline_accuracy": 0.6118421052631579,
+        "accuracy_improvement": 0.125,
+        "prediction_residual_count": 80
+      },
+      {
+        "clip_id": "MEN01D",
+        "participant": "MEN01",
+        "condition_suffix": "D",
+        "prediction_count": 148,
+        "state_occupancy": 4,
+        "state_counts": [
+          61,
+          22,
+          59,
+          7
+        ],
+        "thresholds": {
+          "quiet_log_rms_threshold": -4.61586599338371,
+          "novelty_distance_threshold": 3.4878747912176413
+        },
+        "transition_accuracy": 0.6486486486486487,
+        "baselines": {
+          "persistence": 0.5472972972972973,
+          "development_unigram": 0.3918918918918919,
+          "causal_moving_state": 0.5472972972972973
+        },
+        "best_baseline_accuracy": 0.5472972972972973,
+        "accuracy_improvement": 0.10135135135135143,
+        "prediction_residual_count": 52
+      },
+      {
+        "clip_id": "MEN02B",
+        "participant": "MEN02",
+        "condition_suffix": "B",
+        "prediction_count": 451,
+        "state_occupancy": 4,
+        "state_counts": [
+          200,
+          61,
+          184,
+          7
+        ],
+        "thresholds": {
+          "quiet_log_rms_threshold": -4.429313965243396,
+          "novelty_distance_threshold": 3.1749052432700857
+        },
+        "transition_accuracy": 0.7139689578713969,
+        "baselines": {
+          "persistence": 0.5942350332594235,
+          "development_unigram": 0.4079822616407982,
+          "causal_moving_state": 0.5942350332594235
+        },
+        "best_baseline_accuracy": 0.5942350332594235,
+        "accuracy_improvement": 0.11973392461197341,
+        "prediction_residual_count": 129
+      },
+      {
+        "clip_id": "MEN02D",
+        "participant": "MEN02",
+        "condition_suffix": "D",
+        "prediction_count": 584,
+        "state_occupancy": 4,
+        "state_counts": [
+          201,
+          71,
+          289,
+          24
+        ],
+        "thresholds": {
+          "quiet_log_rms_threshold": -4.479847457436075,
+          "novelty_distance_threshold": 2.7799781638799734
+        },
+        "transition_accuracy": 0.7157534246575342,
+        "baselines": {
+          "persistence": 0.589041095890411,
+          "development_unigram": 0.4948630136986301,
+          "causal_moving_state": 0.589041095890411
+        },
+        "best_baseline_accuracy": 0.589041095890411,
+        "accuracy_improvement": 0.12671232876712324,
+        "prediction_residual_count": 166
+      },
+      {
+        "clip_id": "MEN03B",
+        "participant": "MEN03",
+        "condition_suffix": "B",
+        "prediction_count": 107,
+        "state_occupancy": 3,
+        "state_counts": [
+          52,
+          8,
+          48,
+          0
+        ],
+        "thresholds": {
+          "quiet_log_rms_threshold": -4.121286144789535,
+          "novelty_distance_threshold": 2.355990064663796
+        },
+        "transition_accuracy": 0.8504672897196262,
+        "baselines": {
+          "persistence": 0.7850467289719626,
+          "development_unigram": 0.4485981308411215,
+          "causal_moving_state": 0.7850467289719626
+        },
+        "best_baseline_accuracy": 0.7850467289719626,
+        "accuracy_improvement": 0.06542056074766356,
+        "prediction_residual_count": 16
+      },
+      {
+        "clip_id": "MEN03D",
+        "participant": "MEN03",
+        "condition_suffix": "D",
+        "prediction_count": 306,
+        "state_occupancy": 4,
+        "state_counts": [
+          145,
+          46,
+          111,
+          5
+        ],
+        "thresholds": {
+          "quiet_log_rms_threshold": -4.168893750034481,
+          "novelty_distance_threshold": 3.2984025313232124
+        },
+        "transition_accuracy": 0.6830065359477124,
+        "baselines": {
+          "persistence": 0.5555555555555556,
+          "development_unigram": 0.3627450980392157,
+          "causal_moving_state": 0.5555555555555556
+        },
+        "best_baseline_accuracy": 0.5555555555555556,
+        "accuracy_improvement": 0.12745098039215685,
+        "prediction_residual_count": 97
+      },
+      {
+        "clip_id": "MEN04B",
+        "participant": "MEN04",
+        "condition_suffix": "B",
+        "prediction_count": 139,
+        "state_occupancy": 4,
+        "state_counts": [
+          49,
+          17,
+          63,
+          11
+        ],
+        "thresholds": {
+          "quiet_log_rms_threshold": -4.415461692113334,
+          "novelty_distance_threshold": 2.176657119766947
+        },
+        "transition_accuracy": 0.6690647482014388,
+        "baselines": {
+          "persistence": 0.539568345323741,
+          "development_unigram": 0.4460431654676259,
+          "causal_moving_state": 0.539568345323741
+        },
+        "best_baseline_accuracy": 0.539568345323741,
+        "accuracy_improvement": 0.1294964028776978,
+        "prediction_residual_count": 46
+      },
+      {
+        "clip_id": "MEN04D",
+        "participant": "MEN04",
+        "condition_suffix": "D",
+        "prediction_count": 560,
+        "state_occupancy": 4,
+        "state_counts": [
+          235,
+          63,
+          225,
+          38
+        ],
+        "thresholds": {
+          "quiet_log_rms_threshold": -4.570251157712152,
+          "novelty_distance_threshold": 2.9375059866211166
+        },
+        "transition_accuracy": 0.7071428571428572,
+        "baselines": {
+          "persistence": 0.6178571428571429,
+          "development_unigram": 0.4017857142857143,
+          "causal_moving_state": 0.6178571428571429
+        },
+        "best_baseline_accuracy": 0.6178571428571429,
+        "accuracy_improvement": 0.0892857142857143,
+        "prediction_residual_count": 164
+      }
+    ],
+    "verdict": "natural_event_transfer_passed"
+  },
+  "gate_interpretation": {
+    "frozen_gate_passed": true,
+    "observed_clip_wins": "8/8",
+    "observed_mean_accuracy_improvement": 0.11055640787921008,
+    "observed_worst_clip_improvement": 0.06542056074766356,
+    "observed_minimum_clip_state_occupancy": 3,
+    "labels_consumed_by_learner_or_scoring": false,
+    "Wellington_or_MEN_audio_used_for_training": false
+  },
+  "decision": "Promote the Beijing-trained causal event mechanism from a one-transfer result to replicated natural fieldsite transfer across Wellington and MEN. Keep dropout representation stability and H3 workspace evidence open.",
+  "claim_boundary": "This pass independently replicates a bounded local next-event advantage on participant-disjoint MEN speech clips after duration-only eligibility screening. It supports natural speaker and fieldsite transfer for the causal event target, not semantic prediction, IDS/ADS recognition, universal language generality, live operation, or controlled-dropout representation stability."
+}

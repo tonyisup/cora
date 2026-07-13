@@ -1,0 +1,48 @@
+{
+  "evidence_scope": "prior_art_real_captured_audio_repeated_aligned_protocol",
+  "source": {
+    "project": "corollary",
+    "capture_family": "m2_energy_onset_matrix_20260429_093045",
+    "format": "recorded_npy",
+    "sample_rate": 16000,
+    "clip_count": 6,
+    "dev_seeds": [0, 1],
+    "held_out_seeds": [2]
+  },
+  "saliency": {
+    "positive_label": "mixed_voice",
+    "negative_label": "self_voice",
+    "frame_ms": 100,
+    "peak_rms": {
+      "held_out_f1": 0.6507936507936508,
+      "held_out_false_positive_rate": 0.7346938775510204
+    },
+    "spectral_flux": {
+      "held_out_f1": 0.7142857142857143,
+      "held_out_false_positive_rate": 0.46938775510204084
+    }
+  },
+  "prediction": {
+    "frame_ms": 100,
+    "online_local_held_out_wins": 0,
+    "phase_template": {
+      "spectral_centroid_hz": {
+        "held_out_wins": 2,
+        "held_out_clip_count": 2,
+        "rmse_improvement_fraction_by_clip": [0.685, 0.529]
+      },
+      "features_with_two_of_two_wins": [
+        "peak_rms",
+        "pitch_confidence",
+        "spectral_centroid_hz",
+        "spectral_flux"
+      ]
+    }
+  },
+  "limitations": [
+    "not an infant-directed-speech corpus",
+    "whole-clip condition labels",
+    "same room and aligned repeated protocol",
+    "does not establish semantic prediction"
+  ]
+}

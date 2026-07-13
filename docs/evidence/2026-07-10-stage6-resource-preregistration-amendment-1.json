@@ -1,0 +1,18 @@
+{
+  "experiment": "stage6_live_resource_and_offline_baseline_gate_amendment_1",
+  "date": "2026-07-10",
+  "status": "frozen_before_offline_retry_and_before_any_live_measurement",
+  "parent_preregistration": "2026-07-10-stage6-resource-preregistration.json",
+  "reason": "Attempt 1 falsified the fairness assumption because the baseline used disproportionate NumPy overhead and a mismatched saliency threshold.",
+  "frozen_change": {
+    "implementation": "scalar Python max, sum, and nearest-prototype operations without NumPy allocation",
+    "saliency_threshold": 0.02,
+    "input_frames": "unchanged",
+    "iterations": 1000,
+    "frame_ms": 25,
+    "instrumentation": "unchanged"
+  },
+  "unchanged_live_protocol": true,
+  "retry_limit": 1,
+  "interpretation": "Attempt 1 remains invalid and cannot satisfy the conventional-baseline requirement. Only the amended retry is eligible."
+}

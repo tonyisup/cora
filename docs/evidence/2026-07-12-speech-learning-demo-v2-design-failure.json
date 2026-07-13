@@ -1,0 +1,39 @@
+{
+  "mode": "bounded_speech_learning_demo_v2_design_failure",
+  "date": "2026-07-12",
+  "status": "candidate_stopped",
+  "specification": "docs/DEMO_SPEC.md v2",
+  "mechanism": "local frontier prototype search with consecutive Halton babbling",
+  "repertoire_halton_indices_inclusive": [5121, 5216],
+  "repertoire_count": 96,
+  "attempt_count_each": 12,
+  "passed": {
+    "synthetic_mirror_a": true,
+    "synthetic_mirror_i": true,
+    "synthetic_mirror_u": true,
+    "cross_configuration_u": true
+  },
+  "failed": {
+    "cross_configuration_a": {
+      "final_sensory_distance": 0.206159,
+      "maximum_allowed": 0.20
+    },
+    "cross_configuration_i": {
+      "final_sensory_distance": 0.227807,
+      "maximum_allowed": 0.20
+    }
+  },
+  "failure_analysis": "Frontier search reached the best available prototypes; additional attempts on the same repertoire cannot satisfy the frozen distance gate.",
+  "disposition": {
+    "v2_active": false,
+    "threshold_changed": false,
+    "attempt_limit_changed": false,
+    "capacity_changed": false,
+    "retry_on_same_repertoire_authorized": false,
+    "replacement_requires_new_babbling_schedule_and_disjoint_repertoire": true
+  },
+  "recorded_audio_accessed": false,
+  "protected_data_accessed": false,
+  "live_io_executed": false,
+  "claim_boundary": "Synthetic demo design failure only; no H4 result or scientific promotion."
+}

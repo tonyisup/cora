@@ -539,6 +539,7 @@ def test_capture_to_wav_signals_ready_after_raw_pcm_frames(tmp_path, monkeypatch
             self.returncode = 0
 
     def fake_popen(cmd, **kwargs):
+        assert cmd[cmd.index("-flush_packets") + 1] == "1"
         assert not path.exists()
         assert not raw_path.exists()
         raw_path.write_bytes(np.zeros(8, dtype="<i2").tobytes())

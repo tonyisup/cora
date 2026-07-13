@@ -1,0 +1,38 @@
+{
+  "experiment": "vocalset_h4_development_ladder_audit",
+  "date": "2026-07-11",
+  "status": "development_gate_failed_confirmation_preserved",
+  "evidence_scope": "five development singers with leave-one-singer-out scoring",
+  "development_singers": [
+    "female4",
+    "female5",
+    "male6",
+    "male7",
+    "male8"
+  ],
+  "confirmation_singers": [
+    "female6",
+    "female7",
+    "female9",
+    "male9",
+    "male11"
+  ],
+  "confirmation_audio_accessed": false,
+  "frozen_confirmation_accuracy_gate": 0.8,
+  "development_results": {
+    "raw_fixed_formant_table_accuracy": 0.36,
+    "best_speaker_normalization_accuracy": 0.28,
+    "best_lpc_order_accuracy": 0.4,
+    "best_continuous_spectral_to_formant_accuracy": 0.52,
+    "best_spectral_centroid_to_canonical_motor_target_accuracy": 0.56
+  },
+  "artifact_sha256": {
+    "2026-07-11-vocalset-normalization-development-manifest.json": "6ca6fd49ce654c73937ef9fdc9dc30065c6ef8fb794efa65d10ab5241fa47233",
+    "2026-07-11-vocalset-normalization-development-result.json": "fb2e9539f2a6dc3d9545857709a134778a445ac1907824ee77d1c4e9344f4628",
+    "2026-07-11-vocalset-lpc-order-development-result.json": "4c1b88818b23e29dae9351214b6da7c0154a1fab992aaeb06aa7c41d260711b3",
+    "2026-07-11-vocalset-spectral-mapping-development-result.json": "9f5648220658c8a99b98bcf3ed859a361393bc1b011ea5051297f168374fa80c"
+  },
+  "promotion_allowed": false,
+  "stop_rule": "Do not fetch or inspect the reserved confirmation singers. Choose a corpus/domain/mechanism direction before further H4 work.",
+  "claim_boundary": "The bounded development ladder improved accuracy from 0.36 to 0.56 but did not approach the frozen 0.80 gate. It does not validate H4 or justify consuming confirmation data."
+}

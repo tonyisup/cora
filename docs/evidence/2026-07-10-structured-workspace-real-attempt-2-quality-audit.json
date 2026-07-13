@@ -1,0 +1,33 @@
+{
+  "experiment": "structured_workspace_binding_real_attempt_2_quality_audit",
+  "date": "2026-07-10",
+  "preregistration_sha256": "80dc84ce31bc32612a38a888f7abc8786b206a4a477e0890d2f2f6aca8646b96",
+  "raw_result_sha256": "5b1096651de7e9986bbd683df96c84725fa2f5a4e159b38db1e672c96823b8ac",
+  "verdict": "classification_passed_zero_clipping_gate_failed",
+  "classification": {
+    "scheduled_capacity_three_f1": 1.0,
+    "scheduled_world_recall": 1.0,
+    "scheduled_self_suppression_specificity": 1.0,
+    "flat_f1": 0.8,
+    "fixed_window_world_recall": 0.5,
+    "capacity_f1_1_2_3_4": [
+      0.8571428571428571,
+      0.9230769230769231,
+      1.0,
+      1.0
+    ]
+  },
+  "capture_quality": {
+    "captures_with_clipped_samples": 7,
+    "total_clipped_samples": 124,
+    "maximum_clipped_sample_fraction": 0.000493421052631579,
+    "reduction_from_attempt_1_percent": 94.58,
+    "zero_clipping_passed": false
+  },
+  "promotion_allowed": false,
+  "retry_change": {
+    "self_playback_gain_db_before": -12.0,
+    "self_playback_gain_db_after": -18.0,
+    "unchanged": "all physical geometry, system/hardware levels, stimuli, threshold selection, classification gates, and zero-clipping requirement"
+  }
+}

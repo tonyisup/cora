@@ -1,0 +1,161 @@
+{
+  "experiment": "stage6_natural_speech_hardware_volume_and_clipping_diagnostic",
+  "date": "2026-07-11",
+  "status": "natural_speech_timing_gate_passed_at_approximate_50_percent_hardware_volume",
+  "preregistration": {
+    "path": "docs/evidence/2026-07-11-stage6-natural-speech-hardware-volume-diagnostic-preregistration.json",
+    "sha256": "dfeeba2e53cdeb6f30591a3890b7f492cd5373a11ea4d4e549de0c5edcfdb8b2",
+    "commit": "c690502"
+  },
+  "instrumentation_commit": "707b12b",
+  "audit_provenance_commit": "5a4a644",
+  "hardware": {
+    "external_speaker_hardware_knob": "approximately 50 percent of mechanical travel, user-confirmed before playback",
+    "software_playback_gain_db": -18.0,
+    "input": "XVF3800 callback device :0, 16 kHz, two fused channels",
+    "world_output": "External Headphones device 2",
+    "bearing_degrees": 180,
+    "distance_cm": 50
+  },
+  "stimulus": {
+    "filename": "ACO02B.wav",
+    "sha256": "c58a46a68782fb318cd885e6c670025104cc844bb3d8e4080b69b1f995c2c410",
+    "source": "Music Lab human vocalization corpus, edited audio",
+    "condition": "infant-directed speech",
+    "duration_seconds": 6.833990929705215,
+    "repeat_within_run": false
+  },
+  "runs": [
+    {
+      "run": 1,
+      "raw_report_sha256": "fe9d7950e1ea026f26bd859814620e97949cbc3c67939cccca49a42c38cef853",
+      "real_capture": true,
+      "capture_backend": "sounddevice_portaudio_coreaudio_callback",
+      "frame_count": 400,
+      "salient_frame_count": 196,
+      "playback_interval": {
+        "frame_count": 279,
+        "clipped_frame_count": 0,
+        "clipped_sample_count": 0,
+        "maximum_frame_peak_absolute": 0.482208251953125
+      },
+      "trailing_quiet_interval": {
+        "frame_count": 121,
+        "clipped_frame_count": 0,
+        "clipped_sample_count": 0,
+        "maximum_frame_peak_absolute": 0.04095458984375
+      },
+      "frame_clipping_sum_equals_aggregate": true,
+      "salient_adc_frame_end_to_workspace_p95_ms": 10.421916749692173,
+      "quiet_adc_frame_end_to_workspace_p95_ms": 10.217131345052621,
+      "device_deadline_miss_count": 0,
+      "input_overflow_count": 0,
+      "callback_status_count": 0,
+      "timestamp_discontinuity_count": 0,
+      "steady_state_real_time_factor": 0.9971006892230576,
+      "average_process_cpu_percent": 4.7361023484138025,
+      "peak_resident_memory_megabytes": 64.8125
+    },
+    {
+      "run": 2,
+      "raw_report_sha256": "0ae5ce6166c06e1fc83e97fd75303f93b779d2be26256ae8a064fc4abf8e7db9",
+      "real_capture": true,
+      "capture_backend": "sounddevice_portaudio_coreaudio_callback",
+      "frame_count": 400,
+      "salient_frame_count": 225,
+      "playback_interval": {
+        "frame_count": 277,
+        "clipped_frame_count": 0,
+        "clipped_sample_count": 0,
+        "maximum_frame_peak_absolute": 0.760711669921875
+      },
+      "trailing_quiet_interval": {
+        "frame_count": 123,
+        "clipped_frame_count": 0,
+        "clipped_sample_count": 0,
+        "maximum_frame_peak_absolute": 0.112060546875
+      },
+      "frame_clipping_sum_equals_aggregate": true,
+      "salient_adc_frame_end_to_workspace_p95_ms": 10.359891797997989,
+      "quiet_adc_frame_end_to_workspace_p95_ms": 10.19790809150436,
+      "device_deadline_miss_count": 0,
+      "input_overflow_count": 0,
+      "callback_status_count": 0,
+      "timestamp_discontinuity_count": 0,
+      "steady_state_real_time_factor": 0.9972386887218045,
+      "average_process_cpu_percent": 4.511836105780089,
+      "peak_resident_memory_megabytes": 64.9375
+    },
+    {
+      "run": 3,
+      "raw_report_sha256": "fc9fcf24df18b1a298bdd5f2f583d13f76b1c4f0f5a3f688097f7c1a42a569f9",
+      "real_capture": true,
+      "capture_backend": "sounddevice_portaudio_coreaudio_callback",
+      "frame_count": 400,
+      "salient_frame_count": 213,
+      "playback_interval": {
+        "frame_count": 277,
+        "clipped_frame_count": 0,
+        "clipped_sample_count": 0,
+        "maximum_frame_peak_absolute": 0.765167236328125
+      },
+      "trailing_quiet_interval": {
+        "frame_count": 123,
+        "clipped_frame_count": 0,
+        "clipped_sample_count": 0,
+        "maximum_frame_peak_absolute": 0.04486083984375
+      },
+      "frame_clipping_sum_equals_aggregate": true,
+      "salient_adc_frame_end_to_workspace_p95_ms": 10.340208592242561,
+      "quiet_adc_frame_end_to_workspace_p95_ms": 10.158142094587674,
+      "device_deadline_miss_count": 0,
+      "input_overflow_count": 0,
+      "callback_status_count": 0,
+      "timestamp_discontinuity_count": 0,
+      "steady_state_real_time_factor": 0.9970199194987469,
+      "average_process_cpu_percent": 4.508073269661775,
+      "peak_resident_memory_megabytes": 64.765625
+    }
+  ],
+  "aggregate": {
+    "frame_count": 1200,
+    "salient_frame_count": 634,
+    "clipped_frame_count": 0,
+    "clipped_sample_count": 0,
+    "device_deadline_miss_count": 0,
+    "input_overflow_count": 0,
+    "callback_status_count": 0,
+    "timestamp_discontinuity_count": 0,
+    "salient_adc_frame_end_to_workspace_p95_ms_range": [10.340208592242561, 10.421916749692173],
+    "quiet_adc_frame_end_to_workspace_p95_ms_range": [10.158142094587674, 10.217131345052621],
+    "playback_peak_absolute_range": [0.482208251953125, 0.765167236328125],
+    "trailing_quiet_peak_absolute_range": [0.04095458984375, 0.112060546875],
+    "maximum_steady_state_real_time_factor": 0.9972386887218045,
+    "maximum_average_process_cpu_percent": 4.7361023484138025,
+    "maximum_peak_resident_memory_megabytes": 64.9375
+  },
+  "criteria": {
+    "real_capture_each": true,
+    "callback_backend_each": true,
+    "frame_count_each_400": true,
+    "salient_frame_count_each_min_20": true,
+    "input_overflow_count_each_max_0": true,
+    "callback_status_count_each_max_0": true,
+    "timestamp_discontinuity_count_each_max_0": true,
+    "capture_stream_without_fallback_each": true,
+    "clipped_sample_count_each_max_0": true,
+    "frame_clipping_sum_equals_aggregate_each": true,
+    "actual_playback_and_trailing_quiet_partitions_nonempty_each": true,
+    "salient_adc_frame_end_to_workspace_p95_ms_each_max_30": true,
+    "quiet_adc_frame_end_to_workspace_p95_ms_each_max_30": true,
+    "device_deadline_miss_count_each_max_0": true,
+    "steady_state_real_time_factor_each_max_1_2": true,
+    "average_process_cpu_percent_each_max_100": true,
+    "peak_resident_memory_megabytes_each_max_512": true
+  },
+  "full_external_audit_sha256": "936a1ec5280c24830697daa59beb0429a90ba21569c516e2449f7dd524e91ced",
+  "overall_criteria_passed": true,
+  "promotion_allowed": true,
+  "interpretation": "Natural-speech device timing and capture quality pass at approximately 50 percent external-speaker hardware volume. The prior maximum-volume clipping failure remains valid and bounds the supported operating point.",
+  "claim_boundary": "One already-spent adult IDS utterance, approximate uncalibrated knob position, fixed room/geometry, one XVF3800 and M4 Pro host. No semantic/register, general speech, calibrated SPL, geometry-transfer, XMOS-delay, or cross-device claim."
+}

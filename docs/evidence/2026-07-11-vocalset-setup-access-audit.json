@@ -1,0 +1,36 @@
+{
+  "experiment": "vocalset_range_fetch_setup_audit",
+  "date": "2026-07-11",
+  "status": "setup_subset_ineligible_for_confirmation",
+  "source": "VocalSet 1.0",
+  "doi": "10.5281/zenodo.1193957",
+  "license": "CC BY 4.0",
+  "verified_capabilities": {
+    "zenodo_byte_ranges_supported": true,
+    "zip_central_directory_parsed": true,
+    "member_crc32_and_sha256_verified": true,
+    "full_2_1_gb_archive_download_avoided": true
+  },
+  "setup_subset": {
+    "published_test_singers": [
+      "female2",
+      "female8",
+      "male3",
+      "male5",
+      "male10"
+    ],
+    "vowels": [
+      "a",
+      "e",
+      "i",
+      "o",
+      "u"
+    ],
+    "clip_count": 25,
+    "downloaded_bytes": 23310786,
+    "stored_outside_git": true,
+    "signal_analysis_performed": false
+  },
+  "eligibility_decision": "The project data policy requires thresholds to be committed before held-out audio is fetched or inspected. These files were fetched while validating range access, so they are excluded from confirmatory scoring despite not being signal-inspected.",
+  "replacement_confirmation_subset": "female1, female3, male1, male2, and male4; selected and preregistered before their audio is fetched"
+}

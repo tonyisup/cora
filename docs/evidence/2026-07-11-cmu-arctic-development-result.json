@@ -1,0 +1,51 @@
+{
+  "mode": "cmu_arctic_ordinary_speech_development_audit",
+  "date": "2026-07-11",
+  "status": "development_candidate_failed_confirmation_readiness",
+  "source_scope": "CMU Arctic development speakers bdl, slt, clb, jmk, and ksp only",
+  "token_count": 500,
+  "wav_count": 383,
+  "selection": "first 20 qualifying tokens per vowel per speaker, minimum segment duration 120 ms, after fail-closed exclusion of jmk/arctic_a0108.lab and its mismatched WAV",
+  "vowel_mapping": {
+    "a": "AA",
+    "e": "EH",
+    "i": "IY",
+    "o": "AO",
+    "u": "UW"
+  },
+  "candidate_grid": {
+    "window_ms": [100, 110, 120],
+    "lpc_orders": [10, 12, 14, 16, 18, 20],
+    "accuracy_by_window_and_order": {
+      "100": {"10": 0.306, "12": 0.444, "14": 0.514, "16": 0.54, "18": 0.554, "20": 0.566},
+      "110": {"10": 0.302, "12": 0.45, "14": 0.526, "16": 0.542, "18": 0.556, "20": 0.57},
+      "120": {"10": 0.304, "12": 0.454, "14": 0.524, "16": 0.534, "18": 0.564, "20": 0.572}
+    }
+  },
+  "selected_candidate": "window_120ms_order_20",
+  "selected_report": {
+    "accuracy": 0.572,
+    "correct_count": 286,
+    "clipped_sample_count": 0,
+    "vowel_recall": {"a": 0.86, "e": 0.95, "i": 0.62, "o": 0.13, "u": 0.3},
+    "speaker_accuracy": {"bdl": 0.77, "slt": 0.33, "clb": 0.44, "jmk": 0.62, "ksp": 0.7},
+    "formant_mae_hz": {"f1": 124.79552239785731, "f2": 358.8237327381628, "f3": 320.63809774829434},
+    "confusion_matrix": {
+      "a": {"a": 86, "e": 13, "i": 0, "o": 0, "u": 1},
+      "e": {"a": 0, "e": 95, "i": 5, "o": 0, "u": 0},
+      "i": {"a": 1, "e": 33, "i": 62, "o": 0, "u": 4},
+      "o": {"a": 77, "e": 6, "i": 1, "o": 13, "u": 3},
+      "u": {"a": 9, "e": 51, "i": 10, "o": 0, "u": 30}
+    }
+  },
+  "provenance": {
+    "development_label_manifest_sha256": "400354a342a7259d93d73a5b05a809b238c7bf8cf216125ad69eb48ff3a5e602",
+    "development_audio_manifest_sha256": "99c78192238e5dca5bafd45250e6694714a5e5fc5f1fe01a2d2a8a17d430f43a",
+    "full_external_result_sha256": "c0d143301c59b8267e4d0c46977211232a328172c404d72bf783cdf526577af6",
+    "external_audio_repository_policy": "labels, WAVs, and row-level result remain outside Git"
+  },
+  "confirmation_audio_or_labels_accessed": false,
+  "promotion_allowed": false,
+  "stop_rule": "Do not fetch the five frozen confirmation speakers because development accuracy and especially AO/UW recall do not support a credible 0.80 preregistration.",
+  "interpretation": "Ordinary read speech did not rescue the shared fixed-formant estimator. Continuing with a learned phone classifier or changing the frozen vowel mapping would alter the H4 mechanism claim and requires an explicit vision decision."
+}

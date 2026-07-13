@@ -1,0 +1,137 @@
+{
+  "mode": "speaker_adaptive_register_model_artifact",
+  "date": "2026-07-10",
+  "training_clip_count": 56,
+  "training_fieldsites": ["ACO", "ARA", "BEJ", "KRA", "LIM", "MBE"],
+  "training_data_status": "all fieldsites spent before model freeze",
+  "design_evaluation": {
+    "protocol": "leave one fieldsite out",
+    "true_positive": 13,
+    "false_positive": 2,
+    "true_negative": 32,
+    "false_negative": 9,
+    "precision": 0.8666666666666667,
+    "recall": 0.5909090909090909,
+    "f1": 0.7027027027027027,
+    "false_positive_rate": 0.058823529411764705,
+    "song_false_positive_count": 1,
+    "song_count": 12
+  },
+  "model": {
+    "mode": "speaker_adaptive_register_model",
+    "calibration_boundary": "unlabeled within-speaker batch normalization; not cold-start causal",
+    "minimum_calibration_observations": 2,
+    "speech_gate": {
+      "feature_names": [
+        "pitch_log2_median",
+        "pitch_iqr_semitones",
+        "pitch_confidence_median",
+        "pitch_confidence_iqr",
+        "intensity_db_median",
+        "intensity_db_iqr",
+        "spectral_centroid_log_median",
+        "spectral_centroid_log_iqr",
+        "modulation_peak_hz",
+        "modulation_low_band_fraction",
+        "modulation_speech_band_fraction",
+        "modulation_low_to_speech_ratio",
+        "modulation_entropy",
+        "modulation_peak_fraction"
+      ],
+      "mean": [
+        7.903664091433214,
+        5.142114435847511,
+        0.7159859974206891,
+        0.23871412497625707,
+        -27.534568804683882,
+        8.845290945713758,
+        7.710944800282761,
+        0.5663773317012469,
+        1.7372190694938383,
+        0.47686375992395785,
+        0.3997297220451152,
+        1.676857817221692,
+        0.8213175781796388,
+        0.1209921633539202
+      ],
+      "scale": [
+        0.31701500306541286,
+        2.0231711160963037,
+        0.11701108650409692,
+        0.11771723410130097,
+        10.82981954591652,
+        2.2940754785737014,
+        0.21870499248209058,
+        0.20130871725447536,
+        1.1627099680548119,
+        0.1690940847330897,
+        0.16231338741296236,
+        1.444986117172676,
+        0.05984298371439665,
+        0.08303698314630771
+      ],
+      "intercept": 0.4105328135005165,
+      "coefficients": [
+        0.29346732010901666,
+        0.05314205626602098,
+        -0.5991981857760416,
+        0.04239276131917261,
+        -0.18698721723361192,
+        -0.0374946144616123,
+        -0.11316978925356623,
+        0.12379239469520605,
+        0.2191315709668179,
+        0.2611139801212429,
+        0.34798328843860077,
+        0.06786175459378667,
+        0.33587247777488927,
+        0.6730514638434137
+      ],
+      "regularization": 1.0
+    },
+    "ids_gate": {
+      "feature_names": [
+        "pitch_log2_median",
+        "pitch_iqr_semitones",
+        "pitch_confidence_median",
+        "pitch_confidence_iqr",
+        "intensity_db_median",
+        "intensity_db_iqr",
+        "spectral_centroid_log_median",
+        "spectral_centroid_log_iqr"
+      ],
+      "mean": [
+        -0.05877194808698399,
+        0.012855802165097614,
+        -0.0742743449137286,
+        0.10917283506787999,
+        -0.1008434732556153,
+        0.11019366234846636,
+        0.07774905652724008,
+        0.15317972104613778
+      ],
+      "scale": [
+        1.02888530159638,
+        1.0138025451819541,
+        1.0436247271357117,
+        0.9711745143634951,
+        1.0361129018135007,
+        1.0293412372326367,
+        1.0100373264702744,
+        0.9513989195765691
+      ],
+      "intercept": 2.554494616131681e-17,
+      "coefficients": [
+        0.49157695518953193,
+        -0.07628175983871761,
+        0.1948199551950071,
+        -0.051636337545565965,
+        -0.06800716786913824,
+        0.06440248876739434,
+        0.07785078607289582,
+        0.038252252550447854
+      ],
+      "regularization": 10.0
+    }
+  }
+}

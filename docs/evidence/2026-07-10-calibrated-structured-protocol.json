@@ -1,0 +1,468 @@
+{
+  "mode": "structured_continuous_prediction_protocol",
+  "config": {
+    "sample_rate": 16000,
+    "token_duration_ms": 200,
+    "gap_duration_ms": 50,
+    "alignment_chirp_ms": 120,
+    "alignment_silence_ms": 180,
+    "grammar_token_count": 20,
+    "fake_delay_ms": 30,
+    "fake_attenuation": 0.35,
+    "fake_echo_delay_ms": 18,
+    "fake_echo_attenuation": 0.08,
+    "fake_noise_rms": 0.002,
+    "maximum_real_playback_db": -18
+  },
+  "families": {
+    "tones": [
+      300,
+      500,
+      800,
+      1200
+    ],
+    "vowels": [
+      "a",
+      "e",
+      "i",
+      "u"
+    ]
+  },
+  "development_seeds": [
+    7703,
+    8807,
+    9901
+  ],
+  "held_out_seeds": [
+    10103,
+    11213,
+    12323
+  ],
+  "trial_count": 12,
+  "seconds_per_trial": 6.3,
+  "maximum_total_playback_seconds": 75.6,
+  "trials": [
+    {
+      "trial_id": "tones_dev_7703",
+      "family": "tones",
+      "split": "dev",
+      "seed": 7703,
+      "calibration_sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "grammar_sequence": [
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2,
+        0
+      ]
+    },
+    {
+      "trial_id": "tones_dev_8807",
+      "family": "tones",
+      "split": "dev",
+      "seed": 8807,
+      "calibration_sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "grammar_sequence": [
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2
+      ]
+    },
+    {
+      "trial_id": "tones_dev_9901",
+      "family": "tones",
+      "split": "dev",
+      "seed": 9901,
+      "calibration_sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "grammar_sequence": [
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        0
+      ]
+    },
+    {
+      "trial_id": "tones_held_out_10103",
+      "family": "tones",
+      "split": "held_out",
+      "seed": 10103,
+      "calibration_sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "grammar_sequence": [
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        3,
+        0
+      ]
+    },
+    {
+      "trial_id": "tones_held_out_11213",
+      "family": "tones",
+      "split": "held_out",
+      "seed": 11213,
+      "calibration_sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "grammar_sequence": [
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2
+      ]
+    },
+    {
+      "trial_id": "tones_held_out_12323",
+      "family": "tones",
+      "split": "held_out",
+      "seed": 12323,
+      "calibration_sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "grammar_sequence": [
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2,
+        0,
+        1
+      ]
+    },
+    {
+      "trial_id": "vowels_dev_7703",
+      "family": "vowels",
+      "split": "dev",
+      "seed": 7703,
+      "calibration_sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "grammar_sequence": [
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2,
+        0
+      ]
+    },
+    {
+      "trial_id": "vowels_dev_8807",
+      "family": "vowels",
+      "split": "dev",
+      "seed": 8807,
+      "calibration_sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "grammar_sequence": [
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2
+      ]
+    },
+    {
+      "trial_id": "vowels_dev_9901",
+      "family": "vowels",
+      "split": "dev",
+      "seed": 9901,
+      "calibration_sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "grammar_sequence": [
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        0
+      ]
+    },
+    {
+      "trial_id": "vowels_held_out_10103",
+      "family": "vowels",
+      "split": "held_out",
+      "seed": 10103,
+      "calibration_sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "grammar_sequence": [
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        3,
+        0
+      ]
+    },
+    {
+      "trial_id": "vowels_held_out_11213",
+      "family": "vowels",
+      "split": "held_out",
+      "seed": 11213,
+      "calibration_sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "grammar_sequence": [
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2
+      ]
+    },
+    {
+      "trial_id": "vowels_held_out_12323",
+      "family": "vowels",
+      "split": "held_out",
+      "seed": 12323,
+      "calibration_sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "grammar_sequence": [
+        0,
+        1,
+        2,
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        2,
+        0,
+        1
+      ]
+    }
+  ],
+  "label_boundary": "scheduled token identities are post-hoc ground truth only and do not enter codebook or transition fitting",
+  "real_io_requires_explicit_authorization": true,
+  "protocol_variant": "calibrated_v2",
+  "representation": {
+    "base": "12_band_log_geometric_spectrum",
+    "unlabeled_trial_calibration": "featurewise_zscore_then_unit_norm",
+    "calibration_observation_count": 4,
+    "standard_deviation_floor": 0.3,
+    "selection_boundary": "selected on attempt-2 development captures only"
+  },
+  "verdict": "planned_no_io",
+  "real_hardware": false,
+  "live_playback": false
+}
+

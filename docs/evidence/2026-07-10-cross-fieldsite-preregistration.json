@@ -1,0 +1,52 @@
+{
+  "experiment": "music_lab_cross_fieldsite_saliency_with_song_controls",
+  "registered_date": "2026-07-10",
+  "status": "registered_before_selected_audio_fetch",
+  "project_use": "personal_non_commercial_research",
+  "dataset": {
+    "doi": "10.5281/zenodo.5525161",
+    "license": "CC BY-NC-SA 4.0",
+    "archive": "IDS-corpus-edited.zip"
+  },
+  "development_source": {
+    "fieldsite": "BEJ",
+    "artifact": "2026-07-10-ids-confirmation.json",
+    "pilot_fieldsites_excluded_from_threshold_changes": ["ACO", "ARA"]
+  },
+  "unseen_evaluation_fieldsites": ["KRA", "MBE"],
+  "selected_participants": {
+    "KRA": ["KRA01", "KRA06", "KRA07"],
+    "MBE": ["MBE02", "MBE03", "MBE05"]
+  },
+  "required_conditions_per_participant": [
+    "infant_directed_song",
+    "infant_directed_speech",
+    "adult_directed_song",
+    "adult_directed_speech"
+  ],
+  "protocol": {
+    "frame_ms": 250,
+    "positive_label": "infant_directed_speech",
+    "negative_labels": [
+      "adult_directed_speech",
+      "infant_directed_song",
+      "adult_directed_song"
+    ],
+    "frozen_peak_rms_threshold": 0.005898588836552925,
+    "frozen_pitch_confidence_threshold": 0.6621557103908495,
+    "no_threshold_tuning_on_evaluation_fieldsites": true
+  },
+  "acceptance_rule": {
+    "applies_independently_to_each_evaluation_fieldsite": true,
+    "minimum_pitch_confidence_f1_improvement_over_peak_rms": 0.05,
+    "maximum_pitch_confidence_fpr_increase_over_peak_rms": 0.05,
+    "all_evaluation_fieldsites_must_pass": true
+  },
+  "required_reporting": [
+    "pooled precision recall F1 and false-positive rate",
+    "per-fieldsite metrics",
+    "per-negative-label activation rate",
+    "file hashes and participant leakage count",
+    "failure interpretation without held-out retuning"
+  ]
+}

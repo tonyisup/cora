@@ -1,0 +1,18 @@
+{
+  "experiment": "stage6_energy_workload_pre_preregistration_dry_run",
+  "date": "2026-07-10",
+  "status": "invalid_harness_diagnostic_retained",
+  "power_measured": false,
+  "invalid_design": "The first sustained Cora dry run cycled preconstructed AudioFrame timestamps from 0 after every 256 frames. EventWorkspace therefore saw time move backward and could not evict old events.",
+  "observed_cora_peak_resident_memory_megabytes": 279.984375,
+  "correction": "Construct equivalent frames with monotonically increasing timestamps in both Cora and conventional conditions and require resident event count <= 11.",
+  "corrected_short_dry_run": {
+    "duration_seconds": 0.25,
+    "cora_resident_event_count": 11,
+    "conventional_resident_event_count": 10,
+    "cora_peak_resident_memory_megabytes": 48.40625,
+    "conventional_peak_resident_memory_megabytes": 48.375
+  },
+  "promotion_allowed": false,
+  "claim_boundary": "No powermetrics data was accessed, so this artifact is harness development only and contains no energy evidence."
+}

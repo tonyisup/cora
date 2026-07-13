@@ -1,0 +1,36 @@
+{
+  "experiment": "stage6_native_sample_rate_deadline_retry",
+  "date": "2026-07-10",
+  "status": "frozen_before_retry_audio_capture",
+  "parent_result": "docs/evidence/2026-07-10-stage6-resource-result.json",
+  "diagnosis": {
+    "device_default_sample_rate_hz": 16000,
+    "attempt_1_sample_rate_hz": 48000,
+    "attempt_1_reported_input_latency_ms": 95.33333333333334,
+    "metadata_probe_16000_blocksize_0_reported_input_latency_ms": 42.0,
+    "metadata_probe_16000_blocksize_400_reported_input_latency_ms": 156.25,
+    "metadata_probe_48000_blocksize_0_reported_input_latency_ms": 95.33333333333334,
+    "metadata_probe_48000_blocksize_1200_reported_input_latency_ms": 196.75,
+    "interpretation": "The XVF3800 advertises 16 kHz as its default rate. Native-rate conversion is the single bounded retry variable; explicit frame-sized block requests are rejected because their reported latency is much worse."
+  },
+  "single_changed_variable": {
+    "sample_rate_hz": {
+      "from": 48000,
+      "to": 16000
+    }
+  },
+  "unchanged": {
+    "replicates": 3,
+    "duration_ms_each": 10000,
+    "frame_ms": 25,
+    "expected_frames_each": 400,
+    "capture_backend": "native",
+    "blocksize": 0,
+    "playback": "none",
+    "room": "unchanged",
+    "acceptance_criteria": "identical to parent resource preregistration"
+  },
+  "command": ".venv/bin/python -m cora_infans --listen-live --duration-ms 10000 --frame-ms 25 --sample-rate 16000 --capture-backend native",
+  "retry_limit": 1,
+  "claim_boundary": "This retry tests whether avoiding host sample-rate conversion improves the blocking native read schedule. It still does not provide ADC-onset timestamps, salient-workload timing, or energy measurement."
+}

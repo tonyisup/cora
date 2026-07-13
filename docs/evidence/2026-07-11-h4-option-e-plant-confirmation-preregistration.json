@@ -1,0 +1,94 @@
+{
+  "experiment": "h4_option_e_factorized_five_gesture_plant_confirmation",
+  "date": "2026-07-11",
+  "status": "preregistered_before_confirmation_implementation_or_metrics",
+  "authorization": {
+    "basis": "User selected Option 1 and instructed Codex to continue.",
+    "scope": "one synthetic-only plant expressivity confirmation",
+    "forward_learning_authorized": false,
+    "inverse_search_authorized": false,
+    "recorded_audio_authorized": false,
+    "protected_data_access_authorized": false
+  },
+  "design_protocol": "docs/evidence/2026-07-11-h4-option-e-plant-design-protocol.json",
+  "design_result": "docs/evidence/2026-07-11-h4-option-e-plant-design-result.json",
+  "design_result_commit": "4c27612",
+  "research_question": "Does the frozen factorized five-coordinate plant provide distinct and locally robust a/e/i/o/u regions on untouched deterministic synthetic points before any learner is introduced?",
+  "plant": {
+    "motor_coordinates": ["jaw_aperture", "constriction_magnitude", "constriction_position", "lip_aperture", "lip_protrusion"],
+    "motor_bounds_each": [0.0, 1.0],
+    "anatomical_measurement_claimed": false,
+    "section_count": 10,
+    "neutral_area_cm2": [1.0, 1.35, 1.9, 2.7, 3.45, 3.9, 3.7, 3.15, 2.55, 2.0],
+    "jaw_weights": [0.25, 0.45, 0.7, 0.9, 1.0, 1.0, 1.0, 0.9, 0.6, 0.3],
+    "lip_weights": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.6, 1.0],
+    "jaw_gain": 0.3,
+    "constriction_depth": 3.0,
+    "constriction_center": "0.12+0.68*p",
+    "constriction_width": 0.09,
+    "lip_gain": 2.0,
+    "protrusion_narrowing": 0.8,
+    "base_length_cm": 15.5,
+    "maximum_length_cm": 20.0,
+    "length_equation_cm": "15.5+4.5*lip_protrusion",
+    "area_bounds_cm2": [0.04, 9.0],
+    "log_area_equation": "log(A)=log(Arest)+0.3*(j-0.5)*jaw_weights-3.0*c*exp(-0.5*((x-(0.12+0.68*p))/0.09)^2)+2.0*(lip_aperture-0.5)*lip_weights-0.8*lip_protrusion*lip_weights",
+    "solver": "unchanged Option D lossy transmission matrices and lip-radiation termination",
+    "air_density_kg_m3": 1.14,
+    "sound_speed_cm_s": 35000.0,
+    "propagation_attenuation_per_cm": "0.002+0.00001*f_hz",
+    "sample_rate_hz": 16000,
+    "duration_ms": 160,
+    "f0_conditions_hz": [90.0, 110.0, 140.0, 180.0],
+    "waveform_peak": 0.95
+  },
+  "confirmation_points": {
+    "sequence": "five-dimensional Halton sequence in bases 2,3,5,7,11",
+    "indices_inclusive": [8193, 9216],
+    "count": 1024,
+    "disjoint_from_design_indices": [4097, 5120],
+    "opened_only_after_coefficients_frozen": true
+  },
+  "target_selection": {
+    "canonical_reference": "existing VOWEL_FORMANTS_HZ a/e/i/o/u table",
+    "vowel_order": ["a", "e", "i", "o", "u"],
+    "cost": "relative formant RMSE over F1/F2/F3",
+    "uniqueness": "a confirmation point selected for an earlier vowel is ineligible",
+    "tie_break": "lower Halton index",
+    "labels_used_for_plant_evaluation": true,
+    "labels_used_for_learning": false
+  },
+  "local_neighborhood": {
+    "points_per_target": 11,
+    "construction": "target plus negative and positive 0.03 offsets on each of five axes, clipped to [0,1]",
+    "valid_neighbor": "three formants present, nearest canonical identity matches target vowel, and relative formant RMSE is at most 0.25",
+    "minimum_valid_fraction_per_vowel": 0.8
+  },
+  "gate_p0_numerical_physical": {
+    "all_1024_confirmation_points_have_finite_geometry_within_area_and_length_bounds": true,
+    "all_1024_confirmation_transfer_functions_finite": true,
+    "all_1024_confirmation_points_have_three_separated_formants": true,
+    "twenty_target_by_f0_waveforms_finite_and_below_one": true,
+    "twenty_target_by_f0_waveforms_deterministic": true
+  },
+  "gate_p2_expressivity": {
+    "each_target_nearest_identity_matches": true,
+    "maximum_target_relative_formant_rmse": 0.15,
+    "mean_target_f1_mae_hz_max": 75.0,
+    "mean_target_f2_mae_hz_max": 150.0,
+    "mean_target_f3_mae_hz_max": 150.0,
+    "minimum_pairwise_half_euclidean_sensory_distance": 0.25,
+    "minimum_valid_neighborhood_fraction_per_vowel": 0.8
+  },
+  "decision_rule": "Execute this confirmation once after checkpointing its implementation. Any failed gate is retained without changing coefficients, point ranges, target selection, neighborhood construction, thresholds, solver, or formant analysis on these points.",
+  "advance_rule": "A full P0 and P2 pass permits drafting a separate label-free babbling, local-forward, and inverse preregistration. It does not authorize that execution or recorded speech.",
+  "recorded_data_boundary": {
+    "recorded_audio_access_under_this_protocol": false,
+    "vocalset_protected": ["female6", "female7", "female9", "male9", "male11"],
+    "cmu_protected_confirmation": ["rms", "awb", "axb", "eey", "ljm"],
+    "cmu_protected_reserve": ["aew", "ahw", "aup", "fem", "gka", "lnh", "rxr", "slp"]
+  },
+  "unresolved_fields": [],
+  "execution_ready": true,
+  "promotion_allowed": false
+}

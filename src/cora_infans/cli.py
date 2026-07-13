@@ -1,12 +1,47 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import sys
+from contextlib import nullcontext
+from dataclasses import replace
+from pathlib import Path
 from typing import Any
 
+from .operational_contract import (
+    OPERATIONAL_CONTRACT,
+    evaluate_stage6_operating_point,
+)
+from .operational_readiness import (
+    build_operational_readiness_report,
+    repository_evidence_dir,
+)
+from .operational_acceptance import (
+    build_operational_preflight,
+    load_operating_point_manifest,
+    run_operational_acceptance,
+)
+from .speech_learning_demo import DEMO_VOWELS, run_speech_learning_demo
+from .vocal_imitation import (
+    capture_project_owner_take,
+    freeze_project_owner_development,
+    run_project_owner_vocal_imitation,
+)
 from .io.live_listener import LiveListener
+from .benchmark import benchmark_event_pipeline
+from .energy_workload import run_sustained_energy_workload
 from .io.live_mic import DEFAULT_DEVICE, LiveMicArray, LiveMicError
-from .io.offline_eval import CorpusLoader, OfflineEvalHarness
+from .io.ids_corpus import build_ids_manifest
+from .io.recorded_frames import (
+    build_corollary_capture_manifest,
+    build_recorded_npy_frames,
+)
+from .io.offline_eval import (
+    CorpusLoader,
+    OfflineEvalHarness,
+    compare_saliency_baselines,
+)
+from .io.wav_frames import build_wav_corpus_frames
 from .simulation import (
     SimulationParams,
     _builtin_sequence_family,
@@ -16,12 +51,25 @@ from .simulation import (
     build_sequence_report_with_scheduling,
     build_simulation_report,
 )
-from .io.synthetic_stream import build_synthetic_corpus_frames
+from .predictive_learning import (
+    evaluate_online_predictor_safety,
+    evaluate_predictive_corpus,
+)
+from .register_saliency import (
+    SpeakerAdaptiveRegisterModel,
+    VocalActivityGate,
+    build_register_example,
+    evaluate_leave_one_fieldsite_out,
+    evaluate_register_pipeline,
+    select_register_thresholds,
+)
+from .workspace_ablation import run_workspace_ablation
 from .io.motor_plan import (  # noqa: E402
     ANALYSIS_BY_SYNTHESIS_TABLE,
     VOWEL_FORMANTS_HZ,
     MotorPlanner,
     analyze_vowel,
+    evaluate_vowel_round_trip,
     synthesize_vowel,
     write_wav,
 )
@@ -35,6 +83,54 @@ from .io.self_suppression import (
 from .speaking_simulator import (
     run_speaking_policy_promotion_gate,
     run_speaking_readiness_gate,
+)
+from .structured_prediction import (
+    CALIBRATED_V2_DEVELOPMENT_SEEDS,
+    CALIBRATED_V2_HELD_OUT_SEEDS,
+    CALIBRATED_V2_STD_FLOOR,
+    DROPOUT_V4_DEVELOPMENT_SEEDS,
+    DROPOUT_V4_HELD_OUT_SEEDS,
+    DROPOUT_V5_DEVELOPMENT_SEEDS,
+    DROPOUT_V5_HELD_OUT_SEEDS,
+    ROBUST_V3_DEVELOPMENT_SEEDS,
+    ROBUST_V3_HELD_OUT_SEEDS,
+    build_robust_v3_trial_conditions,
+    build_dropout_v4_trial_conditions,
+    build_dropout_v5_trial_conditions,
+    run_structured_prediction_protocol,
+)
+from .natural_prediction_audit import audit_natural_prediction_grid
+from .natural_event_prediction import (
+    NaturalEventConfig,
+    audit_natural_event_grid,
+    evaluate_natural_event_ablations,
+    evaluate_natural_event_cross_fieldsite,
+)
+from .real_workspace_binding import evaluate_real_workspace_binding_design
+from .recorded_vowel_audit import evaluate_recorded_vowels
+from .structured_workspace_binding import (
+    WorkspaceBindingConfig,
+    build_workspace_binding_protocol,
+    run_fake_workspace_binding_protocol,
+    run_workspace_binding_acquisition,
+)
+from .natural_speech_workspace_binding import (
+    build_natural_speech_protocol,
+    run_natural_speech_acquisition,
+    run_spent_natural_speech_design_gate,
+)
+from .natural_speech_workspace_template_v2 import (
+    build_template_protocol,
+    run_template_live_acquisition,
+    run_spent_template_design_gate,
+)
+from .natural_speech_workspace_spectral_v3 import (
+    build_spectral_protocol,
+    run_spectral_live_acquisition,
+)
+from .same_source_forward_live import (
+    build_fresh_protocol,
+    run_fresh_live_acquisition,
 )
 from .live_speak_smoke import (
     StimulusSpec,
@@ -53,10 +149,23 @@ SequenceArgs = tuple[str, bool]
 def describe() -> dict[str, object]:
     return {
         "project": "cora-infans",
-        "implemented_slice": "saliency_workspace_live_attention",
+        "implemented_slice": "bounded_operational_auditory_system",
+        "operational_contract": {
+            "schema_version": OPERATIONAL_CONTRACT["schema_version"],
+            "status": OPERATIONAL_CONTRACT["status"],
+            "authority": OPERATIONAL_CONTRACT["authority"],
+        },
         "implemented_subsystems": [
+            "machine_enforced_operational_contract",
+            "retained_evidence_readiness_aggregator",
+            "self_describing_operating_point_validator",
+            "read_only_operational_preflight",
+            "bounded_live_operational_acceptance",
+            "bounded_offline_speech_learning_demo",
+            "bounded_project_owner_vocal_imitation",
             "synthetic_mic_array_front_end",
             "live_xvf3800_front_end",
+            "native_coreaudio_continuous_front_end",
             "acoustic_saliency_gate",
             "predictive_hierarchy",
             "stateful_event_workspace",
@@ -64,7 +173,12 @@ def describe() -> dict[str, object]:
             "xvf3800_hardware_tuner",
             "commanded_active_attention",
             "offline_corpus_evaluation",
+            "real_wav_corpus_evaluation",
+            "recorded_npy_corpus_evaluation",
+            "dev_held_out_saliency_baselines",
+            "prior_art_capture_replay",
             "motor_plan_synthesis",
+            "clean_synthetic_vowel_round_trip_gate",
             "theta_gamma_motor_subwindow",
             "simulation_only_signal_self_suppression",
             "simulation_only_forward_model_learning",
@@ -74,13 +188,38 @@ def describe() -> dict[str, object]:
             "simulation_only_speaking_policy_promotion_gate",
             "simulation_only_speaking_readiness_gate",
             "bounded_live_speak_smoke",
+            "event_pipeline_microbenchmark",
+            "live_capture_to_workspace_latency",
+            "ids_corpus_manifest_builder",
+            "external_ids_real_audio_evaluation",
+            "participant_disjoint_parentese_confirmation",
+            "cross_fieldsite_parentese_falsification",
+            "speaker_and_mode_adaptive_register_gate",
+            "long_window_vocal_activity_gate",
+            "joint_register_pipeline_falsification",
+            "expanded_register_refit_falsification",
+            "safe_online_predictor_regret_gate",
+            "structured_prediction_fake_harness",
+            "structured_prediction_real_runner",
+            "synthetic_workspace_ablation",
+            "phase_template_top_down_prediction",
+            "exact_efference_workspace_binding",
+            "factorized_plant_infrastructure",
+            "stage6_operating_point_validator",
         ],
 
-        "planned_subsystems": [
+        "planned_subsystems": [],
+        "unsupported_expansions": [
             "non_speech_source_localization",
-            "training_and_evaluation_harnesses",
-            "general_user_authored_sequences",
+            "cold_start_parentese_detection",
+            "cross_cultural_parentese_robustness",
+            "generalized_no_replay_self_voice",
+            "global_nonlinear_motor_inverse",
+            "arbitrary_world_dropout_inference",
+            "xmos_internal_latency",
+            "wall_plug_energy",
         ],
+        "stopped_programs": list(OPERATIONAL_CONTRACT["stopped_programs"]),
         "verdicts": {
             "source_localization": "speech_stimulus_recoverable_non_speech_negative",
             "beam_steering": "verified_commanded_top_down_actuator",
@@ -236,7 +375,11 @@ def listen_live(args: list[str] | None = None) -> dict[str, object]:
     device = DEFAULT_DEVICE
     duration_ms = 2000
     frame_ms = 250
+    sample_rate: int | None = None
+    capture_backend = "auto"
     with_stimulus = False
+    stimulus_wav_path: str | None = None
+    stimulus_volume_db: float | None = None
     with_scheduling = False
     with_attention = False
     with_motor_imitation = False
@@ -297,6 +440,17 @@ def listen_live(args: list[str] | None = None) -> dict[str, object]:
                 frame_ms = int(value)
             except ValueError as exc:
                 raise ValueError("invalid frame ms") from exc
+        elif option == "--sample-rate":
+            try:
+                sample_rate = int(value)
+            except ValueError as exc:
+                raise ValueError("invalid sample rate") from exc
+            if sample_rate <= 0:
+                raise ValueError("invalid sample rate")
+        elif option == "--capture-backend":
+            if value not in ("auto", "native", "callback", "ffmpeg"):
+                raise ValueError("invalid capture backend")
+            capture_backend = value
         elif option == "--output-device-index":
             try:
                 output_device_index = int(value)
@@ -312,6 +466,14 @@ def listen_live(args: list[str] | None = None) -> dict[str, object]:
                 volume_db = float(value)
             except ValueError as exc:
                 raise ValueError("invalid volume db") from exc
+        elif option == "--stimulus-volume-db":
+            try:
+                stimulus_volume_db = float(value)
+            except ValueError as exc:
+                raise ValueError("invalid stimulus volume db") from exc
+        elif option == "--stimulus-wav":
+            stimulus_wav_path = value
+            with_stimulus = True
         elif option == "--saliency-threshold":
             try:
                 saliency_threshold = float(value)
@@ -432,49 +594,85 @@ def listen_live(args: list[str] | None = None) -> dict[str, object]:
 
         out_dir = tempfile.mkdtemp(prefix="cora_imit_")
 
+    array_options: dict[str, object] = {"device": device}
+    if sample_rate is not None:
+        array_options["sample_rate"] = sample_rate
+    if capture_backend != "auto":
+        array_options["stream_backend"] = capture_backend
+    array = LiveMicArray(**array_options)
+    listener_options: dict[str, object] = {
+        "output_device_index": output_device_index,
+        "imitation_device_index": imitation_device_index,
+        "saliency_threshold": saliency_threshold,
+    }
+    if stimulus_volume_db is not None:
+        from .io.live_listener import ParenteseStimulus
+
+        listener_options["stimulus"] = ParenteseStimulus(
+            output_device_index=output_device_index,
+            volume_db=stimulus_volume_db,
+        )
     listener = LiveListener(
-        LiveMicArray(device=device),
-        output_device_index=output_device_index,
-        imitation_device_index=imitation_device_index,
-        saliency_threshold=saliency_threshold,
+        array,
+        **listener_options,
     )
-    return listener.listen(
-        duration_ms=duration_ms,
-        frame_ms=frame_ms,
-        with_stimulus=with_stimulus,
-        with_scheduling=with_scheduling,
-        with_attention=with_attention,
-        with_motor_imitation=with_motor_imitation,
-        motor_imitation_gate_fn=gate_fn,
-        motor_imitation_playback_fn=playback_fn,
-        motor_imitation_capture_fn=capture_fn,
-        motor_imitation_out_dir=out_dir,
-        motor_imitation_volume_db=volume_db,
-        latency_anchor_ms=latency_anchor_ms,
-        do_self_subtraction=with_self_subtraction,
-        bounded_playback_authorized=use_real_io,
-        self_subtraction_stable_calibration=stable_calibration,
-        self_subtraction_held_out_trials=held_out_trials,
+    stream_context = (
+        array.streaming() if callable(getattr(array, "streaming", None)) else nullcontext()
     )
+    with stream_context:
+        return listener.listen(
+            duration_ms=duration_ms,
+            frame_ms=frame_ms,
+            with_stimulus=with_stimulus,
+            stimulus_wav_path=stimulus_wav_path,
+            with_scheduling=with_scheduling,
+            with_attention=with_attention,
+            with_motor_imitation=with_motor_imitation,
+            motor_imitation_gate_fn=gate_fn,
+            motor_imitation_playback_fn=playback_fn,
+            motor_imitation_capture_fn=capture_fn,
+            motor_imitation_out_dir=out_dir,
+            motor_imitation_volume_db=volume_db,
+            latency_anchor_ms=latency_anchor_ms,
+            do_self_subtraction=with_self_subtraction,
+            bounded_playback_authorized=use_real_io,
+            self_subtraction_stable_calibration=stable_calibration,
+            self_subtraction_held_out_trials=held_out_trials,
+        )
 
 
 def eval_corpus(args: list[str] | None = None) -> dict[str, object]:
     """Run the offline evaluation harness over a labeled corpus.
 
     Usage: --eval-corpus --root DIR --label-csv FILE [--saliency-threshold F]
-           [--frame-ms N]
+           [--frame-ms N] [--score-mode peak_rms|spatial_contrast]
+           [--input-mode wav|recorded_npy|synthetic_fixture] [--compare-baselines]
+           [--evaluate-prediction FEATURE]
+           [--evaluate-online-safety FEATURE[,FEATURE]]
+           [--positive-label LABEL[,LABEL]]
 
-    The harness scores a deterministic synthetic frame stream derived from each
-    clip's labeled intervals; no hardware or real WAV decoding is required.
+    Real uncompressed WAV decoding is the default and is the only WAV mode
+    reported as real evidence. The synthetic fixture mode exists solely for
+    plumbing tests.
     """
     parsed = args or ["--eval-corpus"]
     root = "."
     label_csv: str | None = None
-    saliency_threshold = 0.7
+    saliency_threshold = 0.02
     frame_ms = 250
+    score_mode = "peak_rms"
+    input_mode = "wav"
+    compare_baselines = False
+    predictive_feature: str | None = None
+    safety_features: tuple[str, ...] | None = None
+    positive_labels: set[str] | None = None
     i = 1
     while i < len(parsed):
         option = parsed[i]
+        if option == "--compare-baselines":
+            compare_baselines = True
+            i += 1
+            continue
         if i + 1 >= len(parsed):
             raise ValueError(f"missing value for {option}")
         value = parsed[i + 1]
@@ -492,6 +690,28 @@ def eval_corpus(args: list[str] | None = None) -> dict[str, object]:
                 frame_ms = int(value)
             except ValueError as exc:
                 raise ValueError("invalid frame ms") from exc
+        elif option == "--score-mode":
+            if value not in ("peak_rms", "spatial_contrast"):
+                raise ValueError("invalid score mode")
+            score_mode = value
+        elif option == "--input-mode":
+            if value not in ("wav", "recorded_npy", "synthetic_fixture"):
+                raise ValueError("invalid input mode")
+            input_mode = value
+        elif option == "--evaluate-prediction":
+            predictive_feature = value
+        elif option == "--evaluate-online-safety":
+            parsed_features = tuple(
+                feature.strip() for feature in value.split(",") if feature.strip()
+            )
+            if not parsed_features:
+                raise ValueError("online safety feature list must not be empty")
+            safety_features = parsed_features
+        elif option == "--positive-label":
+            parsed_labels = {label.strip() for label in value.split(",") if label.strip()}
+            if not parsed_labels:
+                raise ValueError("positive label must not be empty")
+            positive_labels = parsed_labels
         else:
             raise ValueError(f"unknown option: {option}")
         i += 2
@@ -502,12 +722,938 @@ def eval_corpus(args: list[str] | None = None) -> dict[str, object]:
     loader = CorpusLoader(root=root)
     clips = loader.load_labels(label_csv)
     harness = OfflineEvalHarness(
-        saliency_threshold=saliency_threshold, frame_ms=frame_ms
+        saliency_threshold=saliency_threshold,
+        frame_ms=frame_ms,
+        score_mode=score_mode,  # type: ignore[arg-type]
+        positive_labels=positive_labels,
     )
-    report = harness.evaluate_corpus(clips, build_synthetic_corpus_frames)
+    if input_mode == "wav":
+        frame_provider = build_wav_corpus_frames
+    elif input_mode == "recorded_npy":
+        frame_provider = build_recorded_npy_frames
+    else:
+        from .io.synthetic_stream import build_synthetic_corpus_frames
+
+        frame_provider = build_synthetic_corpus_frames
+    selected_evaluations = sum(
+        (compare_baselines, predictive_feature is not None, safety_features is not None)
+    )
+    if selected_evaluations > 1:
+        raise ValueError(
+            "baseline, predictive, and online-safety evaluations are mutually exclusive"
+        )
+    if predictive_feature is not None:
+        if input_mode not in ("wav", "recorded_npy"):
+            raise ValueError("predictive corpus evidence requires real audio input")
+        report = evaluate_predictive_corpus(
+            clips,
+            frame_provider,
+            frame_ms=frame_ms,
+            feature=predictive_feature,
+        )
+    elif safety_features is not None:
+        if input_mode not in ("wav", "recorded_npy"):
+            raise ValueError("online safety evidence requires real audio input")
+        report = evaluate_online_predictor_safety(
+            clips,
+            frame_provider,
+            frame_ms=frame_ms,
+            features=safety_features,
+        )
+    elif compare_baselines:
+        report = compare_saliency_baselines(
+            clips,
+            frame_provider,
+            frame_ms=frame_ms,
+            positive_labels=positive_labels,
+        )
+    else:
+        report = harness.evaluate_corpus(clips, frame_provider)
     report["label_csv"] = label_csv
     report["clip_loaded"] = len(clips)
+    report["input_mode"] = input_mode
     return report
+
+
+def _register_sources(args: list[str]) -> tuple[list[tuple[str, str]], str | None]:
+    sources: list[tuple[str, str]] = []
+    out: str | None = None
+    i = 1
+    while i < len(args):
+        option = args[i]
+        if i + 1 >= len(args):
+            raise ValueError(f"missing value for {option}")
+        value = args[i + 1]
+        if option == "--source":
+            if "::" not in value:
+                raise ValueError("--source must be ROOT::LABEL_CSV")
+            root, label_csv = value.split("::", 1)
+            if not root or not label_csv:
+                raise ValueError("--source must be ROOT::LABEL_CSV")
+            sources.append((root, label_csv))
+        elif option == "--out":
+            out = value
+        else:
+            raise ValueError(f"unknown option: {option}")
+        i += 2
+    if not sources:
+        raise ValueError("at least one --source ROOT::LABEL_CSV is required")
+    return sources, out
+
+
+def fit_register_scorer_cli(args: list[str]) -> dict[str, object]:
+    """Fit the transparent speaker-adaptive register model from spent data."""
+
+    sources, out = _register_sources(args)
+    if out is None:
+        raise ValueError("--out model JSON is required")
+    examples = []
+    source_reports: list[dict[str, object]] = []
+    for root, label_csv in sources:
+        clips = CorpusLoader(root).load_labels(label_csv)
+        source_examples = [build_register_example(clip) for clip in clips]
+        examples.extend(source_examples)
+        source_reports.append(
+            {
+                "root": str(Path(root).resolve()),
+                "label_csv": str(Path(label_csv).resolve()),
+                "clip_count": len(source_examples),
+                "clip_ids": [example.clip_id for example in source_examples],
+            }
+        )
+    design_report = evaluate_leave_one_fieldsite_out(examples)
+    threshold_report = select_register_thresholds(examples)
+    model = replace(
+        SpeakerAdaptiveRegisterModel.fit(examples),
+        speech_score_minimum=float(threshold_report["speech_score_minimum"]),
+        ids_score_minimum=float(threshold_report["ids_score_minimum"]),
+    )
+    payload = {
+        "mode": "speaker_adaptive_register_model_artifact",
+        "training_sources": source_reports,
+        "training_clip_count": len(examples),
+        "training_fieldsites": sorted({example.fieldsite for example in examples}),
+        "design_evaluation": {
+            key: value
+            for key, value in design_report.items()
+            if key != "predictions"
+        },
+        "threshold_selection": threshold_report,
+        "model": model.to_dict(),
+    }
+    output_path = Path(out)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_text(json.dumps(payload, indent=2) + "\n")
+    return {
+        "mode": "fit_speaker_adaptive_register_model",
+        "out": str(output_path.resolve()),
+        "training_clip_count": len(examples),
+        "training_fieldsites": payload["training_fieldsites"],
+        "design_metrics": design_report["metrics"],
+        "selected_decision_thresholds": {
+            "speech_score_minimum": model.speech_score_minimum,
+            "ids_score_minimum": model.ids_score_minimum,
+        },
+        "calibration_boundary": design_report["calibration_boundary"],
+    }
+
+
+def _load_register_model_artifact(model_path: str | Path) -> SpeakerAdaptiveRegisterModel:
+    """Load either a self-contained model or a hash-pinned gate composition."""
+
+    path = Path(model_path)
+    payload = json.loads(path.read_text())
+    if payload.get("mode") != "register_pipeline_composition":
+        model_payload = payload.get("model", payload)
+        return SpeakerAdaptiveRegisterModel.from_dict(model_payload)
+
+    base_name = payload.get("base_register_model_artifact")
+    expected_sha = payload.get("base_register_model_sha256")
+    gate_payload = payload.get("vocal_gate")
+    if not isinstance(base_name, str) or not isinstance(expected_sha, str):
+        raise ValueError("invalid composed register model reference")
+    if not isinstance(gate_payload, dict):
+        raise ValueError("invalid composed vocal gate")
+    base_path = path.parent / base_name
+    base_bytes = base_path.read_bytes()
+    if hashlib.sha256(base_bytes).hexdigest() != expected_sha:
+        raise ValueError("composed register model hash mismatch")
+    base_artifact = json.loads(base_bytes)
+    base_payload = base_artifact.get("model", base_artifact)
+    base_model = SpeakerAdaptiveRegisterModel.from_dict(base_payload)
+    decision_thresholds = payload.get("decision_thresholds")
+    thresholds = (
+        decision_thresholds if isinstance(decision_thresholds, dict) else {}
+    )
+    return replace(
+        base_model,
+        vocal_gate=VocalActivityGate.from_dict(gate_payload),
+        speech_score_minimum=float(
+            thresholds.get("speech_score_minimum", base_model.speech_score_minimum)
+        ),
+        ids_score_minimum=float(
+            thresholds.get("ids_score_minimum", base_model.ids_score_minimum)
+        ),
+    )
+
+
+def eval_register_scorer_cli(args: list[str]) -> dict[str, object]:
+    """Evaluate a frozen register model on a batch of unseen speakers."""
+
+    model_path: str | None = None
+    root: str | None = None
+    label_csv: str | None = None
+    i = 1
+    while i < len(args):
+        option = args[i]
+        if i + 1 >= len(args):
+            raise ValueError(f"missing value for {option}")
+        value = args[i + 1]
+        if option == "--model":
+            model_path = value
+        elif option == "--root":
+            root = value
+        elif option == "--label-csv":
+            label_csv = value
+        else:
+            raise ValueError(f"unknown option: {option}")
+        i += 2
+    if model_path is None or root is None or label_csv is None:
+        raise ValueError("--model, --root, and --label-csv are required")
+    model = _load_register_model_artifact(model_path)
+    clips = CorpusLoader(root).load_labels(label_csv)
+    examples = [build_register_example(clip) for clip in clips]
+    report = model.evaluate_batch(examples)
+    report["model_path"] = str(Path(model_path).resolve())
+    report["root"] = str(Path(root).resolve())
+    report["label_csv"] = str(Path(label_csv).resolve())
+    return report
+
+
+def eval_register_pipeline_cli(args: list[str]) -> dict[str, object]:
+    """Evaluate vocal retention, noise rejection, and register scoring jointly."""
+
+    values: dict[str, str] = {}
+    i = 1
+    while i < len(args):
+        option = args[i]
+        if i + 1 >= len(args):
+            raise ValueError(f"missing value for {option}")
+        if option not in {
+            "--model",
+            "--vocal-root",
+            "--vocal-label-csv",
+            "--environmental-root",
+            "--environmental-label-csv",
+        }:
+            raise ValueError(f"unknown option: {option}")
+        values[option] = args[i + 1]
+        i += 2
+    required = {
+        "--model",
+        "--vocal-root",
+        "--vocal-label-csv",
+        "--environmental-root",
+        "--environmental-label-csv",
+    }
+    if required - values.keys():
+        raise ValueError("model, vocal source, and environmental source are required")
+    model = _load_register_model_artifact(values["--model"])
+    vocal_clips = CorpusLoader(values["--vocal-root"]).load_labels(
+        values["--vocal-label-csv"]
+    )
+    environmental_clips = CorpusLoader(values["--environmental-root"]).load_labels(
+        values["--environmental-label-csv"]
+    )
+    report = evaluate_register_pipeline(
+        model,
+        [build_register_example(clip) for clip in vocal_clips],
+        [build_register_example(clip) for clip in environmental_clips],
+    )
+    report["model_path"] = str(Path(values["--model"]).resolve())
+    report["vocal_root"] = str(Path(values["--vocal-root"]).resolve())
+    report["vocal_label_csv"] = str(
+        Path(values["--vocal-label-csv"]).resolve()
+    )
+    report["environmental_root"] = str(
+        Path(values["--environmental-root"]).resolve()
+    )
+    report["environmental_label_csv"] = str(
+        Path(values["--environmental-label-csv"]).resolve()
+    )
+    return report
+
+
+def structured_prediction_cli(args: list[str]) -> dict[str, object]:
+    """Plan or run the explicitly non-real structured prediction harness."""
+
+    out_dir: str | None = None
+    fake_io = False
+    real_io = False
+    bounded_playback_authorized = False
+    input_device = ":0"
+    output_device_index = 2
+    speaker_distance_cm: float | None = None
+    speaker_orientation: str | None = None
+    quiet_room_confirmed = False
+    variant = "original"
+    i = 1
+    while i < len(args):
+        option = args[i]
+        if option == "--fake-io":
+            fake_io = True
+            i += 1
+            continue
+        if option == "--real-io":
+            real_io = True
+            i += 1
+            continue
+        if option == "--authorize-bounded-playback":
+            bounded_playback_authorized = True
+            i += 1
+            continue
+        if option == "--quiet-room-confirmed":
+            quiet_room_confirmed = True
+            i += 1
+            continue
+        if option == "--out-dir":
+            if i + 1 >= len(args):
+                raise ValueError("missing value for --out-dir")
+            out_dir = args[i + 1]
+            i += 2
+            continue
+        if option in {
+            "--input-device",
+            "--output-device-index",
+            "--speaker-distance-cm",
+            "--speaker-orientation",
+            "--variant",
+        }:
+            if i + 1 >= len(args):
+                raise ValueError(f"missing value for {option}")
+            value = args[i + 1]
+            if option == "--input-device":
+                input_device = value
+            elif option == "--output-device-index":
+                try:
+                    output_device_index = int(value)
+                except ValueError as exc:
+                    raise ValueError("invalid output device index") from exc
+            elif option == "--speaker-distance-cm":
+                try:
+                    speaker_distance_cm = float(value)
+                except ValueError as exc:
+                    raise ValueError("invalid speaker distance") from exc
+            elif option == "--speaker-orientation":
+                speaker_orientation = value
+            else:
+                if value not in {
+                    "original",
+                    "calibrated_v2",
+                    "robustness_v3",
+                    "dropout_v4",
+                    "dropout_v5",
+                }:
+                    raise ValueError("unknown structured protocol variant")
+                variant = value
+            i += 2
+            continue
+        raise ValueError(f"unknown option: {option}")
+    if out_dir is None:
+        raise ValueError("--out-dir is required")
+    if variant == "dropout_v4" and real_io:
+        raise ValueError(
+            "dropout_v4 failed its fresh synthetic design gate; real I/O is prohibited"
+        )
+    geometry: dict[str, object] | None = None
+    playback_fn = None
+    capture_fn = None
+    if real_io and bounded_playback_authorized:
+        if speaker_distance_cm is None or speaker_distance_cm <= 0.0:
+            raise ValueError("real structured I/O requires --speaker-distance-cm")
+        if not speaker_orientation:
+            raise ValueError("real structured I/O requires --speaker-orientation")
+        if not quiet_room_confirmed:
+            raise ValueError("real structured I/O requires --quiet-room-confirmed")
+        geometry = {
+            "input_device": input_device,
+            "output_device_index": output_device_index,
+            "speaker_distance_cm": speaker_distance_cm,
+            "speaker_orientation": speaker_orientation,
+            "quiet_room_confirmed": True,
+            "host_channel_count": 2,
+        }
+        playback_fn = lambda path: play_wav_to_device(
+            path,
+            device_index=output_device_index,
+            sample_rate=16000,
+            volume_db=-18.0,
+        )
+        capture_fn = lambda path, **kwargs: capture_to_wav(
+            path,
+            device=input_device,
+            **kwargs,
+        )
+    calibrated = variant in {
+        "calibrated_v2",
+        "robustness_v3",
+        "dropout_v4",
+        "dropout_v5",
+    }
+    robust = variant == "robustness_v3"
+    dropout_robust = variant == "dropout_v4"
+    dropout_masked = variant == "dropout_v5"
+    return run_structured_prediction_protocol(
+        out_dir=out_dir,
+        fake_io=fake_io,
+        real_io=real_io,
+        bounded_playback_authorized=bounded_playback_authorized,
+        playback_fn=playback_fn,
+        capture_fn=capture_fn,
+        geometry=geometry,
+        real_hardware_claim=bool(real_io and bounded_playback_authorized),
+        development_seeds=(
+            DROPOUT_V5_DEVELOPMENT_SEEDS
+            if dropout_masked
+            else DROPOUT_V4_DEVELOPMENT_SEEDS if dropout_robust
+            else ROBUST_V3_DEVELOPMENT_SEEDS if robust
+            else CALIBRATED_V2_DEVELOPMENT_SEEDS if calibrated else None
+        ),
+        held_out_seeds=(
+            DROPOUT_V5_HELD_OUT_SEEDS
+            if dropout_masked
+            else DROPOUT_V4_HELD_OUT_SEEDS if dropout_robust
+            else ROBUST_V3_HELD_OUT_SEEDS if robust
+            else CALIBRATED_V2_HELD_OUT_SEEDS if calibrated else None
+        ),
+        protocol_variant=(variant if calibrated else None),
+        calibration_normalization_std_floor=(
+            CALIBRATED_V2_STD_FLOOR if calibrated else None
+        ),
+        acceptance_profile=(
+            "h2_condition_robustness_v3"
+            if robust or dropout_robust or dropout_masked
+            else "h2_predictive_advantage_v2" if calibrated else "original"
+        ),
+        trial_conditions=(
+            build_dropout_v5_trial_conditions()
+            if dropout_masked
+            else build_dropout_v4_trial_conditions() if dropout_robust
+            else build_robust_v3_trial_conditions() if robust else None
+        ),
+        signature_mode=(
+            "efference_masked_mean_30_5"
+            if dropout_masked
+            else "temporal_median_60_30" if dropout_robust else "full_spectrum"
+        ),
+        representation_selection_boundary=(
+            "selected on spent dropout-v4 synthetic matrix only"
+            if dropout_masked
+            else "selected on robustness-v3 development captures only" if dropout_robust
+            else "selected on attempt-2 development captures only"
+        ),
+    )
+
+
+def natural_prediction_design_cli(args: list[str]) -> dict[str, object]:
+    """Run the label-blind natural-stream design grid on external WAVs."""
+
+    root: str | None = None
+    participants: tuple[str, ...] | None = None
+    i = 1
+    while i < len(args):
+        option = args[i]
+        if i + 1 >= len(args):
+            raise ValueError(f"missing value for {option}")
+        value = args[i + 1]
+        if option == "--root":
+            root = value
+        elif option == "--participants":
+            participants = tuple(
+                item.strip() for item in value.split(",") if item.strip()
+            )
+        else:
+            raise ValueError(f"unknown option: {option}")
+        i += 2
+    if root is None or participants is None:
+        raise ValueError("--root and --participants are required")
+    return audit_natural_prediction_grid(root=root, participants=participants)
+
+
+def natural_event_cli(args: list[str]) -> dict[str, object]:
+    """Run the fixed event design audit or frozen cross-fieldsite transfer."""
+
+    values: dict[str, str] = {}
+    i = 1
+    while i < len(args):
+        option = args[i]
+        if i + 1 >= len(args):
+            raise ValueError(f"missing value for {option}")
+        values[option] = args[i + 1]
+        i += 2
+    command = args[0]
+    if command == "--evaluate-natural-event-design":
+        if {"--root", "--participants"} - values.keys():
+            raise ValueError("--root and --participants are required")
+        return audit_natural_event_grid(
+            root=values["--root"],
+            participants=tuple(values["--participants"].split(",")),
+        )
+    required = {
+        "--development-root",
+        "--development-participants",
+        "--held-out-root",
+        "--held-out-participants",
+    }
+    if required - values.keys():
+        raise ValueError("development and held-out roots/participants are required")
+    evaluator = (
+        evaluate_natural_event_ablations
+        if command == "--evaluate-natural-event-ablations"
+        else evaluate_natural_event_cross_fieldsite
+    )
+    evaluation_arguments = {
+        "development_root": values["--development-root"],
+        "development_participants": tuple(
+            values["--development-participants"].split(",")
+        ),
+        "config": NaturalEventConfig(),
+    }
+    if command == "--evaluate-natural-event-ablations":
+        return evaluator(
+            **evaluation_arguments,
+            evaluation_root=values["--held-out-root"],
+            evaluation_participants=tuple(
+                values["--held-out-participants"].split(",")
+            ),
+        )
+    return evaluator(
+        **evaluation_arguments,
+        held_out_root=values["--held-out-root"],
+        held_out_participants=tuple(values["--held-out-participants"].split(",")),
+    )
+
+
+def real_workspace_design_cli(args: list[str]) -> dict[str, object]:
+    """Run the spent Corollary H3 binding/interference design audit."""
+
+    if len(args) != 3 or args[1] != "--root":
+        raise ValueError("--evaluate-real-workspace-design requires --root DIR")
+    return evaluate_real_workspace_binding_design(root=args[2])
+
+
+def recorded_vowel_cli(args: list[str]) -> dict[str, object]:
+    """Evaluate the preregistered held-out VocalSet vowel subset."""
+
+    if len(args) != 5 or args[1] != "--root" or args[3] != "--manifest":
+        raise ValueError("--evaluate-recorded-vowels requires --root DIR --manifest FILE")
+    return evaluate_recorded_vowels(corpus_root=args[2], manifest_path=args[4])
+
+
+def structured_workspace_binding_cli(args: list[str]) -> dict[str, object]:
+    """Plan, inject, or run the preregistration-gated structured H3 protocol."""
+
+    if args == ["--evaluate-structured-workspace-binding"]:
+        return build_workspace_binding_protocol()
+    if args == ["--evaluate-structured-workspace-binding", "--fake-io"]:
+        return run_fake_workspace_binding_protocol()
+    if "--real-io" not in args:
+        raise ValueError(
+            "structured workspace binding accepts --fake-io or the gated --real-io route"
+        )
+
+    values: dict[str, str] = {}
+    authorized = False
+    index = 1
+    while index < len(args):
+        option = args[index]
+        if option == "--real-io":
+            index += 1
+            continue
+        if option == "--authorize-bounded-playback":
+            authorized = True
+            index += 1
+            continue
+        if option in {"--out-dir", "--preregistration"}:
+            if index + 1 >= len(args):
+                raise ValueError(f"{option} requires a value")
+            values[option] = args[index + 1]
+            index += 2
+            continue
+        raise ValueError(f"unknown structured workspace binding option: {option}")
+    for required in ("--out-dir", "--preregistration"):
+        if required not in values:
+            raise ValueError(f"structured workspace real I/O requires {required}")
+
+    preregistration_path = Path(values["--preregistration"])
+    preregistration = json.loads(preregistration_path.read_text())
+    root = Path(__file__).resolve().parents[2]
+    hash_paths = {
+        "implementation_sha256": root / "src/cora_infans/structured_workspace_binding.py",
+        "cli_sha256": root / "src/cora_infans/cli.py",
+        "io_sha256": root / "src/cora_infans/live_speak_smoke.py",
+        "protocol_sha256": root
+        / "docs/evidence/2026-07-10-structured-workspace-binding-protocol.json",
+        "standing_world_geometry_sha256": root
+        / "docs/evidence/2026-07-10-h3-standing-world-geometry.json",
+        "standing_self_placement_sha256": root
+        / "docs/evidence/2026-07-10-h3-standing-self-placement.json",
+    }
+    current_hashes = {
+        name: hashlib.sha256(path.read_bytes()).hexdigest()
+        for name, path in hash_paths.items()
+    }
+    hardware = preregistration.get("hardware")
+    if not isinstance(hardware, dict):
+        raise ValueError("structured workspace preregistration hardware mapping is missing")
+    input_route = hardware.get("input")
+    self_route = hardware.get("self_source")
+    world_route = hardware.get("world_source")
+    if not all(isinstance(route, dict) for route in (input_route, self_route, world_route)):
+        raise ValueError("structured workspace preregistration routes are missing")
+    assert isinstance(input_route, dict)
+    assert isinstance(self_route, dict)
+    assert isinstance(world_route, dict)
+    config = WorkspaceBindingConfig()
+    return run_workspace_binding_acquisition(
+        out_dir=values["--out-dir"],
+        self_playback=lambda path: play_wav_to_device(
+            path,
+            device_index=int(self_route["output_device_index"]),
+            sample_rate=config.sample_rate,
+            volume_db=float(self_route["playback_gain_db"]),
+        ),
+        world_playback=lambda path: play_wav_to_device(
+            path,
+            device_index=int(world_route["output_device_index"]),
+            sample_rate=config.sample_rate,
+            volume_db=float(world_route["playback_gain_db"]),
+        ),
+        capture_fn=lambda path, **kwargs: capture_to_wav(
+            path,
+            device=str(input_route["avfoundation_device"]),
+            **kwargs,
+        ),
+        config=config,
+        real_hardware_claim=True,
+        bounded_playback_authorized=authorized,
+        hardware_preregistration=preregistration,
+        current_hashes=current_hashes,
+    )
+
+
+def natural_speech_workspace_binding_cli(args: list[str]) -> dict[str, object]:
+    """Plan, audit spent speech, or run the gated natural-speech H3 task."""
+
+    if args == ["--evaluate-natural-speech-workspace-binding"]:
+        return build_natural_speech_protocol()
+    if len(args) == 4 and args[1] == "--spent-design" and args[2] == "--root":
+        return run_spent_natural_speech_design_gate(args[3])
+    if "--real-io" not in args:
+        raise ValueError(
+            "natural-speech workspace binding accepts no options, "
+            "--spent-design --root DIR, or the gated --real-io route"
+        )
+
+    values: dict[str, str] = {}
+    authorized = False
+    index = 1
+    while index < len(args):
+        option = args[index]
+        if option == "--real-io":
+            index += 1
+            continue
+        if option == "--authorize-bounded-playback":
+            authorized = True
+            index += 1
+            continue
+        if option in {"--root", "--out-dir", "--preregistration"}:
+            if index + 1 >= len(args):
+                raise ValueError(f"{option} requires a value")
+            values[option] = args[index + 1]
+            index += 2
+            continue
+        raise ValueError(f"unknown natural-speech workspace option: {option}")
+    for required in ("--root", "--out-dir", "--preregistration"):
+        if required not in values:
+            raise ValueError(f"natural-speech workspace real I/O requires {required}")
+
+    preregistration_path = Path(values["--preregistration"])
+    preregistration = json.loads(preregistration_path.read_text())
+    project_root = Path(__file__).resolve().parents[2]
+    hash_paths = {
+        "implementation_sha256": project_root
+        / "src/cora_infans/natural_speech_workspace_binding.py",
+        "cli_sha256": project_root / "src/cora_infans/cli.py",
+        "io_sha256": project_root / "src/cora_infans/live_speak_smoke.py",
+        "design_preregistration_sha256": project_root
+        / "docs/evidence/2026-07-11-natural-speech-workspace-design-preregistration.json",
+        "design_result_sha256": project_root
+        / "docs/evidence/2026-07-11-natural-speech-workspace-design-result.json",
+    }
+    current_hashes = {
+        name: hashlib.sha256(path.read_bytes()).hexdigest()
+        for name, path in hash_paths.items()
+    }
+    hardware = preregistration.get("hardware")
+    if not isinstance(hardware, dict):
+        raise ValueError("natural-speech workspace hardware mapping is missing")
+    input_route = hardware.get("input")
+    self_route = hardware.get("self_source")
+    world_route = hardware.get("world_source")
+    if not all(isinstance(route, dict) for route in (input_route, self_route, world_route)):
+        raise ValueError("natural-speech workspace routes are missing")
+    assert isinstance(input_route, dict)
+    assert isinstance(self_route, dict)
+    assert isinstance(world_route, dict)
+    return run_natural_speech_acquisition(
+        root=values["--root"],
+        out_dir=values["--out-dir"],
+        self_playback=lambda path: play_wav_to_device(
+            path,
+            device_index=int(self_route["output_device_index"]),
+            sample_rate=16000,
+            volume_db=float(self_route["playback_gain_db"]),
+        ),
+        world_playback=lambda path: play_wav_to_device(
+            path,
+            device_index=int(world_route["output_device_index"]),
+            sample_rate=16000,
+            volume_db=float(world_route["playback_gain_db"]),
+        ),
+        capture_fn=lambda path, **kwargs: capture_to_wav(
+            path,
+            device=str(input_route["avfoundation_device"]),
+            **kwargs,
+        ),
+        real_hardware_claim=True,
+        bounded_playback_authorized=authorized,
+        hardware_preregistration=preregistration,
+        current_hashes=current_hashes,
+    )
+
+
+def natural_speech_workspace_template_v2_cli(args: list[str]) -> dict[str, object]:
+    """Plan, audit spent data, or run gated template-v2 live acquisition."""
+
+    if args == ["--evaluate-natural-speech-workspace-template-v2"]:
+        return build_template_protocol()
+    if len(args) == 4 and args[1] == "--spent-design" and args[2] == "--root":
+        return run_spent_template_design_gate(args[3])
+    if "--real-io" not in args:
+        raise ValueError(
+            "template-v2 workspace accepts no options, --spent-design --root DIR, "
+            "or the gated --real-io route"
+        )
+    values: dict[str, str] = {}
+    authorized = False
+    index = 1
+    while index < len(args):
+        option = args[index]
+        if option == "--real-io":
+            index += 1
+            continue
+        if option == "--authorize-bounded-playback":
+            authorized = True
+            index += 1
+            continue
+        if option in {"--root", "--out-dir", "--preregistration"}:
+            if index + 1 >= len(args):
+                raise ValueError(f"{option} requires a value")
+            values[option] = args[index + 1]
+            index += 2
+            continue
+        raise ValueError(f"unknown template-v2 workspace option: {option}")
+    for required in ("--root", "--out-dir", "--preregistration"):
+        if required not in values:
+            raise ValueError(f"template-v2 real I/O requires {required}")
+    preregistration_path = Path(values["--preregistration"])
+    preregistration = json.loads(preregistration_path.read_text())
+    project_root = Path(__file__).resolve().parents[2]
+    hash_paths = {
+        "implementation_sha256": project_root
+        / "src/cora_infans/natural_speech_workspace_template_v2.py",
+        "cli_sha256": project_root / "src/cora_infans/cli.py",
+        "io_sha256": project_root / "src/cora_infans/live_speak_smoke.py",
+        "design_preregistration_sha256": project_root
+        / "docs/evidence/2026-07-11-natural-speech-workspace-template-v2-attempt-2-design-preregistration.json",
+        "design_result_sha256": project_root
+        / "docs/evidence/2026-07-11-natural-speech-workspace-template-v2-design-result.json",
+    }
+    current_hashes = {
+        name: hashlib.sha256(path.read_bytes()).hexdigest()
+        for name, path in hash_paths.items()
+    }
+    hardware = preregistration.get("hardware")
+    if not isinstance(hardware, dict):
+        raise ValueError("template-v2 hardware mapping is missing")
+    input_route = hardware.get("input")
+    self_route = hardware.get("self_source")
+    world_route = hardware.get("world_source")
+    if not all(isinstance(route, dict) for route in (input_route, self_route, world_route)):
+        raise ValueError("template-v2 hardware routes are missing")
+    assert isinstance(input_route, dict)
+    assert isinstance(self_route, dict)
+    assert isinstance(world_route, dict)
+    return run_template_live_acquisition(
+        root=values["--root"],
+        out_dir=values["--out-dir"],
+        self_playback=lambda path: play_wav_to_device(
+            path,
+            device_index=int(self_route["output_device_index"]),
+            sample_rate=16000,
+            volume_db=float(self_route["playback_gain_db"]),
+        ),
+        world_playback=lambda path: play_wav_to_device(
+            path,
+            device_index=int(world_route["output_device_index"]),
+            sample_rate=16000,
+            volume_db=float(world_route["playback_gain_db"]),
+        ),
+        capture_fn=lambda path, **kwargs: capture_to_wav(
+            path,
+            device=str(input_route["avfoundation_device"]),
+            **kwargs,
+        ),
+        real_hardware_claim=True,
+        bounded_playback_authorized=authorized,
+        hardware_preregistration=preregistration,
+        current_hashes=current_hashes,
+    )
+
+
+def natural_speech_workspace_spectral_v3_cli(args: list[str]) -> dict[str, object]:
+    """Plan or execute the final hash-gated spectral-v3 live task."""
+
+    if args == ["--evaluate-natural-speech-workspace-spectral-v3"]:
+        return build_spectral_protocol()
+    if "--real-io" not in args:
+        raise ValueError("spectral-v3 accepts no options or the gated --real-io route")
+    values: dict[str, str] = {}
+    authorized = False
+    index = 1
+    while index < len(args):
+        option = args[index]
+        if option == "--real-io":
+            index += 1
+        elif option == "--authorize-bounded-playback":
+            authorized = True
+            index += 1
+        elif option in {"--root", "--out-dir", "--preregistration"}:
+            if index + 1 >= len(args):
+                raise ValueError(f"{option} requires a value")
+            values[option] = args[index + 1]
+            index += 2
+        else:
+            raise ValueError(f"unknown spectral-v3 option: {option}")
+    for required in ("--root", "--out-dir", "--preregistration"):
+        if required not in values:
+            raise ValueError(f"spectral-v3 real I/O requires {required}")
+    preregistration = json.loads(Path(values["--preregistration"]).read_text())
+    project_root = Path(__file__).resolve().parents[2]
+    paths = {
+        "implementation_sha256": project_root / "src/cora_infans/natural_speech_workspace_spectral_v3.py",
+        "cli_sha256": project_root / "src/cora_infans/cli.py",
+        "io_sha256": project_root / "src/cora_infans/live_speak_smoke.py",
+        "design_preregistration_sha256": project_root / "docs/evidence/2026-07-11-natural-speech-workspace-spectral-v3-design-preregistration.json",
+        "design_result_sha256": project_root / "docs/evidence/2026-07-11-natural-speech-workspace-spectral-v3-design-result.json",
+    }
+    hashes = {name: hashlib.sha256(path.read_bytes()).hexdigest() for name, path in paths.items()}
+    hardware = preregistration.get("hardware")
+    if not isinstance(hardware, dict):
+        raise ValueError("spectral-v3 hardware mapping missing")
+    input_route = hardware["input"]
+    self_route = hardware["self_source"]
+    world_route = hardware["world_source"]
+    return run_spectral_live_acquisition(
+        root=values["--root"],
+        out_dir=values["--out-dir"],
+        self_playback=lambda path: play_wav_to_device(path, device_index=int(self_route["output_device_index"]), sample_rate=16000, volume_db=float(self_route["playback_gain_db"])),
+        world_playback=lambda path: play_wav_to_device(path, device_index=int(world_route["output_device_index"]), sample_rate=16000, volume_db=float(world_route["playback_gain_db"])),
+        capture_fn=lambda path, **kwargs: capture_to_wav(path, device=str(input_route["avfoundation_device"]), **kwargs),
+        real_hardware_claim=True,
+        bounded_playback_authorized=authorized,
+        hardware_preregistration=preregistration,
+        current_hashes=hashes,
+    )
+
+
+def same_source_forward_live_cli(args: list[str]) -> dict[str, object]:
+    """Plan or execute the hash-gated fresh same-source H3 task."""
+
+    if args == ["--evaluate-h3-same-source-forward-live"]:
+        return build_fresh_protocol()
+    if "--real-io" not in args:
+        raise ValueError(
+            "same-source live accepts no options or the gated --real-io route"
+        )
+    values: dict[str, str] = {}
+    authorized = False
+    index = 1
+    while index < len(args):
+        option = args[index]
+        if option == "--real-io":
+            index += 1
+        elif option == "--authorize-bounded-playback":
+            authorized = True
+            index += 1
+        elif option in {"--root", "--out-dir", "--preregistration"}:
+            if index + 1 >= len(args):
+                raise ValueError(f"{option} requires a value")
+            values[option] = args[index + 1]
+            index += 2
+        else:
+            raise ValueError(f"unknown same-source live option: {option}")
+    for required in ("--root", "--out-dir", "--preregistration"):
+        if required not in values:
+            raise ValueError(f"same-source live real I/O requires {required}")
+    preregistration = json.loads(Path(values["--preregistration"]).read_text())
+    project_root = Path(__file__).resolve().parents[2]
+    paths = {
+        "implementation_sha256": project_root
+        / "src/cora_infans/same_source_forward_live.py",
+        "forward_model_sha256": project_root
+        / "src/cora_infans/same_source_forward_model.py",
+        "cli_sha256": project_root / "src/cora_infans/cli.py",
+        "io_sha256": project_root / "src/cora_infans/live_speak_smoke.py",
+        "design_preregistration_sha256": project_root
+        / "docs/evidence/2026-07-11-h3-same-source-forward-model-live-design-preregistration.json",
+        "development_result_sha256": project_root
+        / "docs/evidence/2026-07-11-h3-same-source-forward-model-development-result.json",
+    }
+    hashes = {
+        name: hashlib.sha256(path.read_bytes()).hexdigest()
+        for name, path in paths.items()
+    }
+    hardware = preregistration.get("hardware")
+    if not isinstance(hardware, dict):
+        raise ValueError("same-source live hardware mapping missing")
+    input_route = hardware["input"]
+    self_route = hardware["self_source"]
+    world_route = hardware["world_source"]
+    return run_fresh_live_acquisition(
+        root=values["--root"],
+        out_dir=values["--out-dir"],
+        self_playback=lambda path: play_wav_to_device(
+            path,
+            device_index=int(self_route["output_device_index"]),
+            sample_rate=16000,
+            volume_db=float(self_route["playback_gain_db"]),
+        ),
+        world_playback=lambda path: play_wav_to_device(
+            path,
+            device_index=int(world_route["output_device_index"]),
+            sample_rate=16000,
+            volume_db=float(world_route["playback_gain_db"]),
+        ),
+        capture_fn=lambda path, **kwargs: capture_to_wav(
+            path, device=str(input_route["avfoundation_device"]), **kwargs
+        ),
+        real_hardware_claim=True,
+        bounded_playback_authorized=authorized,
+        hardware_preregistration=preregistration,
+        current_hashes=hashes,
+    )
 
 
 def synthesize_vowel_cli(args: list[str] | None = None) -> dict[str, object]:
@@ -604,6 +1750,321 @@ def synthesize_vowel_cli(args: list[str] | None = None) -> dict[str, object]:
             "f3_hz": plan.f3_hz,
         }
     return report
+
+
+def evaluate_vowel_loop_cli(args: list[str] | None = None) -> dict[str, object]:
+    parsed = args or ["--evaluate-vowel-loop"]
+    duration_ms = 300
+    minimum_accuracy = 0.9
+    i = 1
+    while i < len(parsed):
+        if i + 1 >= len(parsed):
+            raise ValueError(f"missing value for {parsed[i]}")
+        option, value = parsed[i], parsed[i + 1]
+        if option == "--duration-ms":
+            duration_ms = int(value)
+        elif option == "--minimum-accuracy":
+            minimum_accuracy = float(value)
+        else:
+            raise ValueError(f"unknown option: {option}")
+        i += 2
+    return evaluate_vowel_round_trip(
+        duration_ms=duration_ms,
+        minimum_accuracy=minimum_accuracy,
+    )
+
+
+def benchmark_core_cli(args: list[str] | None = None) -> dict[str, object]:
+    parsed = args or ["--benchmark-core"]
+    iterations = 1000
+    frame_ms = 25
+    i = 1
+    while i < len(parsed):
+        if i + 1 >= len(parsed):
+            raise ValueError(f"missing value for {parsed[i]}")
+        option, value = parsed[i], parsed[i + 1]
+        if option == "--iterations":
+            iterations = int(value)
+        elif option == "--frame-ms":
+            frame_ms = int(value)
+        else:
+            raise ValueError(f"unknown option: {option}")
+        i += 2
+    return benchmark_event_pipeline(iterations=iterations, frame_ms=frame_ms)
+
+
+def energy_workload_cli(args: list[str] | None = None) -> dict[str, object]:
+    parsed = args or ["--energy-workload"]
+    mode: str | None = None
+    duration_seconds = 10.0
+    i = 1
+    while i < len(parsed):
+        if i + 1 >= len(parsed):
+            raise ValueError(f"missing value for {parsed[i]}")
+        option, value = parsed[i], parsed[i + 1]
+        if option == "--mode":
+            mode = value
+        elif option == "--duration-seconds":
+            duration_seconds = float(value)
+        else:
+            raise ValueError(f"unknown option: {option}")
+        i += 2
+    if mode is None:
+        raise ValueError("--energy-workload requires --mode cora|conventional")
+    return run_sustained_energy_workload(
+        mode=mode, duration_seconds=duration_seconds
+    )
+
+
+def validate_stage6_operating_point_cli(
+    args: list[str] | None = None,
+) -> dict[str, object]:
+    parsed = args or ["--validate-stage6-operating-point"]
+    if len(parsed) != 3 or parsed[1] != "--report":
+        raise ValueError(
+            "--validate-stage6-operating-point requires --report REPORT.json"
+        )
+    report = json.loads(Path(parsed[2]).read_text())
+    if not isinstance(report, dict):
+        raise ValueError("Stage 6 operating-point report must be a JSON object")
+    return evaluate_stage6_operating_point(report)
+
+
+def operational_readiness_cli(args: list[str] | None = None) -> dict[str, object]:
+    parsed = args or ["--operational-readiness"]
+    evidence_dir: str | Path = repository_evidence_dir()
+    if len(parsed) == 3 and parsed[1] == "--evidence-dir":
+        evidence_dir = parsed[2]
+    elif len(parsed) != 1:
+        raise ValueError(
+            "--operational-readiness accepts only [--evidence-dir DIR]"
+        )
+    return build_operational_readiness_report(evidence_dir)
+
+
+def operational_preflight_cli(args: list[str] | None = None) -> dict[str, object]:
+    parsed = args or ["--operational-preflight"]
+    if len(parsed) != 3 or parsed[1] != "--manifest":
+        raise ValueError("--operational-preflight requires --manifest FILE.json")
+    return build_operational_preflight(load_operating_point_manifest(parsed[2]))
+
+
+def run_operational_acceptance_cli(
+    args: list[str] | None = None,
+) -> dict[str, object]:
+    parsed = args or ["--run-operational-acceptance"]
+    manifest_path: str | None = None
+    stimulus_wav: str | None = None
+    output_dir: str | None = None
+    authorized = False
+    i = 1
+    while i < len(parsed):
+        option = parsed[i]
+        if option == "--authorize-live-io":
+            authorized = True
+            i += 1
+            continue
+        if i + 1 >= len(parsed):
+            raise ValueError(f"missing value for {option}")
+        value = parsed[i + 1]
+        if option == "--manifest":
+            manifest_path = value
+        elif option == "--stimulus-wav":
+            stimulus_wav = value
+        elif option == "--output-dir":
+            output_dir = value
+        else:
+            raise ValueError(f"unknown option: {option}")
+        i += 2
+    if not authorized:
+        raise ValueError("live operational acceptance requires --authorize-live-io")
+    if manifest_path is None or stimulus_wav is None or output_dir is None:
+        raise ValueError(
+            "--run-operational-acceptance requires --manifest, --stimulus-wav, "
+            "--output-dir, and --authorize-live-io"
+        )
+    profile = OPERATIONAL_CONTRACT["stage6"]["acceptance_profile"]
+
+    def live_runner(path: str) -> dict[str, object]:
+        return listen_live(
+            [
+                "--listen-live",
+                "--device",
+                str(OPERATIONAL_CONTRACT["stage6"]["input"]["device_selector"]),
+                "--duration-ms",
+                str(int(profile["frame_ms"]) * int(profile["target_frame_count"])),
+                "--frame-ms",
+                str(profile["frame_ms"]),
+                "--sample-rate",
+                str(OPERATIONAL_CONTRACT["stage6"]["input"]["sample_rate_hz"]),
+                "--capture-backend",
+                "callback",
+                "--stimulus-wav",
+                path,
+                "--stimulus-volume-db",
+                str(profile["software_playback_gain_db"]),
+            ]
+        )
+
+    return run_operational_acceptance(
+        manifest=load_operating_point_manifest(manifest_path),
+        stimulus_wav=stimulus_wav,
+        output_dir=output_dir,
+        live_runner=live_runner,
+    )
+
+
+def speech_learning_demo_cli(
+    args: list[str] | None = None,
+) -> dict[str, object]:
+    parsed = args or ["--demo-speech-learning"]
+    scenario = "cross-configuration"
+    output_dir: str | None = None
+    vowels: tuple[str, ...] = DEMO_VOWELS
+    i = 1
+    while i < len(parsed):
+        if i + 1 >= len(parsed):
+            raise ValueError(f"missing value for {parsed[i]}")
+        option = parsed[i]
+        value = parsed[i + 1]
+        if option == "--scenario":
+            scenario = value
+        elif option == "--output-dir":
+            output_dir = value
+        elif option == "--vowel":
+            vowels = DEMO_VOWELS if value == "all" else (value,)
+        else:
+            raise ValueError(f"unknown option: {option}")
+        i += 2
+    if output_dir is None:
+        raise ValueError("--demo-speech-learning requires --output-dir DIR")
+    return run_speech_learning_demo(
+        scenario=scenario,
+        output_dir=output_dir,
+        vowels=vowels,
+    )
+
+
+def capture_vocal_imitation_cli(args: list[str]) -> dict[str, object]:
+    values: dict[str, str] = {}
+    authorized = False
+    index = 1
+    while index < len(args):
+        option = args[index]
+        if option == "--authorize-project-owner-recording":
+            authorized = True
+            index += 1
+            continue
+        if option not in {"--session-dir", "--target", "--role", "--take"}:
+            raise ValueError(f"unknown option: {option}")
+        if index + 1 >= len(args):
+            raise ValueError(f"missing value for {option}")
+        values[option] = args[index + 1]
+        index += 2
+    for required in ("--session-dir", "--target", "--role", "--take"):
+        if required not in values:
+            raise ValueError(f"--capture-vocal-imitation requires {required}")
+    return capture_project_owner_take(
+        session_dir=values["--session-dir"],
+        target_key=values["--target"],
+        role=values["--role"],
+        take=int(values["--take"]),
+        authorized=authorized,
+    )
+
+
+def run_vocal_imitation_cli(args: list[str]) -> dict[str, object]:
+    values: dict[str, str] = {}
+    index = 1
+    while index < len(args):
+        option = args[index]
+        if option not in {"--session-dir", "--output-dir"}:
+            raise ValueError(f"unknown option: {option}")
+        if index + 1 >= len(args):
+            raise ValueError(f"missing value for {option}")
+        values[option] = args[index + 1]
+        index += 2
+    if "--session-dir" not in values:
+        raise ValueError("--run-vocal-imitation requires --session-dir")
+    return run_project_owner_vocal_imitation(
+        session_dir=values["--session-dir"],
+        output_dir=values.get("--output-dir"),
+    )
+
+
+def freeze_vocal_imitation_development_cli(args: list[str]) -> dict[str, object]:
+    if len(args) != 3 or args[1] != "--session-dir":
+        raise ValueError(
+            "--freeze-vocal-imitation-development requires --session-dir DIR"
+        )
+    return freeze_project_owner_development(session_dir=args[2])
+
+
+def prepare_ids_manifest_cli(args: list[str] | None = None) -> dict[str, object]:
+    parsed = args or ["--prepare-ids-manifest"]
+    root: str | None = None
+    output: str | None = None
+    held_out_fraction = 0.2
+    include_song = False
+    i = 1
+    while i < len(parsed):
+        option = parsed[i]
+        if option == "--include-song":
+            include_song = True
+            i += 1
+            continue
+        if i + 1 >= len(parsed):
+            raise ValueError(f"missing value for {option}")
+        value = parsed[i + 1]
+        if option == "--root":
+            root = value
+        elif option == "--out":
+            output = value
+        elif option == "--held-out-fraction":
+            held_out_fraction = float(value)
+        else:
+            raise ValueError(f"unknown option: {option}")
+        i += 2
+    if root is None or output is None:
+        raise ValueError("--root and --out are required")
+    return build_ids_manifest(
+        root,
+        output,
+        held_out_fraction=held_out_fraction,
+        include_song=include_song,
+    )
+
+
+def prepare_corollary_manifest_cli(args: list[str] | None = None) -> dict[str, object]:
+    parsed = args or ["--prepare-corollary-manifest"]
+    root: str | None = None
+    output: str | None = None
+    sample_rate = 16000
+    held_out_seeds = (2,)
+    i = 1
+    while i < len(parsed):
+        if i + 1 >= len(parsed):
+            raise ValueError(f"missing value for {parsed[i]}")
+        option, value = parsed[i], parsed[i + 1]
+        if option == "--root":
+            root = value
+        elif option == "--out":
+            output = value
+        elif option == "--sample-rate":
+            sample_rate = int(value)
+        elif option == "--held-out-seeds":
+            held_out_seeds = tuple(int(seed) for seed in value.split(","))
+        else:
+            raise ValueError(f"unknown option: {option}")
+        i += 2
+    if root is None or output is None:
+        raise ValueError("--root and --out are required")
+    return build_corollary_capture_manifest(
+        root,
+        output,
+        sample_rate=sample_rate,
+        held_out_seeds=held_out_seeds,
+    )
 
 
 def simulate_self_suppression_cli(args: list[str]) -> dict[str, object]:
@@ -1187,6 +2648,79 @@ def main(argv: list[str] | None = None) -> int:
     if args == ["--describe"]:
         print(json.dumps(describe()))
         return 0
+    if args == ["--show-operational-contract"]:
+        print(json.dumps(OPERATIONAL_CONTRACT))
+        return 0
+    if args and args[0] == "--validate-stage6-operating-point":
+        try:
+            print(json.dumps(validate_stage6_operating_point_cli(args)))
+            return 0
+        except (ValueError, OSError, json.JSONDecodeError) as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
+    if args and args[0] == "--operational-readiness":
+        try:
+            report = operational_readiness_cli(args)
+            print(json.dumps(report))
+            return 0 if report["operational_evidence_ready"] is True else 1
+        except (
+            ValueError,
+            OSError,
+            json.JSONDecodeError,
+            KeyError,
+            TypeError,
+            AttributeError,
+        ) as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
+    if args and args[0] == "--operational-preflight":
+        try:
+            report = operational_preflight_cli(args)
+            print(json.dumps(report))
+            return 0 if report["preflight_passed"] is True else 1
+        except (ValueError, OSError, KeyError, TypeError, AttributeError) as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
+    if args and args[0] == "--run-operational-acceptance":
+        try:
+            report = run_operational_acceptance_cli(args)
+            print(json.dumps(report))
+            return 0 if report["operational_acceptance_passed"] is True else 1
+        except (ValueError, OSError, KeyError, TypeError, AttributeError) as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
+    if args and args[0] == "--demo-speech-learning":
+        try:
+            report = speech_learning_demo_cli(args)
+            print(json.dumps(report))
+            return 0 if report["demo_passed"] is True else 1
+        except (ValueError, OSError, KeyError, TypeError, AttributeError) as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
+    if args and args[0] == "--capture-vocal-imitation":
+        try:
+            report = capture_vocal_imitation_cli(args)
+            print(json.dumps(report))
+            return 0 if report["capture_passed"] is True else 1
+        except (ValueError, OSError, KeyError, TypeError, AttributeError, LiveMicError) as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
+    if args and args[0] == "--run-vocal-imitation":
+        try:
+            report = run_vocal_imitation_cli(args)
+            print(json.dumps(report))
+            return 0 if report["demo_passed"] is True else 1
+        except (ValueError, OSError, KeyError, TypeError, AttributeError, json.JSONDecodeError) as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
+    if args and args[0] == "--freeze-vocal-imitation-development":
+        try:
+            report = freeze_vocal_imitation_development_cli(args)
+            print(json.dumps(report))
+            return 0 if report["development_passed"] is True else 1
+        except (ValueError, OSError, KeyError, TypeError, AttributeError, json.JSONDecodeError) as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
     if args and args[0] == "--simulate-frame":
         try:
             simulation_params, output_mode = parse_simulation_cli_args(args)
@@ -1225,9 +2759,142 @@ def main(argv: list[str] | None = None) -> int:
         except ValueError as exc:
             print(str(exc), file=sys.stderr)
             return 2
+    if args and args[0] == "--fit-register-scorer":
+        try:
+            print(json.dumps(fit_register_scorer_cli(args)))
+            return 0
+        except (ValueError, OSError, json.JSONDecodeError) as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
+    if args and args[0] == "--eval-register-scorer":
+        try:
+            print(json.dumps(eval_register_scorer_cli(args)))
+            return 0
+        except (ValueError, OSError, json.JSONDecodeError) as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
+    if args and args[0] == "--eval-register-pipeline":
+        try:
+            print(json.dumps(eval_register_pipeline_cli(args)))
+            return 0
+        except (ValueError, OSError, json.JSONDecodeError) as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
+    if args and args[0] == "--evaluate-structured-prediction":
+        try:
+            print(json.dumps(structured_prediction_cli(args)))
+            return 0
+        except (ValueError, OSError) as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
+    if args and args[0] == "--evaluate-natural-prediction-design":
+        try:
+            print(json.dumps(natural_prediction_design_cli(args)))
+            return 0
+        except (ValueError, OSError) as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
+    if args and args[0] in {
+        "--evaluate-natural-event-design",
+        "--evaluate-natural-event-transfer",
+        "--evaluate-natural-event-ablations",
+    }:
+        try:
+            print(json.dumps(natural_event_cli(args)))
+            return 0
+        except (ValueError, OSError) as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
+    if args and args[0] == "--evaluate-real-workspace-design":
+        try:
+            print(json.dumps(real_workspace_design_cli(args)))
+            return 0
+        except (ValueError, OSError, json.JSONDecodeError) as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
+    if args and args[0] == "--evaluate-recorded-vowels":
+        try:
+            print(json.dumps(recorded_vowel_cli(args)))
+            return 0
+        except (ValueError, OSError, json.JSONDecodeError) as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
+    if args and args[0] == "--evaluate-structured-workspace-binding":
+        try:
+            print(json.dumps(structured_workspace_binding_cli(args)))
+            return 0
+        except (ValueError, OSError) as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
+    if args and args[0] == "--evaluate-natural-speech-workspace-binding":
+        try:
+            print(json.dumps(natural_speech_workspace_binding_cli(args)))
+            return 0
+        except (ValueError, OSError) as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
+    if args and args[0] == "--evaluate-natural-speech-workspace-template-v2":
+        try:
+            print(json.dumps(natural_speech_workspace_template_v2_cli(args)))
+            return 0
+        except (ValueError, OSError) as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
+    if args and args[0] == "--evaluate-natural-speech-workspace-spectral-v3":
+        try:
+            print(json.dumps(natural_speech_workspace_spectral_v3_cli(args)))
+            return 0
+        except (ValueError, OSError, KeyError) as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
+    if args and args[0] == "--evaluate-h3-same-source-forward-live":
+        try:
+            print(json.dumps(same_source_forward_live_cli(args)))
+            return 0
+        except (ValueError, OSError, KeyError) as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
     if args and args[0] == "--synthesize-vowel":
         try:
             print(json.dumps(synthesize_vowel_cli(args)))
+            return 0
+        except ValueError as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
+    if args and args[0] == "--evaluate-vowel-loop":
+        try:
+            print(json.dumps(evaluate_vowel_loop_cli(args)))
+            return 0
+        except ValueError as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
+    if args and args[0] == "--benchmark-core":
+        try:
+            print(json.dumps(benchmark_core_cli(args)))
+            return 0
+        except ValueError as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
+    if args and args[0] == "--energy-workload":
+        try:
+            print(json.dumps(energy_workload_cli(args)))
+            return 0
+        except ValueError as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
+    if args == ["--evaluate-workspace-ablation"]:
+        print(json.dumps(run_workspace_ablation()))
+        return 0
+    if args and args[0] == "--prepare-ids-manifest":
+        try:
+            print(json.dumps(prepare_ids_manifest_cli(args)))
+            return 0
+        except ValueError as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
+    if args and args[0] == "--prepare-corollary-manifest":
+        try:
+            print(json.dumps(prepare_corollary_manifest_cli(args)))
             return 0
         except ValueError as exc:
             print(str(exc), file=sys.stderr)
@@ -1297,13 +2964,34 @@ def main(argv: list[str] | None = None) -> int:
             return 2
 
     print(
-        "usage: python -m cora_infans --describe | --simulate-frame | --simulate-sequence "
+        "usage: python -m cora_infans --describe | --show-operational-contract | --operational-readiness [--evidence-dir DIR] | --operational-preflight --manifest FILE.json | --run-operational-acceptance --manifest FILE.json --stimulus-wav FILE.wav --output-dir DIR --authorize-live-io | --demo-speech-learning --output-dir DIR [--scenario synthetic-mirror|cross-configuration] [--vowel a|i|u|all] | --capture-vocal-imitation --session-dir DIR --target a|i|u --role development|confirmation --take N --authorize-project-owner-recording | --freeze-vocal-imitation-development --session-dir DIR | --run-vocal-imitation --session-dir DIR [--output-dir DIR] | --validate-stage6-operating-point --report REPORT.json | --simulate-frame | --simulate-sequence "
         "[--timestamp-ms N --dominant-frequency-hz F --channel-energies a,b,c,d --initial-prediction-hz F --mic-geometry l0,l1,l2,l3 --saliency-threshold F --output json|pretty] "
         "[--family sweep|zigzag|gap|multi_gap|delayed_recovery] [--with-scheduling] "
         "[--capture-live [--device :0] [--duration-ms N]] "
-        "[--listen-live [--duration-ms N] [--frame-ms N] [--with-stimulus] [--with-attention] [--with-scheduling] [--saliency-threshold F] [--with-motor-imitation [--real-io [--output-device-index 2] [--imitation-device-index 3] [--with-self-subtraction] [--volume-db F] [--latency-anchor PATH]]]] "
-        "[--eval-corpus --root DIR --label-csv FILE [--saliency-threshold F] [--frame-ms N]] "
+        "[--listen-live [--duration-ms N] [--frame-ms N] [--sample-rate N] [--capture-backend auto|native|callback|ffmpeg] [--with-stimulus|--stimulus-wav PATH [--stimulus-volume-db F]] [--with-attention] [--with-scheduling] [--saliency-threshold F] [--with-motor-imitation [--real-io [--output-device-index 2] [--imitation-device-index 3] [--with-self-subtraction] [--volume-db F] [--latency-anchor PATH]]]] "
+        "[--eval-corpus --root DIR --label-csv FILE [--saliency-threshold F] [--frame-ms N] [--score-mode peak_rms|spatial_contrast] [--input-mode wav|recorded_npy|synthetic_fixture] [--compare-baselines] [--evaluate-prediction FEATURE] [--evaluate-online-safety FEATURE[,FEATURE]] [--positive-label LABEL[,LABEL]]] "
         "[--synthesize-vowel a|e|i|o|u --out PATH.wav [--duration-ms N] [--sample-rate N] [--f0-hz F] [--analyze]] "
+        "[--evaluate-vowel-loop [--duration-ms N] [--minimum-accuracy F]] "
+        "[--benchmark-core [--iterations N] [--frame-ms N]] "
+        "[--energy-workload --mode cora|conventional [--duration-seconds F]] "
+        "[--evaluate-workspace-ablation] "
+        "[--prepare-ids-manifest --root DIR --out labels.csv [--held-out-fraction F] [--include-song]] "
+        "[--prepare-corollary-manifest --root DIR --out labels.csv [--sample-rate N] [--held-out-seeds csv]] "
+        "[--fit-register-scorer --source ROOT::LABEL_CSV [--source ROOT::LABEL_CSV] --out MODEL.json] "
+        "[--eval-register-scorer --model MODEL.json --root DIR --label-csv FILE] "
+        "[--eval-register-pipeline --model MODEL.json --vocal-root DIR --vocal-label-csv FILE --environmental-root DIR --environmental-label-csv FILE] "
+        "[--evaluate-structured-prediction --out-dir DIR [--variant original|calibrated_v2|robustness_v3|dropout_v4|dropout_v5] [--fake-io | --real-io --authorize-bounded-playback --input-device :0 --output-device-index 2 --speaker-distance-cm N --speaker-orientation TEXT --quiet-room-confirmed]] "
+        "[--evaluate-natural-prediction-design --root DIR --participants ID,ID,ID] "
+        "[--evaluate-natural-event-design --root DIR --participants ID,ID,ID] "
+        "[--evaluate-natural-event-transfer --development-root DIR --development-participants ID,ID --held-out-root DIR --held-out-participants ID,ID] "
+        "[--evaluate-natural-event-ablations --development-root DIR --development-participants ID,ID --held-out-root DIR --held-out-participants ID,ID] "
+        "[--evaluate-real-workspace-design --root COROLLARY_M2_BASELINE_DIR] "
+        "[--evaluate-recorded-vowels --root VOCALSET_SUBSET_DIR --manifest FILE] "
+        "[--evaluate-structured-workspace-binding [--fake-io | --real-io --out-dir DIR --preregistration FILE --authorize-bounded-playback]] "
+        "[--evaluate-natural-speech-workspace-binding [--spent-design --root DIR | --real-io --root DIR --out-dir DIR --preregistration FILE --authorize-bounded-playback]] "
+        "[--evaluate-natural-speech-workspace-template-v2 [--spent-design --root DIR | --real-io --root DIR --out-dir DIR --preregistration FILE --authorize-bounded-playback]] "
+        "[--evaluate-natural-speech-workspace-spectral-v3 [--real-io --root DIR --out-dir DIR --preregistration FILE --authorize-bounded-playback]] "
+        "[--evaluate-h3-same-source-forward-live [--real-io --root DIR --out-dir DIR --preregistration FILE --authorize-bounded-playback]] "
         "[--simulate-self-suppression [--vowel a|e|i|o|u] [--world-vowel a|e|i|o|u] [--world-gain F] [--duration-ms N] [--sample-rate N]] "
         "[--learn-self-forward-model [--vowel a|e|i|o|u] [--observed-delay-ms F] [--observed-attenuation F] [--observed-echo-decay F] [--world-vowel a|e|i|o|u] [--world-gain F]] "
         "[--sweep-self-forward-model [--vowel a|e|i|o|u] [--delay-errors-ms csv] [--attenuation-scales csv] [--echo-decay-scales csv] [--world-vowel a|e|i|o|u] [--world-gain F]] "

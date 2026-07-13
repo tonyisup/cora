@@ -1,0 +1,19 @@
+{
+  "experiment": "natural_speech_workspace_binding_template_v2_design",
+  "date": "2026-07-11",
+  "attempt": 2,
+  "status": "frozen_before_any_v2_candidate_metric_or_new_live_playback",
+  "parent_preregistration": "docs/evidence/2026-07-11-natural-speech-workspace-template-v2-design-preregistration.json",
+  "parent_block": "docs/evidence/2026-07-11-natural-speech-workspace-template-v2-attempt-1-block.json",
+  "incorporation_rule": "All candidate, protocol, source, normalization, level, gate, live-boundary, and claim-boundary fields from the parent preregistration are incorporated unchanged except the single TSI09D.wav digest correction below.",
+  "only_change": {
+    "field": "stimulus_boundary.development_pairs[2].self.sha256",
+    "filename": "TSI09D.wav",
+    "incorrect_parent_value": "a06c60f533a1c1e2af77687ab2f315b76499b1b4afe88de9f25d9aa0c2848a",
+    "corrected_value": "a06c60f533a1c1c1e2af77687ab2f315b76499b1b4afe88de9f25d9aa0c2848a"
+  },
+  "candidate_metrics_seen_before_freeze": false,
+  "live_io_opened_before_freeze": false,
+  "decision_rule": "Run the unchanged v2 design gate only after implementation uses the corrected 64-character digest. Any further source mismatch blocks the attempt without metrics.",
+  "promotion_allowed": false
+}

@@ -1,0 +1,97 @@
+{
+  "mode": "h3_same_source_forward_model_real_preregistration",
+  "date": "2026-07-11",
+  "status": "preregistered_before_live_execution",
+  "bounded_playback_capture_authorized": true,
+  "authorization_basis": "User approved proceeding with H3 and previously authorized bounded live audio runs while preserving the standing geometry.",
+  "development_gate_passed": true,
+  "development_result": "docs/evidence/2026-07-11-h3-same-source-forward-model-development-result.json",
+  "implementation_commit": "937e9cb",
+  "frozen_hashes": {
+    "implementation_sha256": "1a75a14d5cecaae45a408f1beda84cd4c7c2628f58485dd7283a4b8ab92edd59",
+    "forward_model_sha256": "b5816ffc3a6289199eb6d01db6da080bb4f43406387759f226a9cf7cc8bb4c75",
+    "cli_sha256": "cacd5beb35a00d1fa4b57d4d69f73e962de9a07e238e628328919392cd8f5971",
+    "io_sha256": "1cf10155c49dc32406b4936504f5af452be335ea73ee08f2d7a6fc7437f3f34b",
+    "design_preregistration_sha256": "003c59d249ebe2e94ef3cd78a78e3b638377a1679bcd473fefa1ddf1c586ecb6",
+    "development_result_sha256": "c753e877fb8371615de7c44830412a16d315257a4c58081912dbbeb79b55e85b"
+  },
+  "hardware": {
+    "input": {
+      "avfoundation_device": ":0",
+      "device": "reSpeaker XVF3800 4-Mic Array",
+      "channels": 2,
+      "sample_rate": 16000
+    },
+    "self_source": {
+      "output_device_index": 3,
+      "output_device": "Mac mini Speakers",
+      "placement": "centered_directly_below_xvf3800",
+      "vertical_distance_cm": 4,
+      "system_volume_percent": 100,
+      "playback_gain_db": -24.0
+    },
+    "world_source": {
+      "output_device_index": 2,
+      "output_device": "External Headphones",
+      "angle_degrees": 180,
+      "distance_cm": 50,
+      "hardware_volume": "approximately_50_percent_mechanical_travel",
+      "playback_gain_db": -3.0
+    },
+    "environment": {
+      "room": "semi-quiet",
+      "known_background": "laptop fan"
+    },
+    "coreaudio_routes_verified_before_preregistration": true
+  },
+  "stimuli": {
+    "root": "/private/tmp/cora-ids-spent-200",
+    "design_and_source_hashes": "docs/evidence/2026-07-11-h3-same-source-forward-model-live-design-preregistration.json",
+    "self_commands": ["ACO02D.wav", "ARA11D.wav", "BEJ01D.wav"],
+    "world_sources": ["HAD01B.wav", "JEN03B.wav", "KRA01B.wav"],
+    "all_six_files_unused_in_prior_h3_live_panels": true,
+    "all_six_source_hashes_verified_before_output_creation": true,
+    "runtime_labels_consumed": false
+  },
+  "frozen_representation": {
+    "name": "command_conditioned_same_source_log_spectral_forward_model",
+    "path_signature": [-3.541044649854652, -1.4608502433245825, 0.21202144571594092, -0.7031888845356769, -0.810325713732748, -0.265919924154207, 1.7705916353027555, 2.2948114215550075, 0.6793604152251167, 1.396976527801285, 0.7414630591118022, -0.31389508911003894],
+    "calibration_count": 9,
+    "state_scalars": 13,
+    "threshold": 0.3005643307398186,
+    "bands": 12,
+    "frequency_range_hz": [80, 7600],
+    "workspace_slots": 3,
+    "per_new_utterance_sensory_templates": 0,
+    "new_utterance_calibration_trials": 0,
+    "fresh_updates_allowed": false,
+    "strategies": ["flat", "fixed_self_window", "scheduled_identity_plus_same_source_forward_model"],
+    "capacity_sweep": [1, 2, 3, 4]
+  },
+  "bounds": {
+    "trial_count": 9,
+    "per_trial_playback_seconds_max": 2.0,
+    "total_playback_seconds_max": 25.0,
+    "total_capture_seconds_max": 45.0,
+    "planned_playback_seconds": 8.28,
+    "planned_capture_seconds": 13.68
+  },
+  "acceptance": {
+    "selected_capacity": 3,
+    "scheduled_f1_min": 0.90,
+    "scheduled_minus_flat_f1_min": 0.20,
+    "scheduled_world_recall_min": 0.90,
+    "scheduled_self_suppression_specificity_min": 0.90,
+    "fixed_window_world_recall_must_be_below_scheduled": true,
+    "capacity_one_f1_must_be_below_capacity_three": true,
+    "capacity_three_f1_must_equal_capacity_four": true,
+    "all_9_captures_and_alignments_required": true,
+    "no_clipped_capture_samples_required": true,
+    "no_new_utterance_calibration_consumed": true
+  },
+  "run_policy": "Run all nine trials once. Retain any post-playback failure. No source substitution, model update, threshold change, representation retry, level change, or geometry change follows inspection of fresh audio.",
+  "command": ".venv/bin/python -m cora_infans --evaluate-h3-same-source-forward-live --real-io --root /private/tmp/cora-ids-spent-200 --out-dir docs/evidence/2026-07-11-h3-same-source-forward-model-real-artifacts --preregistration docs/evidence/2026-07-11-h3-same-source-forward-model-real-preregistration.json --authorize-bounded-playback",
+  "interpretation_rule": "A full pass extends H3 from an exact replay template to a prior-session bounded forward model applied to three unseen commanded utterances at the same physical source and geometry. A failure is retained and preserves only the existing exact-efference H3 boundary.",
+  "claim_boundary": "This is same-physical-source command-conditioned prediction, not human speaker recognition, Cora-generated language, room or geometry transfer, arbitrary self sounds, semantics, calibrated SPL, or biological corollary discharge.",
+  "unresolved_fields": []
+}

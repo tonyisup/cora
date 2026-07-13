@@ -1,0 +1,65 @@
+{
+  "experiment": "natural_event_prediction_beijing_to_ara_replication",
+  "date": "2026-07-10",
+  "status": "fully_preregistered_before_fresh_audio_fetch",
+  "relationship_to_prior_result": "independent fieldsite replication with no Wellington adaptation",
+  "frozen_hashes": {
+    "implementation_sha256": "d44754a5dd06095f2767de62755da5b5255b66b3648894ede3b0479c077d6418",
+    "cli_sha256": "0ad4e411f89ae284db3fdb3ef22375b293d93614bb92ce754bc5e2f53387d53c",
+    "wellington_confirmation_sha256": "25f05865c9f984081a3fbdb8005577827f067f070430c836d2d0003c7240882e",
+    "component_ablations_sha256": "461c947da213b9d23783543456f3da0b56941850feb092319ce5c368c532884e"
+  },
+  "dataset": {
+    "name": "Human vocalization corpus: recordings of infant-directed and adult-directed speech and song in 21 societies",
+    "doi": "10.5281/zenodo.5525161",
+    "official_record": "https://zenodo.org/records/5525161",
+    "license": "CC BY-NC-SA 4.0",
+    "archive": "IDS-corpus-edited.zip",
+    "use_boundary": "personal non-commercial research"
+  },
+  "development": {
+    "fieldsite_code": "BEJ",
+    "participants": ["BEJ06", "BEJ07", "BEJ11", "BEJ21"],
+    "conditions": ["B", "D"],
+    "clip_count": 8,
+    "wellington_audio_added_to_training": false
+  },
+  "held_out": {
+    "fieldsite_code": "ARA",
+    "participant_selection_rule": "After excluding BEJ and WEL, choose the lexicographically first fieldsite code with at least four participants having both B and D WAVs for which the four numerically lowest paired participant IDs do not appear in any retained docs/evidence file; choose those four IDs.",
+    "metadata_selected_participants": ["ARA01", "ARA02", "ARA03", "ARA04"],
+    "conditions": ["B", "D"],
+    "clip_count": 8,
+    "exact_ids_found_in_retained_evidence_before_selection": 0,
+    "audio_fetched_before_freeze": false,
+    "participant_overlap_count": 0
+  },
+  "frozen_observation_target": {
+    "frame_ms": 50,
+    "calibration_ms": 2000,
+    "quiet_quantile": 0.40,
+    "novelty_quantile": 0.75,
+    "states": ["quiet", "active onset or recovery", "stable active", "spectral change"],
+    "causal_current_and_past_frames_only": true,
+    "condition_labels_consumed_by_learner_or_scoring": false
+  },
+  "frozen_learner": {
+    "model": "four-by-four smoothed local transition counts trained only on the eight Beijing development clips",
+    "bounded_state_scalars": 16,
+    "baselines": ["persistence", "development unigram", "causal moving state"],
+    "top_down_next_event_prediction_consumed": true
+  },
+  "frozen_acceptance_rule": {
+    "required_held_out_clip_count": 8,
+    "minimum_clip_wins": 6,
+    "minimum_mean_accuracy_improvement": 0.05,
+    "minimum_worst_clip_improvement": -0.05,
+    "minimum_each_clip_state_occupancy": 3,
+    "maximum_bounded_state_scalars": 16,
+    "top_down_prediction_must_be_consumed": true,
+    "participant_overlap_count": 0,
+    "every_held_out_wav_must_match_recorded_size_crc32_and_sha256": true
+  },
+  "failure_policy": "Retain any failed gate. Do not change participants, training clips, thresholds, states, baselines, or acceptance thresholds after fetching ARA audio.",
+  "claim_boundary": "A pass would replicate the Beijing-trained causal unlabeled event-dynamics advantage in a second fieldsite beyond Wellington. It would not establish semantic prediction, IDS/ADS recognition, arbitrary-language universality, live operation, or dropout robustness."
+}

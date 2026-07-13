@@ -1,0 +1,52 @@
+{
+  "experiment": "yin_coverage_vocal_activity_gate_fresh_controls",
+  "registered_date": "2026-07-10",
+  "status": "registered_before_selected_audio_fetch",
+  "gate": {
+    "feature": "yin_voiced_fraction",
+    "minimum_voiced_fraction": 0.14,
+    "spent_vocal_range": [0.16514599, 1.0],
+    "spent_environmental_range": [0.0, 0.1167002]
+  },
+  "fresh_vocal_fieldsite": "SPA",
+  "fresh_vocal_participants": ["SPA03", "SPA04", "SPA11"],
+  "fresh_vocal_conditions": [
+    "infant_directed_song",
+    "infant_directed_speech",
+    "adult_directed_song",
+    "adult_directed_speech"
+  ],
+  "fresh_environmental_dataset": {
+    "name": "ESC-50",
+    "license": "CC BY-NC 3.0",
+    "fold": 2
+  },
+  "diffuse_controls": [
+    "2-101676-A-10.wav",
+    "2-117625-A-10.wav",
+    "2-102852-A-11.wav",
+    "2-124662-A-11.wav",
+    "2-104952-A-16.wav",
+    "2-104952-B-16.wav",
+    "2-18766-A-12.wav",
+    "2-18766-B-12.wav"
+  ],
+  "impulsive_controls": [
+    "2-114254-A-30.wav",
+    "2-118624-A-30.wav",
+    "2-25292-A-22.wav",
+    "2-25293-A-22.wav",
+    "2-106881-A-39.wav",
+    "2-112213-A-39.wav",
+    "2-117615-A-48.wav",
+    "2-117615-B-48.wav"
+  ],
+  "acceptance_rule": {
+    "minimum_vocal_recall": 0.95,
+    "maximum_overall_environmental_false_positive_rate": 0.10,
+    "maximum_diffuse_false_positive_rate": 0.125,
+    "maximum_impulsive_false_positive_rate": 0.125,
+    "all_files_must_decode_and_produce_finite_features": true
+  },
+  "claim_boundary": "A pass supports a five-second long-window vocal activity gate on these conditions, not frame-level VAD, speaker identity, or IDS classification."
+}

@@ -1,0 +1,31 @@
+{
+  "experiment": "vocalset_held_out_recorded_vowel_audit",
+  "date": "2026-07-11",
+  "status": "preregistered_before_confirmation_audio_fetch",
+  "frozen_hashes": {
+    "protocol_sha256": "b9f6e6a08079ba5f9970fdb02461987f915160865e8b3f4ba89e856de8f89da1",
+    "evaluator_sha256": "462543bb533b29fe525567e8dcd3db044aef53de7c3a945a238c80d98ecf6ce3",
+    "motor_plan_sha256": "7d3c42559a9df8c53cc3b6000cf4b728d806807c2a6e170e3bcdac6d1880e57a",
+    "remote_zip_sha256": "3e660b616306a7fb81f49a237cccc37a5da35245a71df24d5ab37d7783d3d532",
+    "fetch_script_sha256": "d1b583255f740e299fc80c86be1e606d76fd302e83e1dc380cc6672283c93ad4",
+    "cli_sha256": "5906298e1931d262491e6af8a1f46707abff88307beb48a88aaeee19de180f00"
+  },
+  "confirmation_audio_fetched": false,
+  "confirmation_audio_inspected": false,
+  "selected_singers": [
+    "female1",
+    "female3",
+    "male1",
+    "male2",
+    "male4"
+  ],
+  "selected_vowels": [
+    "a",
+    "e",
+    "i",
+    "o",
+    "u"
+  ],
+  "acceptance_source": "2026-07-11-vocalset-recorded-vowel-protocol.json",
+  "claim_boundary": "This freezes data selection, analysis, and acceptance before any selected confirmation waveform is fetched."
+}

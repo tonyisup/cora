@@ -1,0 +1,56 @@
+{
+  "experiment": "stage6_callback_natural_speech_timing",
+  "date": "2026-07-11",
+  "status": "frozen_before_file_stimulus_implementation_and_live_playback",
+  "parent": "docs/evidence/2026-07-10-stage6-salient-timing-result.json",
+  "question": "Does the callback/reblocking runtime retain its device-timestamped deadline, capture-quality, and resource performance when the salient workload is licensed natural speech rather than a synthetic pitch contour?",
+  "stimulus": {
+    "source": "Music Lab human vocalization corpus, edited audio",
+    "doi": "10.5281/zenodo.5525161",
+    "license": "CC BY-NC-SA 4.0",
+    "selection_rule": "lexicographically first already-spent infant-directed-speech WAV in the 200-clip hash-pinned spent subset",
+    "filename": "ACO02B.wav",
+    "sha256": "c58a46a68782fb318cd885e6c670025104cc844bb3d8e4080b69b1f995c2c410",
+    "sample_rate_hz": 44100,
+    "channel_count": 2,
+    "duration_seconds": 6.833990929705215,
+    "source_peak_absolute": 0.921539306640625,
+    "playback_gain_db": -12.0,
+    "repeat_within_run": false
+  },
+  "hardware_geometry": {
+    "input": "XVF3800 callback, device :0, 16 kHz, two fused channels",
+    "world_output": "External Headphones, device 2",
+    "bearing_degrees": 180,
+    "distance_cm": 50,
+    "speaker_hardware_volume": "maximum",
+    "self_output": "none"
+  },
+  "run_design": {
+    "replicate_count": 3,
+    "duration_ms_each": 10000,
+    "frame_ms": 25,
+    "target_frames_each": 400,
+    "saliency_threshold": 0.02,
+    "capture_backend": "callback",
+    "output_fields": "full JSON reports remain outside Git; retained aggregate includes hashes and frozen metrics"
+  },
+  "acceptance": {
+    "real_capture_each": true,
+    "callback_backend_without_fallback_each": true,
+    "frame_count_each": 400,
+    "minimum_salient_frame_count_each": 20,
+    "maximum_input_overflow_count_each": 0,
+    "maximum_callback_status_count_each": 0,
+    "maximum_timestamp_discontinuity_count_each": 0,
+    "maximum_clipped_sample_count_each": 0,
+    "maximum_salient_adc_frame_end_to_workspace_p95_ms_each": 30.0,
+    "maximum_salient_device_deadline_miss_rate_each": 0.05,
+    "maximum_quiet_adc_frame_end_to_workspace_p95_ms_each": 30.0,
+    "maximum_steady_state_real_time_factor_each": 1.2,
+    "maximum_average_process_cpu_percent_each": 100.0,
+    "maximum_peak_resident_memory_megabytes_each": 512.0
+  },
+  "attempt_policy": "One three-run attempt at the frozen gain. If capture clipping or insufficient salience alone fails, retain the result and permit at most one separately preregistered gain-only retry; otherwise stop.",
+  "claim_boundary": "A pass supports natural-speech device timing only for one already-spent adult speaker, one utterance, this room/geometry, XVF3800 callback input, External Headphones playback, and the M4 Pro host. It does not establish semantic processing, register recognition, geometry transfer, XMOS internal delay, or general natural-speech performance."
+}

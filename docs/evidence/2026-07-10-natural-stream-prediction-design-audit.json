@@ -1,0 +1,3469 @@
+{
+  "mode": "natural_stream_prediction_design_audit",
+  "evidence_class": "spent_development_real_audio",
+  "promotion_allowed": false,
+  "candidate_count": 18,
+  "advanced_candidate_count": 0,
+  "best_candidate": {
+    "candidate": {
+      "signature_mode": "full_spectrum",
+      "frame_ms": 200,
+      "horizon_frames": 4,
+      "horizon_ms": 800,
+      "calibration_ms": 2000,
+      "calibration_std_floor": 0.3
+    },
+    "participant_count": 4,
+    "clip_count": 8,
+    "labels_consumed_by_learner": false,
+    "wins": 2,
+    "mean_accuracy_improvement": 0.003609573278690926,
+    "worst_clip_improvement": -0.09890109890109894,
+    "minimum_clip_state_occupancy": 3,
+    "design_gate": {
+      "minimum_six_of_eight_clip_wins": false,
+      "minimum_mean_accuracy_improvement": false,
+      "maximum_worst_clip_regret": false,
+      "minimum_each_clip_state_occupancy": true
+    },
+    "design_gate_passed": false,
+    "folds": [
+      {
+        "held_participant": "BEJ06",
+        "development_participants": [
+          "BEJ07",
+          "BEJ11",
+          "BEJ21"
+        ],
+        "participant_overlap_count": 0,
+        "clips": [
+          {
+            "clip_id": "BEJ06B",
+            "condition_suffix": "B",
+            "prediction_count": 17,
+            "state_occupancy": 4,
+            "transition_accuracy": 0.35294117647058826,
+            "baselines": {
+              "persistence": 0.11764705882352941,
+              "development_unigram": 0.11764705882352941,
+              "causal_moving_state": 0.11764705882352941
+            },
+            "best_baseline_accuracy": 0.11764705882352941,
+            "accuracy_improvement": 0.23529411764705885
+          },
+          {
+            "clip_id": "BEJ06D",
+            "condition_suffix": "D",
+            "prediction_count": 18,
+            "state_occupancy": 4,
+            "transition_accuracy": 0.5,
+            "baselines": {
+              "persistence": 0.5555555555555556,
+              "development_unigram": 0.5555555555555556,
+              "causal_moving_state": 0.5555555555555556
+            },
+            "best_baseline_accuracy": 0.5555555555555556,
+            "accuracy_improvement": -0.05555555555555558
+          }
+        ]
+      },
+      {
+        "held_participant": "BEJ07",
+        "development_participants": [
+          "BEJ06",
+          "BEJ11",
+          "BEJ21"
+        ],
+        "participant_overlap_count": 0,
+        "clips": [
+          {
+            "clip_id": "BEJ07B",
+            "condition_suffix": "B",
+            "prediction_count": 24,
+            "state_occupancy": 3,
+            "transition_accuracy": 0.2916666666666667,
+            "baselines": {
+              "persistence": 0.25,
+              "development_unigram": 0.3333333333333333,
+              "causal_moving_state": 0.25
+            },
+            "best_baseline_accuracy": 0.3333333333333333,
+            "accuracy_improvement": -0.04166666666666663
+          },
+          {
+            "clip_id": "BEJ07D",
+            "condition_suffix": "D",
+            "prediction_count": 65,
+            "state_occupancy": 4,
+            "transition_accuracy": 0.3230769230769231,
+            "baselines": {
+              "persistence": 0.35384615384615387,
+              "development_unigram": 0.3076923076923077,
+              "causal_moving_state": 0.35384615384615387
+            },
+            "best_baseline_accuracy": 0.35384615384615387,
+            "accuracy_improvement": -0.03076923076923077
+          }
+        ]
+      },
+      {
+        "held_participant": "BEJ11",
+        "development_participants": [
+          "BEJ06",
+          "BEJ07",
+          "BEJ21"
+        ],
+        "participant_overlap_count": 0,
+        "clips": [
+          {
+            "clip_id": "BEJ11B",
+            "condition_suffix": "B",
+            "prediction_count": 29,
+            "state_occupancy": 4,
+            "transition_accuracy": 0.20689655172413793,
+            "baselines": {
+              "persistence": 0.20689655172413793,
+              "development_unigram": 0.06896551724137931,
+              "causal_moving_state": 0.20689655172413793
+            },
+            "best_baseline_accuracy": 0.20689655172413793,
+            "accuracy_improvement": 0
+          },
+          {
+            "clip_id": "BEJ11D",
+            "condition_suffix": "D",
+            "prediction_count": 91,
+            "state_occupancy": 4,
+            "transition_accuracy": 0.4175824175824176,
+            "baselines": {
+              "persistence": 0.32967032967032966,
+              "development_unigram": 0.5164835164835165,
+              "causal_moving_state": 0.32967032967032966
+            },
+            "best_baseline_accuracy": 0.5164835164835165,
+            "accuracy_improvement": -0.09890109890109894
+          }
+        ]
+      },
+      {
+        "held_participant": "BEJ21",
+        "development_participants": [
+          "BEJ06",
+          "BEJ07",
+          "BEJ11"
+        ],
+        "participant_overlap_count": 0,
+        "clips": [
+          {
+            "clip_id": "BEJ21B",
+            "condition_suffix": "B",
+            "prediction_count": 37,
+            "state_occupancy": 4,
+            "transition_accuracy": 0.35135135135135137,
+            "baselines": {
+              "persistence": 0.2702702702702703,
+              "development_unigram": 0.2702702702702703,
+              "causal_moving_state": 0.2702702702702703
+            },
+            "best_baseline_accuracy": 0.2702702702702703,
+            "accuracy_improvement": 0.08108108108108109
+          },
+          {
+            "clip_id": "BEJ21D",
+            "condition_suffix": "D",
+            "prediction_count": 33,
+            "state_occupancy": 4,
+            "transition_accuracy": 0.2727272727272727,
+            "baselines": {
+              "persistence": 0.12121212121212122,
+              "development_unigram": 0.3333333333333333,
+              "causal_moving_state": 0.12121212121212122
+            },
+            "best_baseline_accuracy": 0.3333333333333333,
+            "accuracy_improvement": -0.06060606060606061
+          }
+        ]
+      }
+    ]
+  },
+  "reports": [
+    {
+      "candidate": {
+        "signature_mode": "full_spectrum",
+        "frame_ms": 100,
+        "horizon_frames": 1,
+        "horizon_ms": 100,
+        "calibration_ms": 2000,
+        "calibration_std_floor": 0.3
+      },
+      "participant_count": 4,
+      "clip_count": 8,
+      "labels_consumed_by_learner": false,
+      "wins": 1,
+      "mean_accuracy_improvement": -0.03921721648225313,
+      "worst_clip_improvement": -0.10909090909090902,
+      "minimum_clip_state_occupancy": 4,
+      "design_gate": {
+        "minimum_six_of_eight_clip_wins": false,
+        "minimum_mean_accuracy_improvement": false,
+        "maximum_worst_clip_regret": false,
+        "minimum_each_clip_state_occupancy": true
+      },
+      "design_gate_passed": false,
+      "folds": [
+        {
+          "held_participant": "BEJ06",
+          "development_participants": [
+            "BEJ07",
+            "BEJ11",
+            "BEJ21"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ06B",
+              "condition_suffix": "B",
+              "prediction_count": 42,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.5,
+              "baselines": {
+                "persistence": 0.5,
+                "development_unigram": 0.47619047619047616,
+                "causal_moving_state": 0.5
+              },
+              "best_baseline_accuracy": 0.5,
+              "accuracy_improvement": 0
+            },
+            {
+              "clip_id": "BEJ06D",
+              "condition_suffix": "D",
+              "prediction_count": 43,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.4186046511627907,
+              "baselines": {
+                "persistence": 0.4186046511627907,
+                "development_unigram": 0.11627906976744186,
+                "causal_moving_state": 0.4186046511627907
+              },
+              "best_baseline_accuracy": 0.4186046511627907,
+              "accuracy_improvement": 0
+            }
+          ]
+        },
+        {
+          "held_participant": "BEJ07",
+          "development_participants": [
+            "BEJ06",
+            "BEJ11",
+            "BEJ21"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ07B",
+              "condition_suffix": "B",
+              "prediction_count": 55,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.4,
+              "baselines": {
+                "persistence": 0.509090909090909,
+                "development_unigram": 0.2545454545454545,
+                "causal_moving_state": 0.509090909090909
+              },
+              "best_baseline_accuracy": 0.509090909090909,
+              "accuracy_improvement": -0.10909090909090902
+            },
+            {
+              "clip_id": "BEJ07D",
+              "condition_suffix": "D",
+              "prediction_count": 137,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.3722627737226277,
+              "baselines": {
+                "persistence": 0.35766423357664234,
+                "development_unigram": 0.36496350364963503,
+                "causal_moving_state": 0.35766423357664234
+              },
+              "best_baseline_accuracy": 0.36496350364963503,
+              "accuracy_improvement": 0.007299270072992692
+            }
+          ]
+        },
+        {
+          "held_participant": "BEJ11",
+          "development_participants": [
+            "BEJ06",
+            "BEJ07",
+            "BEJ21"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ11B",
+              "condition_suffix": "B",
+              "prediction_count": 65,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.3076923076923077,
+              "baselines": {
+                "persistence": 0.4153846153846154,
+                "development_unigram": 0.13846153846153847,
+                "causal_moving_state": 0.4153846153846154
+              },
+              "best_baseline_accuracy": 0.4153846153846154,
+              "accuracy_improvement": -0.1076923076923077
+            },
+            {
+              "clip_id": "BEJ11D",
+              "condition_suffix": "D",
+              "prediction_count": 190,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.47368421052631576,
+              "baselines": {
+                "persistence": 0.4263157894736842,
+                "development_unigram": 0.5368421052631579,
+                "causal_moving_state": 0.4263157894736842
+              },
+              "best_baseline_accuracy": 0.5368421052631579,
+              "accuracy_improvement": -0.06315789473684214
+            }
+          ]
+        },
+        {
+          "held_participant": "BEJ21",
+          "development_participants": [
+            "BEJ06",
+            "BEJ07",
+            "BEJ11"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ21B",
+              "condition_suffix": "B",
+              "prediction_count": 81,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.41975308641975306,
+              "baselines": {
+                "persistence": 0.41975308641975306,
+                "development_unigram": 0.09876543209876543,
+                "causal_moving_state": 0.41975308641975306
+              },
+              "best_baseline_accuracy": 0.41975308641975306,
+              "accuracy_improvement": 0
+            },
+            {
+              "clip_id": "BEJ21D",
+              "condition_suffix": "D",
+              "prediction_count": 73,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.4520547945205479,
+              "baselines": {
+                "persistence": 0.4520547945205479,
+                "development_unigram": 0.4931506849315068,
+                "causal_moving_state": 0.4520547945205479
+              },
+              "best_baseline_accuracy": 0.4931506849315068,
+              "accuracy_improvement": -0.0410958904109589
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "candidate": {
+        "signature_mode": "full_spectrum",
+        "frame_ms": 100,
+        "horizon_frames": 2,
+        "horizon_ms": 200,
+        "calibration_ms": 2000,
+        "calibration_std_floor": 0.3
+      },
+      "participant_count": 4,
+      "clip_count": 8,
+      "labels_consumed_by_learner": false,
+      "wins": 0,
+      "mean_accuracy_improvement": -0.13342356081999196,
+      "worst_clip_improvement": -0.30158730158730157,
+      "minimum_clip_state_occupancy": 4,
+      "design_gate": {
+        "minimum_six_of_eight_clip_wins": false,
+        "minimum_mean_accuracy_improvement": false,
+        "maximum_worst_clip_regret": false,
+        "minimum_each_clip_state_occupancy": true
+      },
+      "design_gate_passed": false,
+      "folds": [
+        {
+          "held_participant": "BEJ06",
+          "development_participants": [
+            "BEJ07",
+            "BEJ11",
+            "BEJ21"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ06B",
+              "condition_suffix": "B",
+              "prediction_count": 41,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.4878048780487805,
+              "baselines": {
+                "persistence": 0.5365853658536586,
+                "development_unigram": 0.4878048780487805,
+                "causal_moving_state": 0.5365853658536586
+              },
+              "best_baseline_accuracy": 0.5365853658536586,
+              "accuracy_improvement": -0.04878048780487809
+            },
+            {
+              "clip_id": "BEJ06D",
+              "condition_suffix": "D",
+              "prediction_count": 42,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.09523809523809523,
+              "baselines": {
+                "persistence": 0.2619047619047619,
+                "development_unigram": 0.11904761904761904,
+                "causal_moving_state": 0.2619047619047619
+              },
+              "best_baseline_accuracy": 0.2619047619047619,
+              "accuracy_improvement": -0.16666666666666669
+            }
+          ]
+        },
+        {
+          "held_participant": "BEJ07",
+          "development_participants": [
+            "BEJ06",
+            "BEJ11",
+            "BEJ21"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ07B",
+              "condition_suffix": "B",
+              "prediction_count": 54,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.24074074074074073,
+              "baselines": {
+                "persistence": 0.3888888888888889,
+                "development_unigram": 0.25925925925925924,
+                "causal_moving_state": 0.3888888888888889
+              },
+              "best_baseline_accuracy": 0.3888888888888889,
+              "accuracy_improvement": -0.14814814814814817
+            },
+            {
+              "clip_id": "BEJ07D",
+              "condition_suffix": "D",
+              "prediction_count": 136,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.35294117647058826,
+              "baselines": {
+                "persistence": 0.25,
+                "development_unigram": 0.36764705882352944,
+                "causal_moving_state": 0.25
+              },
+              "best_baseline_accuracy": 0.36764705882352944,
+              "accuracy_improvement": -0.01470588235294118
+            }
+          ]
+        },
+        {
+          "held_participant": "BEJ11",
+          "development_participants": [
+            "BEJ06",
+            "BEJ07",
+            "BEJ21"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ11B",
+              "condition_suffix": "B",
+              "prediction_count": 64,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.15625,
+              "baselines": {
+                "persistence": 0.34375,
+                "development_unigram": 0.140625,
+                "causal_moving_state": 0.34375
+              },
+              "best_baseline_accuracy": 0.34375,
+              "accuracy_improvement": -0.1875
+            },
+            {
+              "clip_id": "BEJ11D",
+              "condition_suffix": "D",
+              "prediction_count": 189,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.23809523809523808,
+              "baselines": {
+                "persistence": 0.41798941798941797,
+                "development_unigram": 0.5396825396825397,
+                "causal_moving_state": 0.41798941798941797
+              },
+              "best_baseline_accuracy": 0.5396825396825397,
+              "accuracy_improvement": -0.30158730158730157
+            }
+          ]
+        },
+        {
+          "held_participant": "BEJ21",
+          "development_participants": [
+            "BEJ06",
+            "BEJ07",
+            "BEJ11"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ21B",
+              "condition_suffix": "B",
+              "prediction_count": 80,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.05,
+              "baselines": {
+                "persistence": 0.25,
+                "development_unigram": 0.1,
+                "causal_moving_state": 0.25
+              },
+              "best_baseline_accuracy": 0.25,
+              "accuracy_improvement": -0.2
+            },
+            {
+              "clip_id": "BEJ21D",
+              "condition_suffix": "D",
+              "prediction_count": 72,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.4861111111111111,
+              "baselines": {
+                "persistence": 0.4027777777777778,
+                "development_unigram": 0.4861111111111111,
+                "causal_moving_state": 0.4027777777777778
+              },
+              "best_baseline_accuracy": 0.4861111111111111,
+              "accuracy_improvement": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "candidate": {
+        "signature_mode": "full_spectrum",
+        "frame_ms": 100,
+        "horizon_frames": 4,
+        "horizon_ms": 400,
+        "calibration_ms": 2000,
+        "calibration_std_floor": 0.3
+      },
+      "participant_count": 4,
+      "clip_count": 8,
+      "labels_consumed_by_learner": false,
+      "wins": 0,
+      "mean_accuracy_improvement": -0.07293390747857031,
+      "worst_clip_improvement": -0.2564102564102564,
+      "minimum_clip_state_occupancy": 4,
+      "design_gate": {
+        "minimum_six_of_eight_clip_wins": false,
+        "minimum_mean_accuracy_improvement": false,
+        "maximum_worst_clip_regret": false,
+        "minimum_each_clip_state_occupancy": true
+      },
+      "design_gate_passed": false,
+      "folds": [
+        {
+          "held_participant": "BEJ06",
+          "development_participants": [
+            "BEJ07",
+            "BEJ11",
+            "BEJ21"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ06B",
+              "condition_suffix": "B",
+              "prediction_count": 39,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.358974358974359,
+              "baselines": {
+                "persistence": 0.41025641025641024,
+                "development_unigram": 0.48717948717948717,
+                "causal_moving_state": 0.41025641025641024
+              },
+              "best_baseline_accuracy": 0.48717948717948717,
+              "accuracy_improvement": -0.1282051282051282
+            },
+            {
+              "clip_id": "BEJ06D",
+              "condition_suffix": "D",
+              "prediction_count": 40,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.125,
+              "baselines": {
+                "persistence": 0.125,
+                "development_unigram": 0.125,
+                "causal_moving_state": 0.125
+              },
+              "best_baseline_accuracy": 0.125,
+              "accuracy_improvement": 0
+            }
+          ]
+        },
+        {
+          "held_participant": "BEJ07",
+          "development_participants": [
+            "BEJ06",
+            "BEJ11",
+            "BEJ21"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ07B",
+              "condition_suffix": "B",
+              "prediction_count": 52,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.23076923076923078,
+              "baselines": {
+                "persistence": 0.25,
+                "development_unigram": 0.2692307692307692,
+                "causal_moving_state": 0.25
+              },
+              "best_baseline_accuracy": 0.2692307692307692,
+              "accuracy_improvement": -0.038461538461538436
+            },
+            {
+              "clip_id": "BEJ07D",
+              "condition_suffix": "D",
+              "prediction_count": 134,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.3283582089552239,
+              "baselines": {
+                "persistence": 0.3283582089552239,
+                "development_unigram": 0.3656716417910448,
+                "causal_moving_state": 0.3283582089552239
+              },
+              "best_baseline_accuracy": 0.3656716417910448,
+              "accuracy_improvement": -0.03731343283582089
+            }
+          ]
+        },
+        {
+          "held_participant": "BEJ11",
+          "development_participants": [
+            "BEJ06",
+            "BEJ07",
+            "BEJ21"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ11B",
+              "condition_suffix": "B",
+              "prediction_count": 62,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.1935483870967742,
+              "baselines": {
+                "persistence": 0.20967741935483872,
+                "development_unigram": 0.14516129032258066,
+                "causal_moving_state": 0.20967741935483872
+              },
+              "best_baseline_accuracy": 0.20967741935483872,
+              "accuracy_improvement": -0.01612903225806453
+            },
+            {
+              "clip_id": "BEJ11D",
+              "condition_suffix": "D",
+              "prediction_count": 187,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.43315508021390375,
+              "baselines": {
+                "persistence": 0.37967914438502676,
+                "development_unigram": 0.5401069518716578,
+                "causal_moving_state": 0.37967914438502676
+              },
+              "best_baseline_accuracy": 0.5401069518716578,
+              "accuracy_improvement": -0.10695187165775405
+            }
+          ]
+        },
+        {
+          "held_participant": "BEJ21",
+          "development_participants": [
+            "BEJ06",
+            "BEJ07",
+            "BEJ11"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ21B",
+              "condition_suffix": "B",
+              "prediction_count": 78,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.10256410256410256,
+              "baselines": {
+                "persistence": 0.358974358974359,
+                "development_unigram": 0.10256410256410256,
+                "causal_moving_state": 0.358974358974359
+              },
+              "best_baseline_accuracy": 0.358974358974359,
+              "accuracy_improvement": -0.2564102564102564
+            },
+            {
+              "clip_id": "BEJ21D",
+              "condition_suffix": "D",
+              "prediction_count": 70,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.5,
+              "baselines": {
+                "persistence": 0.35714285714285715,
+                "development_unigram": 0.5,
+                "causal_moving_state": 0.35714285714285715
+              },
+              "best_baseline_accuracy": 0.5,
+              "accuracy_improvement": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "candidate": {
+        "signature_mode": "full_spectrum",
+        "frame_ms": 200,
+        "horizon_frames": 1,
+        "horizon_ms": 200,
+        "calibration_ms": 2000,
+        "calibration_std_floor": 0.3
+      },
+      "participant_count": 4,
+      "clip_count": 8,
+      "labels_consumed_by_learner": false,
+      "wins": 0,
+      "mean_accuracy_improvement": -0.05663204998311382,
+      "worst_clip_improvement": -0.14999999999999997,
+      "minimum_clip_state_occupancy": 3,
+      "design_gate": {
+        "minimum_six_of_eight_clip_wins": false,
+        "minimum_mean_accuracy_improvement": false,
+        "maximum_worst_clip_regret": false,
+        "minimum_each_clip_state_occupancy": true
+      },
+      "design_gate_passed": false,
+      "folds": [
+        {
+          "held_participant": "BEJ06",
+          "development_participants": [
+            "BEJ07",
+            "BEJ11",
+            "BEJ21"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ06B",
+              "condition_suffix": "B",
+              "prediction_count": 20,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.35,
+              "baselines": {
+                "persistence": 0.45,
+                "development_unigram": 0.1,
+                "causal_moving_state": 0.45
+              },
+              "best_baseline_accuracy": 0.45,
+              "accuracy_improvement": -0.10000000000000003
+            },
+            {
+              "clip_id": "BEJ06D",
+              "condition_suffix": "D",
+              "prediction_count": 21,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.47619047619047616,
+              "baselines": {
+                "persistence": 0.42857142857142855,
+                "development_unigram": 0.5238095238095238,
+                "causal_moving_state": 0.42857142857142855
+              },
+              "best_baseline_accuracy": 0.5238095238095238,
+              "accuracy_improvement": -0.04761904761904767
+            }
+          ]
+        },
+        {
+          "held_participant": "BEJ07",
+          "development_participants": [
+            "BEJ06",
+            "BEJ11",
+            "BEJ21"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ07B",
+              "condition_suffix": "B",
+              "prediction_count": 27,
+              "state_occupancy": 3,
+              "transition_accuracy": 0.5555555555555556,
+              "baselines": {
+                "persistence": 0.5555555555555556,
+                "development_unigram": 0.2962962962962963,
+                "causal_moving_state": 0.5555555555555556
+              },
+              "best_baseline_accuracy": 0.5555555555555556,
+              "accuracy_improvement": 0
+            },
+            {
+              "clip_id": "BEJ07D",
+              "condition_suffix": "D",
+              "prediction_count": 68,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.3382352941176471,
+              "baselines": {
+                "persistence": 0.3382352941176471,
+                "development_unigram": 0.3235294117647059,
+                "causal_moving_state": 0.3382352941176471
+              },
+              "best_baseline_accuracy": 0.3382352941176471,
+              "accuracy_improvement": 0
+            }
+          ]
+        },
+        {
+          "held_participant": "BEJ11",
+          "development_participants": [
+            "BEJ06",
+            "BEJ07",
+            "BEJ21"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ11B",
+              "condition_suffix": "B",
+              "prediction_count": 32,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.34375,
+              "baselines": {
+                "persistence": 0.34375,
+                "development_unigram": 0.0625,
+                "causal_moving_state": 0.34375
+              },
+              "best_baseline_accuracy": 0.34375,
+              "accuracy_improvement": 0
+            },
+            {
+              "clip_id": "BEJ11D",
+              "condition_suffix": "D",
+              "prediction_count": 94,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.40425531914893614,
+              "baselines": {
+                "persistence": 0.40425531914893614,
+                "development_unigram": 0.5319148936170213,
+                "causal_moving_state": 0.40425531914893614
+              },
+              "best_baseline_accuracy": 0.5319148936170213,
+              "accuracy_improvement": -0.12765957446808512
+            }
+          ]
+        },
+        {
+          "held_participant": "BEJ21",
+          "development_participants": [
+            "BEJ06",
+            "BEJ07",
+            "BEJ11"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ21B",
+              "condition_suffix": "B",
+              "prediction_count": 40,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.275,
+              "baselines": {
+                "persistence": 0.425,
+                "development_unigram": 0.25,
+                "causal_moving_state": 0.425
+              },
+              "best_baseline_accuracy": 0.425,
+              "accuracy_improvement": -0.14999999999999997
+            },
+            {
+              "clip_id": "BEJ21D",
+              "condition_suffix": "D",
+              "prediction_count": 36,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.3611111111111111,
+              "baselines": {
+                "persistence": 0.3888888888888889,
+                "development_unigram": 0.3055555555555556,
+                "causal_moving_state": 0.3888888888888889
+              },
+              "best_baseline_accuracy": 0.3888888888888889,
+              "accuracy_improvement": -0.02777777777777779
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "candidate": {
+        "signature_mode": "full_spectrum",
+        "frame_ms": 200,
+        "horizon_frames": 2,
+        "horizon_ms": 400,
+        "calibration_ms": 2000,
+        "calibration_std_floor": 0.3
+      },
+      "participant_count": 4,
+      "clip_count": 8,
+      "labels_consumed_by_learner": false,
+      "wins": 1,
+      "mean_accuracy_improvement": -0.06330290236164093,
+      "worst_clip_improvement": -0.29032258064516125,
+      "minimum_clip_state_occupancy": 3,
+      "design_gate": {
+        "minimum_six_of_eight_clip_wins": false,
+        "minimum_mean_accuracy_improvement": false,
+        "maximum_worst_clip_regret": false,
+        "minimum_each_clip_state_occupancy": true
+      },
+      "design_gate_passed": false,
+      "folds": [
+        {
+          "held_participant": "BEJ06",
+          "development_participants": [
+            "BEJ07",
+            "BEJ11",
+            "BEJ21"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ06B",
+              "condition_suffix": "B",
+              "prediction_count": 19,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.2631578947368421,
+              "baselines": {
+                "persistence": 0.2631578947368421,
+                "development_unigram": 0.10526315789473684,
+                "causal_moving_state": 0.2631578947368421
+              },
+              "best_baseline_accuracy": 0.2631578947368421,
+              "accuracy_improvement": 0
+            },
+            {
+              "clip_id": "BEJ06D",
+              "condition_suffix": "D",
+              "prediction_count": 20,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.4,
+              "baselines": {
+                "persistence": 0.25,
+                "development_unigram": 0.5,
+                "causal_moving_state": 0.25
+              },
+              "best_baseline_accuracy": 0.5,
+              "accuracy_improvement": -0.09999999999999998
+            }
+          ]
+        },
+        {
+          "held_participant": "BEJ07",
+          "development_participants": [
+            "BEJ06",
+            "BEJ11",
+            "BEJ21"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ07B",
+              "condition_suffix": "B",
+              "prediction_count": 26,
+              "state_occupancy": 3,
+              "transition_accuracy": 0.38461538461538464,
+              "baselines": {
+                "persistence": 0.4230769230769231,
+                "development_unigram": 0.3076923076923077,
+                "causal_moving_state": 0.4230769230769231
+              },
+              "best_baseline_accuracy": 0.4230769230769231,
+              "accuracy_improvement": -0.038461538461538436
+            },
+            {
+              "clip_id": "BEJ07D",
+              "condition_suffix": "D",
+              "prediction_count": 67,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.3582089552238806,
+              "baselines": {
+                "persistence": 0.26865671641791045,
+                "development_unigram": 0.31343283582089554,
+                "causal_moving_state": 0.26865671641791045
+              },
+              "best_baseline_accuracy": 0.31343283582089554,
+              "accuracy_improvement": 0.04477611940298504
+            }
+          ]
+        },
+        {
+          "held_participant": "BEJ11",
+          "development_participants": [
+            "BEJ06",
+            "BEJ07",
+            "BEJ21"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ11B",
+              "condition_suffix": "B",
+              "prediction_count": 31,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.3870967741935484,
+              "baselines": {
+                "persistence": 0.4838709677419355,
+                "development_unigram": 0.06451612903225806,
+                "causal_moving_state": 0.4838709677419355
+              },
+              "best_baseline_accuracy": 0.4838709677419355,
+              "accuracy_improvement": -0.09677419354838712
+            },
+            {
+              "clip_id": "BEJ11D",
+              "condition_suffix": "D",
+              "prediction_count": 93,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.23655913978494625,
+              "baselines": {
+                "persistence": 0.40860215053763443,
+                "development_unigram": 0.5268817204301075,
+                "causal_moving_state": 0.40860215053763443
+              },
+              "best_baseline_accuracy": 0.5268817204301075,
+              "accuracy_improvement": -0.29032258064516125
+            }
+          ]
+        },
+        {
+          "held_participant": "BEJ21",
+          "development_participants": [
+            "BEJ06",
+            "BEJ07",
+            "BEJ11"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ21B",
+              "condition_suffix": "B",
+              "prediction_count": 39,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.28205128205128205,
+              "baselines": {
+                "persistence": 0.3076923076923077,
+                "development_unigram": 0.2564102564102564,
+                "causal_moving_state": 0.3076923076923077
+              },
+              "best_baseline_accuracy": 0.3076923076923077,
+              "accuracy_improvement": -0.02564102564102566
+            },
+            {
+              "clip_id": "BEJ21D",
+              "condition_suffix": "D",
+              "prediction_count": 35,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.3142857142857143,
+              "baselines": {
+                "persistence": 0.22857142857142856,
+                "development_unigram": 0.3142857142857143,
+                "causal_moving_state": 0.22857142857142856
+              },
+              "best_baseline_accuracy": 0.3142857142857143,
+              "accuracy_improvement": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "candidate": {
+        "signature_mode": "full_spectrum",
+        "frame_ms": 200,
+        "horizon_frames": 4,
+        "horizon_ms": 800,
+        "calibration_ms": 2000,
+        "calibration_std_floor": 0.3
+      },
+      "participant_count": 4,
+      "clip_count": 8,
+      "labels_consumed_by_learner": false,
+      "wins": 2,
+      "mean_accuracy_improvement": 0.003609573278690926,
+      "worst_clip_improvement": -0.09890109890109894,
+      "minimum_clip_state_occupancy": 3,
+      "design_gate": {
+        "minimum_six_of_eight_clip_wins": false,
+        "minimum_mean_accuracy_improvement": false,
+        "maximum_worst_clip_regret": false,
+        "minimum_each_clip_state_occupancy": true
+      },
+      "design_gate_passed": false,
+      "folds": [
+        {
+          "held_participant": "BEJ06",
+          "development_participants": [
+            "BEJ07",
+            "BEJ11",
+            "BEJ21"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ06B",
+              "condition_suffix": "B",
+              "prediction_count": 17,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.35294117647058826,
+              "baselines": {
+                "persistence": 0.11764705882352941,
+                "development_unigram": 0.11764705882352941,
+                "causal_moving_state": 0.11764705882352941
+              },
+              "best_baseline_accuracy": 0.11764705882352941,
+              "accuracy_improvement": 0.23529411764705885
+            },
+            {
+              "clip_id": "BEJ06D",
+              "condition_suffix": "D",
+              "prediction_count": 18,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.5,
+              "baselines": {
+                "persistence": 0.5555555555555556,
+                "development_unigram": 0.5555555555555556,
+                "causal_moving_state": 0.5555555555555556
+              },
+              "best_baseline_accuracy": 0.5555555555555556,
+              "accuracy_improvement": -0.05555555555555558
+            }
+          ]
+        },
+        {
+          "held_participant": "BEJ07",
+          "development_participants": [
+            "BEJ06",
+            "BEJ11",
+            "BEJ21"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ07B",
+              "condition_suffix": "B",
+              "prediction_count": 24,
+              "state_occupancy": 3,
+              "transition_accuracy": 0.2916666666666667,
+              "baselines": {
+                "persistence": 0.25,
+                "development_unigram": 0.3333333333333333,
+                "causal_moving_state": 0.25
+              },
+              "best_baseline_accuracy": 0.3333333333333333,
+              "accuracy_improvement": -0.04166666666666663
+            },
+            {
+              "clip_id": "BEJ07D",
+              "condition_suffix": "D",
+              "prediction_count": 65,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.3230769230769231,
+              "baselines": {
+                "persistence": 0.35384615384615387,
+                "development_unigram": 0.3076923076923077,
+                "causal_moving_state": 0.35384615384615387
+              },
+              "best_baseline_accuracy": 0.35384615384615387,
+              "accuracy_improvement": -0.03076923076923077
+            }
+          ]
+        },
+        {
+          "held_participant": "BEJ11",
+          "development_participants": [
+            "BEJ06",
+            "BEJ07",
+            "BEJ21"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ11B",
+              "condition_suffix": "B",
+              "prediction_count": 29,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.20689655172413793,
+              "baselines": {
+                "persistence": 0.20689655172413793,
+                "development_unigram": 0.06896551724137931,
+                "causal_moving_state": 0.20689655172413793
+              },
+              "best_baseline_accuracy": 0.20689655172413793,
+              "accuracy_improvement": 0
+            },
+            {
+              "clip_id": "BEJ11D",
+              "condition_suffix": "D",
+              "prediction_count": 91,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.4175824175824176,
+              "baselines": {
+                "persistence": 0.32967032967032966,
+                "development_unigram": 0.5164835164835165,
+                "causal_moving_state": 0.32967032967032966
+              },
+              "best_baseline_accuracy": 0.5164835164835165,
+              "accuracy_improvement": -0.09890109890109894
+            }
+          ]
+        },
+        {
+          "held_participant": "BEJ21",
+          "development_participants": [
+            "BEJ06",
+            "BEJ07",
+            "BEJ11"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ21B",
+              "condition_suffix": "B",
+              "prediction_count": 37,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.35135135135135137,
+              "baselines": {
+                "persistence": 0.2702702702702703,
+                "development_unigram": 0.2702702702702703,
+                "causal_moving_state": 0.2702702702702703
+              },
+              "best_baseline_accuracy": 0.2702702702702703,
+              "accuracy_improvement": 0.08108108108108109
+            },
+            {
+              "clip_id": "BEJ21D",
+              "condition_suffix": "D",
+              "prediction_count": 33,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.2727272727272727,
+              "baselines": {
+                "persistence": 0.12121212121212122,
+                "development_unigram": 0.3333333333333333,
+                "causal_moving_state": 0.12121212121212122
+              },
+              "best_baseline_accuracy": 0.3333333333333333,
+              "accuracy_improvement": -0.06060606060606061
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "candidate": {
+        "signature_mode": "full_spectrum",
+        "frame_ms": 400,
+        "horizon_frames": 1,
+        "horizon_ms": 400,
+        "calibration_ms": 2000,
+        "calibration_std_floor": 0.3
+      },
+      "participant_count": 4,
+      "clip_count": 8,
+      "labels_consumed_by_learner": false,
+      "wins": 1,
+      "mean_accuracy_improvement": -0.08405861555175057,
+      "worst_clip_improvement": -0.2222222222222222,
+      "minimum_clip_state_occupancy": 4,
+      "design_gate": {
+        "minimum_six_of_eight_clip_wins": false,
+        "minimum_mean_accuracy_improvement": false,
+        "maximum_worst_clip_regret": false,
+        "minimum_each_clip_state_occupancy": true
+      },
+      "design_gate_passed": false,
+      "folds": [
+        {
+          "held_participant": "BEJ06",
+          "development_participants": [
+            "BEJ07",
+            "BEJ11",
+            "BEJ21"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ06B",
+              "condition_suffix": "B",
+              "prediction_count": 9,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.1111111111111111,
+              "baselines": {
+                "persistence": 0.3333333333333333,
+                "development_unigram": 0.1111111111111111,
+                "causal_moving_state": 0.3333333333333333
+              },
+              "best_baseline_accuracy": 0.3333333333333333,
+              "accuracy_improvement": -0.2222222222222222
+            },
+            {
+              "clip_id": "BEJ06D",
+              "condition_suffix": "D",
+              "prediction_count": 10,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.3,
+              "baselines": {
+                "persistence": 0.1,
+                "development_unigram": 0.5,
+                "causal_moving_state": 0.1
+              },
+              "best_baseline_accuracy": 0.5,
+              "accuracy_improvement": -0.2
+            }
+          ]
+        },
+        {
+          "held_participant": "BEJ07",
+          "development_participants": [
+            "BEJ06",
+            "BEJ11",
+            "BEJ21"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ07B",
+              "condition_suffix": "B",
+              "prediction_count": 13,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.23076923076923078,
+              "baselines": {
+                "persistence": 0.3076923076923077,
+                "development_unigram": 0.15384615384615385,
+                "causal_moving_state": 0.3076923076923077
+              },
+              "best_baseline_accuracy": 0.3076923076923077,
+              "accuracy_improvement": -0.07692307692307693
+            },
+            {
+              "clip_id": "BEJ07D",
+              "condition_suffix": "D",
+              "prediction_count": 33,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.2727272727272727,
+              "baselines": {
+                "persistence": 0.30303030303030304,
+                "development_unigram": 0.09090909090909091,
+                "causal_moving_state": 0.30303030303030304
+              },
+              "best_baseline_accuracy": 0.30303030303030304,
+              "accuracy_improvement": -0.03030303030303033
+            }
+          ]
+        },
+        {
+          "held_participant": "BEJ11",
+          "development_participants": [
+            "BEJ06",
+            "BEJ07",
+            "BEJ21"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ11B",
+              "condition_suffix": "B",
+              "prediction_count": 15,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.2,
+              "baselines": {
+                "persistence": 0.06666666666666667,
+                "development_unigram": 0.2,
+                "causal_moving_state": 0.06666666666666667
+              },
+              "best_baseline_accuracy": 0.2,
+              "accuracy_improvement": 0
+            },
+            {
+              "clip_id": "BEJ11D",
+              "condition_suffix": "D",
+              "prediction_count": 46,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.2391304347826087,
+              "baselines": {
+                "persistence": 0.43478260869565216,
+                "development_unigram": 0.391304347826087,
+                "causal_moving_state": 0.43478260869565216
+              },
+              "best_baseline_accuracy": 0.43478260869565216,
+              "accuracy_improvement": -0.19565217391304346
+            }
+          ]
+        },
+        {
+          "held_participant": "BEJ21",
+          "development_participants": [
+            "BEJ06",
+            "BEJ07",
+            "BEJ11"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ21B",
+              "condition_suffix": "B",
+              "prediction_count": 19,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.3157894736842105,
+              "baselines": {
+                "persistence": 0.2631578947368421,
+                "development_unigram": 0.15789473684210525,
+                "causal_moving_state": 0.2631578947368421
+              },
+              "best_baseline_accuracy": 0.2631578947368421,
+              "accuracy_improvement": 0.05263157894736842
+            },
+            {
+              "clip_id": "BEJ21D",
+              "condition_suffix": "D",
+              "prediction_count": 17,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.29411764705882354,
+              "baselines": {
+                "persistence": 0.23529411764705882,
+                "development_unigram": 0.29411764705882354,
+                "causal_moving_state": 0.23529411764705882
+              },
+              "best_baseline_accuracy": 0.29411764705882354,
+              "accuracy_improvement": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "candidate": {
+        "signature_mode": "full_spectrum",
+        "frame_ms": 400,
+        "horizon_frames": 2,
+        "horizon_ms": 800,
+        "calibration_ms": 2000,
+        "calibration_std_floor": 0.3
+      },
+      "participant_count": 4,
+      "clip_count": 8,
+      "labels_consumed_by_learner": false,
+      "wins": 2,
+      "mean_accuracy_improvement": -0.02464037698412699,
+      "worst_clip_improvement": -0.11111111111111116,
+      "minimum_clip_state_occupancy": 4,
+      "design_gate": {
+        "minimum_six_of_eight_clip_wins": false,
+        "minimum_mean_accuracy_improvement": false,
+        "maximum_worst_clip_regret": false,
+        "minimum_each_clip_state_occupancy": true
+      },
+      "design_gate_passed": false,
+      "folds": [
+        {
+          "held_participant": "BEJ06",
+          "development_participants": [
+            "BEJ07",
+            "BEJ11",
+            "BEJ21"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ06B",
+              "condition_suffix": "B",
+              "prediction_count": 8,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.125,
+              "baselines": {
+                "persistence": 0.125,
+                "development_unigram": 0.125,
+                "causal_moving_state": 0.125
+              },
+              "best_baseline_accuracy": 0.125,
+              "accuracy_improvement": 0
+            },
+            {
+              "clip_id": "BEJ06D",
+              "condition_suffix": "D",
+              "prediction_count": 9,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.4444444444444444,
+              "baselines": {
+                "persistence": 0.5555555555555556,
+                "development_unigram": 0.5555555555555556,
+                "causal_moving_state": 0.5555555555555556
+              },
+              "best_baseline_accuracy": 0.5555555555555556,
+              "accuracy_improvement": -0.11111111111111116
+            }
+          ]
+        },
+        {
+          "held_participant": "BEJ07",
+          "development_participants": [
+            "BEJ06",
+            "BEJ11",
+            "BEJ21"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ07B",
+              "condition_suffix": "B",
+              "prediction_count": 12,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.08333333333333333,
+              "baselines": {
+                "persistence": 0.16666666666666666,
+                "development_unigram": 0.08333333333333333,
+                "causal_moving_state": 0.16666666666666666
+              },
+              "best_baseline_accuracy": 0.16666666666666666,
+              "accuracy_improvement": -0.08333333333333333
+            },
+            {
+              "clip_id": "BEJ07D",
+              "condition_suffix": "D",
+              "prediction_count": 32,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.28125,
+              "baselines": {
+                "persistence": 0.3125,
+                "development_unigram": 0.09375,
+                "causal_moving_state": 0.3125
+              },
+              "best_baseline_accuracy": 0.3125,
+              "accuracy_improvement": -0.03125
+            }
+          ]
+        },
+        {
+          "held_participant": "BEJ11",
+          "development_participants": [
+            "BEJ06",
+            "BEJ07",
+            "BEJ21"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ11B",
+              "condition_suffix": "B",
+              "prediction_count": 14,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.14285714285714285,
+              "baselines": {
+                "persistence": 0.07142857142857142,
+                "development_unigram": 0.21428571428571427,
+                "causal_moving_state": 0.07142857142857142
+              },
+              "best_baseline_accuracy": 0.21428571428571427,
+              "accuracy_improvement": -0.07142857142857142
+            },
+            {
+              "clip_id": "BEJ11D",
+              "condition_suffix": "D",
+              "prediction_count": 45,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.4222222222222222,
+              "baselines": {
+                "persistence": 0.3333333333333333,
+                "development_unigram": 0.37777777777777777,
+                "causal_moving_state": 0.3333333333333333
+              },
+              "best_baseline_accuracy": 0.37777777777777777,
+              "accuracy_improvement": 0.04444444444444445
+            }
+          ]
+        },
+        {
+          "held_participant": "BEJ21",
+          "development_participants": [
+            "BEJ06",
+            "BEJ07",
+            "BEJ11"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ21B",
+              "condition_suffix": "B",
+              "prediction_count": 18,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.3333333333333333,
+              "baselines": {
+                "persistence": 0.2777777777777778,
+                "development_unigram": 0.16666666666666666,
+                "causal_moving_state": 0.2777777777777778
+              },
+              "best_baseline_accuracy": 0.2777777777777778,
+              "accuracy_improvement": 0.055555555555555525
+            },
+            {
+              "clip_id": "BEJ21D",
+              "condition_suffix": "D",
+              "prediction_count": 16,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.3125,
+              "baselines": {
+                "persistence": 0.25,
+                "development_unigram": 0.3125,
+                "causal_moving_state": 0.25
+              },
+              "best_baseline_accuracy": 0.3125,
+              "accuracy_improvement": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "candidate": {
+        "signature_mode": "full_spectrum",
+        "frame_ms": 400,
+        "horizon_frames": 4,
+        "horizon_ms": 1600,
+        "calibration_ms": 2000,
+        "calibration_std_floor": 0.3
+      },
+      "participant_count": 4,
+      "clip_count": 8,
+      "labels_consumed_by_learner": false,
+      "wins": 2,
+      "mean_accuracy_improvement": -0.03365171650055371,
+      "worst_clip_improvement": -0.25,
+      "minimum_clip_state_occupancy": 4,
+      "design_gate": {
+        "minimum_six_of_eight_clip_wins": false,
+        "minimum_mean_accuracy_improvement": false,
+        "maximum_worst_clip_regret": false,
+        "minimum_each_clip_state_occupancy": true
+      },
+      "design_gate_passed": false,
+      "folds": [
+        {
+          "held_participant": "BEJ06",
+          "development_participants": [
+            "BEJ07",
+            "BEJ11",
+            "BEJ21"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ06B",
+              "condition_suffix": "B",
+              "prediction_count": 6,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.16666666666666666,
+              "baselines": {
+                "persistence": 0,
+                "development_unigram": 0.16666666666666666,
+                "causal_moving_state": 0
+              },
+              "best_baseline_accuracy": 0.16666666666666666,
+              "accuracy_improvement": 0
+            },
+            {
+              "clip_id": "BEJ06D",
+              "condition_suffix": "D",
+              "prediction_count": 7,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.42857142857142855,
+              "baselines": {
+                "persistence": 0.14285714285714285,
+                "development_unigram": 0.5714285714285714,
+                "causal_moving_state": 0.14285714285714285
+              },
+              "best_baseline_accuracy": 0.5714285714285714,
+              "accuracy_improvement": -0.14285714285714285
+            }
+          ]
+        },
+        {
+          "held_participant": "BEJ07",
+          "development_participants": [
+            "BEJ06",
+            "BEJ11",
+            "BEJ21"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ07B",
+              "condition_suffix": "B",
+              "prediction_count": 10,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.4,
+              "baselines": {
+                "persistence": 0.2,
+                "development_unigram": 0.1,
+                "causal_moving_state": 0.2
+              },
+              "best_baseline_accuracy": 0.2,
+              "accuracy_improvement": 0.2
+            },
+            {
+              "clip_id": "BEJ07D",
+              "condition_suffix": "D",
+              "prediction_count": 30,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.23333333333333334,
+              "baselines": {
+                "persistence": 0.3,
+                "development_unigram": 0.1,
+                "causal_moving_state": 0.3
+              },
+              "best_baseline_accuracy": 0.3,
+              "accuracy_improvement": -0.06666666666666665
+            }
+          ]
+        },
+        {
+          "held_participant": "BEJ11",
+          "development_participants": [
+            "BEJ06",
+            "BEJ07",
+            "BEJ21"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ11B",
+              "condition_suffix": "B",
+              "prediction_count": 12,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.3333333333333333,
+              "baselines": {
+                "persistence": 0.16666666666666666,
+                "development_unigram": 0.25,
+                "causal_moving_state": 0.16666666666666666
+              },
+              "best_baseline_accuracy": 0.25,
+              "accuracy_improvement": 0.08333333333333331
+            },
+            {
+              "clip_id": "BEJ11D",
+              "condition_suffix": "D",
+              "prediction_count": 43,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.3023255813953488,
+              "baselines": {
+                "persistence": 0.3023255813953488,
+                "development_unigram": 0.3953488372093023,
+                "causal_moving_state": 0.3023255813953488
+              },
+              "best_baseline_accuracy": 0.3953488372093023,
+              "accuracy_improvement": -0.09302325581395349
+            }
+          ]
+        },
+        {
+          "held_participant": "BEJ21",
+          "development_participants": [
+            "BEJ06",
+            "BEJ07",
+            "BEJ11"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ21B",
+              "condition_suffix": "B",
+              "prediction_count": 16,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.125,
+              "baselines": {
+                "persistence": 0.375,
+                "development_unigram": 0.1875,
+                "causal_moving_state": 0.375
+              },
+              "best_baseline_accuracy": 0.375,
+              "accuracy_improvement": -0.25
+            },
+            {
+              "clip_id": "BEJ21D",
+              "condition_suffix": "D",
+              "prediction_count": 14,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.35714285714285715,
+              "baselines": {
+                "persistence": 0,
+                "development_unigram": 0.35714285714285715,
+                "causal_moving_state": 0
+              },
+              "best_baseline_accuracy": 0.35714285714285715,
+              "accuracy_improvement": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "candidate": {
+        "signature_mode": "temporal_median_60_30",
+        "frame_ms": 100,
+        "horizon_frames": 1,
+        "horizon_ms": 100,
+        "calibration_ms": 2000,
+        "calibration_std_floor": 0.3
+      },
+      "participant_count": 4,
+      "clip_count": 8,
+      "labels_consumed_by_learner": false,
+      "wins": 0,
+      "mean_accuracy_improvement": -0.02158119658119658,
+      "worst_clip_improvement": -0.1111111111111111,
+      "minimum_clip_state_occupancy": 4,
+      "design_gate": {
+        "minimum_six_of_eight_clip_wins": false,
+        "minimum_mean_accuracy_improvement": false,
+        "maximum_worst_clip_regret": false,
+        "minimum_each_clip_state_occupancy": true
+      },
+      "design_gate_passed": false,
+      "folds": [
+        {
+          "held_participant": "BEJ06",
+          "development_participants": [
+            "BEJ07",
+            "BEJ11",
+            "BEJ21"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ06B",
+              "condition_suffix": "B",
+              "prediction_count": 42,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.6190476190476191,
+              "baselines": {
+                "persistence": 0.6190476190476191,
+                "development_unigram": 0.16666666666666666,
+                "causal_moving_state": 0.6190476190476191
+              },
+              "best_baseline_accuracy": 0.6190476190476191,
+              "accuracy_improvement": 0
+            },
+            {
+              "clip_id": "BEJ06D",
+              "condition_suffix": "D",
+              "prediction_count": 43,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.46511627906976744,
+              "baselines": {
+                "persistence": 0.46511627906976744,
+                "development_unigram": 0.4186046511627907,
+                "causal_moving_state": 0.46511627906976744
+              },
+              "best_baseline_accuracy": 0.46511627906976744,
+              "accuracy_improvement": 0
+            }
+          ]
+        },
+        {
+          "held_participant": "BEJ07",
+          "development_participants": [
+            "BEJ06",
+            "BEJ11",
+            "BEJ21"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ07B",
+              "condition_suffix": "B",
+              "prediction_count": 55,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.4909090909090909,
+              "baselines": {
+                "persistence": 0.4909090909090909,
+                "development_unigram": 0.03636363636363636,
+                "causal_moving_state": 0.4909090909090909
+              },
+              "best_baseline_accuracy": 0.4909090909090909,
+              "accuracy_improvement": 0
+            },
+            {
+              "clip_id": "BEJ07D",
+              "condition_suffix": "D",
+              "prediction_count": 137,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.35766423357664234,
+              "baselines": {
+                "persistence": 0.35766423357664234,
+                "development_unigram": 0.31386861313868614,
+                "causal_moving_state": 0.35766423357664234
+              },
+              "best_baseline_accuracy": 0.35766423357664234,
+              "accuracy_improvement": 0
+            }
+          ]
+        },
+        {
+          "held_participant": "BEJ11",
+          "development_participants": [
+            "BEJ06",
+            "BEJ07",
+            "BEJ21"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ11B",
+              "condition_suffix": "B",
+              "prediction_count": 65,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.35384615384615387,
+              "baselines": {
+                "persistence": 0.35384615384615387,
+                "development_unigram": 0.4153846153846154,
+                "causal_moving_state": 0.35384615384615387
+              },
+              "best_baseline_accuracy": 0.4153846153846154,
+              "accuracy_improvement": -0.06153846153846154
+            },
+            {
+              "clip_id": "BEJ11D",
+              "condition_suffix": "D",
+              "prediction_count": 190,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.4631578947368421,
+              "baselines": {
+                "persistence": 0.4631578947368421,
+                "development_unigram": 0.24736842105263157,
+                "causal_moving_state": 0.4631578947368421
+              },
+              "best_baseline_accuracy": 0.4631578947368421,
+              "accuracy_improvement": 0
+            }
+          ]
+        },
+        {
+          "held_participant": "BEJ21",
+          "development_participants": [
+            "BEJ06",
+            "BEJ07",
+            "BEJ11"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ21B",
+              "condition_suffix": "B",
+              "prediction_count": 81,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.32098765432098764,
+              "baselines": {
+                "persistence": 0.43209876543209874,
+                "development_unigram": 0.09876543209876543,
+                "causal_moving_state": 0.43209876543209874
+              },
+              "best_baseline_accuracy": 0.43209876543209874,
+              "accuracy_improvement": -0.1111111111111111
+            },
+            {
+              "clip_id": "BEJ21D",
+              "condition_suffix": "D",
+              "prediction_count": 73,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.3698630136986301,
+              "baselines": {
+                "persistence": 0.3698630136986301,
+                "development_unigram": 0.3698630136986301,
+                "causal_moving_state": 0.3698630136986301
+              },
+              "best_baseline_accuracy": 0.3698630136986301,
+              "accuracy_improvement": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "candidate": {
+        "signature_mode": "temporal_median_60_30",
+        "frame_ms": 100,
+        "horizon_frames": 2,
+        "horizon_ms": 200,
+        "calibration_ms": 2000,
+        "calibration_std_floor": 0.3
+      },
+      "participant_count": 4,
+      "clip_count": 8,
+      "labels_consumed_by_learner": false,
+      "wins": 0,
+      "mean_accuracy_improvement": -0.1023825091520348,
+      "worst_clip_improvement": -0.2682926829268293,
+      "minimum_clip_state_occupancy": 4,
+      "design_gate": {
+        "minimum_six_of_eight_clip_wins": false,
+        "minimum_mean_accuracy_improvement": false,
+        "maximum_worst_clip_regret": false,
+        "minimum_each_clip_state_occupancy": true
+      },
+      "design_gate_passed": false,
+      "folds": [
+        {
+          "held_participant": "BEJ06",
+          "development_participants": [
+            "BEJ07",
+            "BEJ11",
+            "BEJ21"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ06B",
+              "condition_suffix": "B",
+              "prediction_count": 41,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.21951219512195122,
+              "baselines": {
+                "persistence": 0.4878048780487805,
+                "development_unigram": 0.17073170731707318,
+                "causal_moving_state": 0.4878048780487805
+              },
+              "best_baseline_accuracy": 0.4878048780487805,
+              "accuracy_improvement": -0.2682926829268293
+            },
+            {
+              "clip_id": "BEJ06D",
+              "condition_suffix": "D",
+              "prediction_count": 42,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.38095238095238093,
+              "baselines": {
+                "persistence": 0.2857142857142857,
+                "development_unigram": 0.40476190476190477,
+                "causal_moving_state": 0.2857142857142857
+              },
+              "best_baseline_accuracy": 0.40476190476190477,
+              "accuracy_improvement": -0.023809523809523836
+            }
+          ]
+        },
+        {
+          "held_participant": "BEJ07",
+          "development_participants": [
+            "BEJ06",
+            "BEJ11",
+            "BEJ21"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ07B",
+              "condition_suffix": "B",
+              "prediction_count": 54,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.2222222222222222,
+              "baselines": {
+                "persistence": 0.4074074074074074,
+                "development_unigram": 0.037037037037037035,
+                "causal_moving_state": 0.4074074074074074
+              },
+              "best_baseline_accuracy": 0.4074074074074074,
+              "accuracy_improvement": -0.18518518518518517
+            },
+            {
+              "clip_id": "BEJ07D",
+              "condition_suffix": "D",
+              "prediction_count": 136,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.3014705882352941,
+              "baselines": {
+                "persistence": 0.25,
+                "development_unigram": 0.3161764705882353,
+                "causal_moving_state": 0.25
+              },
+              "best_baseline_accuracy": 0.3161764705882353,
+              "accuracy_improvement": -0.01470588235294118
+            }
+          ]
+        },
+        {
+          "held_participant": "BEJ11",
+          "development_participants": [
+            "BEJ06",
+            "BEJ07",
+            "BEJ21"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ11B",
+              "condition_suffix": "B",
+              "prediction_count": 64,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.15625,
+              "baselines": {
+                "persistence": 0.265625,
+                "development_unigram": 0.421875,
+                "causal_moving_state": 0.265625
+              },
+              "best_baseline_accuracy": 0.421875,
+              "accuracy_improvement": -0.265625
+            },
+            {
+              "clip_id": "BEJ11D",
+              "condition_suffix": "D",
+              "prediction_count": 189,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.42328042328042326,
+              "baselines": {
+                "persistence": 0.4444444444444444,
+                "development_unigram": 0.24867724867724866,
+                "causal_moving_state": 0.4444444444444444
+              },
+              "best_baseline_accuracy": 0.4444444444444444,
+              "accuracy_improvement": -0.021164021164021163
+            }
+          ]
+        },
+        {
+          "held_participant": "BEJ21",
+          "development_participants": [
+            "BEJ06",
+            "BEJ07",
+            "BEJ11"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ21B",
+              "condition_suffix": "B",
+              "prediction_count": 80,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.2,
+              "baselines": {
+                "persistence": 0.2125,
+                "development_unigram": 0.1,
+                "causal_moving_state": 0.2125
+              },
+              "best_baseline_accuracy": 0.2125,
+              "accuracy_improvement": -0.012499999999999983
+            },
+            {
+              "clip_id": "BEJ21D",
+              "condition_suffix": "D",
+              "prediction_count": 72,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.3472222222222222,
+              "baselines": {
+                "persistence": 0.3055555555555556,
+                "development_unigram": 0.375,
+                "causal_moving_state": 0.3055555555555556
+              },
+              "best_baseline_accuracy": 0.375,
+              "accuracy_improvement": -0.02777777777777779
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "candidate": {
+        "signature_mode": "temporal_median_60_30",
+        "frame_ms": 100,
+        "horizon_frames": 4,
+        "horizon_ms": 400,
+        "calibration_ms": 2000,
+        "calibration_std_floor": 0.3
+      },
+      "participant_count": 4,
+      "clip_count": 8,
+      "labels_consumed_by_learner": false,
+      "wins": 2,
+      "mean_accuracy_improvement": -0.053099671812322974,
+      "worst_clip_improvement": -0.16129032258064518,
+      "minimum_clip_state_occupancy": 4,
+      "design_gate": {
+        "minimum_six_of_eight_clip_wins": false,
+        "minimum_mean_accuracy_improvement": false,
+        "maximum_worst_clip_regret": false,
+        "minimum_each_clip_state_occupancy": true
+      },
+      "design_gate_passed": false,
+      "folds": [
+        {
+          "held_participant": "BEJ06",
+          "development_participants": [
+            "BEJ07",
+            "BEJ11",
+            "BEJ21"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ06B",
+              "condition_suffix": "B",
+              "prediction_count": 39,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.23076923076923078,
+              "baselines": {
+                "persistence": 0.28205128205128205,
+                "development_unigram": 0.1794871794871795,
+                "causal_moving_state": 0.28205128205128205
+              },
+              "best_baseline_accuracy": 0.28205128205128205,
+              "accuracy_improvement": -0.051282051282051266
+            },
+            {
+              "clip_id": "BEJ06D",
+              "condition_suffix": "D",
+              "prediction_count": 40,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.325,
+              "baselines": {
+                "persistence": 0.2,
+                "development_unigram": 0.425,
+                "causal_moving_state": 0.2
+              },
+              "best_baseline_accuracy": 0.425,
+              "accuracy_improvement": -0.09999999999999998
+            }
+          ]
+        },
+        {
+          "held_participant": "BEJ07",
+          "development_participants": [
+            "BEJ06",
+            "BEJ11",
+            "BEJ21"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ07B",
+              "condition_suffix": "B",
+              "prediction_count": 52,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.3076923076923077,
+              "baselines": {
+                "persistence": 0.3076923076923077,
+                "development_unigram": 0.038461538461538464,
+                "causal_moving_state": 0.3076923076923077
+              },
+              "best_baseline_accuracy": 0.3076923076923077,
+              "accuracy_improvement": 0
+            },
+            {
+              "clip_id": "BEJ07D",
+              "condition_suffix": "D",
+              "prediction_count": 134,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.2462686567164179,
+              "baselines": {
+                "persistence": 0.27611940298507465,
+                "development_unigram": 0.31343283582089554,
+                "causal_moving_state": 0.27611940298507465
+              },
+              "best_baseline_accuracy": 0.31343283582089554,
+              "accuracy_improvement": -0.06716417910447764
+            }
+          ]
+        },
+        {
+          "held_participant": "BEJ11",
+          "development_participants": [
+            "BEJ06",
+            "BEJ07",
+            "BEJ21"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ11B",
+              "condition_suffix": "B",
+              "prediction_count": 62,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.25806451612903225,
+              "baselines": {
+                "persistence": 0.3064516129032258,
+                "development_unigram": 0.41935483870967744,
+                "causal_moving_state": 0.3064516129032258
+              },
+              "best_baseline_accuracy": 0.41935483870967744,
+              "accuracy_improvement": -0.16129032258064518
+            },
+            {
+              "clip_id": "BEJ11D",
+              "condition_suffix": "D",
+              "prediction_count": 187,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.44919786096256686,
+              "baselines": {
+                "persistence": 0.3689839572192513,
+                "development_unigram": 0.25133689839572193,
+                "causal_moving_state": 0.3689839572192513
+              },
+              "best_baseline_accuracy": 0.3689839572192513,
+              "accuracy_improvement": 0.08021390374331555
+            }
+          ]
+        },
+        {
+          "held_participant": "BEJ21",
+          "development_participants": [
+            "BEJ06",
+            "BEJ07",
+            "BEJ11"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ21B",
+              "condition_suffix": "B",
+              "prediction_count": 78,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.2692307692307692,
+              "baselines": {
+                "persistence": 0.4230769230769231,
+                "development_unigram": 0.08974358974358974,
+                "causal_moving_state": 0.4230769230769231
+              },
+              "best_baseline_accuracy": 0.4230769230769231,
+              "accuracy_improvement": -0.15384615384615385
+            },
+            {
+              "clip_id": "BEJ21D",
+              "condition_suffix": "D",
+              "prediction_count": 70,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.4142857142857143,
+              "baselines": {
+                "persistence": 0.34285714285714286,
+                "development_unigram": 0.38571428571428573,
+                "causal_moving_state": 0.34285714285714286
+              },
+              "best_baseline_accuracy": 0.38571428571428573,
+              "accuracy_improvement": 0.02857142857142858
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "candidate": {
+        "signature_mode": "temporal_median_60_30",
+        "frame_ms": 200,
+        "horizon_frames": 1,
+        "horizon_ms": 200,
+        "calibration_ms": 2000,
+        "calibration_std_floor": 0.3
+      },
+      "participant_count": 4,
+      "clip_count": 8,
+      "labels_consumed_by_learner": false,
+      "wins": 1,
+      "mean_accuracy_improvement": -0.0618349770463741,
+      "worst_clip_improvement": -0.15625,
+      "minimum_clip_state_occupancy": 3,
+      "design_gate": {
+        "minimum_six_of_eight_clip_wins": false,
+        "minimum_mean_accuracy_improvement": false,
+        "maximum_worst_clip_regret": false,
+        "minimum_each_clip_state_occupancy": true
+      },
+      "design_gate_passed": false,
+      "folds": [
+        {
+          "held_participant": "BEJ06",
+          "development_participants": [
+            "BEJ07",
+            "BEJ11",
+            "BEJ21"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ06B",
+              "condition_suffix": "B",
+              "prediction_count": 20,
+              "state_occupancy": 3,
+              "transition_accuracy": 0.45,
+              "baselines": {
+                "persistence": 0.55,
+                "development_unigram": 0,
+                "causal_moving_state": 0.55
+              },
+              "best_baseline_accuracy": 0.55,
+              "accuracy_improvement": -0.10000000000000003
+            },
+            {
+              "clip_id": "BEJ06D",
+              "condition_suffix": "D",
+              "prediction_count": 21,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.3333333333333333,
+              "baselines": {
+                "persistence": 0.2857142857142857,
+                "development_unigram": 0.42857142857142855,
+                "causal_moving_state": 0.2857142857142857
+              },
+              "best_baseline_accuracy": 0.42857142857142855,
+              "accuracy_improvement": -0.09523809523809523
+            }
+          ]
+        },
+        {
+          "held_participant": "BEJ07",
+          "development_participants": [
+            "BEJ06",
+            "BEJ11",
+            "BEJ21"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ07B",
+              "condition_suffix": "B",
+              "prediction_count": 27,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.4444444444444444,
+              "baselines": {
+                "persistence": 0.4074074074074074,
+                "development_unigram": 0.2222222222222222,
+                "causal_moving_state": 0.4074074074074074
+              },
+              "best_baseline_accuracy": 0.4074074074074074,
+              "accuracy_improvement": 0.037037037037037035
+            },
+            {
+              "clip_id": "BEJ07D",
+              "condition_suffix": "D",
+              "prediction_count": 68,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.2647058823529412,
+              "baselines": {
+                "persistence": 0.3088235294117647,
+                "development_unigram": 0.27941176470588236,
+                "causal_moving_state": 0.3088235294117647
+              },
+              "best_baseline_accuracy": 0.3088235294117647,
+              "accuracy_improvement": -0.04411764705882354
+            }
+          ]
+        },
+        {
+          "held_participant": "BEJ11",
+          "development_participants": [
+            "BEJ06",
+            "BEJ07",
+            "BEJ21"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ11B",
+              "condition_suffix": "B",
+              "prediction_count": 32,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.25,
+              "baselines": {
+                "persistence": 0.25,
+                "development_unigram": 0.40625,
+                "causal_moving_state": 0.25
+              },
+              "best_baseline_accuracy": 0.40625,
+              "accuracy_improvement": -0.15625
+            },
+            {
+              "clip_id": "BEJ11D",
+              "condition_suffix": "D",
+              "prediction_count": 94,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.43617021276595747,
+              "baselines": {
+                "persistence": 0.43617021276595747,
+                "development_unigram": 0.0851063829787234,
+                "causal_moving_state": 0.43617021276595747
+              },
+              "best_baseline_accuracy": 0.43617021276595747,
+              "accuracy_improvement": 0
+            }
+          ]
+        },
+        {
+          "held_participant": "BEJ21",
+          "development_participants": [
+            "BEJ06",
+            "BEJ07",
+            "BEJ11"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ21B",
+              "condition_suffix": "B",
+              "prediction_count": 40,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.55,
+              "baselines": {
+                "persistence": 0.575,
+                "development_unigram": 0.25,
+                "causal_moving_state": 0.575
+              },
+              "best_baseline_accuracy": 0.575,
+              "accuracy_improvement": -0.02499999999999991
+            },
+            {
+              "clip_id": "BEJ21D",
+              "condition_suffix": "D",
+              "prediction_count": 36,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.2222222222222222,
+              "baselines": {
+                "persistence": 0.3333333333333333,
+                "development_unigram": 0.08333333333333333,
+                "causal_moving_state": 0.3333333333333333
+              },
+              "best_baseline_accuracy": 0.3333333333333333,
+              "accuracy_improvement": -0.1111111111111111
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "candidate": {
+        "signature_mode": "temporal_median_60_30",
+        "frame_ms": 200,
+        "horizon_frames": 2,
+        "horizon_ms": 400,
+        "calibration_ms": 2000,
+        "calibration_std_floor": 0.3
+      },
+      "participant_count": 4,
+      "clip_count": 8,
+      "labels_consumed_by_learner": false,
+      "wins": 1,
+      "mean_accuracy_improvement": -0.1121567059523183,
+      "worst_clip_improvement": -0.23655913978494625,
+      "minimum_clip_state_occupancy": 3,
+      "design_gate": {
+        "minimum_six_of_eight_clip_wins": false,
+        "minimum_mean_accuracy_improvement": false,
+        "maximum_worst_clip_regret": false,
+        "minimum_each_clip_state_occupancy": true
+      },
+      "design_gate_passed": false,
+      "folds": [
+        {
+          "held_participant": "BEJ06",
+          "development_participants": [
+            "BEJ07",
+            "BEJ11",
+            "BEJ21"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ06B",
+              "condition_suffix": "B",
+              "prediction_count": 19,
+              "state_occupancy": 3,
+              "transition_accuracy": 0.3684210526315789,
+              "baselines": {
+                "persistence": 0.42105263157894735,
+                "development_unigram": 0,
+                "causal_moving_state": 0.42105263157894735
+              },
+              "best_baseline_accuracy": 0.42105263157894735,
+              "accuracy_improvement": -0.05263157894736842
+            },
+            {
+              "clip_id": "BEJ06D",
+              "condition_suffix": "D",
+              "prediction_count": 20,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.25,
+              "baselines": {
+                "persistence": 0.15,
+                "development_unigram": 0.4,
+                "causal_moving_state": 0.15
+              },
+              "best_baseline_accuracy": 0.4,
+              "accuracy_improvement": -0.15000000000000002
+            }
+          ]
+        },
+        {
+          "held_participant": "BEJ07",
+          "development_participants": [
+            "BEJ06",
+            "BEJ11",
+            "BEJ21"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ07B",
+              "condition_suffix": "B",
+              "prediction_count": 26,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.19230769230769232,
+              "baselines": {
+                "persistence": 0.11538461538461539,
+                "development_unigram": 0.23076923076923078,
+                "causal_moving_state": 0.11538461538461539
+              },
+              "best_baseline_accuracy": 0.23076923076923078,
+              "accuracy_improvement": -0.038461538461538464
+            },
+            {
+              "clip_id": "BEJ07D",
+              "condition_suffix": "D",
+              "prediction_count": 67,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.2835820895522388,
+              "baselines": {
+                "persistence": 0.22388059701492538,
+                "development_unigram": 0.26865671641791045,
+                "causal_moving_state": 0.22388059701492538
+              },
+              "best_baseline_accuracy": 0.26865671641791045,
+              "accuracy_improvement": 0.014925373134328346
+            }
+          ]
+        },
+        {
+          "held_participant": "BEJ11",
+          "development_participants": [
+            "BEJ06",
+            "BEJ07",
+            "BEJ21"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ11B",
+              "condition_suffix": "B",
+              "prediction_count": 31,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.25806451612903225,
+              "baselines": {
+                "persistence": 0.25806451612903225,
+                "development_unigram": 0.3870967741935484,
+                "causal_moving_state": 0.25806451612903225
+              },
+              "best_baseline_accuracy": 0.3870967741935484,
+              "accuracy_improvement": -0.12903225806451613
+            },
+            {
+              "clip_id": "BEJ11D",
+              "condition_suffix": "D",
+              "prediction_count": 93,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.1827956989247312,
+              "baselines": {
+                "persistence": 0.41935483870967744,
+                "development_unigram": 0.08602150537634409,
+                "causal_moving_state": 0.41935483870967744
+              },
+              "best_baseline_accuracy": 0.41935483870967744,
+              "accuracy_improvement": -0.23655913978494625
+            }
+          ]
+        },
+        {
+          "held_participant": "BEJ21",
+          "development_participants": [
+            "BEJ06",
+            "BEJ07",
+            "BEJ11"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ21B",
+              "condition_suffix": "B",
+              "prediction_count": 39,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.23076923076923078,
+              "baselines": {
+                "persistence": 0.3076923076923077,
+                "development_unigram": 0.23076923076923078,
+                "causal_moving_state": 0.3076923076923077
+              },
+              "best_baseline_accuracy": 0.3076923076923077,
+              "accuracy_improvement": -0.07692307692307693
+            },
+            {
+              "clip_id": "BEJ21D",
+              "condition_suffix": "D",
+              "prediction_count": 35,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.14285714285714285,
+              "baselines": {
+                "persistence": 0.37142857142857144,
+                "development_unigram": 0.08571428571428572,
+                "causal_moving_state": 0.37142857142857144
+              },
+              "best_baseline_accuracy": 0.37142857142857144,
+              "accuracy_improvement": -0.2285714285714286
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "candidate": {
+        "signature_mode": "temporal_median_60_30",
+        "frame_ms": 200,
+        "horizon_frames": 4,
+        "horizon_ms": 800,
+        "calibration_ms": 2000,
+        "calibration_std_floor": 0.3
+      },
+      "participant_count": 4,
+      "clip_count": 8,
+      "labels_consumed_by_learner": false,
+      "wins": 0,
+      "mean_accuracy_improvement": -0.1785873458350639,
+      "worst_clip_improvement": -0.47058823529411764,
+      "minimum_clip_state_occupancy": 3,
+      "design_gate": {
+        "minimum_six_of_eight_clip_wins": false,
+        "minimum_mean_accuracy_improvement": false,
+        "maximum_worst_clip_regret": false,
+        "minimum_each_clip_state_occupancy": true
+      },
+      "design_gate_passed": false,
+      "folds": [
+        {
+          "held_participant": "BEJ06",
+          "development_participants": [
+            "BEJ07",
+            "BEJ11",
+            "BEJ21"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ06B",
+              "condition_suffix": "B",
+              "prediction_count": 17,
+              "state_occupancy": 3,
+              "transition_accuracy": 0.058823529411764705,
+              "baselines": {
+                "persistence": 0.5294117647058824,
+                "development_unigram": 0,
+                "causal_moving_state": 0.5294117647058824
+              },
+              "best_baseline_accuracy": 0.5294117647058824,
+              "accuracy_improvement": -0.47058823529411764
+            },
+            {
+              "clip_id": "BEJ06D",
+              "condition_suffix": "D",
+              "prediction_count": 18,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.2222222222222222,
+              "baselines": {
+                "persistence": 0.2777777777777778,
+                "development_unigram": 0.3333333333333333,
+                "causal_moving_state": 0.2777777777777778
+              },
+              "best_baseline_accuracy": 0.3333333333333333,
+              "accuracy_improvement": -0.1111111111111111
+            }
+          ]
+        },
+        {
+          "held_participant": "BEJ07",
+          "development_participants": [
+            "BEJ06",
+            "BEJ11",
+            "BEJ21"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ07B",
+              "condition_suffix": "B",
+              "prediction_count": 24,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.16666666666666666,
+              "baselines": {
+                "persistence": 0.375,
+                "development_unigram": 0.25,
+                "causal_moving_state": 0.375
+              },
+              "best_baseline_accuracy": 0.375,
+              "accuracy_improvement": -0.20833333333333334
+            },
+            {
+              "clip_id": "BEJ07D",
+              "condition_suffix": "D",
+              "prediction_count": 65,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.26153846153846155,
+              "baselines": {
+                "persistence": 0.4153846153846154,
+                "development_unigram": 0.26153846153846155,
+                "causal_moving_state": 0.4153846153846154
+              },
+              "best_baseline_accuracy": 0.4153846153846154,
+              "accuracy_improvement": -0.15384615384615385
+            }
+          ]
+        },
+        {
+          "held_participant": "BEJ11",
+          "development_participants": [
+            "BEJ06",
+            "BEJ07",
+            "BEJ21"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ11B",
+              "condition_suffix": "B",
+              "prediction_count": 29,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.3448275862068966,
+              "baselines": {
+                "persistence": 0.20689655172413793,
+                "development_unigram": 0.41379310344827586,
+                "causal_moving_state": 0.20689655172413793
+              },
+              "best_baseline_accuracy": 0.41379310344827586,
+              "accuracy_improvement": -0.06896551724137928
+            },
+            {
+              "clip_id": "BEJ11D",
+              "condition_suffix": "D",
+              "prediction_count": 91,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.31868131868131866,
+              "baselines": {
+                "persistence": 0.4175824175824176,
+                "development_unigram": 0.08791208791208792,
+                "causal_moving_state": 0.4175824175824176
+              },
+              "best_baseline_accuracy": 0.4175824175824176,
+              "accuracy_improvement": -0.09890109890109894
+            }
+          ]
+        },
+        {
+          "held_participant": "BEJ21",
+          "development_participants": [
+            "BEJ06",
+            "BEJ07",
+            "BEJ11"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ21B",
+              "condition_suffix": "B",
+              "prediction_count": 37,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.16216216216216217,
+              "baselines": {
+                "persistence": 0.2972972972972973,
+                "development_unigram": 0.1891891891891892,
+                "causal_moving_state": 0.2972972972972973
+              },
+              "best_baseline_accuracy": 0.2972972972972973,
+              "accuracy_improvement": -0.13513513513513514
+            },
+            {
+              "clip_id": "BEJ21D",
+              "condition_suffix": "D",
+              "prediction_count": 33,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.12121212121212122,
+              "baselines": {
+                "persistence": 0.30303030303030304,
+                "development_unigram": 0.09090909090909091,
+                "causal_moving_state": 0.30303030303030304
+              },
+              "best_baseline_accuracy": 0.30303030303030304,
+              "accuracy_improvement": -0.18181818181818182
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "candidate": {
+        "signature_mode": "temporal_median_60_30",
+        "frame_ms": 400,
+        "horizon_frames": 1,
+        "horizon_ms": 400,
+        "calibration_ms": 2000,
+        "calibration_std_floor": 0.3
+      },
+      "participant_count": 4,
+      "clip_count": 8,
+      "labels_consumed_by_learner": false,
+      "wins": 1,
+      "mean_accuracy_improvement": -0.06680067942855666,
+      "worst_clip_improvement": -0.32608695652173914,
+      "minimum_clip_state_occupancy": 3,
+      "design_gate": {
+        "minimum_six_of_eight_clip_wins": false,
+        "minimum_mean_accuracy_improvement": false,
+        "maximum_worst_clip_regret": false,
+        "minimum_each_clip_state_occupancy": true
+      },
+      "design_gate_passed": false,
+      "folds": [
+        {
+          "held_participant": "BEJ06",
+          "development_participants": [
+            "BEJ07",
+            "BEJ11",
+            "BEJ21"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ06B",
+              "condition_suffix": "B",
+              "prediction_count": 9,
+              "state_occupancy": 3,
+              "transition_accuracy": 0.2222222222222222,
+              "baselines": {
+                "persistence": 0.4444444444444444,
+                "development_unigram": 0,
+                "causal_moving_state": 0.4444444444444444
+              },
+              "best_baseline_accuracy": 0.4444444444444444,
+              "accuracy_improvement": -0.2222222222222222
+            },
+            {
+              "clip_id": "BEJ06D",
+              "condition_suffix": "D",
+              "prediction_count": 10,
+              "state_occupancy": 3,
+              "transition_accuracy": 0.6,
+              "baselines": {
+                "persistence": 0.2,
+                "development_unigram": 0.6,
+                "causal_moving_state": 0.2
+              },
+              "best_baseline_accuracy": 0.6,
+              "accuracy_improvement": 0
+            }
+          ]
+        },
+        {
+          "held_participant": "BEJ07",
+          "development_participants": [
+            "BEJ06",
+            "BEJ11",
+            "BEJ21"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ07B",
+              "condition_suffix": "B",
+              "prediction_count": 13,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.3076923076923077,
+              "baselines": {
+                "persistence": 0.3076923076923077,
+                "development_unigram": 0.3076923076923077,
+                "causal_moving_state": 0.3076923076923077
+              },
+              "best_baseline_accuracy": 0.3076923076923077,
+              "accuracy_improvement": 0
+            },
+            {
+              "clip_id": "BEJ07D",
+              "condition_suffix": "D",
+              "prediction_count": 33,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.3939393939393939,
+              "baselines": {
+                "persistence": 0.3939393939393939,
+                "development_unigram": 0.45454545454545453,
+                "causal_moving_state": 0.3939393939393939
+              },
+              "best_baseline_accuracy": 0.45454545454545453,
+              "accuracy_improvement": -0.06060606060606061
+            }
+          ]
+        },
+        {
+          "held_participant": "BEJ11",
+          "development_participants": [
+            "BEJ06",
+            "BEJ07",
+            "BEJ21"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ11B",
+              "condition_suffix": "B",
+              "prediction_count": 15,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.4,
+              "baselines": {
+                "persistence": 0.26666666666666666,
+                "development_unigram": 0.2,
+                "causal_moving_state": 0.26666666666666666
+              },
+              "best_baseline_accuracy": 0.26666666666666666,
+              "accuracy_improvement": 0.13333333333333336
+            },
+            {
+              "clip_id": "BEJ11D",
+              "condition_suffix": "D",
+              "prediction_count": 46,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.17391304347826086,
+              "baselines": {
+                "persistence": 0.4782608695652174,
+                "development_unigram": 0.5,
+                "causal_moving_state": 0.4782608695652174
+              },
+              "best_baseline_accuracy": 0.5,
+              "accuracy_improvement": -0.32608695652173914
+            }
+          ]
+        },
+        {
+          "held_participant": "BEJ21",
+          "development_participants": [
+            "BEJ06",
+            "BEJ07",
+            "BEJ11"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ21B",
+              "condition_suffix": "B",
+              "prediction_count": 19,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.3684210526315789,
+              "baselines": {
+                "persistence": 0.3684210526315789,
+                "development_unigram": 0.3684210526315789,
+                "causal_moving_state": 0.3684210526315789
+              },
+              "best_baseline_accuracy": 0.3684210526315789,
+              "accuracy_improvement": 0
+            },
+            {
+              "clip_id": "BEJ21D",
+              "condition_suffix": "D",
+              "prediction_count": 17,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.4117647058823529,
+              "baselines": {
+                "persistence": 0.4117647058823529,
+                "development_unigram": 0.47058823529411764,
+                "causal_moving_state": 0.4117647058823529
+              },
+              "best_baseline_accuracy": 0.47058823529411764,
+              "accuracy_improvement": -0.05882352941176472
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "candidate": {
+        "signature_mode": "temporal_median_60_30",
+        "frame_ms": 400,
+        "horizon_frames": 2,
+        "horizon_ms": 800,
+        "calibration_ms": 2000,
+        "calibration_std_floor": 0.3
+      },
+      "participant_count": 4,
+      "clip_count": 8,
+      "labels_consumed_by_learner": false,
+      "wins": 1,
+      "mean_accuracy_improvement": -0.10522073412698411,
+      "worst_clip_improvement": -0.25,
+      "minimum_clip_state_occupancy": 3,
+      "design_gate": {
+        "minimum_six_of_eight_clip_wins": false,
+        "minimum_mean_accuracy_improvement": false,
+        "maximum_worst_clip_regret": false,
+        "minimum_each_clip_state_occupancy": true
+      },
+      "design_gate_passed": false,
+      "folds": [
+        {
+          "held_participant": "BEJ06",
+          "development_participants": [
+            "BEJ07",
+            "BEJ11",
+            "BEJ21"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ06B",
+              "condition_suffix": "B",
+              "prediction_count": 8,
+              "state_occupancy": 3,
+              "transition_accuracy": 0,
+              "baselines": {
+                "persistence": 0.125,
+                "development_unigram": 0,
+                "causal_moving_state": 0.125
+              },
+              "best_baseline_accuracy": 0.125,
+              "accuracy_improvement": -0.125
+            },
+            {
+              "clip_id": "BEJ06D",
+              "condition_suffix": "D",
+              "prediction_count": 9,
+              "state_occupancy": 3,
+              "transition_accuracy": 0.6666666666666666,
+              "baselines": {
+                "persistence": 0.6666666666666666,
+                "development_unigram": 0.6666666666666666,
+                "causal_moving_state": 0.6666666666666666
+              },
+              "best_baseline_accuracy": 0.6666666666666666,
+              "accuracy_improvement": 0
+            }
+          ]
+        },
+        {
+          "held_participant": "BEJ07",
+          "development_participants": [
+            "BEJ06",
+            "BEJ11",
+            "BEJ21"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ07B",
+              "condition_suffix": "B",
+              "prediction_count": 12,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.16666666666666666,
+              "baselines": {
+                "persistence": 0.16666666666666666,
+                "development_unigram": 0.3333333333333333,
+                "causal_moving_state": 0.16666666666666666
+              },
+              "best_baseline_accuracy": 0.3333333333333333,
+              "accuracy_improvement": -0.16666666666666666
+            },
+            {
+              "clip_id": "BEJ07D",
+              "condition_suffix": "D",
+              "prediction_count": 32,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.34375,
+              "baselines": {
+                "persistence": 0.34375,
+                "development_unigram": 0.4375,
+                "causal_moving_state": 0.34375
+              },
+              "best_baseline_accuracy": 0.4375,
+              "accuracy_improvement": -0.09375
+            }
+          ]
+        },
+        {
+          "held_participant": "BEJ11",
+          "development_participants": [
+            "BEJ06",
+            "BEJ07",
+            "BEJ21"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ11B",
+              "condition_suffix": "B",
+              "prediction_count": 14,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.2857142857142857,
+              "baselines": {
+                "persistence": 0.21428571428571427,
+                "development_unigram": 0.21428571428571427,
+                "causal_moving_state": 0.21428571428571427
+              },
+              "best_baseline_accuracy": 0.21428571428571427,
+              "accuracy_improvement": 0.07142857142857142
+            },
+            {
+              "clip_id": "BEJ11D",
+              "condition_suffix": "D",
+              "prediction_count": 45,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.37777777777777777,
+              "baselines": {
+                "persistence": 0.4444444444444444,
+                "development_unigram": 0.4888888888888889,
+                "causal_moving_state": 0.4444444444444444
+              },
+              "best_baseline_accuracy": 0.4888888888888889,
+              "accuracy_improvement": -0.1111111111111111
+            }
+          ]
+        },
+        {
+          "held_participant": "BEJ21",
+          "development_participants": [
+            "BEJ06",
+            "BEJ07",
+            "BEJ11"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ21B",
+              "condition_suffix": "B",
+              "prediction_count": 18,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.16666666666666666,
+              "baselines": {
+                "persistence": 0.1111111111111111,
+                "development_unigram": 0.3333333333333333,
+                "causal_moving_state": 0.1111111111111111
+              },
+              "best_baseline_accuracy": 0.3333333333333333,
+              "accuracy_improvement": -0.16666666666666666
+            },
+            {
+              "clip_id": "BEJ21D",
+              "condition_suffix": "D",
+              "prediction_count": 16,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.25,
+              "baselines": {
+                "persistence": 0.25,
+                "development_unigram": 0.5,
+                "causal_moving_state": 0.25
+              },
+              "best_baseline_accuracy": 0.5,
+              "accuracy_improvement": -0.25
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "candidate": {
+        "signature_mode": "temporal_median_60_30",
+        "frame_ms": 400,
+        "horizon_frames": 4,
+        "horizon_ms": 1600,
+        "calibration_ms": 2000,
+        "calibration_std_floor": 0.3
+      },
+      "participant_count": 4,
+      "clip_count": 8,
+      "labels_consumed_by_learner": false,
+      "wins": 0,
+      "mean_accuracy_improvement": -0.09347314507198227,
+      "worst_clip_improvement": -0.25,
+      "minimum_clip_state_occupancy": 3,
+      "design_gate": {
+        "minimum_six_of_eight_clip_wins": false,
+        "minimum_mean_accuracy_improvement": false,
+        "maximum_worst_clip_regret": false,
+        "minimum_each_clip_state_occupancy": true
+      },
+      "design_gate_passed": false,
+      "folds": [
+        {
+          "held_participant": "BEJ06",
+          "development_participants": [
+            "BEJ07",
+            "BEJ11",
+            "BEJ21"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ06B",
+              "condition_suffix": "B",
+              "prediction_count": 6,
+              "state_occupancy": 3,
+              "transition_accuracy": 0,
+              "baselines": {
+                "persistence": 0.16666666666666666,
+                "development_unigram": 0,
+                "causal_moving_state": 0.16666666666666666
+              },
+              "best_baseline_accuracy": 0.16666666666666666,
+              "accuracy_improvement": -0.16666666666666666
+            },
+            {
+              "clip_id": "BEJ06D",
+              "condition_suffix": "D",
+              "prediction_count": 7,
+              "state_occupancy": 3,
+              "transition_accuracy": 0.7142857142857143,
+              "baselines": {
+                "persistence": 0.2857142857142857,
+                "development_unigram": 0.7142857142857143,
+                "causal_moving_state": 0.2857142857142857
+              },
+              "best_baseline_accuracy": 0.7142857142857143,
+              "accuracy_improvement": 0
+            }
+          ]
+        },
+        {
+          "held_participant": "BEJ07",
+          "development_participants": [
+            "BEJ06",
+            "BEJ11",
+            "BEJ21"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ07B",
+              "condition_suffix": "B",
+              "prediction_count": 10,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.2,
+              "baselines": {
+                "persistence": 0.2,
+                "development_unigram": 0.2,
+                "causal_moving_state": 0.2
+              },
+              "best_baseline_accuracy": 0.2,
+              "accuracy_improvement": 0
+            },
+            {
+              "clip_id": "BEJ07D",
+              "condition_suffix": "D",
+              "prediction_count": 30,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.4666666666666667,
+              "baselines": {
+                "persistence": 0.3333333333333333,
+                "development_unigram": 0.4666666666666667,
+                "causal_moving_state": 0.3333333333333333
+              },
+              "best_baseline_accuracy": 0.4666666666666667,
+              "accuracy_improvement": 0
+            }
+          ]
+        },
+        {
+          "held_participant": "BEJ11",
+          "development_participants": [
+            "BEJ06",
+            "BEJ07",
+            "BEJ21"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ11B",
+              "condition_suffix": "B",
+              "prediction_count": 12,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.16666666666666666,
+              "baselines": {
+                "persistence": 0.3333333333333333,
+                "development_unigram": 0.25,
+                "causal_moving_state": 0.3333333333333333
+              },
+              "best_baseline_accuracy": 0.3333333333333333,
+              "accuracy_improvement": -0.16666666666666666
+            },
+            {
+              "clip_id": "BEJ11D",
+              "condition_suffix": "D",
+              "prediction_count": 43,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.4186046511627907,
+              "baselines": {
+                "persistence": 0.3953488372093023,
+                "development_unigram": 0.5116279069767442,
+                "causal_moving_state": 0.3953488372093023
+              },
+              "best_baseline_accuracy": 0.5116279069767442,
+              "accuracy_improvement": -0.09302325581395349
+            }
+          ]
+        },
+        {
+          "held_participant": "BEJ21",
+          "development_participants": [
+            "BEJ06",
+            "BEJ07",
+            "BEJ11"
+          ],
+          "participant_overlap_count": 0,
+          "clips": [
+            {
+              "clip_id": "BEJ21B",
+              "condition_suffix": "B",
+              "prediction_count": 16,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.125,
+              "baselines": {
+                "persistence": 0.375,
+                "development_unigram": 0.375,
+                "causal_moving_state": 0.375
+              },
+              "best_baseline_accuracy": 0.375,
+              "accuracy_improvement": -0.25
+            },
+            {
+              "clip_id": "BEJ21D",
+              "condition_suffix": "D",
+              "prediction_count": 14,
+              "state_occupancy": 4,
+              "transition_accuracy": 0.5,
+              "baselines": {
+                "persistence": 0.42857142857142855,
+                "development_unigram": 0.5714285714285714,
+                "causal_moving_state": 0.42857142857142855
+              },
+              "best_baseline_accuracy": 0.5714285714285714,
+              "accuracy_improvement": -0.0714285714285714
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "verdict": "design_gate_failed_no_fresh_audio"
+}
+

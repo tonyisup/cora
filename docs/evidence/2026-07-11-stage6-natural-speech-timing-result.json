@@ -1,0 +1,130 @@
+{
+  "experiment": "stage6_callback_natural_speech_timing",
+  "date": "2026-07-11",
+  "status": "timing_passed_capture_quality_failed_stop_rule_activated",
+  "protocol_chain": {
+    "initial_preregistration_sha256": "07f26b67533182e61551c1fa568b87edfef00a4882d8bf5eb46303816b94fc8b",
+    "initial_preregistration_commit": "cdbb7b0",
+    "implementation_commit": "2d06d54",
+    "attempt_1_audit_sha256": "8c577540253c8a812bb59ab1de61249f906a7bbcfb32dd3492324718f6fa30c3",
+    "final_preregistration_sha256": "fe9b785b1f20efdddabb95b034ed0a96605901af63cd2077acd3098b57ec7094",
+    "retry_freeze_commit": "a9fccbb"
+  },
+  "stimulus": {
+    "filename": "ACO02B.wav",
+    "sha256": "c58a46a68782fb318cd885e6c670025104cc844bb3d8e4080b69b1f995c2c410",
+    "source": "Music Lab human vocalization corpus, edited audio",
+    "condition": "infant-directed speech",
+    "duration_seconds": 6.833990929705215
+  },
+  "hardware_geometry": {
+    "input": "XVF3800 callback, device :0, 16 kHz, two fused channels",
+    "world_output": "External Headphones, device 2",
+    "bearing_degrees": 180,
+    "distance_cm": 50,
+    "speaker_hardware_volume": "maximum",
+    "self_output": "none"
+  },
+  "attempt_1_minus_12_db": {
+    "raw_report_sha256": [
+      "3dbaf1101a2e2ad892f4e88184db7662a66682aedbac38061fe99a36f5ed5fd9",
+      "65cb88e06291e9ef102b651c9a3db2f18cb636ce948bdbd6969e10b18ec3fa98",
+      "b376b6282f2f0dd916a9aa33c51cb3ebfd0d89afca3776b8c3d6bcd1091ddb69"
+    ],
+    "frame_count": 1200,
+    "salient_frame_count_each": [230, 230, 235],
+    "clipped_sample_count_each": [90, 3, 0],
+    "salient_adc_frame_end_to_workspace_p95_ms_each": [10.568449999846052, 10.269145945494529, 10.223991897510132],
+    "quiet_adc_frame_end_to_workspace_p95_ms_each": [10.355789097593515, 10.091248247408657, 10.207825600809882],
+    "device_deadline_miss_count": 0,
+    "input_overflow_count": 0,
+    "callback_status_count": 0,
+    "timestamp_discontinuity_count": 0,
+    "overall_criteria_passed": false
+  },
+  "final_attempt_minus_18_db": {
+    "raw_report_sha256": [
+      "b957edec8d81ab7e211a8c0eb199912738e70621318d3164d0e762e3b426d7d5",
+      "90558216d6e74d3af3cbfb456c10a0a203c2309292485c1d83f60f51ec91da00",
+      "8f506c216f63502d60a74f9367ee3d1885834b9f9a9695916cd769498f3fb30a"
+    ],
+    "runs": [
+      {
+        "run": 1,
+        "frame_count": 400,
+        "salient_frame_count": 233,
+        "quiet_frame_count": 167,
+        "clipped_sample_count": 108,
+        "capture_peak_absolute": 1.0,
+        "salient_adc_frame_end_to_workspace_p95_ms": 10.403474995109718,
+        "quiet_adc_frame_end_to_workspace_p95_ms": 10.195874995406484,
+        "steady_state_real_time_factor": 0.9973529881704262,
+        "average_process_cpu_percent": 4.449337640234244,
+        "peak_resident_memory_megabytes": 64.984375
+      },
+      {
+        "run": 2,
+        "frame_count": 400,
+        "salient_frame_count": 256,
+        "quiet_frame_count": 144,
+        "clipped_sample_count": 0,
+        "capture_peak_absolute": 0.902618408203125,
+        "salient_adc_frame_end_to_workspace_p95_ms": 10.399270999187138,
+        "quiet_adc_frame_end_to_workspace_p95_ms": 10.258954346136305,
+        "steady_state_real_time_factor": 0.9970536808020051,
+        "average_process_cpu_percent": 4.636635771769121,
+        "peak_resident_memory_megabytes": 65.046875
+      },
+      {
+        "run": 3,
+        "frame_count": 400,
+        "salient_frame_count": 228,
+        "quiet_frame_count": 172,
+        "clipped_sample_count": 0,
+        "capture_peak_absolute": 0.803131103515625,
+        "salient_adc_frame_end_to_workspace_p95_ms": 10.555603951070221,
+        "quiet_adc_frame_end_to_workspace_p95_ms": 10.428893446442087,
+        "steady_state_real_time_factor": 0.9973102169423559,
+        "average_process_cpu_percent": 4.413645693158676,
+        "peak_resident_memory_megabytes": 65.046875
+      }
+    ],
+    "aggregate": {
+      "frame_count": 1200,
+      "salient_frame_count": 717,
+      "quiet_frame_count": 483,
+      "captured_sample_count": 960000,
+      "clipped_sample_count": 108,
+      "device_deadline_miss_count": 0,
+      "input_overflow_count": 0,
+      "callback_status_count": 0,
+      "timestamp_discontinuity_count": 0,
+      "salient_adc_frame_end_to_workspace_p95_ms_range": [10.399270999187138, 10.555603951070221],
+      "quiet_adc_frame_end_to_workspace_p95_ms_range": [10.195874995406484, 10.428893446442087],
+      "maximum_steady_state_real_time_factor": 0.9973529881704262,
+      "maximum_average_process_cpu_percent": 4.636635771769121,
+      "maximum_peak_resident_memory_megabytes": 65.046875
+    }
+  },
+  "criteria": {
+    "real_capture_each": true,
+    "callback_backend_without_fallback_each": true,
+    "frame_count_each_400": true,
+    "salient_frame_count_each_min_20": true,
+    "input_overflow_count_each_max_0": true,
+    "callback_status_count_each_max_0": true,
+    "callback_timestamp_discontinuity_count_each_max_0": true,
+    "captured_clipped_sample_count_each_max_0": false,
+    "salient_adc_frame_end_to_workspace_p95_ms_each_max_30": true,
+    "salient_device_operational_deadline_miss_rate_each_max_0_05": true,
+    "quiet_adc_frame_end_to_workspace_p95_ms_each_max_30": true,
+    "steady_state_real_time_factor_each_max_1_2": true,
+    "average_process_cpu_percent_each_max_100": true,
+    "peak_resident_memory_megabytes_each_max_512": true
+  },
+  "overall_criteria_passed": false,
+  "promotion_allowed": false,
+  "stop_rule_activated": true,
+  "interpretation": "The callback pipeline retained low device-timestamped latency under a real natural-speech workload, but intermittent full-scale capture samples persisted and did not vary monotonically with playback gain. This is descriptive timing evidence and a capture-quality failure, not closure of the natural-speech Stage 6 boundary.",
+  "claim_boundary": "One already-spent adult IDS utterance, one fixed room/geometry, XVF3800 callback input, External Headphones playback, and the M4 Pro host. No semantic, register, geometry-transfer, XMOS-delay, or general natural-speech claim."
+}

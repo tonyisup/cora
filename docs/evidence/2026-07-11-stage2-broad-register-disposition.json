@@ -1,0 +1,37 @@
+{
+  "decision": "stage2_broad_cross_cultural_register_disposition",
+  "date": "2026-07-11",
+  "status": "final_project_governance_decision",
+  "user_selection": {
+    "option": 1,
+    "label": "Record broad cross-cultural Stage 2 detection as falsified",
+    "selected_after_reviewing_alternatives": true
+  },
+  "evidence_basis": [
+    "docs/evidence/2026-07-10-expanded-register-v6-result.json",
+    "docs/evidence/2026-07-11-temporal-register-development-result.json",
+    "docs/evidence/2026-07-11-predictive-register-dynamics-result.json",
+    "docs/evidence/2026-07-11-cohort-adaptive-register-result.json",
+    "docs/evidence/2026-07-11-nonlinear-predictive-codebook-result.json"
+  ],
+  "disposition": {
+    "broad_cross_cultural_register_detection_falsified_within_tested_scope": true,
+    "active_stage2_register_experimentation_stopped": true,
+    "vocal_activity_front_gate_retained_as_narrow_evidence": true,
+    "cohort_relational_effect_retained_as_descriptive_evidence": true,
+    "stage2_promoted": false,
+    "cohort_false_positive_control_substituted_for_detection": false,
+    "deep_or_global_sequence_model_authorized": false,
+    "same_family_tuning_authorized": false,
+    "reserved_fieldsite_access_authorized": false
+  },
+  "claim_boundary": "The project falsifies reliable broad cross-cultural IDS/ADS register detection for the tested absolute, speaker/mode-adaptive, temporal, predictive, cohort-adaptive, and local nonlinear mechanisms. It retains narrow vocal-activity and relational-cohort findings without relabeling them as general detection.",
+  "protected_data": {
+    "san_diego_usd_pristine": true,
+    "toronto_tor_pristine": true,
+    "wellington_protected_but_previously_spent_by_h2": true
+  },
+  "recorded_audio_accessed_by_decision": false,
+  "protected_data_accessed_by_decision": false,
+  "promotion_allowed": false
+}

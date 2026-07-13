@@ -1,0 +1,587 @@
+{
+  "mode": "spent_natural_speech_workspace_template_v2_design_gate",
+  "trial_count": 21,
+  "held_out_scored_trial_count": 9,
+  "seconds_per_trial": 0.92,
+  "maximum_total_playback_seconds": 19.32,
+  "config": {
+    "sample_rate": 16000,
+    "alignment_chirp_ms": 120,
+    "alignment_silence_ms": 100,
+    "speech_ms": 600,
+    "tail_silence_ms": 100,
+    "self_target_rms": 0.04,
+    "self_peak_cap": 0.2,
+    "world_target_rms": 0.1,
+    "world_peak_cap": 0.8,
+    "self_chirp_peak": 0.12,
+    "world_chirp_peak": 0.03
+  },
+  "trials": [
+    {
+      "trial_id": "development_self_calibration_0",
+      "split": "development",
+      "condition": "self_calibration",
+      "pair_index": 0,
+      "efference_id": "development_self_0",
+      "expected_world_usable": false,
+      "scored": false
+    },
+    {
+      "trial_id": "development_self_probe_0",
+      "split": "development",
+      "condition": "self_probe",
+      "pair_index": 0,
+      "efference_id": "development_self_0",
+      "expected_world_usable": false,
+      "scored": true
+    },
+    {
+      "trial_id": "development_world_only_0",
+      "split": "development",
+      "condition": "world_only",
+      "pair_index": 0,
+      "efference_id": null,
+      "expected_world_usable": true,
+      "scored": true
+    },
+    {
+      "trial_id": "development_self_calibration_1",
+      "split": "development",
+      "condition": "self_calibration",
+      "pair_index": 1,
+      "efference_id": "development_self_1",
+      "expected_world_usable": false,
+      "scored": false
+    },
+    {
+      "trial_id": "development_self_probe_1",
+      "split": "development",
+      "condition": "self_probe",
+      "pair_index": 1,
+      "efference_id": "development_self_1",
+      "expected_world_usable": false,
+      "scored": true
+    },
+    {
+      "trial_id": "development_world_only_1",
+      "split": "development",
+      "condition": "world_only",
+      "pair_index": 1,
+      "efference_id": null,
+      "expected_world_usable": true,
+      "scored": true
+    },
+    {
+      "trial_id": "development_self_calibration_2",
+      "split": "development",
+      "condition": "self_calibration",
+      "pair_index": 2,
+      "efference_id": "development_self_2",
+      "expected_world_usable": false,
+      "scored": false
+    },
+    {
+      "trial_id": "development_self_probe_2",
+      "split": "development",
+      "condition": "self_probe",
+      "pair_index": 2,
+      "efference_id": "development_self_2",
+      "expected_world_usable": false,
+      "scored": true
+    },
+    {
+      "trial_id": "development_world_only_2",
+      "split": "development",
+      "condition": "world_only",
+      "pair_index": 2,
+      "efference_id": null,
+      "expected_world_usable": true,
+      "scored": true
+    },
+    {
+      "trial_id": "held_out_self_calibration_0",
+      "split": "held_out",
+      "condition": "self_calibration",
+      "pair_index": 0,
+      "efference_id": "held_out_self_0",
+      "expected_world_usable": false,
+      "scored": false
+    },
+    {
+      "trial_id": "held_out_self_probe_0",
+      "split": "held_out",
+      "condition": "self_probe",
+      "pair_index": 0,
+      "efference_id": "held_out_self_0",
+      "expected_world_usable": false,
+      "scored": true
+    },
+    {
+      "trial_id": "held_out_world_only_0",
+      "split": "held_out",
+      "condition": "world_only",
+      "pair_index": 0,
+      "efference_id": null,
+      "expected_world_usable": true,
+      "scored": true
+    },
+    {
+      "trial_id": "held_out_overlap_0",
+      "split": "held_out",
+      "condition": "overlap",
+      "pair_index": 0,
+      "efference_id": "held_out_self_0",
+      "expected_world_usable": true,
+      "scored": true
+    },
+    {
+      "trial_id": "held_out_self_calibration_1",
+      "split": "held_out",
+      "condition": "self_calibration",
+      "pair_index": 1,
+      "efference_id": "held_out_self_1",
+      "expected_world_usable": false,
+      "scored": false
+    },
+    {
+      "trial_id": "held_out_self_probe_1",
+      "split": "held_out",
+      "condition": "self_probe",
+      "pair_index": 1,
+      "efference_id": "held_out_self_1",
+      "expected_world_usable": false,
+      "scored": true
+    },
+    {
+      "trial_id": "held_out_world_only_1",
+      "split": "held_out",
+      "condition": "world_only",
+      "pair_index": 1,
+      "efference_id": null,
+      "expected_world_usable": true,
+      "scored": true
+    },
+    {
+      "trial_id": "held_out_overlap_1",
+      "split": "held_out",
+      "condition": "overlap",
+      "pair_index": 1,
+      "efference_id": "held_out_self_1",
+      "expected_world_usable": true,
+      "scored": true
+    },
+    {
+      "trial_id": "held_out_self_calibration_2",
+      "split": "held_out",
+      "condition": "self_calibration",
+      "pair_index": 2,
+      "efference_id": "held_out_self_2",
+      "expected_world_usable": false,
+      "scored": false
+    },
+    {
+      "trial_id": "held_out_self_probe_2",
+      "split": "held_out",
+      "condition": "self_probe",
+      "pair_index": 2,
+      "efference_id": "held_out_self_2",
+      "expected_world_usable": false,
+      "scored": true
+    },
+    {
+      "trial_id": "held_out_world_only_2",
+      "split": "held_out",
+      "condition": "world_only",
+      "pair_index": 2,
+      "efference_id": null,
+      "expected_world_usable": true,
+      "scored": true
+    },
+    {
+      "trial_id": "held_out_overlap_2",
+      "split": "held_out",
+      "condition": "overlap",
+      "pair_index": 2,
+      "efference_id": "held_out_self_2",
+      "expected_world_usable": true,
+      "scored": true
+    }
+  ],
+  "capacity_sweep": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "strategies": [
+    "flat",
+    "fixed_self_window",
+    "scheduled_identity_plus_template_residual"
+  ],
+  "label_boundary": "conditions define playback and enter scoring; the representation consumes only efference identity and prior/current microphone PCM",
+  "template_memory_bound": {
+    "workspace_slots": 3,
+    "samples_per_speech_template": 9600,
+    "samples_per_chirp_template": 1920,
+    "cross_session_growth": false
+  },
+  "promotion_allowed": false,
+  "verdict": "spent_design_gate_passed",
+  "world_evidence": {
+    "development_self_probe_0": 0.013799036848175355,
+    "development_world_only_0": 1.0,
+    "development_self_probe_1": 0.009097470538728263,
+    "development_world_only_1": 1.0,
+    "development_self_probe_2": 0.011064258599573221,
+    "development_world_only_2": 1.0,
+    "held_out_self_probe_0": 0.010056012963204866,
+    "held_out_world_only_0": 1.0,
+    "held_out_overlap_0": 0.885744667792309,
+    "held_out_self_probe_1": 0.010003496774367661,
+    "held_out_world_only_1": 1.0,
+    "held_out_overlap_1": 0.873276514462807,
+    "held_out_self_probe_2": 0.01036363485061651,
+    "held_out_world_only_2": 1.0,
+    "held_out_overlap_2": 0.8903382979705053
+  },
+  "world_evidence_threshold": 0.11241913316335782,
+  "world_evidence_threshold_rule": "maximum development self-probe ratio plus 10 percent of the clean gap to minimum development world-only ratio",
+  "threshold_selected_from_development_only": true,
+  "reports": {
+    "1": {
+      "flat": {
+        "strategy": "flat",
+        "capacity": 1,
+        "bounded_binding_slots": 1,
+        "world_evidence_threshold_scalars": 1,
+        "metrics": {
+          "tp": 6,
+          "fp": 3,
+          "tn": 0,
+          "fn": 0,
+          "world_recall": 1.0,
+          "self_suppression_specificity": 0.0,
+          "f1": 0.8
+        }
+      },
+      "fixed_self_window": {
+        "strategy": "fixed_self_window",
+        "capacity": 1,
+        "bounded_binding_slots": 1,
+        "world_evidence_threshold_scalars": 1,
+        "metrics": {
+          "tp": 5,
+          "fp": 2,
+          "tn": 1,
+          "fn": 1,
+          "world_recall": 0.8333333333333334,
+          "self_suppression_specificity": 0.3333333333333333,
+          "f1": 0.7692307692307693
+        }
+      },
+      "scheduled_identity_plus_template_residual": {
+        "strategy": "scheduled_identity_plus_template_residual",
+        "capacity": 1,
+        "bounded_binding_slots": 1,
+        "world_evidence_threshold_scalars": 1,
+        "metrics": {
+          "tp": 6,
+          "fp": 2,
+          "tn": 1,
+          "fn": 0,
+          "world_recall": 1.0,
+          "self_suppression_specificity": 0.3333333333333333,
+          "f1": 0.8571428571428571
+        }
+      }
+    },
+    "2": {
+      "flat": {
+        "strategy": "flat",
+        "capacity": 2,
+        "bounded_binding_slots": 2,
+        "world_evidence_threshold_scalars": 1,
+        "metrics": {
+          "tp": 6,
+          "fp": 3,
+          "tn": 0,
+          "fn": 0,
+          "world_recall": 1.0,
+          "self_suppression_specificity": 0.0,
+          "f1": 0.8
+        }
+      },
+      "fixed_self_window": {
+        "strategy": "fixed_self_window",
+        "capacity": 2,
+        "bounded_binding_slots": 2,
+        "world_evidence_threshold_scalars": 1,
+        "metrics": {
+          "tp": 4,
+          "fp": 1,
+          "tn": 2,
+          "fn": 2,
+          "world_recall": 0.6666666666666666,
+          "self_suppression_specificity": 0.6666666666666666,
+          "f1": 0.7272727272727273
+        }
+      },
+      "scheduled_identity_plus_template_residual": {
+        "strategy": "scheduled_identity_plus_template_residual",
+        "capacity": 2,
+        "bounded_binding_slots": 2,
+        "world_evidence_threshold_scalars": 1,
+        "metrics": {
+          "tp": 6,
+          "fp": 1,
+          "tn": 2,
+          "fn": 0,
+          "world_recall": 1.0,
+          "self_suppression_specificity": 0.6666666666666666,
+          "f1": 0.9230769230769231
+        }
+      }
+    },
+    "3": {
+      "flat": {
+        "strategy": "flat",
+        "capacity": 3,
+        "bounded_binding_slots": 3,
+        "world_evidence_threshold_scalars": 1,
+        "metrics": {
+          "tp": 6,
+          "fp": 3,
+          "tn": 0,
+          "fn": 0,
+          "world_recall": 1.0,
+          "self_suppression_specificity": 0.0,
+          "f1": 0.8
+        }
+      },
+      "fixed_self_window": {
+        "strategy": "fixed_self_window",
+        "capacity": 3,
+        "bounded_binding_slots": 3,
+        "world_evidence_threshold_scalars": 1,
+        "metrics": {
+          "tp": 3,
+          "fp": 0,
+          "tn": 3,
+          "fn": 3,
+          "world_recall": 0.5,
+          "self_suppression_specificity": 1.0,
+          "f1": 0.6666666666666666
+        }
+      },
+      "scheduled_identity_plus_template_residual": {
+        "strategy": "scheduled_identity_plus_template_residual",
+        "capacity": 3,
+        "bounded_binding_slots": 3,
+        "world_evidence_threshold_scalars": 1,
+        "metrics": {
+          "tp": 6,
+          "fp": 0,
+          "tn": 3,
+          "fn": 0,
+          "world_recall": 1.0,
+          "self_suppression_specificity": 1.0,
+          "f1": 1.0
+        }
+      }
+    },
+    "4": {
+      "flat": {
+        "strategy": "flat",
+        "capacity": 4,
+        "bounded_binding_slots": 4,
+        "world_evidence_threshold_scalars": 1,
+        "metrics": {
+          "tp": 6,
+          "fp": 3,
+          "tn": 0,
+          "fn": 0,
+          "world_recall": 1.0,
+          "self_suppression_specificity": 0.0,
+          "f1": 0.8
+        }
+      },
+      "fixed_self_window": {
+        "strategy": "fixed_self_window",
+        "capacity": 4,
+        "bounded_binding_slots": 4,
+        "world_evidence_threshold_scalars": 1,
+        "metrics": {
+          "tp": 3,
+          "fp": 0,
+          "tn": 3,
+          "fn": 3,
+          "world_recall": 0.5,
+          "self_suppression_specificity": 1.0,
+          "f1": 0.6666666666666666
+        }
+      },
+      "scheduled_identity_plus_template_residual": {
+        "strategy": "scheduled_identity_plus_template_residual",
+        "capacity": 4,
+        "bounded_binding_slots": 4,
+        "world_evidence_threshold_scalars": 1,
+        "metrics": {
+          "tp": 6,
+          "fp": 0,
+          "tn": 3,
+          "fn": 0,
+          "world_recall": 1.0,
+          "self_suppression_specificity": 1.0,
+          "f1": 1.0
+        }
+      }
+    }
+  },
+  "criteria": {
+    "clean_development_gap": true,
+    "scheduled_f1_at_least_0_90": true,
+    "scheduled_improves_flat_f1_by_at_least_0_20": true,
+    "scheduled_world_recall_at_least_0_90": true,
+    "scheduled_self_suppression_specificity_at_least_0_90": true,
+    "fixed_window_collision_failure_exposed": true,
+    "capacity_one_worse_than_three": true,
+    "capacity_three_plateaus_at_four": true
+  },
+  "template_gain_scalars": {
+    "development_self_probe_0": 0.9999074326783222,
+    "development_world_only_0": 0.0,
+    "development_self_probe_1": 0.9999786468737971,
+    "development_world_only_1": 0.0,
+    "development_self_probe_2": 1.0001808766560385,
+    "development_world_only_2": 0.0,
+    "held_out_self_probe_0": 1.000194400383119,
+    "held_out_world_only_0": 0.0,
+    "held_out_overlap_0": 1.0002715543829137,
+    "held_out_self_probe_1": 1.0002546140212736,
+    "held_out_world_only_1": 0.0,
+    "held_out_overlap_1": 1.0002145949550871,
+    "held_out_self_probe_2": 1.0000099792603228,
+    "held_out_world_only_2": 0.0,
+    "held_out_overlap_2": 0.999930948914643
+  },
+  "evidence_class": "provided_chirp_aligned_prior_self_template_captures",
+  "design_preregistration": "docs/evidence/2026-07-11-natural-speech-workspace-template-v2-attempt-2-design-preregistration.json",
+  "source_artifacts": [
+    {
+      "split": "development",
+      "index": 0,
+      "self": {
+        "filename": "KRA06D.wav",
+        "sha256": "1601e8db49efe5216be02478420a06c6e15a5c7ed25e8cd8447b70c766bed249",
+        "selected_start_seconds": 1.2,
+        "achieved_rms": 0.027337227016687393,
+        "achieved_peak": 0.20000000298023224
+      },
+      "world": {
+        "filename": "MEN05B.wav",
+        "sha256": "87c3c1eff2336a3f998f2f6fc425eb16b74e4a7f99f16ffa00f98cf4b3a3f5cd",
+        "selected_start_seconds": 6.0,
+        "achieved_rms": 0.07501716166734695,
+        "achieved_peak": 0.800000011920929
+      }
+    },
+    {
+      "split": "development",
+      "index": 1,
+      "self": {
+        "filename": "MES11D.wav",
+        "sha256": "beb0402501f9ceb53c1c760d3d0544f129af0796747da15330d71347fb78d13f",
+        "selected_start_seconds": 0.0,
+        "achieved_rms": 0.03992818668484688,
+        "achieved_peak": 0.20000000298023224
+      },
+      "world": {
+        "filename": "PNG06B.wav",
+        "sha256": "3648395e57e3c6e535d2d92c22d0ce6f703b5b4db3a405ced56aa7f52306319c",
+        "selected_start_seconds": 0.6,
+        "achieved_rms": 0.10000000149011612,
+        "achieved_peak": 0.5005566477775574
+      }
+    },
+    {
+      "split": "development",
+      "index": 2,
+      "self": {
+        "filename": "TSI09D.wav",
+        "sha256": "a06c60f533a1c1c1e2af77687ab2f315b76499b1b4afe88de9f25d9aa0c2848a",
+        "selected_start_seconds": 2.4,
+        "achieved_rms": 0.03999999910593033,
+        "achieved_peak": 0.14203594624996185
+      },
+      "world": {
+        "filename": "VAN08B.wav",
+        "sha256": "32a10d4468730ef0b726e3ebdf4e1a194520896f78f354b7af3553506c3ee333",
+        "selected_start_seconds": 0.0,
+        "achieved_rms": 0.09999999403953552,
+        "achieved_peak": 0.3551018536090851
+      }
+    },
+    {
+      "split": "held_out",
+      "index": 0,
+      "self": {
+        "filename": "ACO12D.wav",
+        "sha256": "58bba429cbe744826b0e5ff319740710a989dff0e039d4fb514c8ea757cb1a29",
+        "selected_start_seconds": 0.6,
+        "achieved_rms": 0.04000000283122063,
+        "achieved_peak": 0.1792292445898056
+      },
+      "world": {
+        "filename": "BEJ07B.wav",
+        "sha256": "5e41291a9764cc3f841448d2bdd1535cb0d551d6d3582ad95b4bc76fcfe25c12",
+        "selected_start_seconds": 0.0,
+        "achieved_rms": 0.10000000149011612,
+        "achieved_peak": 0.35401055216789246
+      }
+    },
+    {
+      "split": "held_out",
+      "index": 1,
+      "self": {
+        "filename": "HAD04D.wav",
+        "sha256": "4030085e7c5ac21b0c308430285003b24366f2ecb2f728d6cb2ebd23e0b6bda7",
+        "selected_start_seconds": 0.0,
+        "achieved_rms": 0.03999999910593033,
+        "achieved_peak": 0.12269770354032516
+      },
+      "world": {
+        "filename": "JEN04B.wav",
+        "sha256": "9f194998d1d9794bda631c9c7c52ed7a8a2f9eb21634f1f828725f9730e405d6",
+        "selected_start_seconds": 0.0,
+        "achieved_rms": 0.10000000149011612,
+        "achieved_peak": 0.5406917929649353
+      }
+    },
+    {
+      "split": "held_out",
+      "index": 2,
+      "self": {
+        "filename": "LIM04D.wav",
+        "sha256": "f28fc186e6b3020ac782300db194e2c5f1beacb6a03e364f1fa073c17ce3721e",
+        "selected_start_seconds": 7.2,
+        "achieved_rms": 0.04000000283122063,
+        "achieved_peak": 0.19669483602046967
+      },
+      "world": {
+        "filename": "NYA07B.wav",
+        "sha256": "87900ac4792c90e39921422a212052180d9e1c2a14df13c36a51dd618d799fdc",
+        "selected_start_seconds": 1.2,
+        "achieved_rms": 0.10000000149011612,
+        "achieved_peak": 0.31190797686576843
+      }
+    }
+  ],
+  "claim_boundary": "Deterministic repeated-path synthetic captures over exact fresh already-spent natural-speech PCM. This validates the bounded sensory-template representation and scoring only; it cannot promote H3.",
+  "preregistration": {
+    "path": "docs/evidence/2026-07-11-natural-speech-workspace-template-v2-attempt-2-design-preregistration.json",
+    "sha256": "f97cc8d2cdc6ff8d5cb8540bdc831a705de066c2d1a3736363aae99dde92b9e0",
+    "commit": "b6b6e60"
+  },
+  "implementation_commit": "fb1c103"
+}

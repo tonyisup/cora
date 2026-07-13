@@ -1,0 +1,707 @@
+{
+  "mode": "natural_speech_workspace_template_v2_real_failure_audit",
+  "trial_count": 21,
+  "held_out_scored_trial_count": 9,
+  "seconds_per_trial": 0.92,
+  "maximum_total_playback_seconds": 19.32,
+  "config": {
+    "sample_rate": 16000,
+    "alignment_chirp_ms": 120,
+    "alignment_silence_ms": 100,
+    "speech_ms": 600,
+    "tail_silence_ms": 100,
+    "self_target_rms": 0.04,
+    "self_peak_cap": 0.2,
+    "world_target_rms": 0.1,
+    "world_peak_cap": 0.8,
+    "self_chirp_peak": 0.12,
+    "world_chirp_peak": 0.03
+  },
+  "trials": [
+    {
+      "trial_id": "development_self_calibration_0",
+      "split": "development",
+      "condition": "self_calibration",
+      "pair_index": 0,
+      "efference_id": "development_self_0",
+      "expected_world_usable": false,
+      "scored": false
+    },
+    {
+      "trial_id": "development_self_probe_0",
+      "split": "development",
+      "condition": "self_probe",
+      "pair_index": 0,
+      "efference_id": "development_self_0",
+      "expected_world_usable": false,
+      "scored": true
+    },
+    {
+      "trial_id": "development_world_only_0",
+      "split": "development",
+      "condition": "world_only",
+      "pair_index": 0,
+      "efference_id": null,
+      "expected_world_usable": true,
+      "scored": true
+    },
+    {
+      "trial_id": "development_self_calibration_1",
+      "split": "development",
+      "condition": "self_calibration",
+      "pair_index": 1,
+      "efference_id": "development_self_1",
+      "expected_world_usable": false,
+      "scored": false
+    },
+    {
+      "trial_id": "development_self_probe_1",
+      "split": "development",
+      "condition": "self_probe",
+      "pair_index": 1,
+      "efference_id": "development_self_1",
+      "expected_world_usable": false,
+      "scored": true
+    },
+    {
+      "trial_id": "development_world_only_1",
+      "split": "development",
+      "condition": "world_only",
+      "pair_index": 1,
+      "efference_id": null,
+      "expected_world_usable": true,
+      "scored": true
+    },
+    {
+      "trial_id": "development_self_calibration_2",
+      "split": "development",
+      "condition": "self_calibration",
+      "pair_index": 2,
+      "efference_id": "development_self_2",
+      "expected_world_usable": false,
+      "scored": false
+    },
+    {
+      "trial_id": "development_self_probe_2",
+      "split": "development",
+      "condition": "self_probe",
+      "pair_index": 2,
+      "efference_id": "development_self_2",
+      "expected_world_usable": false,
+      "scored": true
+    },
+    {
+      "trial_id": "development_world_only_2",
+      "split": "development",
+      "condition": "world_only",
+      "pair_index": 2,
+      "efference_id": null,
+      "expected_world_usable": true,
+      "scored": true
+    },
+    {
+      "trial_id": "held_out_self_calibration_0",
+      "split": "held_out",
+      "condition": "self_calibration",
+      "pair_index": 0,
+      "efference_id": "held_out_self_0",
+      "expected_world_usable": false,
+      "scored": false
+    },
+    {
+      "trial_id": "held_out_self_probe_0",
+      "split": "held_out",
+      "condition": "self_probe",
+      "pair_index": 0,
+      "efference_id": "held_out_self_0",
+      "expected_world_usable": false,
+      "scored": true
+    },
+    {
+      "trial_id": "held_out_world_only_0",
+      "split": "held_out",
+      "condition": "world_only",
+      "pair_index": 0,
+      "efference_id": null,
+      "expected_world_usable": true,
+      "scored": true
+    },
+    {
+      "trial_id": "held_out_overlap_0",
+      "split": "held_out",
+      "condition": "overlap",
+      "pair_index": 0,
+      "efference_id": "held_out_self_0",
+      "expected_world_usable": true,
+      "scored": true
+    },
+    {
+      "trial_id": "held_out_self_calibration_1",
+      "split": "held_out",
+      "condition": "self_calibration",
+      "pair_index": 1,
+      "efference_id": "held_out_self_1",
+      "expected_world_usable": false,
+      "scored": false
+    },
+    {
+      "trial_id": "held_out_self_probe_1",
+      "split": "held_out",
+      "condition": "self_probe",
+      "pair_index": 1,
+      "efference_id": "held_out_self_1",
+      "expected_world_usable": false,
+      "scored": true
+    },
+    {
+      "trial_id": "held_out_world_only_1",
+      "split": "held_out",
+      "condition": "world_only",
+      "pair_index": 1,
+      "efference_id": null,
+      "expected_world_usable": true,
+      "scored": true
+    },
+    {
+      "trial_id": "held_out_overlap_1",
+      "split": "held_out",
+      "condition": "overlap",
+      "pair_index": 1,
+      "efference_id": "held_out_self_1",
+      "expected_world_usable": true,
+      "scored": true
+    },
+    {
+      "trial_id": "held_out_self_calibration_2",
+      "split": "held_out",
+      "condition": "self_calibration",
+      "pair_index": 2,
+      "efference_id": "held_out_self_2",
+      "expected_world_usable": false,
+      "scored": false
+    },
+    {
+      "trial_id": "held_out_self_probe_2",
+      "split": "held_out",
+      "condition": "self_probe",
+      "pair_index": 2,
+      "efference_id": "held_out_self_2",
+      "expected_world_usable": false,
+      "scored": true
+    },
+    {
+      "trial_id": "held_out_world_only_2",
+      "split": "held_out",
+      "condition": "world_only",
+      "pair_index": 2,
+      "efference_id": null,
+      "expected_world_usable": true,
+      "scored": true
+    },
+    {
+      "trial_id": "held_out_overlap_2",
+      "split": "held_out",
+      "condition": "overlap",
+      "pair_index": 2,
+      "efference_id": "held_out_self_2",
+      "expected_world_usable": true,
+      "scored": true
+    }
+  ],
+  "capacity_sweep": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "strategies": [
+    "flat",
+    "fixed_self_window",
+    "scheduled_identity_plus_template_residual"
+  ],
+  "label_boundary": "conditions define playback and enter scoring; the representation consumes only efference identity and prior/current microphone PCM",
+  "template_memory_bound": {
+    "workspace_slots": 3,
+    "samples_per_speech_template": 9600,
+    "samples_per_chirp_template": 1920,
+    "cross_session_growth": false
+  },
+  "promotion_allowed": false,
+  "verdict": "real_io_acceptance_failed",
+  "world_evidence": {
+    "development_self_probe_0": 0.9602721167663707,
+    "development_world_only_0": 1.0,
+    "development_self_probe_1": 1.0092619284729931,
+    "development_world_only_1": 1.0,
+    "development_self_probe_2": 0.31092257678774093,
+    "development_world_only_2": 1.0,
+    "held_out_self_probe_0": 0.4496852936501819,
+    "held_out_world_only_0": 1.0,
+    "held_out_overlap_0": 1.1062065792267506,
+    "held_out_self_probe_1": 0.9993218202921044,
+    "held_out_world_only_1": 1.0,
+    "held_out_overlap_1": 1.0595020357745586,
+    "held_out_self_probe_2": 1.025611341341105,
+    "held_out_world_only_2": 1.0,
+    "held_out_overlap_2": 1.0360262929310655
+  },
+  "world_evidence_threshold": null,
+  "development_gap": {
+    "maximum_self_probe": 1.0092619284729931,
+    "minimum_world_only": 1.0,
+    "gap": -0.00926192847299312
+  },
+  "reports": {},
+  "criteria": {
+    "clean_development_gap": false,
+    "no_clipped_capture_samples": false
+  },
+  "template_gain_scalars": {
+    "development_self_probe_0": 0.31996271061413334,
+    "development_world_only_0": 0.0,
+    "development_self_probe_1": 0.13227028672271854,
+    "development_world_only_1": 0.0,
+    "development_self_probe_2": 0.636267610551079,
+    "development_world_only_2": 0.0,
+    "held_out_self_probe_0": 0.9302995421085258,
+    "held_out_world_only_0": 0.0,
+    "held_out_overlap_0": 0.17500256303960002,
+    "held_out_self_probe_1": -0.006279722484919607,
+    "held_out_world_only_1": 0.0,
+    "held_out_overlap_1": 0.3000561073220231,
+    "held_out_self_probe_2": 0.06783921453148463,
+    "held_out_world_only_2": 0.0,
+    "held_out_overlap_2": 0.18234304038864216
+  },
+  "evidence_class": "provided_chirp_aligned_prior_self_template_captures",
+  "date": "2026-07-11",
+  "status": "completed_live_playback_capture_failed_frozen_evaluation",
+  "real_hardware": true,
+  "live_playback": true,
+  "completed_trial_count": 21,
+  "measured_total_playback_seconds": 19.32,
+  "bounded_total_capture_seconds": 31.92,
+  "expected_artifact_count": 63,
+  "retained_artifact_count": 63,
+  "preregistration": {
+    "path": "docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-preregistration.json",
+    "sha256": "100fa37b340ca236506b4b0f217ec4b34531a18068bf1c61044c75028fe1cd9f",
+    "commit": "c5b2e4f",
+    "implementation_commit": "db19e7a"
+  },
+  "capture_quality": {
+    "captures_with_clipping": 1,
+    "total_clipped_samples": 18,
+    "no_clipping_passed": false
+  },
+  "all_acceptance_gates_passed": false,
+  "recovery_audit": {
+    "reason": "The complete JSON report was emitted to stdout, but the invoking tool truncated that single long line before it could be retained as a file.",
+    "method": "Recomputed the frozen chirp alignments, template gain scalars, and residual ratios from the retained WAVs only. The recovered development gap and every residual ratio exactly match the values visible in the live stdout result.",
+    "nominal_alignment_anchor_ms": 128.0,
+    "promotion_allowed": false
+  },
+  "artifacts": [
+    {
+      "trial_id": "development_self_calibration_0",
+      "condition": "self_calibration",
+      "scored": false,
+      "chirp_source": "self",
+      "self_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts/development_self_calibration_0_self.wav",
+      "self_sha256": "2cb4ad69ca210c6620f14d949b7526578c7911c5026949a4364da4df417237ae",
+      "world_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts/development_self_calibration_0_world.wav",
+      "world_sha256": "7d74881576de8253aa60497cf8606cb1d7ac5f8df2944ccd2968dd703a2d083e",
+      "captured_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts/development_self_calibration_0_capture.wav",
+      "captured_sha256": "fbbdb563ed360d274f1c17f0f16ac99b105362646c979cbd91ac5a4f9e8f09b4",
+      "reconstructed_alignment_samples": 5973,
+      "reconstructed_alignment_onset_ms": 373.312,
+      "capture_quality": {
+        "peak_absolute": 0.33526611328125,
+        "clipped_sample_count": 0,
+        "clipped_sample_fraction": 0.0
+      }
+    },
+    {
+      "trial_id": "development_self_probe_0",
+      "condition": "self_probe",
+      "scored": true,
+      "chirp_source": "self",
+      "self_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts/development_self_probe_0_self.wav",
+      "self_sha256": "2cb4ad69ca210c6620f14d949b7526578c7911c5026949a4364da4df417237ae",
+      "world_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts/development_self_probe_0_world.wav",
+      "world_sha256": "7d74881576de8253aa60497cf8606cb1d7ac5f8df2944ccd2968dd703a2d083e",
+      "captured_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts/development_self_probe_0_capture.wav",
+      "captured_sha256": "3a7a94870154a77962adc1e80df665ee5f72682ffdea16baa2cc03f414eb2407",
+      "reconstructed_alignment_samples": 5750,
+      "reconstructed_alignment_onset_ms": 359.375,
+      "capture_quality": {
+        "peak_absolute": 0.312591552734375,
+        "clipped_sample_count": 0,
+        "clipped_sample_fraction": 0.0
+      }
+    },
+    {
+      "trial_id": "development_world_only_0",
+      "condition": "world_only",
+      "scored": true,
+      "chirp_source": "world",
+      "self_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts/development_world_only_0_self.wav",
+      "self_sha256": "7d74881576de8253aa60497cf8606cb1d7ac5f8df2944ccd2968dd703a2d083e",
+      "world_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts/development_world_only_0_world.wav",
+      "world_sha256": "3a83b22819ba6dbb3f91d116061ee894d49feebe351d54b1a8ea3df54820e5ad",
+      "captured_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts/development_world_only_0_capture.wav",
+      "captured_sha256": "4f7604dc38107f63911da0d40ddb342ae015a868a2f677dbd5cce2b9f30c75fa",
+      "reconstructed_alignment_samples": 6524,
+      "reconstructed_alignment_onset_ms": 407.75,
+      "capture_quality": {
+        "peak_absolute": 0.44287109375,
+        "clipped_sample_count": 0,
+        "clipped_sample_fraction": 0.0
+      }
+    },
+    {
+      "trial_id": "development_self_calibration_1",
+      "condition": "self_calibration",
+      "scored": false,
+      "chirp_source": "self",
+      "self_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts/development_self_calibration_1_self.wav",
+      "self_sha256": "91309aad1351832b5e51486cd66b886a786cd6726477dbd23a7fd07cef4e4764",
+      "world_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts/development_self_calibration_1_world.wav",
+      "world_sha256": "7d74881576de8253aa60497cf8606cb1d7ac5f8df2944ccd2968dd703a2d083e",
+      "captured_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts/development_self_calibration_1_capture.wav",
+      "captured_sha256": "1e962914c02e0339f4e122a21305ac3972addc212d05eca36cd6cfdd8b129b4c",
+      "reconstructed_alignment_samples": 5672,
+      "reconstructed_alignment_onset_ms": 354.5,
+      "capture_quality": {
+        "peak_absolute": 0.630828857421875,
+        "clipped_sample_count": 0,
+        "clipped_sample_fraction": 0.0
+      }
+    },
+    {
+      "trial_id": "development_self_probe_1",
+      "condition": "self_probe",
+      "scored": true,
+      "chirp_source": "self",
+      "self_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts/development_self_probe_1_self.wav",
+      "self_sha256": "91309aad1351832b5e51486cd66b886a786cd6726477dbd23a7fd07cef4e4764",
+      "world_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts/development_self_probe_1_world.wav",
+      "world_sha256": "7d74881576de8253aa60497cf8606cb1d7ac5f8df2944ccd2968dd703a2d083e",
+      "captured_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts/development_self_probe_1_capture.wav",
+      "captured_sha256": "65e16ae52e87aeeca06bb616c26eb89d264718968f55c9af7ca44ee7d25fc778",
+      "reconstructed_alignment_samples": 5739,
+      "reconstructed_alignment_onset_ms": 358.688,
+      "capture_quality": {
+        "peak_absolute": 0.609466552734375,
+        "clipped_sample_count": 0,
+        "clipped_sample_fraction": 0.0
+      }
+    },
+    {
+      "trial_id": "development_world_only_1",
+      "condition": "world_only",
+      "scored": true,
+      "chirp_source": "world",
+      "self_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts/development_world_only_1_self.wav",
+      "self_sha256": "7d74881576de8253aa60497cf8606cb1d7ac5f8df2944ccd2968dd703a2d083e",
+      "world_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts/development_world_only_1_world.wav",
+      "world_sha256": "edc68d87c7139f9290de9cc03cb1371c679500164b186af39a9542a5508c8ee2",
+      "captured_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts/development_world_only_1_capture.wav",
+      "captured_sha256": "8abfac3319fe2fed6738370d18e955cf3455e66d78507862a415b9ff9d04f341",
+      "reconstructed_alignment_samples": 6527,
+      "reconstructed_alignment_onset_ms": 407.938,
+      "capture_quality": {
+        "peak_absolute": 0.298431396484375,
+        "clipped_sample_count": 0,
+        "clipped_sample_fraction": 0.0
+      }
+    },
+    {
+      "trial_id": "development_self_calibration_2",
+      "condition": "self_calibration",
+      "scored": false,
+      "chirp_source": "self",
+      "self_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts/development_self_calibration_2_self.wav",
+      "self_sha256": "28eb7395ee91635a59dd06130098671001f0aa771df8a384641d723b526a4f5c",
+      "world_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts/development_self_calibration_2_world.wav",
+      "world_sha256": "7d74881576de8253aa60497cf8606cb1d7ac5f8df2944ccd2968dd703a2d083e",
+      "captured_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts/development_self_calibration_2_capture.wav",
+      "captured_sha256": "877da944de24234cdf59718156386c84302fbdc1c2e3f79c48315d5e6a9808ab",
+      "reconstructed_alignment_samples": 5964,
+      "reconstructed_alignment_onset_ms": 372.75,
+      "capture_quality": {
+        "peak_absolute": 0.5980224609375,
+        "clipped_sample_count": 0,
+        "clipped_sample_fraction": 0.0
+      }
+    },
+    {
+      "trial_id": "development_self_probe_2",
+      "condition": "self_probe",
+      "scored": true,
+      "chirp_source": "self",
+      "self_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts/development_self_probe_2_self.wav",
+      "self_sha256": "28eb7395ee91635a59dd06130098671001f0aa771df8a384641d723b526a4f5c",
+      "world_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts/development_self_probe_2_world.wav",
+      "world_sha256": "7d74881576de8253aa60497cf8606cb1d7ac5f8df2944ccd2968dd703a2d083e",
+      "captured_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts/development_self_probe_2_capture.wav",
+      "captured_sha256": "03a9bb92ed0b8d30ac922a49f1e0269460c7fb0d8c7e4cfc39eb5baeb7beae60",
+      "reconstructed_alignment_samples": 5980,
+      "reconstructed_alignment_onset_ms": 373.75,
+      "capture_quality": {
+        "peak_absolute": 0.594512939453125,
+        "clipped_sample_count": 0,
+        "clipped_sample_fraction": 0.0
+      }
+    },
+    {
+      "trial_id": "development_world_only_2",
+      "condition": "world_only",
+      "scored": true,
+      "chirp_source": "world",
+      "self_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts/development_world_only_2_self.wav",
+      "self_sha256": "7d74881576de8253aa60497cf8606cb1d7ac5f8df2944ccd2968dd703a2d083e",
+      "world_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts/development_world_only_2_world.wav",
+      "world_sha256": "87295b6ca9e85bb7784464218859e09fdbe24d25c9d0906e70433e57ac0951ea",
+      "captured_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts/development_world_only_2_capture.wav",
+      "captured_sha256": "a42dc6a7f3ee9dd0937f275bf1126afe2afcff51d920fe8af6a2b135c6826086",
+      "reconstructed_alignment_samples": 6647,
+      "reconstructed_alignment_onset_ms": 415.438,
+      "capture_quality": {
+        "peak_absolute": 0.222930908203125,
+        "clipped_sample_count": 0,
+        "clipped_sample_fraction": 0.0
+      }
+    },
+    {
+      "trial_id": "held_out_self_calibration_0",
+      "condition": "self_calibration",
+      "scored": false,
+      "chirp_source": "self",
+      "self_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts/held_out_self_calibration_0_self.wav",
+      "self_sha256": "e3bb06a4f2fcc61f9ef56572ec48a08dfecb86b096779c42d8c6548acd134726",
+      "world_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts/held_out_self_calibration_0_world.wav",
+      "world_sha256": "7d74881576de8253aa60497cf8606cb1d7ac5f8df2944ccd2968dd703a2d083e",
+      "captured_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts/held_out_self_calibration_0_capture.wav",
+      "captured_sha256": "9f6486966f17cceb0f31fc330fa44d4d7daa2ebbb58878ec17504f21246ae01c",
+      "reconstructed_alignment_samples": 6103,
+      "reconstructed_alignment_onset_ms": 381.438,
+      "capture_quality": {
+        "peak_absolute": 0.546478271484375,
+        "clipped_sample_count": 0,
+        "clipped_sample_fraction": 0.0
+      }
+    },
+    {
+      "trial_id": "held_out_self_probe_0",
+      "condition": "self_probe",
+      "scored": true,
+      "chirp_source": "self",
+      "self_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts/held_out_self_probe_0_self.wav",
+      "self_sha256": "e3bb06a4f2fcc61f9ef56572ec48a08dfecb86b096779c42d8c6548acd134726",
+      "world_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts/held_out_self_probe_0_world.wav",
+      "world_sha256": "7d74881576de8253aa60497cf8606cb1d7ac5f8df2944ccd2968dd703a2d083e",
+      "captured_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts/held_out_self_probe_0_capture.wav",
+      "captured_sha256": "e98434bf2d93f0a43169004664b4479d3fbb035a6e9888e3fd9c6c63ee8d9bc0",
+      "reconstructed_alignment_samples": 5986,
+      "reconstructed_alignment_onset_ms": 374.125,
+      "capture_quality": {
+        "peak_absolute": 0.683990478515625,
+        "clipped_sample_count": 0,
+        "clipped_sample_fraction": 0.0
+      }
+    },
+    {
+      "trial_id": "held_out_world_only_0",
+      "condition": "world_only",
+      "scored": true,
+      "chirp_source": "world",
+      "self_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts/held_out_world_only_0_self.wav",
+      "self_sha256": "7d74881576de8253aa60497cf8606cb1d7ac5f8df2944ccd2968dd703a2d083e",
+      "world_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts/held_out_world_only_0_world.wav",
+      "world_sha256": "5b388f92fb92ea46ee2550f7e4e7767dfcbb2978af149add3ec7704f1acb0957",
+      "captured_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts/held_out_world_only_0_capture.wav",
+      "captured_sha256": "5793036e6aabbf2347f03238cccd480774f2dc82408ceba48cdf4dd5814877fa",
+      "reconstructed_alignment_samples": 6626,
+      "reconstructed_alignment_onset_ms": 414.125,
+      "capture_quality": {
+        "peak_absolute": 0.275634765625,
+        "clipped_sample_count": 0,
+        "clipped_sample_fraction": 0.0
+      }
+    },
+    {
+      "trial_id": "held_out_overlap_0",
+      "condition": "overlap",
+      "scored": true,
+      "chirp_source": "self",
+      "self_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts/held_out_overlap_0_self.wav",
+      "self_sha256": "e3bb06a4f2fcc61f9ef56572ec48a08dfecb86b096779c42d8c6548acd134726",
+      "world_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts/held_out_overlap_0_world.wav",
+      "world_sha256": "b02818babed324f13f260dbc8004c805211431d4973d1eacea08217938eb7721",
+      "captured_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts/held_out_overlap_0_capture.wav",
+      "captured_sha256": "81a47b1eadd18cb0a5364b9ec24812a743aadf344aa78c33d4ddc185f237e951",
+      "reconstructed_alignment_samples": 6636,
+      "reconstructed_alignment_onset_ms": 414.75,
+      "capture_quality": {
+        "peak_absolute": 1.0,
+        "clipped_sample_count": 18,
+        "clipped_sample_fraction": 0.0003700657894736842
+      }
+    },
+    {
+      "trial_id": "held_out_self_calibration_1",
+      "condition": "self_calibration",
+      "scored": false,
+      "chirp_source": "self",
+      "self_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts/held_out_self_calibration_1_self.wav",
+      "self_sha256": "0e7883b2a95292eae7ca9baf6ec0d0d47769876e234aee280da48001daedf625",
+      "world_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts/held_out_self_calibration_1_world.wav",
+      "world_sha256": "7d74881576de8253aa60497cf8606cb1d7ac5f8df2944ccd2968dd703a2d083e",
+      "captured_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts/held_out_self_calibration_1_capture.wav",
+      "captured_sha256": "8a166e88a5a6c780a1889d02ee471c473fe510a8e2f5ff66fffc1521f2bd5b70",
+      "reconstructed_alignment_samples": 5769,
+      "reconstructed_alignment_onset_ms": 360.562,
+      "capture_quality": {
+        "peak_absolute": 0.53326416015625,
+        "clipped_sample_count": 0,
+        "clipped_sample_fraction": 0.0
+      }
+    },
+    {
+      "trial_id": "held_out_self_probe_1",
+      "condition": "self_probe",
+      "scored": true,
+      "chirp_source": "self",
+      "self_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts/held_out_self_probe_1_self.wav",
+      "self_sha256": "0e7883b2a95292eae7ca9baf6ec0d0d47769876e234aee280da48001daedf625",
+      "world_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts/held_out_self_probe_1_world.wav",
+      "world_sha256": "7d74881576de8253aa60497cf8606cb1d7ac5f8df2944ccd2968dd703a2d083e",
+      "captured_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts/held_out_self_probe_1_capture.wav",
+      "captured_sha256": "db525f3369e93f8c043e8bfa20c24bb7247a11adfab1c52b5a1c37bb1c04cf92",
+      "reconstructed_alignment_samples": 5961,
+      "reconstructed_alignment_onset_ms": 372.562,
+      "capture_quality": {
+        "peak_absolute": 0.49053955078125,
+        "clipped_sample_count": 0,
+        "clipped_sample_fraction": 0.0
+      }
+    },
+    {
+      "trial_id": "held_out_world_only_1",
+      "condition": "world_only",
+      "scored": true,
+      "chirp_source": "world",
+      "self_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts/held_out_world_only_1_self.wav",
+      "self_sha256": "7d74881576de8253aa60497cf8606cb1d7ac5f8df2944ccd2968dd703a2d083e",
+      "world_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts/held_out_world_only_1_world.wav",
+      "world_sha256": "16c91e3aab96c0be654943cb688482e06a4ee4f656d94512d08d66ded981226a",
+      "captured_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts/held_out_world_only_1_capture.wav",
+      "captured_sha256": "98e33faf114a9653991598f921cd05ac939461bea4b6ba164219992ad34c97ec",
+      "reconstructed_alignment_samples": 6503,
+      "reconstructed_alignment_onset_ms": 406.438,
+      "capture_quality": {
+        "peak_absolute": 0.2728271484375,
+        "clipped_sample_count": 0,
+        "clipped_sample_fraction": 0.0
+      }
+    },
+    {
+      "trial_id": "held_out_overlap_1",
+      "condition": "overlap",
+      "scored": true,
+      "chirp_source": "self",
+      "self_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts/held_out_overlap_1_self.wav",
+      "self_sha256": "0e7883b2a95292eae7ca9baf6ec0d0d47769876e234aee280da48001daedf625",
+      "world_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts/held_out_overlap_1_world.wav",
+      "world_sha256": "e1f1ad5e6b72f5d33b503d069e3506cf74abcf4b4fbeb76d7f438028c827609d",
+      "captured_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts/held_out_overlap_1_capture.wav",
+      "captured_sha256": "2a42c7dedcca3a20e12c87bda35ca8545d9e98bb01713f0b030fa35499180117",
+      "reconstructed_alignment_samples": 6814,
+      "reconstructed_alignment_onset_ms": 425.875,
+      "capture_quality": {
+        "peak_absolute": 0.49981689453125,
+        "clipped_sample_count": 0,
+        "clipped_sample_fraction": 0.0
+      }
+    },
+    {
+      "trial_id": "held_out_self_calibration_2",
+      "condition": "self_calibration",
+      "scored": false,
+      "chirp_source": "self",
+      "self_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts/held_out_self_calibration_2_self.wav",
+      "self_sha256": "3d083d516ed201afea2f6e500a045e2484685fa1e9046ebc67256c076274d1c7",
+      "world_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts/held_out_self_calibration_2_world.wav",
+      "world_sha256": "7d74881576de8253aa60497cf8606cb1d7ac5f8df2944ccd2968dd703a2d083e",
+      "captured_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts/held_out_self_calibration_2_capture.wav",
+      "captured_sha256": "e7a05c1d5c3e1d2eda667c86d5c8d3f45410bd011f4a14b13b188795a6c65e14",
+      "reconstructed_alignment_samples": 6004,
+      "reconstructed_alignment_onset_ms": 375.25,
+      "capture_quality": {
+        "peak_absolute": 0.396453857421875,
+        "clipped_sample_count": 0,
+        "clipped_sample_fraction": 0.0
+      }
+    },
+    {
+      "trial_id": "held_out_self_probe_2",
+      "condition": "self_probe",
+      "scored": true,
+      "chirp_source": "self",
+      "self_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts/held_out_self_probe_2_self.wav",
+      "self_sha256": "3d083d516ed201afea2f6e500a045e2484685fa1e9046ebc67256c076274d1c7",
+      "world_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts/held_out_self_probe_2_world.wav",
+      "world_sha256": "7d74881576de8253aa60497cf8606cb1d7ac5f8df2944ccd2968dd703a2d083e",
+      "captured_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts/held_out_self_probe_2_capture.wav",
+      "captured_sha256": "d925682de12353f85e23a16d07b870060d76f26e2415cb0ff9edfbcbe1fe6c27",
+      "reconstructed_alignment_samples": 5843,
+      "reconstructed_alignment_onset_ms": 365.188,
+      "capture_quality": {
+        "peak_absolute": 0.41937255859375,
+        "clipped_sample_count": 0,
+        "clipped_sample_fraction": 0.0
+      }
+    },
+    {
+      "trial_id": "held_out_world_only_2",
+      "condition": "world_only",
+      "scored": true,
+      "chirp_source": "world",
+      "self_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts/held_out_world_only_2_self.wav",
+      "self_sha256": "7d74881576de8253aa60497cf8606cb1d7ac5f8df2944ccd2968dd703a2d083e",
+      "world_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts/held_out_world_only_2_world.wav",
+      "world_sha256": "c99d67cff663605a6b639150fd8164bfa397e4c70f64c01ea26e2e08152ad6e0",
+      "captured_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts/held_out_world_only_2_capture.wav",
+      "captured_sha256": "6d94b8dab8569dec0b08efd075525373bf2d53ca2aee5c5b98be5e6558adf8f1",
+      "reconstructed_alignment_samples": 6578,
+      "reconstructed_alignment_onset_ms": 411.125,
+      "capture_quality": {
+        "peak_absolute": 0.137542724609375,
+        "clipped_sample_count": 0,
+        "clipped_sample_fraction": 0.0
+      }
+    },
+    {
+      "trial_id": "held_out_overlap_2",
+      "condition": "overlap",
+      "scored": true,
+      "chirp_source": "self",
+      "self_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts/held_out_overlap_2_self.wav",
+      "self_sha256": "3d083d516ed201afea2f6e500a045e2484685fa1e9046ebc67256c076274d1c7",
+      "world_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts/held_out_overlap_2_world.wav",
+      "world_sha256": "eebad19884dca7c95e40f02132dbebc314484161760309b7dedcb95939d22c17",
+      "captured_wav": "/Users/juicebox/Projects/cora/docs/evidence/2026-07-11-natural-speech-workspace-template-v2-real-artifacts/held_out_overlap_2_capture.wav",
+      "captured_sha256": "7faf56919cf17168347e8dee33fd662e22903408c9fe808f06ecaf6d255e0752",
+      "reconstructed_alignment_samples": 6662,
+      "reconstructed_alignment_onset_ms": 416.375,
+      "capture_quality": {
+        "peak_absolute": 0.447113037109375,
+        "clipped_sample_count": 0,
+        "clipped_sample_fraction": 0.0
+      }
+    }
+  ],
+  "interpretation": "All 21 preregistered trials completed. RMS normalization and software-level compensation reduced the missing development gap from v1's -0.441549 to -0.009262, and all three held-out overlap residual ratios exceeded 1.0. However, one development self-probe residual ratio was 1.009262, so the frozen clean-gap rule still failed and no threshold or held-out classifier was selected. One overlap capture contained 18 clipped samples. Template-v2 therefore fails without changing the structured-tone H3 result.",
+  "claim_boundary": "This is a failed fixed-geometry exact-efference replay task. Held-out residuals are retained diagnostically but were not threshold-scored. The result cannot support post-hoc thresholding, a natural-speech H3 extension, generalized self-voice prediction, or calibrated-level claims."
+}

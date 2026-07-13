@@ -1,0 +1,47 @@
+{
+  "mode": "bounded_project_owner_vocal_imitation_v1_acquisition",
+  "date": "2026-07-12",
+  "status": "candidate_stopped",
+  "protocol": "docs/VOCAL_IMITATION_PROTOCOL.md v1",
+  "session_path": "/private/tmp/cora-vocal-imitation",
+  "target": "a",
+  "role": "development",
+  "take": 1,
+  "capture_sha256": "3b4b83126d9e22365a8602e6251b091c0fd659005e01e948b1abd6bd585ad3e2",
+  "sensory_sha256": "78b63262bb50b25e1126856562ffbc61d699226e7c82e1d29cc3647abd1e4297",
+  "hardware": {
+    "backend": "sounddevice_portaudio_coreaudio_callback",
+    "device_selector": ":0",
+    "sample_rate_hz": 16000,
+    "channel_count": 2,
+    "frame_count": 28800,
+    "input_overflow_count": 0,
+    "callback_status_count": 0,
+    "callback_timestamp_discontinuity_count": 0,
+    "hardware_contract_passed": true
+  },
+  "quality": {
+    "analysis_start_sample": 17920,
+    "analysis_sample_count": 7680,
+    "analysis_rms": 0.0014743150079925325,
+    "analysis_peak_absolute": 0.013089497884114584,
+    "clipped_sample_count": 0,
+    "estimated_pitch_hz": 242.42424242424244,
+    "pitch_periodicity": 0.29701910459768743,
+    "rms_at_least_0_01": false,
+    "peak_at_least_0_03": false,
+    "pitch_periodicity_at_least_0_30": false,
+    "quality_passed": false
+  },
+  "disposition": {
+    "v1_stopped": true,
+    "take_overwritten": false,
+    "thresholds_changed": false,
+    "preprocessing_changed": false,
+    "learner_changed": false,
+    "confirmation_accessed": false,
+    "v2_change": "fresh session with capture duration increased from 1.8 to 4.0 seconds",
+    "v2_fresh_recording_required": true
+  },
+  "claim_boundary": "The hardware path passed, but the authorized recording contained no eligible voiced target. This is an acquisition failure, not evidence for or against vocal imitation."
+}

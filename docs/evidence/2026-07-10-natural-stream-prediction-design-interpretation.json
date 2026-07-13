@@ -1,0 +1,71 @@
+{
+  "experiment": "participant_held_out_natural_stream_prediction_design",
+  "date": "2026-07-10",
+  "status": "design_gate_failed_no_fresh_audio",
+  "audit_sha256": "a0363c9d2950a93e7770130e2f60224c7e7dc1d088f923bf1bb6d5917682ef07",
+  "implementation_sha256": "03870525b70e33d9f6e9b1e38b0c5f17851b5cb6aa3b514277ab5226a60282cf",
+  "cli_sha256": "133c70d626a0fe9f0c784a9eeda8e809a635d353231c1cc7e0c99ffc5fb6538d",
+  "dataset": {
+    "name": "Human vocalization corpus: recordings of infant-directed and adult-directed speech and song in 21 societies",
+    "doi": "10.5281/zenodo.5525161",
+    "official_record": "https://zenodo.org/records/5525161",
+    "license": "CC BY-NC-SA 4.0",
+    "archive": "IDS-corpus-edited.zip",
+    "acquisition": "ZIP64-corrected HTTP byte-range extraction from Zenodo's official API content endpoint",
+    "audio_retained_in_repository": false
+  },
+  "data_boundary": {
+    "fieldsite": "Beijing",
+    "participants": ["BEJ06", "BEJ07", "BEJ11", "BEJ21"],
+    "conditions": ["infant-directed speech", "adult-directed speech"],
+    "clip_count": 8,
+    "all_clips_previously_spent_as_development": true,
+    "prior_held_out_clip_count_used": 0,
+    "fresh_participant_or_fieldsite_consumed": false,
+    "selected_file_sha256": {
+      "BEJ06B.wav": "ff0a6b4cb93f4a48444a168919139e19ebfb00714ad1175f1fda928e170834cb",
+      "BEJ06D.wav": "224e233ff3acf1b2ae51f6e9218ae9d87723f0803367540866c3f9ed99c24b01",
+      "BEJ07B.wav": "5e41291a9764cc3f841448d2bdd1535cb0d551d6d3582ad95b4bc76fcfe25c12",
+      "BEJ07D.wav": "962bf444f382b6ed1f3073bd5b990eb8690f94b7fa1002208d1c2957ea52cafe",
+      "BEJ11B.wav": "ffbcd069ca55356e837d0a8f771a729f66a664994da1320700c832772f53e919",
+      "BEJ11D.wav": "e871007eac5741ccdb638e1b429a7fcc9fe70b7ca812683db71649fd1386a20f",
+      "BEJ21B.wav": "5ce4f60062df97b10ae87833f6d0c2f09fb07ef0f5e6fa47e4e585d979005c4a",
+      "BEJ21D.wav": "ff15f107f3bbef1f100a6bcc5544efbd1de663cc276caad396f0af1e69494fbd"
+    }
+  },
+  "task": {
+    "learner_labels_consumed": false,
+    "participant_held_out_folds": 4,
+    "clips_per_held_out_participant": 2,
+    "unlabeled_clip_calibration_ms": 2000,
+    "state_count": 4,
+    "bounded_local_codebook": true,
+    "top_down_transition_prediction": true,
+    "baselines": ["persistence", "development unigram", "causal moving state"],
+    "candidate_grid": {
+      "signature_modes": ["full spectrum", "temporal median 60/30"],
+      "frame_ms": [100, 200, 400],
+      "horizon_frames": [1, 2, 4],
+      "candidate_count": 18
+    }
+  },
+  "design_gate": {
+    "minimum_clip_wins": "6/8",
+    "minimum_mean_accuracy_improvement": 0.05,
+    "maximum_worst_clip_regret": -0.05,
+    "minimum_each_clip_state_occupancy": 3
+  },
+  "best_candidate": {
+    "signature_mode": "full_spectrum",
+    "frame_ms": 200,
+    "horizon_frames": 4,
+    "horizon_ms": 800,
+    "wins": "2/8",
+    "mean_accuracy_improvement": 0.003609573278690926,
+    "worst_clip_improvement": -0.09890109890109894,
+    "passed": false
+  },
+  "decision": "Do not consume a fresh natural-speech participant or fieldsite with the calibrated competitive-codebook representation. The controlled structured mechanism does not transfer to these natural streams.",
+  "stop_rule": "Retire further frame-size, fixed-horizon, and full-versus-temporal-median tuning for this four-state natural-stream representation. A future H2 attempt requires a different observation target or explicit missing/novel-event mechanism.",
+  "claim_boundary": "This is negative spent-development design evidence. It does not weaken the controlled structured pass, but it blocks natural-stream promotion and keeps H2 open."
+}

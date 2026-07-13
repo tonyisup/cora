@@ -1,0 +1,60 @@
+{
+  "experiment": "structured_continuous_prediction_real_hardware",
+  "attempt": 2,
+  "date": "2026-07-10",
+  "evidence_class": "real_synchronized_playback_capture",
+  "verdict": "real_io_acceptance_failed",
+  "preregistration_sha256": "7f06c85e1297c2e668f260444000c683b9a4e9c63d370c731ae71520c1dfef2d",
+  "result_sha256": "4b9510a0305e8f20e18c2b093b4350d381aab26a93a0e796f8ac7d7b343c9606",
+  "artifact_hash_list_sha256": "af776cbd94ef57f6f27d18e497dc6e0a8adc6c4db3347b2df462e3a8fdafdf07",
+  "integrity": {
+    "completed_trial_count": 12,
+    "wav_artifact_count": 24,
+    "verified_artifact_hash_count": 24,
+    "artifact_hash_mismatch_count": 0,
+    "all_alignments_finite": true,
+    "all_stream_positions_verified": true,
+    "playback_backend": "ffmpeg_audiotoolbox",
+    "capture_backend": "ffmpeg_avfoundation",
+    "capture_channels": 2
+  },
+  "tones": {
+    "passed_all_preregistered_gates": true,
+    "held_out_codebook_occupancy": 4,
+    "post_hoc_token_cluster_purity": 0.9666666666666667,
+    "transition_accuracy": 0.8596491228070176,
+    "best_baseline_accuracy": 0.2631578947368421,
+    "accuracy_improvement": 0.5964912280701754,
+    "minimum_trial_improvement": 0.5263157894736842,
+    "held_out_token_by_state_counts": [
+      [17, 0, 1, 1],
+      [0, 18, 0, 0],
+      [0, 0, 18, 0],
+      [0, 0, 0, 5]
+    ]
+  },
+  "vowels": {
+    "passed_all_preregistered_gates": false,
+    "held_out_codebook_occupancy": 3,
+    "post_hoc_token_cluster_purity": 0.6,
+    "transition_accuracy": 0.5964912280701754,
+    "best_baseline_accuracy": 0.5964912280701754,
+    "accuracy_improvement": 0.0,
+    "minimum_trial_improvement": 0.0,
+    "held_out_token_by_state_counts": [
+      [0, 19, 0, 0],
+      [0, 18, 0, 0],
+      [0, 0, 17, 1],
+      [0, 0, 5, 0]
+    ],
+    "held_out_calibration_token_by_state_counts": [
+      [1, 2, 0, 0],
+      [0, 3, 0, 0],
+      [0, 0, 2, 1],
+      [0, 0, 2, 1]
+    ],
+    "post_hoc_diagnosis": "The measured spectral representation merged vowel tokens 0 and 1 and mostly merged tokens 2 and 3; state 0 was absent from held-out grammar observations. The transition learner therefore tied the development-unigram baseline rather than learning a four-state grammar advantage."
+  },
+  "claim_boundary": "The tone family supports the bounded local transition mechanism under this named real geometry. The vowel family and preregistered two-family promotion criterion failed, so H2 remains open. This result does not support unconstrained or semantic speech prediction.",
+  "data_reuse_boundary": "All attempt-2 development and held-out captures are spent. Post-hoc confusion matrices characterize failure only. They may not confirm a revised representation, threshold, codebook, grammar, or predictor."
+}

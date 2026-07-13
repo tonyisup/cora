@@ -1,0 +1,60 @@
+{
+  "experiment": "stage6_live_resource_and_offline_baseline_gate",
+  "date": "2026-07-10",
+  "status": "frozen_before_real_measurement",
+  "vision_requirements_in_scope": [
+    "real-time factor for live and offline paths",
+    "peak resident memory and CPU utilization",
+    "dropped-frame and deadline-miss rates",
+    "comparison with at least one conventional baseline on the same hardware"
+  ],
+  "vision_requirement_out_of_scope": {
+    "end_to_end_frame_latency_distribution": "Host capture-call-to-workspace and nominal-latency estimates are retained, but a true CoreAudio ADC-onset timestamp is not available through the current blocking read path and remains open."
+  },
+  "hardware": {
+    "host": "Mac mini Mac16,11",
+    "processor": "Apple M4 Pro, 12 cores",
+    "memory_gb": 24,
+    "input": "XVF3800 through native sounddevice/PortAudio/CoreAudio",
+    "sample_rate_hz": 48000,
+    "channel_count": 2,
+    "playback": "none"
+  },
+  "offline_protocol": {
+    "iterations": 1000,
+    "frame_ms": 25,
+    "cora_boundary": "AudioFrame_to_WorkspaceEvent_in_process",
+    "baseline": "fixed threshold saliency, nearest frequency prototype, bounded deque",
+    "fairness": "identical preconstructed AudioFrame objects and identical timing/tracemalloc instrumentation in one process"
+  },
+  "live_protocol": {
+    "replicates": 3,
+    "duration_ms_each": 10000,
+    "frame_ms": 25,
+    "expected_frames_each": 400,
+    "capture_backend": "native",
+    "command": ".venv/bin/python -m cora_infans --listen-live --duration-ms 10000 --frame-ms 25 --capture-backend native"
+  },
+  "acceptance_criteria": {
+    "offline_real_time_factor_max": 1.0,
+    "offline_p95_latency_ms_max": 25.0,
+    "baseline_comparison_present": true,
+    "baseline_input_and_instrumentation_identical": true,
+    "live_real_capture_required": true,
+    "native_backend_without_fallback_required": true,
+    "live_frame_count_each": 400,
+    "live_input_overflow_count_each_max": 0,
+    "live_operational_deadline_miss_rate_each_max": 0.05,
+    "live_steady_state_real_time_factor_each_max": 1.2,
+    "live_average_process_cpu_percent_each_max": 100.0,
+    "live_peak_resident_memory_megabytes_each_max": 512.0
+  },
+  "interpretation_rules": [
+    "A simpler conventional baseline is a resource floor, not a capability-equivalent competitor; Cora is not required to outperform it.",
+    "Peak RSS is the process-lifetime high-water mark sampled at operation end, not operation-attributable incremental memory.",
+    "PortAudio overflow flags are the dropped-frame proxy; absence of a flag is not a hardware transport proof.",
+    "Strict 25 ms deadline misses are reported separately from the frozen 30 ms operational limit.",
+    "No energy-efficiency claim is allowed because power is not measured.",
+    "No device-onset or hard-real-time claim is allowed from host monotonic call boundaries or nominal backend latency."
+  ]
+}

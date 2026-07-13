@@ -1,0 +1,372 @@
+{
+  "experiment": "efference_masked_dropout_real_room_transfer",
+  "date": "2026-07-10",
+  "evidence_class": "fresh_real_synchronized_playback_capture",
+  "preregistration": "2026-07-10-dropout-v5-real-preregistration.json",
+  "preregistration_sha256": "217970954936141ec8d28da2e58a6986d5c239b95758afb698d848e978bae18b",
+  "protocol_sha256": "11eb881e5c7114c4dd9eb0389bce79e4d1c703f3ae36e1010a5c199224a1977f",
+  "implementation_sha256": "4fd7afca9545a6ed31225b177edf64c656987ab011d06b52633e44657d530fda",
+  "cli_sha256": "f5a65b7ed84208956a5de968713433194a77f54b8c2629be5dadc85a8a804701",
+  "verdict": "real_io_acceptance_passed",
+  "real_hardware": true,
+  "live_playback": true,
+  "geometry": {
+    "input_device": ":0",
+    "output_device_index": 2,
+    "speaker_distance_cm": 50,
+    "speaker_orientation": "180deg_vertical_pair_facing_mic",
+    "quiet_room_confirmed": true,
+    "host_channel_count": 2,
+    "software_playback_cap_db": -18
+  },
+  "integrity": {
+    "completed_trial_count": 12,
+    "wav_artifact_count": 24,
+    "verified_artifact_hash_count": 24,
+    "artifact_hash_mismatch_count": 0,
+    "all_alignments_finite": true,
+    "alignment_onset_ms_range": [
+      400.562,
+      415.625
+    ],
+    "all_stream_positions_verified": true,
+    "playback_backend": "ffmpeg_audiotoolbox",
+    "capture_backend": "ffmpeg_avfoundation",
+    "capture_channels": 2
+  },
+  "family_reports": {
+    "tones": {
+      "held_out_codebook_occupancy": 4,
+      "post_hoc_token_cluster_purity": 0.9333333333333333,
+      "transition_accuracy": 0.8070175438596491,
+      "best_baseline_accuracy": 0.3333333333333333,
+      "accuracy_improvement": 0.47368421052631576,
+      "minimum_trial_improvement": 0.3684210526315789,
+      "bounded_state_scalars": 68,
+      "top_down_prediction_consumed": true,
+      "reports": [
+        {
+          "trial_id": "tones_held_out_14111",
+          "transition_accuracy": 0.8421052631578947,
+          "best_baseline_accuracy": 0.3157894736842105,
+          "accuracy_improvement": 0.5263157894736842,
+          "prediction_count": 19,
+          "state_occupancy": 4,
+          "post_hoc_token_cluster_purity": 1,
+          "condition": {
+            "name": "speaker_shift_f0_205_grammar_dropout_10pct",
+            "vowel_f0_hz": 205,
+            "grammar_dropout_fraction": 0.1,
+            "dropout_burst_ms": 5
+          }
+        },
+        {
+          "trial_id": "tones_held_out_14117",
+          "transition_accuracy": 0.8421052631578947,
+          "best_baseline_accuracy": 0.3157894736842105,
+          "accuracy_improvement": 0.5263157894736842,
+          "prediction_count": 19,
+          "state_occupancy": 4,
+          "post_hoc_token_cluster_purity": 0.95,
+          "condition": {
+            "name": "speaker_shift_f0_205_grammar_dropout_15pct",
+            "vowel_f0_hz": 205,
+            "grammar_dropout_fraction": 0.15,
+            "dropout_burst_ms": 5
+          }
+        },
+        {
+          "trial_id": "tones_held_out_14123",
+          "transition_accuracy": 0.7368421052631579,
+          "best_baseline_accuracy": 0.3684210526315789,
+          "accuracy_improvement": 0.3684210526315789,
+          "prediction_count": 19,
+          "state_occupancy": 4,
+          "post_hoc_token_cluster_purity": 0.85,
+          "condition": {
+            "name": "speaker_shift_f0_205_grammar_dropout_20pct",
+            "vowel_f0_hz": 205,
+            "grammar_dropout_fraction": 0.2,
+            "dropout_burst_ms": 5
+          }
+        }
+      ]
+    },
+    "vowels": {
+      "held_out_codebook_occupancy": 4,
+      "post_hoc_token_cluster_purity": 1,
+      "transition_accuracy": 0.8947368421052632,
+      "best_baseline_accuracy": 0.2807017543859649,
+      "accuracy_improvement": 0.6140350877192983,
+      "minimum_trial_improvement": 0.5789473684210527,
+      "bounded_state_scalars": 68,
+      "top_down_prediction_consumed": true,
+      "reports": [
+        {
+          "trial_id": "vowels_held_out_14111",
+          "transition_accuracy": 0.8421052631578947,
+          "best_baseline_accuracy": 0.2631578947368421,
+          "accuracy_improvement": 0.5789473684210527,
+          "prediction_count": 19,
+          "state_occupancy": 4,
+          "post_hoc_token_cluster_purity": 1,
+          "condition": {
+            "name": "speaker_shift_f0_205_grammar_dropout_10pct",
+            "vowel_f0_hz": 205,
+            "grammar_dropout_fraction": 0.1,
+            "dropout_burst_ms": 5
+          }
+        },
+        {
+          "trial_id": "vowels_held_out_14117",
+          "transition_accuracy": 0.8947368421052632,
+          "best_baseline_accuracy": 0.2631578947368421,
+          "accuracy_improvement": 0.631578947368421,
+          "prediction_count": 19,
+          "state_occupancy": 4,
+          "post_hoc_token_cluster_purity": 1,
+          "condition": {
+            "name": "speaker_shift_f0_205_grammar_dropout_15pct",
+            "vowel_f0_hz": 205,
+            "grammar_dropout_fraction": 0.15,
+            "dropout_burst_ms": 5
+          }
+        },
+        {
+          "trial_id": "vowels_held_out_14123",
+          "transition_accuracy": 0.9473684210526315,
+          "best_baseline_accuracy": 0.3157894736842105,
+          "accuracy_improvement": 0.631578947368421,
+          "prediction_count": 19,
+          "state_occupancy": 4,
+          "post_hoc_token_cluster_purity": 1,
+          "condition": {
+            "name": "speaker_shift_f0_205_grammar_dropout_20pct",
+            "vowel_f0_hz": 205,
+            "grammar_dropout_fraction": 0.2,
+            "dropout_burst_ms": 5
+          }
+        }
+      ]
+    }
+  },
+  "acceptance": {
+    "tones": {
+      "occupancy_passed": true,
+      "improvement_passed": true,
+      "bounded_state_passed": true,
+      "top_down_consumed_passed": true,
+      "each_trial_improvement_passed": true,
+      "each_condition_occupancy_passed": true,
+      "three_named_conditions_passed": true
+    },
+    "vowels": {
+      "occupancy_passed": true,
+      "improvement_passed": true,
+      "bounded_state_passed": true,
+      "top_down_consumed_passed": true,
+      "each_trial_improvement_passed": true,
+      "each_condition_occupancy_passed": true,
+      "three_named_conditions_passed": true
+    }
+  },
+  "all_acceptance_gates_passed": true,
+  "artifacts": [
+    {
+      "trial_id": "tones_dev_14101",
+      "efference_wav": "2026-07-10-dropout-v5-real-artifacts/tones_dev_14101_efference.wav",
+      "efference_sha256": "a4524176b8955b3ae9e766afa6d3d3751d66d3890446733019a048b10dd8c3d6",
+      "captured_wav": "2026-07-10-dropout-v5-real-artifacts/tones_dev_14101_real_capture.wav",
+      "captured_sha256": "5f584f4eda926dc58351e63cc85a634708183ba160b99990fcc2b964ed2cbef4",
+      "capture_provenance": "real_synchronized_playback_capture",
+      "alignment_samples": 6440,
+      "alignment_onset_ms": 402.5,
+      "stream_position_verified": true,
+      "condition": {
+        "name": "clean_speaker_f0_115",
+        "vowel_f0_hz": 115
+      }
+    },
+    {
+      "trial_id": "tones_dev_14107",
+      "efference_wav": "2026-07-10-dropout-v5-real-artifacts/tones_dev_14107_efference.wav",
+      "efference_sha256": "96f8df7241620b7e8cf812d283e4c073da9d4940a126f8ba28add7d1d3fbeff1",
+      "captured_wav": "2026-07-10-dropout-v5-real-artifacts/tones_dev_14107_real_capture.wav",
+      "captured_sha256": "b7b3ef35f9ad325745a8b66235572f0947e7dcb5ad20356a7eff935dfc5de931",
+      "capture_provenance": "real_synchronized_playback_capture",
+      "alignment_samples": 6409,
+      "alignment_onset_ms": 400.562,
+      "stream_position_verified": true,
+      "condition": {
+        "name": "clean_speaker_f0_145",
+        "vowel_f0_hz": 145
+      }
+    },
+    {
+      "trial_id": "tones_dev_14109",
+      "efference_wav": "2026-07-10-dropout-v5-real-artifacts/tones_dev_14109_efference.wav",
+      "efference_sha256": "6c2df2e169c94867b60c8bbce05d377126e889f720d336147280b950be484711",
+      "captured_wav": "2026-07-10-dropout-v5-real-artifacts/tones_dev_14109_real_capture.wav",
+      "captured_sha256": "a1fd08d487e1ae10c79e334cf62e113338abee2d4cc179ca7a9818769d642901",
+      "capture_provenance": "real_synchronized_playback_capture",
+      "alignment_samples": 6472,
+      "alignment_onset_ms": 404.5,
+      "stream_position_verified": true,
+      "condition": {
+        "name": "clean_speaker_f0_175",
+        "vowel_f0_hz": 175
+      }
+    },
+    {
+      "trial_id": "tones_held_out_14111",
+      "efference_wav": "2026-07-10-dropout-v5-real-artifacts/tones_held_out_14111_efference.wav",
+      "efference_sha256": "5ddc08661c5c33e1d1d1a18058742c91f893d8da41e5ac74aa939319414de95e",
+      "captured_wav": "2026-07-10-dropout-v5-real-artifacts/tones_held_out_14111_real_capture.wav",
+      "captured_sha256": "d7dc95d6e6b7267c01bbefaa46682a5f8c3dbaaaf2e473988a842db5da0dba9e",
+      "capture_provenance": "real_synchronized_playback_capture",
+      "alignment_samples": 6650,
+      "alignment_onset_ms": 415.625,
+      "stream_position_verified": true,
+      "condition": {
+        "name": "speaker_shift_f0_205_grammar_dropout_10pct",
+        "vowel_f0_hz": 205,
+        "grammar_dropout_fraction": 0.1,
+        "dropout_burst_ms": 5
+      }
+    },
+    {
+      "trial_id": "tones_held_out_14117",
+      "efference_wav": "2026-07-10-dropout-v5-real-artifacts/tones_held_out_14117_efference.wav",
+      "efference_sha256": "90d815b894ecc0e7ad876136cf2b16707500ed4a1b75540e90325d07e832071d",
+      "captured_wav": "2026-07-10-dropout-v5-real-artifacts/tones_held_out_14117_real_capture.wav",
+      "captured_sha256": "cd99ea50f45e10a2c36cd7454e1fcb9c4d36834a75eaa8d6372e25428de187cf",
+      "capture_provenance": "real_synchronized_playback_capture",
+      "alignment_samples": 6516,
+      "alignment_onset_ms": 407.25,
+      "stream_position_verified": true,
+      "condition": {
+        "name": "speaker_shift_f0_205_grammar_dropout_15pct",
+        "vowel_f0_hz": 205,
+        "grammar_dropout_fraction": 0.15,
+        "dropout_burst_ms": 5
+      }
+    },
+    {
+      "trial_id": "tones_held_out_14123",
+      "efference_wav": "2026-07-10-dropout-v5-real-artifacts/tones_held_out_14123_efference.wav",
+      "efference_sha256": "bd980fb615fdc780bb1218bf3d72715fdb2ecba75d0acf6c7d801f39c6bb5a34",
+      "captured_wav": "2026-07-10-dropout-v5-real-artifacts/tones_held_out_14123_real_capture.wav",
+      "captured_sha256": "04ad9c891f17c655443ca2ff9def4da828e05fadb55ea3b50dc3b89e7716de03",
+      "capture_provenance": "real_synchronized_playback_capture",
+      "alignment_samples": 6562,
+      "alignment_onset_ms": 410.125,
+      "stream_position_verified": true,
+      "condition": {
+        "name": "speaker_shift_f0_205_grammar_dropout_20pct",
+        "vowel_f0_hz": 205,
+        "grammar_dropout_fraction": 0.2,
+        "dropout_burst_ms": 5
+      }
+    },
+    {
+      "trial_id": "vowels_dev_14101",
+      "efference_wav": "2026-07-10-dropout-v5-real-artifacts/vowels_dev_14101_efference.wav",
+      "efference_sha256": "44df3c36450bbeeed4cd03bed1164fea2ddc190c9f39ba714c21f868fe56fd05",
+      "captured_wav": "2026-07-10-dropout-v5-real-artifacts/vowels_dev_14101_real_capture.wav",
+      "captured_sha256": "406507a3dd13ad69bc5bffed58c52dd18774c512e2c7e1b082ac61847642f9ad",
+      "capture_provenance": "real_synchronized_playback_capture",
+      "alignment_samples": 6507,
+      "alignment_onset_ms": 406.688,
+      "stream_position_verified": true,
+      "condition": {
+        "name": "clean_speaker_f0_115",
+        "vowel_f0_hz": 115
+      }
+    },
+    {
+      "trial_id": "vowels_dev_14107",
+      "efference_wav": "2026-07-10-dropout-v5-real-artifacts/vowels_dev_14107_efference.wav",
+      "efference_sha256": "b3f5a91230d9907f8ba8c67f26dad606ef49a522bac46782d54da184808829e1",
+      "captured_wav": "2026-07-10-dropout-v5-real-artifacts/vowels_dev_14107_real_capture.wav",
+      "captured_sha256": "d64bf2cf5a0c04b6a244d4c67615bba57afb5230a55b14cb6b3bbb64583066cb",
+      "capture_provenance": "real_synchronized_playback_capture",
+      "alignment_samples": 6423,
+      "alignment_onset_ms": 401.438,
+      "stream_position_verified": true,
+      "condition": {
+        "name": "clean_speaker_f0_145",
+        "vowel_f0_hz": 145
+      }
+    },
+    {
+      "trial_id": "vowels_dev_14109",
+      "efference_wav": "2026-07-10-dropout-v5-real-artifacts/vowels_dev_14109_efference.wav",
+      "efference_sha256": "c67abcfaab63cc5a473dd423a00209e9342d4ad78cec56c7edc7c937eb81ef8d",
+      "captured_wav": "2026-07-10-dropout-v5-real-artifacts/vowels_dev_14109_real_capture.wav",
+      "captured_sha256": "800ec89ca4917213f0a96078a169af62310caea868f7523022b8579c28fed886",
+      "capture_provenance": "real_synchronized_playback_capture",
+      "alignment_samples": 6543,
+      "alignment_onset_ms": 408.938,
+      "stream_position_verified": true,
+      "condition": {
+        "name": "clean_speaker_f0_175",
+        "vowel_f0_hz": 175
+      }
+    },
+    {
+      "trial_id": "vowels_held_out_14111",
+      "efference_wav": "2026-07-10-dropout-v5-real-artifacts/vowels_held_out_14111_efference.wav",
+      "efference_sha256": "8f2a9337d1c9a575a9f687e0825c397c62ed725dd6c39b444b059583720e8841",
+      "captured_wav": "2026-07-10-dropout-v5-real-artifacts/vowels_held_out_14111_real_capture.wav",
+      "captured_sha256": "06d3060c678f8c72948be629a2e3101276883fcbd075895a9864ac8b75e9682c",
+      "capture_provenance": "real_synchronized_playback_capture",
+      "alignment_samples": 6447,
+      "alignment_onset_ms": 402.938,
+      "stream_position_verified": true,
+      "condition": {
+        "name": "speaker_shift_f0_205_grammar_dropout_10pct",
+        "vowel_f0_hz": 205,
+        "grammar_dropout_fraction": 0.1,
+        "dropout_burst_ms": 5
+      }
+    },
+    {
+      "trial_id": "vowels_held_out_14117",
+      "efference_wav": "2026-07-10-dropout-v5-real-artifacts/vowels_held_out_14117_efference.wav",
+      "efference_sha256": "92b07f85288c21f56f2a55e84e635753fb1f924263d223fd5789a479501d0289",
+      "captured_wav": "2026-07-10-dropout-v5-real-artifacts/vowels_held_out_14117_real_capture.wav",
+      "captured_sha256": "265c3ca6ac6138eb2f04721a32ba6a45ddb2ee583dc713c463fbfb1ba4888a08",
+      "capture_provenance": "real_synchronized_playback_capture",
+      "alignment_samples": 6515,
+      "alignment_onset_ms": 407.188,
+      "stream_position_verified": true,
+      "condition": {
+        "name": "speaker_shift_f0_205_grammar_dropout_15pct",
+        "vowel_f0_hz": 205,
+        "grammar_dropout_fraction": 0.15,
+        "dropout_burst_ms": 5
+      }
+    },
+    {
+      "trial_id": "vowels_held_out_14123",
+      "efference_wav": "2026-07-10-dropout-v5-real-artifacts/vowels_held_out_14123_efference.wav",
+      "efference_sha256": "e23fe4e9f6928024cdc7ee4add85478106d26fbd4929f76b011833e0e7b6b4d8",
+      "captured_wav": "2026-07-10-dropout-v5-real-artifacts/vowels_held_out_14123_real_capture.wav",
+      "captured_sha256": "5e4bb8a57f8561bf93d290a1e8ee2bef5e9fe2e2edaa69a4429072ef97248a28",
+      "capture_provenance": "real_synchronized_playback_capture",
+      "alignment_samples": 6605,
+      "alignment_onset_ms": 412.812,
+      "stream_position_verified": true,
+      "condition": {
+        "name": "speaker_shift_f0_205_grammar_dropout_20pct",
+        "vowel_f0_hz": 205,
+        "grammar_dropout_fraction": 0.2,
+        "dropout_burst_ms": 5
+      }
+    }
+  ],
+  "interpretation": {
+    "supported_claim": "Known self-generated 10/15/20% source erasures can be handled after one fixed real speaker-room-XVF3800 transfer by excluding efference-marked missing frames; four acoustic states and strong predictive advantage remain.",
+    "claim_boundary": "The erasure timing is supplied by the bounded motor/efference path. This does not detect arbitrary-world missingness, establish unknown-timing dropout robustness, semantic prediction, or geometry generality."
+  }
+}

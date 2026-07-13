@@ -1,0 +1,167 @@
+{
+  "experiment": "natural_event_prediction_beijing_to_ara_replication",
+  "date": "2026-07-10",
+  "evidence_class": "fresh_cross_fieldsite_external_corpus_audio",
+  "preregistration": "2026-07-10-natural-event-ara-replication-preregistration.json",
+  "verdict": "replication_failed_protocol_eligibility",
+  "frozen_hash_verification": {
+    "implementation_sha256": "d44754a5dd06095f2767de62755da5b5255b66b3648894ede3b0479c077d6418",
+    "cli_sha256": "0ad4e411f89ae284db3fdb3ef22375b293d93614bb92ce754bc5e2f53387d53c",
+    "wellington_confirmation_sha256": "25f05865c9f984081a3fbdb8005577827f067f070430c836d2d0003c7240882e",
+    "component_ablations_sha256": "461c947da213b9d23783543456f3da0b56941850feb092319ce5c368c532884e",
+    "verified_immediately_before_evaluation": true
+  },
+  "held_out_audio_manifest": [
+    {
+      "basename": "ARA01B.wav",
+      "raw_header_offset": 6151588891,
+      "actual_header_offset": 1856621595,
+      "compressed_size": 239514,
+      "file_size": 705644,
+      "crc32": "cfe9d1ec",
+      "sha256": "071306cbfe5f349ffc46c0cb97f98a3aaee774df2303d914383047f24bbe7b92",
+      "archive_size_and_crc_verified": true,
+      "wav_format": {
+        "sample_rate_hz": 44100,
+        "channels": 2,
+        "bits_per_sample": 32,
+        "duration_seconds": 2
+      }
+    },
+    {
+      "basename": "ARA01D.wav",
+      "raw_header_offset": 6838945106,
+      "actual_header_offset": 2543977810,
+      "compressed_size": 372848,
+      "file_size": 1023452,
+      "crc32": "fdf74893",
+      "sha256": "2a9e873c346c03f56a5be4e7b59962d28c8ba113ead07a2125c00c40c5c3622f",
+      "archive_size_and_crc_verified": true,
+      "wav_format": {
+        "sample_rate_hz": 44100,
+        "channels": 2,
+        "bits_per_sample": 32,
+        "duration_seconds": 2.900816
+      }
+    },
+    {
+      "basename": "ARA02B.wav",
+      "raw_header_offset": 8487483483,
+      "actual_header_offset": 4192516187,
+      "compressed_size": 535116,
+      "file_size": 1277204,
+      "crc32": "895514e4",
+      "sha256": "ac40fc6d54ee6ac4e92a1b39cdf05ecc41910f7620f43dda30f2c1af085d5798",
+      "archive_size_and_crc_verified": true,
+      "wav_format": {
+        "sample_rate_hz": 44100,
+        "channels": 2,
+        "bits_per_sample": 32,
+        "duration_seconds": 3.620068
+      }
+    },
+    {
+      "basename": "ARA02D.wav",
+      "raw_header_offset": 7844179962,
+      "actual_header_offset": 3549212666,
+      "compressed_size": 293883,
+      "file_size": 747084,
+      "crc32": "9e597dab",
+      "sha256": "a1febb5979d0ee58c966b9bd91d7f86e273d7441e1875da804fc7b4d092a14f2",
+      "archive_size_and_crc_verified": true,
+      "wav_format": {
+        "sample_rate_hz": 44100,
+        "channels": 2,
+        "bits_per_sample": 32,
+        "duration_seconds": 2.11746
+      }
+    },
+    {
+      "basename": "ARA03B.wav",
+      "raw_header_offset": 7529873225,
+      "actual_header_offset": 3234905929,
+      "compressed_size": 230851,
+      "file_size": 575876,
+      "crc32": "b6c33a7d",
+      "sha256": "d855aafdf7b2bdd815142726099ad0f656285004e6fa7d3df9184abe788291e7",
+      "archive_size_and_crc_verified": true,
+      "wav_format": {
+        "sample_rate_hz": 44100,
+        "channels": 2,
+        "bits_per_sample": 32,
+        "duration_seconds": 1.632177
+      }
+    },
+    {
+      "basename": "ARA03D.wav",
+      "raw_header_offset": 8164966447,
+      "actual_header_offset": 3869999151,
+      "compressed_size": 366358,
+      "file_size": 802716,
+      "crc32": "c96b093c",
+      "sha256": "accb4f6dac85a389d8e0714d3c563510447787e40becd85c4f9734a194a26ff8",
+      "archive_size_and_crc_verified": true,
+      "wav_format": {
+        "sample_rate_hz": 44100,
+        "channels": 2,
+        "bits_per_sample": 32,
+        "duration_seconds": 2.275147
+      }
+    },
+    {
+      "basename": "ARA04B.wav",
+      "raw_header_offset": 5219558297,
+      "actual_header_offset": 5219558297,
+      "compressed_size": 763497,
+      "file_size": 1834796,
+      "crc32": "760c4642",
+      "sha256": "275e459b1e48fb80f85ca370c92f68d032a20c45f5ed855c985fb523db741c4f",
+      "archive_size_and_crc_verified": true,
+      "wav_format": {
+        "sample_rate_hz": 44100,
+        "channels": 2,
+        "bits_per_sample": 32,
+        "duration_seconds": 5.200544
+      }
+    },
+    {
+      "basename": "ARA04D.wav",
+      "raw_header_offset": 4517670173,
+      "actual_header_offset": 4517670173,
+      "compressed_size": 2022473,
+      "file_size": 4881596,
+      "crc32": "c940d07c",
+      "sha256": "79620d77e5bd68595ff3bd4a72b175f2b428fb7103f4d8f88daeed1404308dac",
+      "archive_size_and_crc_verified": true,
+      "wav_format": {
+        "sample_rate_hz": 44100,
+        "channels": 2,
+        "bits_per_sample": 32,
+        "duration_seconds": 13.836599
+      }
+    }
+  ],
+  "execution": {
+    "command": ".venv/bin/python -m cora_infans --evaluate-natural-event-transfer --development-root /tmp/cora-natural-dev --development-participants BEJ06,BEJ07,BEJ11,BEJ21 --held-out-root /tmp/cora-natural-ara --held-out-participants ARA01,ARA02,ARA03,ARA04",
+    "exit_code": 2,
+    "error": "natural event clip is too short: /tmp/cora-natural-ara/ARA01B.wav",
+    "scoring_started": false,
+    "parameter_or_participant_substitution_after_fetch": false
+  },
+  "eligibility": {
+    "frozen_calibration_ms": 2000,
+    "minimum_required_duration_is_strictly_more_than_calibration_plus_one_frame": true,
+    "ineligible_clips": [
+      "ARA01B.wav",
+      "ARA03B.wav"
+    ],
+    "all_eight_clips_evaluable": false
+  },
+  "frozen_acceptance": {
+    "required_held_out_clip_count_passed": false,
+    "scoring_gates_evaluated": false,
+    "overall_passed": false
+  },
+  "decision": "Retain the replication as failed. Do not substitute ARA participants or shorten calibration after audio access. A future replication must freeze a deterministic duration-eligibility and replacement rule before fetching any candidate audio.",
+  "claim_boundary": "This is a protocol-eligibility failure, not negative predictive-accuracy evidence: scoring never began. It neither replicates nor contradicts the Wellington predictive result."
+}

@@ -1,0 +1,54 @@
+{
+  "mode": "bounded_project_owner_vocal_imitation_v4_spent_design_audit",
+  "date": "2026-07-12",
+  "status": "development_candidate_ready_fresh_recordings_required",
+  "protocol": "docs/VOCAL_IMITATION_PROTOCOL.md v4",
+  "input_evidence": "docs/evidence/2026-07-12-vocal-imitation-v3-development-failure.json",
+  "evidence_class": "spent_v3_development_audio_only",
+  "confirmation_accessed": false,
+  "repertoire": {
+    "count": 96,
+    "halton_start": 20011,
+    "halton_stride": 43,
+    "halton_last": 24096,
+    "sha256": "fb07df5ede273436524d22dcb3198bae79907e0b7cf7abd57a14c177381fb0be"
+  },
+  "targets": {
+    "a": {
+      "development_take_distance": 0.0463397718627682,
+      "initial_distance": 0.26593334032983984,
+      "final_distance": 0.18435531727644577,
+      "improvement_ratio": 0.306761171623731,
+      "learned_prototype_id": "v4-babble-088",
+      "learned_halton_index": 23795,
+      "development_gates_passed": true
+    },
+    "i": {
+      "development_take_distance": 0.05296022492401212,
+      "initial_distance": 0.5431519747001766,
+      "final_distance": 0.149455777655866,
+      "improvement_ratio": 0.7248361699534157,
+      "learned_prototype_id": "v4-babble-046",
+      "learned_halton_index": 21989,
+      "development_gates_passed": true
+    },
+    "u": {
+      "development_take_distance": 0.03754150604145283,
+      "initial_distance": 0.37294009348717394,
+      "final_distance": 0.10044687547977786,
+      "improvement_ratio": 0.7306621700537745,
+      "learned_prototype_id": "v4-babble-003",
+      "learned_halton_index": 20140,
+      "development_gates_passed": true
+    }
+  },
+  "criteria": {
+    "exactly_96_distinct_bounded_prototypes": true,
+    "all_unchanged_development_gates_passed": true,
+    "confirmation_not_accessed": true,
+    "protected_data_not_accessed": true,
+    "fresh_v4_recordings_required": true
+  },
+  "promotion_allowed": false,
+  "claim_boundary": "The disjoint V4 repertoire passes only a spent V3 design audit. It is not fresh human evidence and cannot be promoted without a complete new V4 recording and held-confirmation set."
+}

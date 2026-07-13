@@ -1,0 +1,122 @@
+{
+  "experiment": "h4_option_g_expanded_band_local_closure",
+  "date": "2026-07-11",
+  "status": "preregistered_before_implementation_or_candidate_metrics",
+  "authorization": {
+    "basis": "Option F passed every frozen plant gate; active project goal authorizes continued VISION-aligned synthetic work.",
+    "scope": "one synthetic-only label-free babbling, local-forward, and inverse-closure candidate",
+    "recorded_audio_authorized": false,
+    "protected_data_access_authorized": false
+  },
+  "parent_plant_result": "docs/evidence/2026-07-11-h4-option-f-expanded-band-plant-result.json",
+  "design_memo": "docs/H4_OPTION_G_EXPANDED_LOCAL_CLOSURE.md",
+  "research_question": "Can a bounded winner-local forward model learned through label-free babbling invert unseen targets on the five-gesture expanded-band plant while preserving identity, acoustic consequences, and identifiable motor structure?",
+  "plant_and_sensory": {
+    "plant": "exact frozen Option F factorized five-gesture plant",
+    "motor_dimension": 5,
+    "motor_bounds_each": [0.0, 1.0],
+    "sensory_dimension": 30,
+    "sensory_centers_hz": "30 log-geometric centers from 150 through 5000 Hz",
+    "sensory_transform": "analytic transfer log magnitude, mean center, L2 normalize",
+    "formant_band_hz": [80.0, 5000.0],
+    "f0_conditions_hz": [90.0, 110.0, 140.0, 180.0]
+  },
+  "data_isolation": {
+    "sequence": "five-dimensional Halton sequence in bases 2,3,5,7,11",
+    "babbling_indices_inclusive": [16385, 18432],
+    "babbling_count": 2048,
+    "forward_held_out_indices_inclusive": [20481, 20992],
+    "forward_held_out_count": 512,
+    "inverse_target_pool_indices_inclusive": [24577, 25600],
+    "inverse_target_pool_count": 1024,
+    "all_ranges_pairwise_disjoint": true,
+    "all_option_e_and_f_ranges_disjoint": true
+  },
+  "babbling": {
+    "endpoint_order": "increasing Halton index",
+    "transition": "interpolate so no coordinate changes by more than 0.20 per 25 ms hop; interpolation states do not update the learner",
+    "f0_assignment": "cycle 90,110,140,180 Hz by endpoint ordinal; F0 does not change the tract sensory target",
+    "labels_consumed": false
+  },
+  "local_forward_model": {
+    "type": "fixed-center winner-local affine prototype map",
+    "prototype_count": 128,
+    "prototype_centers": "first 128 babbling Halton points",
+    "winner": "minimum Euclidean motor distance; lower index breaks ties",
+    "local_design_vector": "[1,m-center] with six scalars",
+    "winner_update": "accumulate XTX, XTY, and count only for the winning prototype",
+    "ridge_diagonal": [0.000001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001],
+    "prediction": "winner affine output, mean center, L2 normalize",
+    "training_state_scalars_max": 28416,
+    "retained_state_scalars_max": 23808,
+    "global_backpropagation": false,
+    "sequence_model": false,
+    "labels_consumed": false
+  },
+  "forward_gate": {
+    "held_out_count": 512,
+    "distance": "Euclidean distance between unit sensory vectors",
+    "baselines": {
+      "neutral_tract": "expanded sensory at rest state",
+      "nearest_prototype": "winner affine intercept without local slope",
+      "persistence": "previous held-out target sensory; neutral for first"
+    },
+    "strict_win_fraction_vs_each_baseline_min": 0.75,
+    "median_unit_vector_distance_max": 0.18,
+    "report_32_motor_orthants": true,
+    "all_prototypes_supported": true,
+    "all_state_bounds_required": true
+  },
+  "inverse_targets": {
+    "vowel_order": ["a", "e", "i", "o", "u"],
+    "selection": "unique minimum relative canonical F1/F2/F3 RMSE from the inverse target pool; lower Halton index breaks ties",
+    "trial_count": 20,
+    "trials": "five target motors crossed with four F0 conditions",
+    "labels_enter_only_selection_and_post_hoc_scoring": true
+  },
+  "inverse_search": {
+    "rest_state": [0.6, 0.65, 0.5, 0.5, 0.35],
+    "initialization": "prototype center whose stored intercept minimizes sensory distance; effort then lower index break ties",
+    "coordinate_order": ["jaw_aperture", "constriction_magnitude", "constriction_position", "lip_aperture", "lip_protrusion"],
+    "direction_order": ["negative", "positive"],
+    "initial_steps": [0.18, 0.18, 0.18, 0.18, 0.18],
+    "rounds": 2,
+    "step_rule": "halve all steps after each complete round",
+    "acceptance": "strict total-loss improvement; ties retain current state",
+    "out_of_bounds": "reject without prediction",
+    "sensory_loss": "half Euclidean distance between unit 30-value vectors",
+    "effort_weight_alpha": 0.0005,
+    "continuity_weight_beta": 0.001,
+    "maximum_forward_predictions": 21,
+    "rigid_budget": 23
+  },
+  "equivalence_verification": {
+    "plant_jacobian": "central finite difference of expanded sensory at target motor with delta 0.005; one-sided at bounds",
+    "svd_rank_tolerance_relative": 0.01,
+    "projected_motor_error_max": 0.18,
+    "acoustic_cycle_half_euclidean_distance_max": 0.10,
+    "combined_agreement_fraction_min": 0.90
+  },
+  "closure_gate": {
+    "identity_preservation_min": 0.95,
+    "combined_agreement_fraction_min": 0.90,
+    "target_to_final_f1_mae_hz_max": 30.0,
+    "target_to_final_f2_mae_hz_max": 30.0,
+    "target_to_final_f3_mae_hz_max": 30.0,
+    "all_final_losses_no_worse_than_initial": true,
+    "all_motor_and_geometry_bounds_required": true,
+    "maximum_forward_predictions": 23,
+    "labels_absent_from_learning_initialization_loss_and_search": true
+  },
+  "decision_rule": "Implement and checkpoint exactly this candidate before opening held-out or target ranges. Execute once. Any failed forward or closure gate is retained without changing points, model size, ridge, representation, loss, search, thresholds, or targets.",
+  "recorded_data_boundary": {
+    "recorded_audio_access_under_this_protocol": false,
+    "vocalset_protected": ["female6", "female7", "female9", "male9", "male11"],
+    "cmu_protected_confirmation": ["rms", "awb", "axb", "eey", "ljm"],
+    "cmu_protected_reserve": ["aew", "ahw", "aup", "fem", "gka", "lnh", "rxr", "slp"]
+  },
+  "promotion_boundary": "A full pass is synthetic-only evidence for a bounded shared motor/sensory representation on this simplified plant. It does not promote H4, establish infant or anatomical fidelity, or authorize recorded audio.",
+  "unresolved_fields": [],
+  "execution_ready": true,
+  "promotion_allowed": false
+}

@@ -1,0 +1,48 @@
+{
+  "experiment": "stage6_callback_device_timestamp_gate",
+  "date": "2026-07-10",
+  "status": "frozen_before_callback_audio_capture",
+  "parents": [
+    "docs/evidence/2026-07-10-stage6-resource-result.json",
+    "docs/evidence/2026-07-10-stage6-native-rate-retry-result.json"
+  ],
+  "hypothesis": "A callback/reblocking input path can preserve PortAudio inputBufferAdcTime and show whether complete 25 ms ADC frames reach the workspace within the 30 ms operational deadline, independent of blocking-read call jitter.",
+  "implementation": {
+    "backend": "sounddevice PortAudio/CoreAudio callback with blocksize 0",
+    "callback_contract": "copy callback buffers with inputBufferAdcTime, reblock them into exact 400-sample frames, and compare ADC frame onset/end with Pa_GetStreamTime at workspace decision",
+    "sample_rate_hz": 16000,
+    "channels": 2,
+    "analysis_frame_ms": 25,
+    "analysis_frame_samples": 400
+  },
+  "protocol": {
+    "replicates": 3,
+    "duration_ms_each": 10000,
+    "expected_frames_each": 400,
+    "playback": "none",
+    "room": "unchanged",
+    "command": ".venv/bin/python -m cora_infans --listen-live --duration-ms 10000 --frame-ms 25 --sample-rate 16000 --capture-backend callback"
+  },
+  "acceptance_criteria": {
+    "real_capture_each": true,
+    "callback_backend_without_fallback_each": true,
+    "frame_count_each": 400,
+    "device_timestamped_frame_count_each": 400,
+    "input_overflow_count_each_max": 0,
+    "callback_status_count_each_max": 0,
+    "callback_timestamp_discontinuity_count_each_max": 0,
+    "device_frame_end_to_workspace_p95_ms_each_max": 30.0,
+    "device_timestamped_operational_deadline_miss_rate_each_max": 0.05,
+    "steady_state_real_time_factor_each_max": 1.2,
+    "average_process_cpu_percent_each_max": 100.0,
+    "peak_resident_memory_megabytes_each_max": 512.0
+  },
+  "interpretation_rules": [
+    "ADC frame onset-to-decision includes the 25 ms frame accumulation interval; frame end-to-decision is the operational response latency.",
+    "PortAudio inputBufferAdcTime is a backend-provided ADC timestamp, but XMOS internal DSP delay remains outside the measurement.",
+    "Blocking capture-call deadline metrics remain diagnostic and cannot override or substitute the device-timestamped criterion.",
+    "All frames are expected to be quiet-path unless the environment naturally crosses the frozen saliency gate; no salient-workload claim is allowed otherwise.",
+    "No energy claim is allowed."
+  ],
+  "promotion_boundary": "Passing closes the device-timestamped quiet-path latency requirement only. Salient live workload timing, XMOS internal latency, and energy remain open."
+}

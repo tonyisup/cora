@@ -1,0 +1,66 @@
+{
+  "experiment": "lofo_thresholded_register_pipeline_fresh_fieldsite",
+  "date": "2026-07-10",
+  "preregistration": "2026-07-10-register-pipeline-v5-preregistration.json",
+  "pipeline_artifact": "2026-07-10-register-pipeline-v5.json",
+  "verdict": "register_metrics_passed_song_false_positive_gate_failed",
+  "prediction_count": 12,
+  "calibrated_prediction_count": 12,
+  "vocal_retained_count": 12,
+  "vocal_recall": 1.0,
+  "metrics": {
+    "true_positive": 3,
+    "false_positive": 1,
+    "true_negative": 8,
+    "false_negative": 0,
+    "precision": 0.75,
+    "recall": 1.0,
+    "f1": 0.8571428571428571,
+    "false_positive_rate": 0.1111111111111111,
+    "song_false_positive_count": 1,
+    "song_count": 6,
+    "song_false_positive_rate": 0.16666666666666666
+  },
+  "frozen_baselines": {
+    "intensity_db_median": {
+      "f1": 0.4,
+      "false_positive_rate": 1.0
+    },
+    "pitch_confidence_median": {
+      "f1": 0.3076923076923077,
+      "false_positive_rate": 0.8888888888888888
+    }
+  },
+  "f1_improvement_over_best_frozen_baseline": 0.4571428571428571,
+  "acceptance": {
+    "minimum_f1_passed": true,
+    "baseline_improvement_passed": true,
+    "maximum_false_positive_rate_passed": true,
+    "maximum_song_false_positive_rate_passed": false,
+    "minimum_vocal_recall_passed": true,
+    "all_speakers_calibrated_passed": true,
+    "finite_feature_gate_passed": true
+  },
+  "failure_case": {
+    "clip_id": "NYA07C",
+    "label": "adult_directed_song",
+    "vocal_score": 0.8513562386980108,
+    "speech_score": 0.21486325703287107,
+    "ids_score": 0.2930193609060997
+  },
+  "interpretation": "The small LOFO-derived speech-threshold correction restored strong IDS recall on an untouched fieldsite, but the composed scorer still confused one adult-directed song with IDS. Because six song negatives make one error a 0.167 rate, the fixed 0.15 song ceiling failed. Nyangatom is spent and cannot tune the next candidate.",
+  "selected_file_sha256": {
+    "NYA01A.wav": "581e96412773400b609831f353f9e637464ce2c467b8a35e431916cda8aa6f88",
+    "NYA01B.wav": "d7b77b90b9c74c6b472400be20ae80732d5a2acca78f50f702b204421a69a05e",
+    "NYA01C.wav": "1512a3b141ed0ce0d085781928b2c2977009bced7dce9442e8e0d5808a813eda",
+    "NYA01D.wav": "59270e68174cb5c94e11378bfd90bdd43e453216db016a53e86c7b762b504c93",
+    "NYA07A.wav": "35f2e5ff26675d142b6cbbd48ea83d8fd1644095f71bbd31bb0709e99861f773",
+    "NYA07B.wav": "87900ac4792c90e39921422a212052180d9e1c2a14df13c36a51dd618d799fdc",
+    "NYA07C.wav": "3edb0c2c3b66cab99159f193ee0a18ec3edbdd5892f0df99bccca1e73904553d",
+    "NYA07D.wav": "7df9f5c05b1e9e0b0ec610cd3485b70423b789cf80020c829bbabf9fdcff90f4",
+    "NYA14A.wav": "a5815b5ba81ed7b77d74c281dcc218c8aac241b50117788ac8a1e007b6e778b6",
+    "NYA14B.wav": "a2155e3316283a6505025067db7856b7ae57adeb6efb4661e1a8f40823aff05c",
+    "NYA14C.wav": "56d33733ad594fc3cb7efc9e2fc31cd7c090a4931dc8d764c00dc17adee7c338",
+    "NYA14D.wav": "d418e5425c1d3e7ac3a5a4841edfdd6d7024b10469e485e767fa89c56f0a0c51"
+  }
+}

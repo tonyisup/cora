@@ -1,0 +1,17 @@
+{
+  "experiment": "stage6_callback_device_timestamp_gate_amendment_1",
+  "date": "2026-07-10",
+  "status": "frozen_before_single_replacement_replicate",
+  "parent_preregistration": "docs/evidence/2026-07-10-stage6-device-timestamp-preregistration.json",
+  "incomplete_run_audit": "docs/evidence/2026-07-10-stage6-device-timestamp-run-3-stall-audit.json",
+  "single_change": "Use PortAudio abort() rather than stop() when closing the callback stream so teardown does not wait to drain callback buffers.",
+  "measurement_path_changed": false,
+  "unchanged": [
+    "callback and reblocking implementation",
+    "ADC timestamp source and calculations",
+    "sample rate, channels, frame size, duration, room, and no-playback condition",
+    "all acceptance criteria"
+  ],
+  "replacement_limit": 1,
+  "replacement_scope": "Only incomplete replicate 3; completed replicates 1 and 2 remain eligible and are not rerun."
+}

@@ -1,0 +1,40 @@
+{
+  "experiment": "temporal_median_dropout_representation_design",
+  "date": "2026-07-10",
+  "status": "design_gate_failed_real_io_prohibited",
+  "input_boundary": "robustness-v3 development captures only for candidate selection; robustness-v3 held-out captures were diagnostic-only and did not enter scoring",
+  "candidate_grid": {
+    "aggregations": ["mean", "median", "trimmed_mean"],
+    "frame_hop_ms": [[30, 15], [40, 20], [50, 25], [60, 30], [80, 40]],
+    "dropout_fractions": [0.10, 0.15, 0.20],
+    "burst_ms": 5.0,
+    "unchanged_calibration_std_floor": 0.30
+  },
+  "selected_development_candidate": {
+    "representation": "median 12-band log spectrum over 60 ms frames at 30 ms hop",
+    "minimum_state_occupancy": 4,
+    "minimum_accuracy_improvement_at_10pct": 0.5263157894736843,
+    "minimum_accuracy_improvement_at_15pct": 0.3684210526315789,
+    "minimum_accuracy_improvement_at_20pct": 0.4210526315789474
+  },
+  "prospective_design_gate": {
+    "fresh_synthetic_seeds": [13025, 13039, 13043, 13045, 13048, 13051],
+    "required_each_condition_state_occupancy": 4,
+    "minimum_pooled_vowel_improvement": 0.20,
+    "minimum_each_vowel_condition_improvement": 0.15,
+    "required_before_real_io": true
+  },
+  "fresh_synthetic_result": {
+    "verdict": "fake_io_gate_failed",
+    "vowel_state_occupancy_each_condition": [4, 4, 4],
+    "vowel_pooled_accuracy_improvement": 0.19298245614035087,
+    "vowel_condition_improvements": {
+      "dropout_10pct": 0.3684210526315789,
+      "dropout_15pct": 0.10526315789473684,
+      "dropout_20pct": 0.10526315789473684
+    }
+  },
+  "decision": "Do not run dropout-v4 on hardware. Do not shrink the condition set to 10 percent after seeing the fresh synthetic result. The CLI rejects real I/O for this variant.",
+  "stop_rule": "Retire further short-window aggregation and burst-percentage tuning on this structured vowel family. A future dropout attempt needs a different mechanism, such as explicit missing-observation handling, and a new design rationale.",
+  "claim_boundary": "This is a pre-hardware falsification. No new live capture or held-out real evidence was consumed."
+}

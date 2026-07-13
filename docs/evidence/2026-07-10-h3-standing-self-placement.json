@@ -1,0 +1,21 @@
+{
+  "record": "h3_standing_self_source_placement",
+  "date": "2026-07-10",
+  "source": "user_confirmed",
+  "status": "standing_constraint_until_explicitly_changed",
+  "self_source": {
+    "output_device": "Mac mini Speakers",
+    "output_device_index": 3,
+    "placement": "centered_directly_below_xvf3800",
+    "horizontal_offset_cm": 0,
+    "plan_view_azimuth": "undefined_at_zero_horizontal_offset",
+    "elevation_degrees": -90,
+    "vertical_distance_cm": 4,
+    "distance_reference": "XVF3800 array center to Mac mini chassis center",
+    "system_volume_percent": 100,
+    "playback_gain_db": -18.0,
+    "playback_gain_source": "post-attempt clipping quality correction"
+  },
+  "interpretation": "The 0/90/180/270 diagram describes plan-view direction. A source directly below the array has no plan-view azimuth; representing it as 0 or 180 degrees would invent geometry. Elevation and zero horizontal offset preserve the confirmed physical relationship.",
+  "remaining": null
+}

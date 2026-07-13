@@ -1,0 +1,60 @@
+{
+  "experiment": "joint_vocal_environment_register_pipeline_fresh_surface",
+  "registered_date": "2026-07-10",
+  "status": "registered_before_selected_audio_fetch",
+  "pipeline_artifact": "2026-07-10-register-pipeline-v4.json",
+  "pipeline_sha256": "d54ead1b057efc1474edc152417bac131472c44bda85a0b32572cb9481585269",
+  "vocal_dataset": {
+    "name": "Music Lab human vocalization corpus",
+    "doi": "10.5281/zenodo.5525161",
+    "license": "CC BY-NC-SA 4.0",
+    "fresh_fieldsite": "VAN",
+    "society": "Tannese Vanuatuans",
+    "participants": ["VAN01", "VAN08", "VAN21"],
+    "conditions": [
+      "infant_directed_song",
+      "infant_directed_speech",
+      "adult_directed_song",
+      "adult_directed_speech"
+    ]
+  },
+  "environmental_dataset": {
+    "name": "ESC-50",
+    "source": "https://github.com/karolpiczak/ESC-50",
+    "license": "CC BY-NC 3.0",
+    "fold": 4,
+    "use": "personal non-commercial research"
+  },
+  "diffuse_controls": [
+    "4-160999-A-10.wav",
+    "4-161127-A-10.wav",
+    "4-167063-A-11.wav",
+    "4-167063-B-11.wav",
+    "4-144083-A-16.wav",
+    "4-144083-B-16.wav",
+    "4-164661-A-12.wav",
+    "4-164661-B-12.wav"
+  ],
+  "impulsive_controls": [
+    "4-182034-A-30.wav",
+    "4-182039-A-30.wav",
+    "4-189828-A-22.wav",
+    "4-189830-A-22.wav",
+    "4-204115-A-39.wav",
+    "4-204119-A-39.wav",
+    "4-119647-A-48.wav",
+    "4-119647-B-48.wav"
+  ],
+  "frozen_acceptance_rule": {
+    "minimum_vocal_recall": 0.95,
+    "maximum_environmental_pass_through_rate": 0.10,
+    "maximum_each_environmental_group_pass_through_rate": 0.125,
+    "minimum_register_f1": 0.65,
+    "maximum_register_false_positive_rate": 0.15,
+    "maximum_song_false_positive_rate": 0.15,
+    "all_vocal_examples_must_be_calibrated": true,
+    "all_files_must_decode_and_produce_finite_features": true
+  },
+  "accounting_rule": "Environmental clips rejected by the vocal gate are decided negatives. Environmental clips passing it are abstentions, not automatic negatives and not inputs to speaker calibration.",
+  "claim_boundary": "A pass confirms the composed five-second surface on one jointly untouched vocal/environmental set. It does not establish a policy for environmental pass-through, cold start, frame-level VAD, or causal live calibration."
+}

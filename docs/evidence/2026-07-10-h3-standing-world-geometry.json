@@ -1,0 +1,27 @@
+{
+  "record": "h3_standing_external_world_geometry",
+  "date": "2026-07-10",
+  "source": "user_confirmed",
+  "status": "standing_constraint_until_explicitly_changed",
+  "input": {
+    "device": "reSpeaker XVF3800 4-Mic Array",
+    "device_index": 1,
+    "channel": 0
+  },
+  "external_world_source": {
+    "output_device": "External Headphones",
+    "output_device_index": 2,
+    "angle_degrees": 180,
+    "distance_cm": 50,
+    "speaker_level": "hardware_volume_max"
+  },
+  "self_source": {
+    "output_device": "Mac mini Speakers",
+    "output_device_index": 3,
+    "angle_degrees": null,
+    "distance_cm": null,
+    "output_level": null,
+    "status": "not_yet_frozen"
+  },
+  "scope": "The external-world geometry remains fixed for subsequent bounded H3 runs until the user explicitly instructs otherwise. This record does not freeze the self-source geometry or level and is not by itself a live-run preregistration."
+}

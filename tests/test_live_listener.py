@@ -34,6 +34,25 @@ def _frame(energies, hz=1000.0):
     return AudioFrame(timestamp_ms=0, channel_energies=energies, dominant_frequency_hz=hz)
 
 
+def test_listener_reports_capture_to_workspace_latency_boundary() -> None:
+    listener = LiveListener(array=FakeArray([_frame([0.2, 0.1])]))
+
+    report = listener.listen(duration_ms=50, frame_ms=25)
+    performance = report["runtime_performance"]
+
+    assert performance["measurement_boundary"] == (
+        "capture_frame_call_start_to_workspace_decision"
+    )
+    assert performance["frame_count"] == 2
+    assert performance["capture_backend"] == "FakeArray"
+    assert performance["real_capture"] is False
+    assert performance["capture_to_workspace_latency_ms"]["p95"] >= 0.0
+    assert report["runtime_resources"]["peak_resident_memory_bytes"] > 0
+    assert report["runtime_resources"]["average_process_cpu_percent"] >= 0.0
+    assert performance["workload_latency_ms"]["salient"]["frame_count"] == 2
+    assert all("clipped_sample_count" in frame for frame in report["frames"])
+
+
 def test_play_efference_requires_passed_gate() -> None:
     # The imitation playback helper must refuse (zero playback) unless the
     # readiness gate is promoted; this is the same gating discipline as the
@@ -265,6 +284,27 @@ def test_parentese_stimulus_synthesizes_nonempty_wav(tmp_path) -> None:
         # Pitch actually modulates: the synthesized signal has non-zero bandwidth.
         data = np.frombuffer(w.readframes(w.getnframes()), dtype="<i2").astype(float)
         assert np.std(data) > 0.0
+
+
+def test_parentese_stimulus_playback_gain_is_explicit(monkeypatch) -> None:
+    import cora_infans.io.live_listener as listener_module
+
+    observed = {}
+
+    class FakeProcess:
+        pass
+
+    monkeypatch.setattr(listener_module, "_require_ffmpeg", lambda: "ffmpeg")
+    monkeypatch.setattr(
+        listener_module.subprocess,
+        "Popen",
+        lambda command, **kwargs: observed.setdefault("command", command)
+        and FakeProcess(),
+    )
+
+    ParenteseStimulus(volume_db=-6.0).play("probe.wav")
+
+    assert "volume=-6dB" in observed["command"]
 
 
 def test_corollary_capture_records_latency_anchor(tmp_path) -> None:
@@ -1019,6 +1059,39 @@ def test_listener_tags_stimulus_flag() -> None:
     # the flag is recorded on the report without requiring real audio.
     report = listener.listen(duration_ms=200, frame_ms=200, with_stimulus=True)
     assert report["with_stimulus"] is True
+
+
+def test_listener_plays_external_wav_without_deleting_it(tmp_path, monkeypatch) -> None:
+    stimulus_path = tmp_path / "speech.wav"
+    stimulus_path.write_bytes(b"bounded natural speech fixture")
+    played = []
+
+    class FinishedPlayback:
+        def wait(self, timeout):
+            return 0
+
+        def kill(self):
+            raise AssertionError("completed playback must not be killed")
+
+    listener = LiveListener(FakeArray([_frame([0.05, 0.01])]), saliency_threshold=0.02)
+    monkeypatch.setattr(
+        listener.stimulus,
+        "play",
+        lambda path: played.append(path) or FinishedPlayback(),
+    )
+
+    report = listener.listen(
+        duration_ms=200,
+        frame_ms=200,
+        with_stimulus=True,
+        stimulus_wav_path=str(stimulus_path),
+    )
+
+    assert played == [str(stimulus_path.resolve())]
+    assert stimulus_path.exists()
+    assert report["stimulus"]["kind"] == "external_wav"
+    assert report["stimulus"]["source_wav_sha256"] is not None
+    assert all(frame["stimulus_playback_active"] for frame in report["frames"])
 
 
 @pytest.mark.skipif(shutil.which("ffmpeg") is None, reason="ffmpeg not available")

@@ -1,0 +1,29 @@
+{
+  "experiment": "structured_continuous_prediction_real_hardware",
+  "attempt": 1,
+  "date": "2026-07-10",
+  "classification": "infrastructure_failure_before_playback",
+  "experimental_evidence_spent": false,
+  "failed_trial_id": "tones_dev_1103",
+  "completed_trial_count": 0,
+  "speaker_playback_started": false,
+  "retained_capture_count": 0,
+  "error": "RuntimeError: live capture on ':0' did not become ready",
+  "preregistration_sha256": "e816603005a8873906f6ec50d4750d518fd670e9110b1be1c661d5fe16402377",
+  "result_sha256": "e4e07e041e0643613ce1d23bb49620973464ab1c5845150e92e5c0cb86f990de",
+  "rendered_efference_sha256": "99623691516037cc9191e2057aa96e87a60288ec6a757826c7fe8ce6e24f467c",
+  "root_cause": "ffmpeg raw PCM output buffering withheld filesystem growth beyond the three-second readiness deadline at 16 kHz stereo, although AVFoundation was recording",
+  "diagnostic_evidence": {
+    "avfoundation_device_0": "reSpeaker XVF3800 4-Mic Array",
+    "direct_two_second_capture_completed_frames": 32000,
+    "pre_fix_threaded_capture_behavior": "ready signal arrived only after the capture process closed",
+    "post_fix_threaded_capture_ready_frames": 2048,
+    "post_fix_threaded_capture_ready_ms": 128.0,
+    "post_fix_overlap_verified": true,
+    "post_fix_stream_position_verified": true
+  },
+  "fix": "pass -flush_packets 1 to the ffmpeg raw muxer so raw byte count is a live stream-position signal; track actual playback invocation so a pre-playback failure is not mislabeled live playback",
+  "automatic_retry_performed": false,
+  "raw_report_correction": "The immutable attempt-1 result says live_playback=true because the original runner equated real-I/O mode with playback. Coordinator ordering and zero completed captures establish that playback was never invoked.",
+  "retry_boundary": "A second full protocol attempt requires separately frozen predictor and I/O-runner hashes and fresh explicit operator authorization."
+}

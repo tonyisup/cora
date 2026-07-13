@@ -21,10 +21,12 @@ Honesty boundary (per VISION.md / README.md):
 
 from __future__ import annotations
 
+import hashlib
 import inspect
 import math
 import subprocess
 import tempfile
+import time
 from pathlib import Path
 
 import numpy as np
@@ -40,6 +42,8 @@ from .live_mic import (
     _require_ffmpeg,
 )
 from ..predictive import FocusTrajectoryCoder, PredictiveCoder, PredictiveHierarchy
+from ..runtime_metrics import RuntimeLatencyTracker
+from ..resource_metrics import ProcessResourceTracker
 from .active_attention import (
     ActiveAttentionGovernor,
     AttentionConfig,
@@ -132,9 +136,11 @@ class ParenteseStimulus:
         self,
         output_device_index: int = STIMULUS_OUTPUT_DEVICE_INDEX,
         sample_rate: int = DEFAULT_STIMULUS_SAMPLE_RATE,
+        volume_db: float = 12.0,
     ) -> None:
         self.output_device_index = output_device_index
         self.sample_rate = sample_rate
+        self.volume_db = float(volume_db)
 
     def synthesize_wav(
         self,
@@ -205,7 +211,7 @@ class ParenteseStimulus:
         cmd = [
             ffmpeg, "-hide_banner", "-loglevel", "error", "-y",
             "-i", path,
-            "-af", "volume=12dB",
+            "-af", f"volume={self.volume_db:g}dB",
             "-f", "audiotoolbox", "-audio_device_index", str(self.output_device_index),
             sink,
         ]
@@ -854,6 +860,7 @@ class LiveListener:
         duration_ms: int = 2000,
         frame_ms: int = 250,
         with_stimulus: bool = False,
+        stimulus_wav_path: str | None = None,
         with_scheduling: bool = True,
         with_attention: bool = False,
         with_motor_imitation: bool = False,
@@ -903,9 +910,19 @@ class LiveListener:
 
         stim_proc = None
         stim_path = None
+        temporary_stimulus = False
+        stimulus_wav_sha256 = None
         if with_stimulus:
-            stim_path = tempfile.mktemp(suffix=".wav")
-            self.stimulus.synthesize_wav(stim_path)
+            if stimulus_wav_path is None:
+                stim_path = tempfile.mktemp(suffix=".wav")
+                temporary_stimulus = True
+                self.stimulus.synthesize_wav(stim_path)
+            else:
+                source_path = Path(stimulus_wav_path).resolve()
+                if not source_path.is_file():
+                    raise ValueError(f"stimulus WAV does not exist: {source_path}")
+                stim_path = str(source_path)
+                stimulus_wav_sha256 = hashlib.sha256(source_path.read_bytes()).hexdigest()
             stim_proc = self.stimulus.play(stim_path)
 
         frames: list[dict[str, object]] = []
@@ -913,15 +930,78 @@ class LiveListener:
         frame_is_salient: list[bool] = []
         attention_log: list[dict[str, object]] = []
         motor_imitation_log: list[dict[str, object]] = []
+        latency_tracker = RuntimeLatencyTracker(deadline_ms=frame_ms)
+        resource_tracker = ProcessResourceTracker()
         target_frames = max(1, duration_ms // frame_ms)
         for i in range(target_frames):
             now_ms = i * frame_ms
+            playback_poll = getattr(stim_proc, "poll", None)
+            playback_active_at_capture_start = (
+                bool(with_stimulus)
+                and stim_proc is not None
+                and (
+                    playback_poll() is None
+                    if callable(playback_poll)
+                    else True
+                )
+            )
+            capture_started_ns = time.perf_counter_ns()
             frame = self.array.capture_frame(duration_ms=frame_ms)
+            capture_ended_ns = time.perf_counter_ns()
+            playback_poll = getattr(stim_proc, "poll", None)
+            playback_active_at_capture_end = (
+                bool(with_stimulus)
+                and stim_proc is not None
+                and (
+                    playback_poll() is None
+                    if callable(playback_poll)
+                    else True
+                )
+            )
             event = pipeline.process_frame(frame)
+            decision_ended_ns = time.perf_counter_ns()
+            device_timing_fn = getattr(
+                self.array, "device_frame_latency_at_decision", None
+            )
+            device_timing = (
+                device_timing_fn() if callable(device_timing_fn) else None
+            )
+            latency_tracker.record(
+                capture_ms=(capture_ended_ns - capture_started_ns) / 1_000_000.0,
+                pipeline_ms=(decision_ended_ns - capture_ended_ns) / 1_000_000.0,
+                total_ms=(decision_ended_ns - capture_started_ns) / 1_000_000.0,
+                adc_onset_to_decision_ms=(
+                    device_timing["adc_frame_onset_to_workspace_decision_ms"]
+                    if device_timing is not None
+                    else None
+                ),
+                adc_end_to_decision_ms=(
+                    device_timing["adc_frame_end_to_workspace_decision_ms"]
+                    if device_timing is not None
+                    else None
+                ),
+                workload_label="salient" if event is not None else "quiet",
+            )
             is_salient = event is not None
             frame_is_salient.append(is_salient)
             frame_view = asdict_public(frame)
             frame_view["stimulus_active"] = with_stimulus
+            frame_view["stimulus_playback_active_at_capture_start"] = (
+                playback_active_at_capture_start
+            )
+            frame_view["stimulus_playback_active_at_capture_end"] = (
+                playback_active_at_capture_end
+            )
+            frame_view["stimulus_playback_active"] = (
+                playback_active_at_capture_start
+                or playback_active_at_capture_end
+            )
+            frame_view["capture_peak_absolute"] = float(
+                getattr(self.array, "last_frame_peak_absolute", 0.0)
+            )
+            frame_view["clipped_sample_count"] = int(
+                getattr(self.array, "last_frame_clipped_sample_count", 0)
+            )
             frames.append(frame_view)
             if is_salient and event is not None:
                 events.append(asdict_public(event))
@@ -1083,7 +1163,7 @@ class LiveListener:
             except Exception:
                 stim_proc.kill()
             # Unlink only after playback has finished reading the file.
-            if stim_path is not None:
+            if temporary_stimulus and stim_path is not None:
                 import os
 
                 try:
@@ -1103,6 +1183,24 @@ class LiveListener:
         return {
             "source": "live_xvf3800",
             "with_stimulus": with_stimulus,
+            "stimulus": (
+                {
+                    "output_device_index": self.stimulus.output_device_index,
+                    "sample_rate_hz": self.stimulus.sample_rate,
+                    "volume_db": self.stimulus.volume_db,
+                    "kind": (
+                        "external_wav" if stimulus_wav_path is not None else "synthetic_contour"
+                    ),
+                    "source_wav_path": (
+                        str(Path(stimulus_wav_path).resolve())
+                        if stimulus_wav_path is not None
+                        else None
+                    ),
+                    "source_wav_sha256": stimulus_wav_sha256,
+                }
+                if with_stimulus
+                else None
+            ),
             "frame_count": len(frames),
             "salient_frame_count": salient,
             "non_salient_frame_count": non_salient,
@@ -1119,6 +1217,47 @@ class LiveListener:
                 asdict_public(ev) for ev in pipeline.workspace.snapshot()
             ],
             "theta_gamma": scheduler.summary() if scheduler is not None else None,
+            "runtime_performance": latency_tracker.summary(
+                capture_backend=(
+                    getattr(self.array, "active_stream_backend", None)
+                    or type(self.array).__name__
+                ),
+                real_capture=bool(getattr(self.array, "is_real_capture", False)),
+                backend_reported_input_latency_ms=(
+                    getattr(self.array, "stream_metadata", {}) or {}
+                ).get("reported_input_latency_ms"),
+                input_overflow_count=int(
+                    getattr(self.array, "input_overflow_count", 0)
+                ),
+            ),
+            "runtime_resources": resource_tracker.summary(),
+            "capture_stream_fallback_reason": getattr(
+                self.array, "stream_fallback_reason", None
+            ),
+            "capture_stream_metadata": getattr(self.array, "stream_metadata", None),
+            "capture_callback_status_count": int(
+                getattr(self.array, "callback_status_count", 0)
+            ),
+            "capture_callback_timestamp_discontinuity_count": int(
+                getattr(self.array, "callback_timestamp_discontinuity_count", 0)
+            ),
+            "capture_quality": {
+                "peak_absolute": float(
+                    getattr(self.array, "capture_peak_absolute", 0.0)
+                ),
+                "captured_sample_count": int(
+                    getattr(self.array, "captured_sample_count", 0)
+                ),
+                "clipped_sample_count": int(
+                    getattr(self.array, "clipped_sample_count", 0)
+                ),
+                "clipped_sample_fraction": (
+                    int(getattr(self.array, "clipped_sample_count", 0))
+                    / int(getattr(self.array, "captured_sample_count", 0))
+                    if int(getattr(self.array, "captured_sample_count", 0)) > 0
+                    else 0.0
+                ),
+            },
             "active_attention": (
                 {
                     "enabled": with_attention,

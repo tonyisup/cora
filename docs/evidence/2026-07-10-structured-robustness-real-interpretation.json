@@ -1,0 +1,76 @@
+{
+  "experiment": "calibrated_structured_condition_robustness_real_hardware",
+  "date": "2026-07-10",
+  "evidence_class": "fresh_condition_real_synchronized_playback_capture",
+  "verdict": "real_io_acceptance_failed",
+  "preregistration_sha256": "0bcce70986bd0c4e8f933fd311879bb4283e9b1f0e263b00428ceec649b0be96",
+  "result_sha256": "8a1ce10edbf18411e77b7d7f58d14c20c86deb0a3e7c5f2c07e3eb73906b62a0",
+  "artifact_hash_list_sha256": "eb0d4c8fdae103d922e3032a4b198ef874d0171d8382c8b7a63a97f9b9c75d03",
+  "integrity": {
+    "completed_trial_count": 12,
+    "wav_artifact_count": 24,
+    "verified_artifact_hash_count": 24,
+    "artifact_hash_mismatch_count": 0,
+    "all_alignments_finite": true,
+    "alignment_onset_ms_range": [400.562, 427.188],
+    "all_stream_positions_verified": true,
+    "playback_backend": "ffmpeg_audiotoolbox",
+    "capture_backend": "ffmpeg_avfoundation",
+    "capture_channels": 2
+  },
+  "tones": {
+    "passed_all_preregistered_gates": true,
+    "pooled_transition_accuracy": 0.6491228070175439,
+    "pooled_best_baseline_accuracy": 0.24561403508771928,
+    "pooled_accuracy_improvement": 0.40350877192982454,
+    "minimum_condition_improvement": 0.31578947368421056,
+    "all_condition_occupancies": 4
+  },
+  "vowels": {
+    "passed_all_preregistered_gates": false,
+    "pooled_transition_accuracy": 0.8245614035087719,
+    "pooled_best_baseline_accuracy": 0.2631578947368421,
+    "pooled_accuracy_improvement": 0.5614035087719298,
+    "minimum_condition_improvement": 0.5263157894736843,
+    "conditions": [
+      {
+        "name": "speaker_shift_f0_200",
+        "transition_accuracy": 0.7894736842105263,
+        "best_baseline_accuracy": 0.2631578947368421,
+        "accuracy_improvement": 0.5263157894736843,
+        "state_occupancy": 4,
+        "post_hoc_purity": 0.95,
+        "passed": true
+      },
+      {
+        "name": "speaker_shift_f0_200_noise_10db",
+        "transition_accuracy": 0.8421052631578947,
+        "best_baseline_accuracy": 0.2631578947368421,
+        "accuracy_improvement": 0.5789473684210527,
+        "state_occupancy": 4,
+        "post_hoc_purity": 0.9,
+        "passed": true
+      },
+      {
+        "name": "speaker_shift_f0_200_grammar_dropout_10pct",
+        "transition_accuracy": 0.8421052631578947,
+        "best_baseline_accuracy": 0.2631578947368421,
+        "accuracy_improvement": 0.5789473684210527,
+        "state_occupancy": 3,
+        "post_hoc_purity": 0.85,
+        "passed": false,
+        "token_by_state_counts": [
+          [6, 0, 0, 0],
+          [0, 6, 0, 0],
+          [0, 0, 5, 0],
+          [0, 0, 3, 0]
+        ]
+      }
+    ],
+    "failure_diagnosis": "Under grammar-only dropout, every u token was assigned to the i-dominated state and the fourth state disappeared. Predictive advantage remained strong because the grammar is redundant, but the frozen representation-stability gate correctly rejects that collapse."
+  },
+  "supported_claim": "The controlled calibrated predictor retains substantial held-out predictive advantage under an unseen synthetic F0, 10 dB same-condition noise, and 10 percent grammar-only dropout after real room transfer.",
+  "failed_claim": "Four-state vowel representation stability under 10 percent grammar-only dropout is not established.",
+  "promotion_boundary": "The preregistered robustness verdict is failure. F0 shift and noise conditions pass; dropout predictive advantage is positive but representation occupancy fails. This remains a synthetic-speaker proxy and does not establish recorded-speaker or natural-stream robustness.",
+  "data_reuse_boundary": "All robustness-v3 captures are spent. They may characterize failure and verify artifact integrity only; they may not confirm a dropout-aware revision."
+}

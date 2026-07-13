@@ -1,0 +1,104 @@
+{
+  "experiment": "stage6_diverse_natural_speech_timing_and_integrity",
+  "date": "2026-07-11",
+  "status": "frozen_before_audit_implementation_and_live_playback",
+  "parent": "docs/evidence/2026-07-11-stage6-natural-speech-hardware-volume-diagnostic-result.json",
+  "research_question": "Does the supported lower-volume callback timing and capture-integrity result extend from one repeated utterance to six speakers and fieldsites with balanced infant- and adult-directed natural speech?",
+  "panel_rationale": "Use only already-spent Music Lab PCM. Fix six distinct fieldsites and speakers, balance three infant-directed and three adult-directed speech clips, keep source duration at most 15 seconds so a fixed 20-second capture includes trailing quiet, and require source peak absolute amplitude at least 0.65 so every clip credibly exercises the salient workload at the unchanged gain.",
+  "stimuli": [
+    {
+      "filename": "KRA01D.wav",
+      "sha256": "8dd90d2bd1ca0322f0c55466439a2079f197d761b7081a966ed928b1ddd25a2c",
+      "fieldsite": "KRA",
+      "speaker": "KRA01",
+      "condition": "adult_directed_speech",
+      "duration_seconds": 4.754988662131519,
+      "source_peak_absolute": 0.999969482421875
+    },
+    {
+      "filename": "MBE02B.wav",
+      "sha256": "df5412fde22f6a32050992d7ece263b1dd6542a5b15b9c0234eb7262d139de2e",
+      "fieldsite": "MBE",
+      "speaker": "MBE02",
+      "condition": "infant_directed_speech",
+      "duration_seconds": 2.474671201814059,
+      "source_peak_absolute": 0.999969482421875
+    },
+    {
+      "filename": "MES06D.wav",
+      "sha256": "bcce51436783e6c836147c962ff4049e72b0472ae7ff397dd6e90ff3b14021f6",
+      "fieldsite": "MES",
+      "speaker": "MES06",
+      "condition": "adult_directed_speech",
+      "duration_seconds": 4.340612244897959,
+      "source_peak_absolute": 0.990142822265625
+    },
+    {
+      "filename": "PNG01B.wav",
+      "sha256": "538991b4f8bc7339baf8a8979589d85d7e90cd6f95c66b327b46943f173786fd",
+      "fieldsite": "PNG",
+      "speaker": "PNG01",
+      "condition": "infant_directed_speech",
+      "duration_seconds": 12.02907029478458,
+      "source_peak_absolute": 1.0
+    },
+    {
+      "filename": "TSI03D.wav",
+      "sha256": "f6af43284674bf221329587ec87681d274069f16f21e893945b06784c858f61e",
+      "fieldsite": "TSI",
+      "speaker": "TSI03",
+      "condition": "adult_directed_speech",
+      "duration_seconds": 8.80596371882086,
+      "source_peak_absolute": 0.66217041015625
+    },
+    {
+      "filename": "VAN21B.wav",
+      "sha256": "76b1d5e8e07b2ff9e57a05bb5ebfc250e90ac2a41109d99500ab762e4e3651ef",
+      "fieldsite": "VAN",
+      "speaker": "VAN21",
+      "condition": "infant_directed_speech",
+      "duration_seconds": 7.0462585034013605,
+      "source_peak_absolute": 0.999969482421875
+    }
+  ],
+  "fixed_runtime": {
+    "one_run_per_stimulus": true,
+    "software_playback_gain_db": -18.0,
+    "repeat_within_run": false,
+    "input": "XVF3800 callback device :0, 16 kHz, two fused channels",
+    "world_output": "External Headphones device 2",
+    "external_speaker_hardware_knob": "approximately 50 percent of mechanical travel",
+    "bearing_degrees": 180,
+    "distance_cm": 50,
+    "room": "same semi-quiet room with laptop-fan background",
+    "capture_duration_ms": 20000,
+    "frame_ms": 25,
+    "target_frames_each": 800,
+    "saliency_threshold": 0.02,
+    "bounded_playback_and_capture_authorized": true
+  },
+  "command_template": ".venv/bin/python -m cora_infans --listen-live --device :0 --duration-ms 20000 --frame-ms 25 --sample-rate 16000 --capture-backend callback --stimulus-wav STIMULUS --stimulus-volume-db -18 --output-device-index 2 --saliency-threshold 0.02",
+  "acceptance_each_stimulus": {
+    "source_hash_matches": true,
+    "real_capture": true,
+    "callback_backend_without_fallback": true,
+    "frame_count": 800,
+    "minimum_salient_frame_count": 20,
+    "maximum_input_overflow_count": 0,
+    "maximum_callback_status_count": 0,
+    "maximum_timestamp_discontinuity_count": 0,
+    "maximum_clipped_sample_count": 0,
+    "maximum_salient_adc_frame_end_to_workspace_p95_ms": 30.0,
+    "maximum_quiet_adc_frame_end_to_workspace_p95_ms": 30.0,
+    "maximum_device_deadline_miss_count": 0,
+    "maximum_steady_state_real_time_factor": 1.2,
+    "maximum_average_process_cpu_percent": 100.0,
+    "maximum_peak_resident_memory_megabytes": 512.0,
+    "frame_clipping_sum_equals_aggregate": true,
+    "actual_playback_and_trailing_quiet_partitions_nonempty": true
+  },
+  "panel_acceptance": "All per-stimulus criteria must pass. No pooled average may hide a failed fieldsite, condition, clipping, timing, or stream-integrity gate.",
+  "run_policy": "Run the fixed six stimuli once each in listed order. A source-start or device-open failure before playback may be retried without changing the protocol. Once playback begins, retain the run and do not replace a failed acoustic, timing, clipping, or integrity result.",
+  "interpretation_rule": "A full pass extends Stage 6 natural-speech host-software timing and capture integrity to this six-fieldsite balanced panel. A failure identifies its stimulus and leaves the previous one-utterance result intact.",
+  "claim_boundary": "Purposefully salient, already-spent adult speech recordings; one run per new stimulus; approximate uncalibrated knob position; fixed room, geometry, XVF3800, and M4 Pro host. This cannot establish population sampling, semantic/register accuracy, calibrated SPL, geometry or room transfer, XMOS internal latency, wall-plug energy, or cross-device performance."
+}

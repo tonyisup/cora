@@ -1,0 +1,61 @@
+{
+  "experiment": "calibrated_structured_representation_design_audit",
+  "date": "2026-07-10",
+  "data_boundary": "attempt-2 development captures only; no attempt-2 held-out capture entered candidate extraction or selection",
+  "development_trial_ids": [
+    "vowels_dev_1103",
+    "vowels_dev_2207",
+    "vowels_dev_3301"
+  ],
+  "rejected_candidate_families": [
+    "12-64 geometric log-spectral bands",
+    "12-64 linear log-spectral bands",
+    "8-20 cepstral coefficients from 24-48 bands",
+    "0-80 ms token-edge margins",
+    "LPC formant vectors at orders 8-28",
+    "trial-local codebook resets"
+  ],
+  "rejection_reason": "Each rejected family lost states, tied or lost to a causal baseline in at least one leave-one-development-trial-out fold, or both.",
+  "selected_candidate": {
+    "name": "unlabeled_trial_calibrated_log_spectrum",
+    "base_representation": "12-band geometric log spectrum",
+    "calibration": "featurewise center and standardize using the four unlabeled calibration observations in the same trial, floor each standard deviation at 0.30, then unit-normalize each observation",
+    "standard_deviation_floor": 0.30,
+    "selection_grid": [0.05, 0.10, 0.20, 0.30, 0.50, 1.00],
+    "leave_one_development_trial_out": [
+      {
+        "held_trial": "vowels_dev_1103",
+        "occupancy": 4,
+        "post_hoc_purity": 0.80,
+        "transition_accuracy": 0.7368421052631579,
+        "best_baseline_accuracy": 0.3684210526315789,
+        "accuracy_improvement": 0.3684210526315789
+      },
+      {
+        "held_trial": "vowels_dev_2207",
+        "occupancy": 4,
+        "post_hoc_purity": 0.70,
+        "transition_accuracy": 0.5789473684210527,
+        "best_baseline_accuracy": 0.2631578947368421,
+        "accuracy_improvement": 0.31578947368421056
+      },
+      {
+        "held_trial": "vowels_dev_3301",
+        "occupancy": 4,
+        "post_hoc_purity": 0.70,
+        "transition_accuracy": 0.47368421052631576,
+        "best_baseline_accuracy": 0.2631578947368421,
+        "accuracy_improvement": 0.21052631578947367
+      }
+    ],
+    "minimum_fold_improvement": 0.21052631578947367,
+    "minimum_fold_occupancy": 4
+  },
+  "noise_context_post_hoc": {
+    "poorest_attempt_2_vowel_trial_token_to_gap_db": [3.1, 4.5],
+    "better_attempt_2_vowel_trial_token_to_gap_db": [6.7, 7.3],
+    "interpretation": "Low acoustic margin may contribute to trial shift, but this audit does not establish causality and does not change playback gain or geometry."
+  },
+  "fresh_run_justification": "The selected candidate beat every causal baseline in every leave-one-development-trial-out fold by more than 0.20 while keeping all four states occupied. It alone advances to fresh-seed confirmation.",
+  "claim_boundary": "This is spent-data design evidence only. It cannot promote H2."
+}

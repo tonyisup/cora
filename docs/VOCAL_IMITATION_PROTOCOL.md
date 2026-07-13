@@ -1,0 +1,139 @@
+# Project-owner vocal-imitation protocol
+
+Status: v4 completed. All frozen development and held-confirmation gates passed
+on a fresh project-owner recording set on 2026-07-13. The result is retained in
+[`2026-07-13-vocal-imitation-v4-real-result.json`](evidence/2026-07-13-vocal-imitation-v4-real-result.json).
+
+V1 used a 1.8-second capture. Its first `/a/` development take contained no
+eligible vocal interval (RMS `0.00147`, peak `0.0131`, periodicity `0.297`) and
+is stopped and retained in
+[`2026-07-12-vocal-imitation-v1-acquisition-failure.json`](evidence/2026-07-12-vocal-imitation-v1-acquisition-failure.json).
+V2 changes only the capture duration to 4.0 seconds so tool-start latency cannot
+consume the spoken interval. It uses a fresh session and recording set. All
+preprocessing, learning, quality thresholds, confirmation gates, and claim
+boundaries remain unchanged.
+
+V2 produced four passing development takes, then its first `/u/` take again
+missed the spoken interval during a delayed tool start. V2 is stopped and
+retained in
+[`2026-07-12-vocal-imitation-v2-acquisition-failure.json`](evidence/2026-07-12-vocal-imitation-v2-acquisition-failure.json).
+V3 retains the 4.0-second window and adds a 100 ms, 660 Hz, amplitude-0.08
+physical start cue on the pinned Mac mini Speakers. The XVF3800 input stream is
+opened first; cue plus 200 ms settle samples are discarded before the retained
+window begins. The speaker begins after hearing the tone. This changes only
+human/capture synchronization. V3 requires a fresh recording set; thresholds,
+features, learning, and confirmation gates remain unchanged.
+
+V3 acquired six clean, mutually consistent development takes and accessed no
+confirmation. Its `/a/` target improved only `10.9%`, below the frozen `20%`
+gate. Exhaustive audit showed the best of all 96 V3 prototypes could improve
+only `12.5%`; the gate was therefore unattainable within that repertoire. V3 is
+stopped and retained in
+[`2026-07-12-vocal-imitation-v3-development-failure.json`](evidence/2026-07-12-vocal-imitation-v3-development-failure.json).
+
+V4 changes only the finite 96-entry babbling repertoire to a disjoint Halton
+schedule: start `20011`, stride `43`, last `24096`. On spent V3 development
+audio, the unchanged local learner reaches improvements of `30.7%`, `72.5%`,
+and `73.1%` for `/a/`, `/i/`, and `/u/`. That audit is design evidence only.
+V4 requires fresh recordings and preserves the cue, preprocessing, 12 attempts,
+memory capacity, thresholds, confirmation gates, and claim boundary.
+
+The fresh V4 session acquired exactly six development takes, froze all three
+associations before any confirmation capture, and then passed all three held
+confirmations. Confirmation improvement relative to the common rest prototype
+was `24.3%`, `71.5%`, and `69.2%` for `/a/`, `/i/`, and `/u/`; final held
+distances were `0.209`, `0.160`, and `0.108`. Confirmation did not change any
+association. Raw project-owner recordings and generated WAVs remain outside
+Git; the retained evidence identifies the private artifacts by SHA-256.
+
+This protocol advances the bounded synthetic speech-learning demo to a new,
+project-owner-recorded target. It is a demo-layer experiment, not a retry of
+the stopped H4 inverse-closure families and not evidence about infant learning,
+phoneme recognition, or general human speech.
+
+## 1. Authorized data and physical boundary
+
+- The only recorded input is a new vowel produced by the project owner for this
+  protocol. External corpora and every protected path named in `VISION.md` are
+  prohibited.
+- Capture requires the literal `--authorize-project-owner-recording` flag.
+- Input is the XVF3800 callback path at 16 kHz and its two fused host channels.
+  No four-microphone geometry is inferred.
+- A bounded start cue is played only on the Mac mini Speakers before retained
+  teacher samples. Cue and settle samples are discarded. There is no stimulus
+  playback inside the scored window; external-speaker geometry is irrelevant.
+- Each target has exactly two development takes and one confirmation take.
+  After exactly six development takes, the runner must write a hash-pinned
+  `frozen-vocal-associations.json`. Confirmation capture itself is prohibited
+  until that artifact passes; confirmation audio can therefore neither select
+  nor precede the frozen motor association.
+
+## 2. Spoken prompt
+
+For each of `/a/`, `/i/`, and `/u/`, produce a comfortable, steady vowel for
+roughly two seconds, beginning when the short tone is audible. Do not imitate a
+particular pitch. Each retained capture lasts 4.0 seconds.
+
+The vowel name is capture organization and display metadata. The learner gets
+only an opaque hash and a 30-dimensional auditory vector.
+
+## 3. Frozen preprocessing
+
+1. Verify the manifest hash and require the WAV to live beneath the session's
+   `captures/` directory.
+2. Decode uncompressed WAV, mix the two fused channels to mono, and linearly
+   resample to 16 kHz when needed.
+3. Select the highest-RMS 480 ms window on an 80 ms stride.
+4. Require finite samples, no sample at or above full scale, selected-window RMS
+   at least `0.01`, selected-window peak at least `0.03` and below `0.98`, an
+   autocorrelation pitch between `70–350 Hz`, and normalized pitch periodicity
+   at least `0.30`. This prevents steady fan/background energy from satisfying
+   the capture gate without a voiced target.
+5. Compute averaged 64 ms Hann-window power spectra at 16 ms hops. At the
+   plant's frozen 30 log-spaced frequencies, integrate Gaussian bands whose
+   width is `max(80 Hz, 10% of center frequency)`, take log energy, remove the
+   mean, and unit-normalize.
+6. Unit-normalize the arithmetic mean of the two development vectors. This is
+   the sole learning target.
+
+## 4. Bounded learning and confirmation
+
+- Use exactly 96 motors from Halton start `20011`, stride `43`, and last `24096`;
+  reuse the local frontier, 12 attempts, three-entry association capacity, and
+  final-three recall contract in `DEMO_SPEC.md`.
+- Recompute each babbled consequence through the same waveform feature path at
+  frozen `110 Hz`; human and self targets are therefore compared in one
+  operational auditory representation.
+- Development selection must remain label-blind.
+- After selection and recall finish, decode the confirmation take and score the
+  already-frozen learned prototype. Confirmation may never select or replace a
+  motor.
+- The final runner must deterministically recompute development learning and
+  match every opaque target ID, prototype ID, and Halton index to the freeze
+  artifact before decoding confirmation.
+
+## 5. Frozen gates and stop rule
+
+Every target must satisfy:
+
+- all three capture-quality gates pass and all hashes match;
+- the two development takes are at most `0.30` apart;
+- development distance improves at least `20%` from rest and finishes at most
+  `0.45` from the learned prototype;
+- confirmation distance improves at least `15%` relative to the same rest
+  prototype and finishes at most `0.45` from the already-learned prototype;
+- the final three development attempts recall the same prototype;
+- confirmation is accessed after learning and does not change the association;
+- memory remains within three targets.
+
+The aggregate demo passes only if `/a/`, `/i/`, and `/u/` pass. A missed gate is
+retained as a result; thresholds and preprocessing may not be tuned on those
+takes. Any successor requires a new version and fresh recordings.
+
+## 6. Claim boundary
+
+A pass demonstrates bounded acoustic target association and deterministic
+recall for three new vowels from one known project owner in one capture setup.
+It does not establish exact articulatory recovery, continuous inverse closure,
+speaker identity, linguistic categories, generalization to new people, rooms,
+registers, languages, or cultures, or autonomous language acquisition.

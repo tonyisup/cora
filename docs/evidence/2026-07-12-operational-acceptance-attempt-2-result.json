@@ -1,0 +1,84 @@
+{
+  "mode": "bounded_operational_acceptance",
+  "date": "2026-07-12",
+  "status": "operational_acceptance_passed",
+  "parent_failure": "docs/evidence/2026-07-12-operational-acceptance-attempt-1.json",
+  "correction_boundary": {
+    "changed": [
+      "restored external speaker mechanical knob to the already-frozen approximately-50-percent position",
+      "fresh operator confirmation required by preflight",
+      "zero-salience report normalization defect corrected",
+      "named output discovery moved from incomplete PortAudio enumeration to read-only macOS CoreAudio inventory"
+    ],
+    "unchanged": [
+      "ACO02B stimulus and SHA-256",
+      "-18 dB digital playback gain",
+      "XVF3800 :0 input at 16 kHz and two fused channels",
+      "External Headphones output device 2",
+      "180-degree and 50 cm world-source geometry",
+      "25 ms frames and 400-frame limit",
+      "saliency threshold",
+      "10.5 ms latency ceiling",
+      "all integrity criteria"
+    ]
+  },
+  "operating_point": {
+    "host": "Mac mini",
+    "input": "reSpeaker XVF3800 4-Mic Array :0",
+    "sample_rate_hz": 16000,
+    "host_channels": 2,
+    "world_output_device_index": 2,
+    "world_output": "External Headphones",
+    "world_angle_degrees": 180,
+    "world_distance_cm": 50,
+    "world_hardware_volume_percent_approximate": 50,
+    "software_playback_gain_db": -18.0,
+    "frame_ms": 25
+  },
+  "stimulus": {
+    "filename": "ACO02B.wav",
+    "sha256": "c58a46a68782fb318cd885e6c670025104cc844bb3d8e4080b69b1f995c2c410",
+    "provenance": "already-spent Music Lab development audio outside Git"
+  },
+  "raw_telemetry": {
+    "external_path": "/private/tmp/cora-operational-acceptance-20260712-attempt-2/stage6-live-raw.json",
+    "sha256": "5511bdf82970cdf298217cf4c5bf54a0b9f5a5078ee6f13f5d5e098b6b3e07ab"
+  },
+  "full_acceptance_report": {
+    "external_path": "/private/tmp/cora-operational-acceptance-20260712-attempt-2/operational-acceptance.json",
+    "sha256": "43ee6bc9d5bf73dce4c9619711cdce4ef116fb1b50b0b2c0e5db42a937e21070"
+  },
+  "measurement": {
+    "frame_count": 400,
+    "salient_frame_count": 208,
+    "active_playback_frame_count": 277,
+    "salient_adc_frame_end_to_workspace_p95_ms": 10.22409198776586,
+    "active_playback_peak_absolute": 0.429718017578125,
+    "trailing_quiet_peak_absolute": 0.05401611328125,
+    "captured_sample_count": 320000,
+    "whole_capture_clipped_sample_count": 0,
+    "active_playback_clipped_sample_count": 0,
+    "device_deadline_miss_count": 0,
+    "overflow_count": 0,
+    "callback_status_count": 0,
+    "timestamp_discontinuity_count": 0,
+    "fallback_frame_count": 0,
+    "steady_state_real_time_factor": 0.9970274599498746,
+    "average_process_cpu_percent": 4.457927481923753,
+    "peak_resident_memory_megabytes": 68.65625
+  },
+  "criteria": {
+    "complete_operating_point_matches": true,
+    "real_callback_capture": true,
+    "minimum_salient_frames_met": true,
+    "salient_latency_available": true,
+    "salient_p95_at_most_10_5_ms": true,
+    "all_required_integrity_counts_zero": true,
+    "stimulus_hash_matches": true,
+    "fresh_fifty_percent_operator_confirmation": true
+  },
+  "operational_acceptance_passed": true,
+  "protected_data_accessed": false,
+  "retained_stage4_exact_efference": "Hash-pinned retained evidence; not re-executed by this Stage 6 run.",
+  "claim_boundary": "One current Stage 6 run at the named physical operating point plus hash-pinned retained stage evidence. This is operational acceptance, not a new scientific promotion, geometry transfer, XMOS-internal latency measurement, or Stage 4 rerun."
+}

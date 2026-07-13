@@ -1,0 +1,36 @@
+{
+  "experiment": "structured_workspace_binding_live_plumbing_audit",
+  "date": "2026-07-10",
+  "status": "generic_plumbing_verified_live_cli_unwired",
+  "implementation_sha256": "4bac0eddb47b9a910788d8b5b6a6aa7c2247449d94a454b03af26eff62f10d5c",
+  "tests_sha256": "e367bba8eb588834758ef0644e6fdfa3af7453e5334f4dd06c738af852a75302",
+  "protocol_sha256": "5b4be8f2ecc97a23e20f576ffd0110f9551762abad0422877040de7cc55df3dd",
+  "fake_result_sha256": "10350b3deba26237f41e0cf1370ff98b49bac50e98e65060862ec807d24eb268",
+  "verified_contracts": {
+    "self_and_world_pcm_tracks_are_separate": true,
+    "overlap_tracks_start_through_a_concurrent_two_source_abstraction": true,
+    "alignment_chirp_is_emitted_by_exactly_one_reference_source": true,
+    "self_present_trials_use_self_as_chirp_source": true,
+    "world_only_trials_use_world_as_chirp_source": true,
+    "capture_evaluator_requires_all_15_trial_ids": true,
+    "capture_evaluator_requires_explicit_alignment_for_every_trial": true,
+    "two_channel_capture_arrays_are_supported_by_mono_reduction": true,
+    "stimulus_window_bounds_are_verified": true,
+    "injected_chirp_aligned_capture_gate_passed": true
+  },
+  "safety": {
+    "live_cli_route_exists": false,
+    "device_indices_frozen": false,
+    "physical_geometry_frozen": false,
+    "live_playback_performed": false,
+    "promotion_allowed": false
+  },
+  "remaining_before_live_execution": [
+    "confirm Mac mini self-source angle and distance",
+    "confirm Mac mini output level",
+    "freeze device 3 as self and device 2 as world",
+    "add bounded capture orchestration around the verified evaluator",
+    "commit a real-run preregistration before enabling the CLI route"
+  ],
+  "claim_boundary": "This verifies source separation, concurrent playback abstraction, and capture scoring with injected arrays. It is not device I/O evidence and does not promote H3."
+}

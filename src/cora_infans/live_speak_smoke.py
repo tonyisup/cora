@@ -26,8 +26,6 @@ from typing import Callable
 
 import numpy as np
 
-from dataclasses import dataclass
-
 from .io.motor_plan import (
     Vowel,
     synthesize_chirp,
@@ -344,6 +342,12 @@ def capture_to_wav(
         ffmpeg, "-hide_banner", "-loglevel", "error", "-y",
         "-f", "avfoundation", "-i", device,
         "-t", f"{seconds:.3f}", "-ac", str(channels), "-ar", str(sample_rate),
+        # The raw muxer otherwise buffers roughly 256 KiB before the output
+        # file grows.  At 16 kHz stereo that is longer than the bounded
+        # startup deadline, so a healthy AVFoundation stream looks stalled.
+        # Flush packets as they arrive: file size is our verified stream
+        # position and the coordinator must see it before starting playback.
+        "-flush_packets", "1",
         "-f", "s16le", "-acodec", "pcm_s16le", raw_path,
     ]
     for output_path in (path, raw_path):

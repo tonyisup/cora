@@ -1,0 +1,123 @@
+{
+  "experiment": "stage6_callback_salient_workload_timing_final_attempt",
+  "date": "2026-07-10",
+  "status": "structured_salient_device_timing_gate_passed",
+  "protocol_chain": {
+    "initial_preregistration": {
+      "sha256": "ed2d1dde0f310a49f42efd272859b11ed8448c435f044e8e1738012c85e0e0ed",
+      "implementation_commit": "ad3dbfcb3f66fcc3c0b23e1b916152bd1e173fe2"
+    },
+    "plus_12_db_clipping_audit_sha256": "5c8a67df7c153661c0040ecad502a8e699176ba6631f1eeff84352346e140c0e",
+    "minus_6_db_preregistration_sha256": "0bb45b96bcda66569f153258705d85a58beabb4a059b44cf2fcded43bac0f25e",
+    "gain_control_commit": "e7a2fa85898db233c8291dca3d269dc89ad098ef",
+    "minus_6_db_clipping_audit_sha256": "b3c663d18349d153b61463a4f3714b41f71728b16edb7e3fa849764425b2d2ea",
+    "final_preregistration_sha256": "ccf024d43a3bcccfae687995e735ed9fa65826967d01b33f8895357d88bc3118",
+    "final_preregistration_commit": "642eb161ac5f066854c16ecfe440788635972c98"
+  },
+  "hardware_geometry": {
+    "input": "XVF3800 callback, 16 kHz, two fused channels",
+    "world_output": "External Headphones, device 2",
+    "bearing_degrees": 180,
+    "distance_cm": 50,
+    "speaker_hardware_volume": "maximum",
+    "stimulus_playback_gain_db": -12.0,
+    "self_output": "none"
+  },
+  "eligible_runs": [
+    {
+      "run": 1,
+      "frame_count": 400,
+      "salient_frame_count": 48,
+      "quiet_frame_count": 352,
+      "salient_adc_frame_end_to_workspace_p95_ms": 9.98199614623445,
+      "salient_device_deadline_miss_rate": 0.0,
+      "quiet_adc_frame_end_to_workspace_p95_ms": 10.097210898675257,
+      "input_overflow_count": 0,
+      "callback_status_count": 0,
+      "timestamp_discontinuity_count": 0,
+      "capture_peak_absolute": 0.859649658203125,
+      "captured_sample_count": 320000,
+      "clipped_sample_count": 0,
+      "steady_state_real_time_factor": 0.9981044403007518,
+      "average_process_cpu_percent": 3.975506070012168,
+      "peak_resident_memory_megabytes": 65.03125
+    },
+    {
+      "run": 2,
+      "frame_count": 400,
+      "salient_frame_count": 47,
+      "quiet_frame_count": 353,
+      "salient_adc_frame_end_to_workspace_p95_ms": 10.197092096495908,
+      "salient_device_deadline_miss_rate": 0.0,
+      "quiet_adc_frame_end_to_workspace_p95_ms": 10.222716598946135,
+      "input_overflow_count": 0,
+      "callback_status_count": 0,
+      "timestamp_discontinuity_count": 0,
+      "capture_peak_absolute": 0.640350341796875,
+      "captured_sample_count": 320000,
+      "clipped_sample_count": 0,
+      "steady_state_real_time_factor": 0.9978921099749374,
+      "average_process_cpu_percent": 4.147847252196199,
+      "peak_resident_memory_megabytes": 65.125
+    },
+    {
+      "run": 3,
+      "frame_count": 400,
+      "salient_frame_count": 47,
+      "quiet_frame_count": 353,
+      "salient_adc_frame_end_to_workspace_p95_ms": 9.943324996856973,
+      "salient_device_deadline_miss_rate": 0.0,
+      "quiet_adc_frame_end_to_workspace_p95_ms": 10.286549599550199,
+      "input_overflow_count": 0,
+      "callback_status_count": 0,
+      "timestamp_discontinuity_count": 0,
+      "capture_peak_absolute": 0.928863525390625,
+      "captured_sample_count": 320000,
+      "clipped_sample_count": 0,
+      "steady_state_real_time_factor": 0.997953617443609,
+      "average_process_cpu_percent": 4.098278401960238,
+      "peak_resident_memory_megabytes": 65.171875
+    }
+  ],
+  "aggregate": {
+    "frame_count": 1200,
+    "salient_frame_count": 142,
+    "quiet_frame_count": 1058,
+    "captured_sample_count": 960000,
+    "clipped_sample_count": 0,
+    "input_overflow_count": 0,
+    "callback_status_count": 0,
+    "timestamp_discontinuity_count": 0,
+    "device_deadline_miss_count": 0,
+    "salient_adc_frame_end_to_workspace_p95_ms_range": [
+      9.943324996856973,
+      10.197092096495908
+    ],
+    "quiet_adc_frame_end_to_workspace_p95_ms_range": [
+      10.097210898675257,
+      10.286549599550199
+    ],
+    "maximum_steady_state_real_time_factor": 0.9981044403007518,
+    "maximum_average_process_cpu_percent": 4.147847252196199,
+    "maximum_peak_resident_memory_megabytes": 65.171875
+  },
+  "criteria": {
+    "real_capture_each": true,
+    "callback_backend_without_fallback_each": true,
+    "frame_count_each_400": true,
+    "salient_frame_count_each_min_20": true,
+    "input_overflow_count_each_max_0": true,
+    "callback_status_count_each_max_0": true,
+    "callback_timestamp_discontinuity_count_each_max_0": true,
+    "captured_clipped_sample_count_each_max_0": true,
+    "salient_adc_frame_end_to_workspace_p95_ms_each_max_30": true,
+    "salient_device_operational_deadline_miss_rate_each_max_0_05": true,
+    "quiet_adc_frame_end_to_workspace_p95_ms_each_max_30": true,
+    "steady_state_real_time_factor_each_max_1_2": true,
+    "average_process_cpu_percent_each_max_100": true,
+    "peak_resident_memory_megabytes_each_max_512": true
+  },
+  "overall_criteria_passed": true,
+  "promotion_allowed": true,
+  "claim_boundary": "Structured salient-workload timing is supported only for the fixed pitch-contour stimulus, fixed room/geometry, callback XVF3800, and M4 Pro host. Natural speech, geometry transfer, raw CoreAudio timestamps, XMOS internal DSP delay, and energy remain open."
+}

@@ -1,0 +1,163 @@
+{
+  "experiment": "stage6_same_host_estimated_energy_comparison",
+  "date": "2026-07-11",
+  "status": "same_host_estimated_energy_comparison_measured",
+  "preregistration": {
+    "path": "docs/evidence/2026-07-10-stage6-energy-preregistration.json",
+    "sha256": "f3e4904a4cd0f66b1b3cdd649fe7e83d365b940e28ac0b27119d33aa4b2790a2",
+    "implementation_commit": "0e28a04",
+    "runner_commit": "611dec19823fd50f6bacd4e9a65a1577ff841465"
+  },
+  "external_artifacts": {
+    "retained_outside_git": "/private/tmp/cora-stage6-energy-20260711T134310Z",
+    "raw_manifest": "docs/evidence/2026-07-11-stage6-energy-raw-manifest.sha256",
+    "original_sha256_file_sha256": "083ed65e3d508f1617b9b769385dc53987497f15dbb8dba13a1970e2c4400f31",
+    "all_published_hashes_verified": true,
+    "powermetrics_stderr_empty_all_trials": true
+  },
+  "host": {
+    "machine_model": "Mac16,11",
+    "processor": "Apple M4 Pro",
+    "os_build": "25F84",
+    "sampler": "macOS powermetrics cpu_power",
+    "sample_interval_ms": 500,
+    "samples_per_trial": 24,
+    "analyzed_central_samples_per_trial": 20
+  },
+  "trial_order": [
+    "idle",
+    "conventional",
+    "cora",
+    "idle",
+    "cora",
+    "conventional",
+    "idle",
+    "conventional",
+    "cora"
+  ],
+  "trials": [
+    {
+      "trial": 1,
+      "condition": "idle",
+      "mean_cpu_power_mw": 7705.35,
+      "median_cpu_power_mw": 7557.0
+    },
+    {
+      "trial": 2,
+      "condition": "conventional",
+      "mean_cpu_power_mw": 13678.95,
+      "frames_per_second": 1235814.511832055,
+      "cpu_joules_per_million_frames": 11.068772755970796,
+      "wall_seconds": 10.00001204200089,
+      "process_cpu_percent": 99.29116043357575,
+      "resident_event_count": 10
+    },
+    {
+      "trial": 3,
+      "condition": "cora",
+      "mean_cpu_power_mw": 14421.5,
+      "frames_per_second": 490447.70388446585,
+      "cpu_joules_per_million_frames": 29.404766065328047,
+      "wall_seconds": 10.00003458300489,
+      "process_cpu_percent": 97.80897174718517,
+      "resident_event_count": 11
+    },
+    {
+      "trial": 4,
+      "condition": "idle",
+      "mean_cpu_power_mw": 10096.85,
+      "median_cpu_power_mw": 8268.0,
+      "note": "unrelated system-power spikes retained; idle subtraction is secondary"
+    },
+    {
+      "trial": 5,
+      "condition": "cora",
+      "mean_cpu_power_mw": 13727.1,
+      "frames_per_second": 496717.1265058883,
+      "cpu_joules_per_million_frames": 27.635648677069067,
+      "wall_seconds": 10.000023624997993,
+      "process_cpu_percent": 98.60391704826576,
+      "resident_event_count": 11
+    },
+    {
+      "trial": 6,
+      "condition": "conventional",
+      "mean_cpu_power_mw": 13883.4,
+      "frames_per_second": 1213099.393253089,
+      "cpu_joules_per_million_frames": 11.444569239103977,
+      "wall_seconds": 10.000028082999052,
+      "process_cpu_percent": 98.97081206027788,
+      "resident_event_count": 10
+    },
+    {
+      "trial": 7,
+      "condition": "idle",
+      "mean_cpu_power_mw": 7948.75,
+      "median_cpu_power_mw": 7657.5
+    },
+    {
+      "trial": 8,
+      "condition": "conventional",
+      "mean_cpu_power_mw": 13018.7,
+      "frames_per_second": 1214583.548358575,
+      "cpu_joules_per_million_frames": 10.718653333971027,
+      "wall_seconds": 10.00002512500214,
+      "process_cpu_percent": 99.10318100323654,
+      "resident_event_count": 10
+    },
+    {
+      "trial": 9,
+      "condition": "cora",
+      "mean_cpu_power_mw": 12819.55,
+      "frames_per_second": 511831.1241900697,
+      "cpu_joules_per_million_frames": 25.04644480205434,
+      "wall_seconds": 10.000011249998352,
+      "process_cpu_percent": 99.28768830136703,
+      "resident_event_count": 11
+    }
+  ],
+  "by_condition": {
+    "idle": {
+      "mean_cpu_power_mw": 8583.65,
+      "trial_mean_stdev_mw": 1316.1084947678137,
+      "median_of_trial_means_mw": 7948.75
+    },
+    "conventional": {
+      "mean_cpu_power_mw": 13527.016666666668,
+      "mean_frames_per_second": 1221165.817814573,
+      "mean_cpu_joules_per_million_frames": 11.0773317763486,
+      "cpu_joules_per_million_frames_stdev": 0.36303363198692545,
+      "mean_combined_joules_per_million_frames": 11.132050807169838
+    },
+    "cora": {
+      "mean_cpu_power_mw": 13656.050000000001,
+      "mean_frames_per_second": 499665.3181934746,
+      "mean_cpu_joules_per_million_frames": 27.362286514817153,
+      "cpu_joules_per_million_frames_stdev": 2.191982256381017,
+      "mean_combined_joules_per_million_frames": 27.549347107739305
+    }
+  },
+  "comparison": {
+    "cora_to_conventional_cpu_power_ratio": 1.0095389350448054,
+    "conventional_to_cora_throughput_ratio": 2.4439675385709427,
+    "cora_to_conventional_cpu_energy_per_frame_ratio": 2.470115282927504,
+    "cora_to_conventional_combined_energy_per_frame_ratio": 2.4747773420146046,
+    "cora_minus_conventional_cpu_joules_per_million_frames": 16.284954738468553,
+    "interpretation": "Cora and the simpler baseline draw similar sustained CPU power, but Cora processes fewer frames per second and therefore uses about 2.47 times the estimated CPU energy per frame."
+  },
+  "criteria": {
+    "all_nine_trials_complete": true,
+    "analyzed_valid_cpu_power_samples_each_20": true,
+    "active_workload_wall_seconds_in_range": true,
+    "active_workload_average_process_cpu_percent_min_90": true,
+    "resident_event_count_each_max_11": true,
+    "frames_processed_each_min_1": true,
+    "positive_cpu_power_each_sample": true,
+    "same_host_and_sampler_configuration": true,
+    "paired_order_preserved": true,
+    "all_published_hashes_verified": true
+  },
+  "overall_criteria_passed": true,
+  "promotion_allowed": true,
+  "claim_boundary": "Same-host powermetrics estimates for sustained synthetic salient frame processing on one M4 Pro. The result excludes wall-plug, acoustic, XVF3800, paced live-runtime, and cross-device energy."
+}

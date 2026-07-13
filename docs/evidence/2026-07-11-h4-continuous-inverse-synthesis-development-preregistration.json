@@ -1,0 +1,102 @@
+{
+  "experiment": "h4_continuous_inverse_synthesis_development",
+  "date": "2026-07-11",
+  "status": "preregistered_before_implementation_or_candidate_evaluation",
+  "authorization": {
+    "decision": "Option B approved by user",
+    "scope": "development-only continuous inverse synthesis",
+    "confirmation_audio_access_authorized": false
+  },
+  "research_question": "Can a bounded label-blind local search over continuous source/filter motor coordinates reduce acoustic reconstruction error and preserve five-vowel identity across already-spent sung and ordinary-speech development voices?",
+  "mechanism": {
+    "motor_coordinates": ["f0_hz", "f1_hz", "f2_hz", "f3_hz"],
+    "continuous_synthesizer": "The existing parallel source-filter generator generalized from five table rows to continuous F0/F1/F2/F3 inputs. Formant bandwidths, resonator gains, source tilt, radiation filter, and envelope remain identical to the clean synthetic mechanism.",
+    "observed_f0": "Label-blind autocorrelation pitch estimate over 70-500 Hz; use 110 Hz only when confidence is insufficient.",
+    "spectral_representation": "20 log-geometric power bands from 200 through 3500 Hz over the full analysis window; add 1e-12, take natural log, subtract the 20-band mean, and L2-normalize.",
+    "reconstruction_loss": "Euclidean distance between observed and synthesized normalized spectral vectors.",
+    "initialization": "Synthesize all five canonical motor plans at the observed F0 and window duration; choose the lowest-loss plan with a/e/i/o/u order as exact tie breaker. No source label enters initialization.",
+    "local_adaptation": {
+      "algorithm": "deterministic greedy coordinate descent",
+      "coordinates_updated": ["f1_hz", "f2_hz", "f3_hz"],
+      "initial_step_hz": {"f1": 120.0, "f2": 240.0, "f3": 300.0},
+      "rounds": 3,
+      "step_rule": "halve every coordinate step after each complete round",
+      "candidate_order_each_coordinate": ["negative_step", "positive_step"],
+      "acceptance_rule": "accept only a strictly lower loss; retain current value on ties",
+      "maximum_candidate_syntheses_after_initialization": 18,
+      "label_or_expected_formant_use": false
+    },
+    "bounds_hz": {
+      "f0": [70.0, 500.0],
+      "f1": [200.0, 1000.0],
+      "f2": [600.0, 2800.0],
+      "f3": [1800.0, 3500.0],
+      "minimum_f2_minus_f1": 200.0,
+      "minimum_f3_minus_f2": 300.0
+    },
+    "post_hoc_identity": "Nearest canonical F1/F2/F3 point using the existing F1/F2 full weight and F3 0.1 weight. Labels enter only after the final motor plan is frozen.",
+    "reperception": "Analyze the final synthesized waveform with the existing LPC perception path and report agreement with the final motor-plan identity."
+  },
+  "development_data": {
+    "vocalset": {
+      "root": "/private/tmp/cora-vocalset-development",
+      "manifest": "docs/evidence/2026-07-11-vocalset-normalization-development-manifest.json",
+      "manifest_sha256": "6ca6fd49ce654c73937ef9fdc9dc30065c6ef8fb794efa65d10ab5241fa47233",
+      "speakers": ["female4", "female5", "male6", "male7", "male8"],
+      "clip_count": 25,
+      "window": "center 1.0 second"
+    },
+    "cmu_arctic": {
+      "root": "/private/tmp/cmu-arctic-development-labels",
+      "manifest": "/private/tmp/cmu-arctic-development-labels/audio_manifest.json",
+      "manifest_sha256": "99c78192238e5dca5bafd45250e6694714a5e5fc5f1fe01a2d2a8a17d430f43a",
+      "speakers": ["bdl", "slt", "clb", "jmk", "ksp"],
+      "token_count": 500,
+      "wav_count": 383,
+      "window_ms": 120
+    },
+    "all_audio_hashes_must_match": true,
+    "all_material_already_spent": true,
+    "cross_domain_parameter_tuning_allowed": false
+  },
+  "baselines": {
+    "fixed_lpc_table": "Retain the already-measured current-route identity result for each domain.",
+    "canonical_synthesis_initialization": "The pre-adaptation lowest-loss canonical plan from this exact run.",
+    "no_adaptation_ablation": true
+  },
+  "required_reports_each_domain": [
+    "five_by_five_confusion_matrix",
+    "accuracy",
+    "each_vowel_recall",
+    "each_speaker_accuracy",
+    "F1_F2_F3_MAE_against_existing_canonical_reference",
+    "initial_and_final_reconstruction_loss",
+    "fraction_with_strict_loss_improvement",
+    "median_relative_loss_improvement",
+    "motor_coordinate_update_counts",
+    "motor_plan_to_reperception_identity_agreement"
+  ],
+  "acceptance": {
+    "clean_synthetic_accuracy_min": 0.90,
+    "vocalset_accuracy_min": 0.80,
+    "cmu_arctic_accuracy_min": 0.80,
+    "each_domain_each_vowel_recall_min": 0.60,
+    "each_domain_each_speaker_accuracy_min": 0.60,
+    "each_domain_strict_loss_improvement_fraction_min": 0.80,
+    "each_domain_median_relative_loss_improvement_min": 0.10,
+    "each_domain_motor_plan_to_reperception_agreement_min": 0.90,
+    "all_motor_plans_within_bounds": true,
+    "maximum_candidate_syntheses_per_example": 23,
+    "all_required_reports_present": true,
+    "all_audio_hashes_verified": true,
+    "confirmation_audio_or_labels_accessed": false
+  },
+  "decision_rule": "Implement and evaluate only this configuration. A failed gate is retained without a parameter, loss, window, bound, step, round, or synthesizer retry on these examples. Protected confirmation remains unavailable unless every development gate passes and a separate confirmation preregistration is committed.",
+  "protected_data": {
+    "vocalset_confirmation": ["female6", "female7", "female9", "male9", "male11"],
+    "cmu_arctic_confirmation": ["rms", "awb", "axb", "eey", "ljm"],
+    "cmu_arctic_reserve": ["aew", "ahw", "aup", "fem", "gka", "lnh", "rxr", "slp"],
+    "must_remain_unfetched": true
+  },
+  "promotion_boundary": "This development run cannot promote H4. A pass only establishes confirmation readiness for continuous inverse synthesis. Motor learning means bounded per-example error-driven parameter adaptation, not acquired human articulation or biological DIVA fidelity."
+}

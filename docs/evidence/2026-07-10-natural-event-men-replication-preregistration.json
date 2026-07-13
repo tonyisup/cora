@@ -1,0 +1,65 @@
+{
+  "experiment": "natural_event_prediction_beijing_to_men_replication",
+  "date": "2026-07-10",
+  "status": "fully_preregistered_before_candidate_audio_fetch",
+  "protocol_revision_reason": "ARA replication exposed a missing minimum-duration eligibility rule before scoring",
+  "frozen_hashes": {
+    "implementation_sha256": "d44754a5dd06095f2767de62755da5b5255b66b3648894ede3b0479c077d6418",
+    "cli_sha256": "0ad4e411f89ae284db3fdb3ef22375b293d93614bb92ce754bc5e2f53387d53c",
+    "wellington_confirmation_sha256": "25f05865c9f984081a3fbdb8005577827f067f070430c836d2d0003c7240882e",
+    "ara_failure_sha256": "12ea5965bee234945c1d4d99b5fdfdf9f5d8cc72903db5281594b4bbf8e48034"
+  },
+  "dataset": {
+    "doi": "10.5281/zenodo.5525161",
+    "official_record": "https://zenodo.org/records/5525161",
+    "license": "CC BY-NC-SA 4.0",
+    "archive": "IDS-corpus-edited.zip",
+    "use_boundary": "personal non-commercial research"
+  },
+  "development": {
+    "fieldsite_code": "BEJ",
+    "participants": ["BEJ06", "BEJ07", "BEJ11", "BEJ21"],
+    "conditions": ["B", "D"],
+    "clip_count": 8,
+    "WEL_or_ARA_audio_added_to_training": false
+  },
+  "held_out_selection": {
+    "fieldsite_code": "MEN",
+    "fieldsite_rule": "Exclude BEJ, WEL, and ARA; then choose the lexicographically first remaining fieldsite with at least four B/D-paired participants whose four lowest paired IDs do not appear in retained evidence. ACO and HAD through MBE are excluded by prior exact-ID evidence; MEN is first eligible.",
+    "ordered_candidate_participants": ["MEN01", "MEN02", "MEN03", "MEN04", "MEN05", "MEN06", "MEN07", "MEN08", "MEN09", "MEN10", "MEN11", "MEN12", "MEN13", "MEN14", "MEN15"],
+    "sequential_rule": "Fetch both B and D for candidates in numeric order. Keep a participant only if both decoded WAV durations are at least 2.10 seconds. Stop immediately after four eligible participants. Do not replace or skip for any acoustic or predictive property.",
+    "minimum_each_clip_duration_seconds": 2.10,
+    "minimum_duration_derivation": "50 ms non-overlapping frames require at least 42 frames: 40 calibration frames, one current frame, and one following prediction target",
+    "required_eligible_participants": 4,
+    "required_evaluation_clips": 8,
+    "candidate_audio_fetched_before_freeze": false,
+    "all_fetched_candidate_hashes_and_eligibility_outcomes_must_be_retained": true
+  },
+  "frozen_observation_target": {
+    "frame_ms": 50,
+    "calibration_ms": 2000,
+    "quiet_quantile": 0.40,
+    "novelty_quantile": 0.75,
+    "states": ["quiet", "active onset or recovery", "stable active", "spectral change"],
+    "condition_labels_consumed_by_learner_or_scoring": false
+  },
+  "frozen_learner": {
+    "model": "four-by-four smoothed local transition counts trained only on Beijing",
+    "bounded_state_scalars": 16,
+    "baselines": ["persistence", "development unigram", "causal moving state"],
+    "top_down_next_event_prediction_consumed": true
+  },
+  "frozen_acceptance_rule": {
+    "required_held_out_clip_count": 8,
+    "minimum_clip_wins": 6,
+    "minimum_mean_accuracy_improvement": 0.05,
+    "minimum_worst_clip_improvement": -0.05,
+    "minimum_each_clip_state_occupancy": 3,
+    "maximum_bounded_state_scalars": 16,
+    "top_down_prediction_must_be_consumed": true,
+    "participant_overlap_count": 0,
+    "every_fetched_wav_must_match_recorded_size_crc32_and_sha256": true
+  },
+  "failure_policy": "Retain any eligibility or scoring failure. Do not change fieldsite, candidate order, duration rule, selected participants, training clips, event thresholds, baselines, or acceptance thresholds after fetching begins.",
+  "claim_boundary": "A pass would independently replicate the Beijing-trained unlabeled event-dynamics advantage in MEN after a purely duration-based eligibility screen. It would not establish semantic prediction, IDS/ADS recognition, universality, live operation, or dropout robustness."
+}

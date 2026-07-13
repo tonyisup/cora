@@ -1,0 +1,36 @@
+{
+  "experiment": "lofo_thresholded_register_pipeline_fresh_fieldsite",
+  "registered_date": "2026-07-10",
+  "status": "registered_before_selected_audio_fetch",
+  "pipeline_artifact": "2026-07-10-register-pipeline-v5.json",
+  "pipeline_sha256": "747e532d81db925e5e662656b8b270550bc9b3db2ff8e841d4241787c4446bb7",
+  "threshold_selection": "2026-07-10-register-threshold-selection.json",
+  "threshold_selection_fieldsites": ["ACO", "ARA", "BEJ", "JEN", "KRA", "LIM", "MBE", "MES", "QUE", "TSI"],
+  "explicitly_excluded_spent_outcomes": ["MEN", "TOP", "VAN"],
+  "fresh_evaluation_fieldsite": {
+    "code": "NYA",
+    "society": "Nyangatom",
+    "language_family": "Nilotic",
+    "participants": ["NYA01", "NYA07", "NYA14"]
+  },
+  "required_conditions_per_participant": [
+    "infant_directed_song",
+    "infant_directed_speech",
+    "adult_directed_song",
+    "adult_directed_speech"
+  ],
+  "frozen_clip_level_baselines": {
+    "intensity_db_median": -46.522474966932535,
+    "pitch_confidence_median": 0.6157772178851884
+  },
+  "acceptance_rule": {
+    "minimum_f1": 0.65,
+    "minimum_f1_improvement_over_best_frozen_baseline": 0.10,
+    "maximum_false_positive_rate": 0.15,
+    "maximum_song_false_positive_rate": 0.15,
+    "minimum_vocal_recall": 0.95,
+    "all_speakers_must_be_calibrated": true,
+    "all_files_must_decode_and_produce_finite_features": true
+  },
+  "claim_boundary": "A pass supports the slightly threshold-adjusted, speaker-and-mode batch-calibrated five-second scorer on one additional fieldsite. It does not establish cold-start, causal, or universal parentese detection."
+}

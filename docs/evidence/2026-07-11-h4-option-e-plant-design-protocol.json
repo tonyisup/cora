@@ -1,0 +1,61 @@
+{
+  "experiment": "h4_option_e_factorized_plant_design_search",
+  "date": "2026-07-11",
+  "status": "frozen_design_only_before_search_output",
+  "evidence_status": "development_not_confirmation",
+  "purpose": "Select one factorized five-coordinate plant mapping from a finite declared family before opening Option E confirmation points.",
+  "motor": {
+    "coordinates": ["jaw_aperture", "constriction_magnitude", "constriction_position", "lip_aperture", "lip_protrusion"],
+    "bounds_each": [0.0, 1.0],
+    "halton_bases": [2, 3, 5, 7, 11]
+  },
+  "design_points": {
+    "halton_indices_inclusive": [4097, 5120],
+    "count": 1024,
+    "confirmation_indices_prohibited": [8193, 9216]
+  },
+  "fixed_mapping": {
+    "neutral_area_cm2": [1.0, 1.35, 1.9, 2.7, 3.45, 3.9, 3.7, 3.15, 2.55, 2.0],
+    "jaw_weights": [0.25, 0.45, 0.7, 0.9, 1.0, 1.0, 1.0, 0.9, 0.6, 0.3],
+    "constriction_center": "0.12+0.68*p",
+    "lip_weights": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.6, 1.0],
+    "base_length_cm": 15.5,
+    "area_bounds_cm2": [0.04, 9.0],
+    "log_area_equation": "log(A)=log(Arest)+jaw_gain*(j-0.5)*jaw_weights-constriction_depth*c*Gaussian(center,width)+lip_gain*(la-0.5)*lip_weights-protrusion_narrowing*lp*lip_weights",
+    "length_equation": "15.5+(maximum_length_cm-15.5)*lp"
+  },
+  "finite_family": {
+    "jaw_gain": [0.3, 0.6],
+    "constriction_depth": [2.2, 3.0],
+    "constriction_width": [0.09, 0.13],
+    "lip_gain": [1.2, 2.0],
+    "protrusion_narrowing": [0.3, 0.8],
+    "maximum_length_cm": [18.5, 20.0],
+    "candidate_count": 64,
+    "enumeration_order": "lexicographic product in the field order shown; lower ordinal breaks complete ties"
+  },
+  "target_selection_per_candidate": {
+    "vowel_order": ["a", "e", "i", "o", "u"],
+    "cost": "sum of squared relative F1/F2/F3 error to the existing canonical reference",
+    "uniqueness": "a design motor point selected for an earlier vowel is ineligible",
+    "tie_break": "lower Halton index",
+    "design_valid_target": "nearest canonical identity matches and relative formant RMSE is at most 0.25",
+    "neighborhood": "center plus and minus 0.04 on each motor axis, clipped to bounds",
+    "valid_neighbor": "nearest canonical identity matches and relative formant RMSE is at most 0.30"
+  },
+  "selection_key": [
+    "maximum number of design-valid vowel targets",
+    "maximum minimum valid-neighbor fraction across vowels",
+    "minimum maximum target relative formant RMSE",
+    "minimum mean target relative formant RMSE",
+    "lower family ordinal"
+  ],
+  "retention": {
+    "retain_all_64_candidate_summaries": true,
+    "retain_selected_motor_and_formants_for_each_vowel": true,
+    "design_result_does_not_count_as_option_e_confirmation": true
+  },
+  "stop_rule": "The selected mapping may be frozen into a separate confirmation preregistration. No coefficient may be changed after confirmation indices are opened.",
+  "recorded_audio_accessed": false,
+  "protected_data_accessed": false
+}

@@ -1,0 +1,111 @@
+{
+  "experiment": "stage6_native_sample_rate_deadline_retry",
+  "date": "2026-07-10",
+  "status": "nominal_latency_improved_deadline_gate_failed",
+  "preregistration": {
+    "path": "docs/evidence/2026-07-10-stage6-native-rate-retry-preregistration.json",
+    "sha256": "059b0d635105de95a3f6814a8337a707749e90f45fcc6d71945043339df08100",
+    "implementation_commit": "e3a03aec5e8b36fb6e7222d9c10498529ae75dcd"
+  },
+  "single_changed_variable": {
+    "sample_rate_hz": {
+      "from": 48000,
+      "to": 16000
+    }
+  },
+  "runs": [
+    {
+      "run": 1,
+      "frame_count": 400,
+      "salient_frame_count": 0,
+      "input_overflow_count": 0,
+      "strict_deadline_miss_count": 201,
+      "strict_deadline_miss_rate": 0.5025,
+      "operational_deadline_miss_count": 65,
+      "operational_deadline_miss_rate": 0.1625,
+      "cold_start_capture_to_workspace_ms": 31.828667,
+      "capture_to_workspace_p95_ms": 30.8491848,
+      "estimated_adc_to_workspace_p95_ms": 72.8491848,
+      "steady_state_real_time_factor": 0.9988350505263157,
+      "average_process_cpu_percent": 3.3549189126847003,
+      "peak_resident_memory_megabytes": 62.15625
+    },
+    {
+      "run": 2,
+      "frame_count": 400,
+      "salient_frame_count": 0,
+      "input_overflow_count": 0,
+      "strict_deadline_miss_count": 205,
+      "strict_deadline_miss_rate": 0.5125,
+      "operational_deadline_miss_count": 57,
+      "operational_deadline_miss_rate": 0.1425,
+      "cold_start_capture_to_workspace_ms": 32.4855,
+      "capture_to_workspace_p95_ms": 30.7744726,
+      "estimated_adc_to_workspace_p95_ms": 72.7744726,
+      "steady_state_real_time_factor": 0.9985408569423558,
+      "average_process_cpu_percent": 3.2591840510525723,
+      "peak_resident_memory_megabytes": 61.84375
+    },
+    {
+      "run": 3,
+      "frame_count": 400,
+      "salient_frame_count": 0,
+      "input_overflow_count": 0,
+      "strict_deadline_miss_count": 211,
+      "strict_deadline_miss_rate": 0.5275,
+      "operational_deadline_miss_count": 74,
+      "operational_deadline_miss_rate": 0.185,
+      "cold_start_capture_to_workspace_ms": 32.218708,
+      "capture_to_workspace_p95_ms": 31.253653549999996,
+      "estimated_adc_to_workspace_p95_ms": 73.25365355,
+      "steady_state_real_time_factor": 0.9983932879197994,
+      "average_process_cpu_percent": 3.2794901802077656,
+      "peak_resident_memory_megabytes": 62.125
+    }
+  ],
+  "aggregate": {
+    "frame_count": 1200,
+    "input_overflow_count": 0,
+    "strict_deadline_miss_count": 617,
+    "strict_deadline_miss_rate": 0.5141666666666667,
+    "operational_deadline_miss_count": 196,
+    "operational_deadline_miss_rate": 0.16333333333333333,
+    "capture_to_workspace_p95_ms_range": [
+      30.7744726,
+      31.253653549999996
+    ],
+    "estimated_adc_to_workspace_p95_ms_range": [
+      72.7744726,
+      73.25365355
+    ],
+    "maximum_steady_state_real_time_factor": 0.9988350505263157,
+    "maximum_average_process_cpu_percent": 3.3549189126847003,
+    "maximum_peak_resident_memory_megabytes": 62.15625
+  },
+  "comparison_to_48000_hz_parent": {
+    "reported_input_latency_ms": {
+      "from": 95.33333333333334,
+      "to": 42.0,
+      "reduction_percent": 55.94405594405595
+    },
+    "estimated_adc_to_workspace_p95_ms_approximate_reduction_percent": 42.2,
+    "operational_deadline_miss_rate": {
+      "from": 0.1475,
+      "to": 0.16333333333333333,
+      "improved": false
+    }
+  },
+  "criteria": {
+    "real_capture": true,
+    "native_backend_without_fallback": true,
+    "frame_count_each_400": true,
+    "input_overflow_count_each_max_0": true,
+    "operational_deadline_miss_rate_each_max_0_05": false,
+    "steady_state_real_time_factor_each_max_1_2": true,
+    "average_process_cpu_percent_each_max_100": true,
+    "peak_resident_memory_megabytes_each_max_512": true
+  },
+  "promotion_allowed": false,
+  "diagnostic_conclusion": "Native rate substantially reduces nominal and estimated ADC-to-workspace latency but does not reduce blocking-read deadline jitter. The remaining issue is the PortAudio/CoreAudio callback-quantum-to-blocking-read boundary, not Cora pipeline processing or host sample-rate conversion.",
+  "claim_boundary": "All live frames were quiet-path workloads. CoreAudio ADC timestamps and energy remain unmeasured."
+}

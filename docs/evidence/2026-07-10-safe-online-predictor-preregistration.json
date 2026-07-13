@@ -1,0 +1,40 @@
+{
+  "experiment": "safe_local_expert_predictor_fresh_fieldsite",
+  "registered_date": "2026-07-10",
+  "status": "registered_before_selected_audio_fetch",
+  "design_source_data": [
+    "ACO development participants",
+    "BEJ development participants",
+    "spent BEJ held-out failure reports"
+  ],
+  "unseen_evaluation_fieldsite": "LIM",
+  "selected_participants": ["LIM02", "LIM03", "LIM04", "LIM05"],
+  "selected_conditions": [
+    "infant_directed_speech",
+    "adult_directed_speech"
+  ],
+  "features": [
+    "peak_rms",
+    "pitch_confidence",
+    "spectral_centroid_hz",
+    "spectral_flux"
+  ],
+  "protocol": {
+    "frame_ms": 250,
+    "learner_reset_at_each_clip": true,
+    "hyperparameter_changes_after_fetch": false,
+    "baselines": ["persistence", "exponential_moving_average"],
+    "primary_metric": "RMSE"
+  },
+  "safety_acceptance_rule": {
+    "applies_to_each_feature_across_all_evaluation_clips": true,
+    "maximum_mean_regret_fraction_vs_best_baseline": 0.05,
+    "maximum_single_clip_regret_fraction_vs_best_baseline": 0.15,
+    "all_predictions_must_be_finite": true
+  },
+  "superiority_rule": {
+    "minimum_clip_win_rate": 0.5,
+    "strictly_separate_from_safety_acceptance": true
+  },
+  "claim_boundary": "Passing safety supports a conservative bounded online learner. Only the separate superiority rule supports predictive advantage."
+}

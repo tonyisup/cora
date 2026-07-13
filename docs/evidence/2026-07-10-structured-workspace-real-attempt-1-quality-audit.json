@@ -1,0 +1,50 @@
+{
+  "experiment": "structured_workspace_binding_real_attempt_1_quality_audit",
+  "date": "2026-07-10",
+  "preregistration_sha256": "6ab36d83704eba5011e7e51e9179b35079871ca5db684a2b1299fa19ddefb8e9",
+  "raw_result_sha256": "b0f1caab6914575caf0ad08c269bfa62372d3b24c11181c7ef2c1e1296fbd61b",
+  "raw_result_verdict": "real_io_acceptance_passed",
+  "post_run_quality_verdict": "classification_passed_promotion_blocked_by_clipping",
+  "classification": {
+    "scheduled_capacity_three_f1": 1.0,
+    "scheduled_world_recall": 1.0,
+    "scheduled_self_suppression_specificity": 1.0,
+    "flat_f1": 0.8,
+    "fixed_window_world_recall": 0.5,
+    "capacity_f1_1_2_3_4": [
+      0.8571428571428571,
+      0.9230769230769231,
+      1.0,
+      1.0
+    ]
+  },
+  "capture_quality": {
+    "capture_count": 15,
+    "captures_with_clipped_samples": 9,
+    "total_clipped_samples": 2287,
+    "maximum_clipped_sample_fraction": 0.006365,
+    "clipped_conditions": {
+      "self_only": 6,
+      "overlap": 3,
+      "world_only": 0
+    },
+    "maximum_peak_absolute": 1.0
+  },
+  "promotion_allowed_after_quality_audit": false,
+  "reason": "All self-bearing captures reached full scale. Although the frozen spectral classification gate passed decisively, clipping can distort relative spectral evidence and was not a preregistered quality criterion in attempt 1.",
+  "retry_change": {
+    "self_playback_gain_db_before": 0.0,
+    "self_playback_gain_db_after": -12.0,
+    "world_playback_gain_db": 0.0,
+    "new_preregistered_quality_gate": "zero clipped samples across all 15 captures",
+    "unchanged": [
+      "physical geometry",
+      "system and hardware volume settings",
+      "stimuli and splits",
+      "development-only threshold rule",
+      "classification acceptance criteria",
+      "binding capacities"
+    ]
+  },
+  "claim_boundary": "Attempt 1 is retained as a real synchronized protocol result and a quality failure. Its raw promotion_allowed field is superseded by this clipping audit; it does not promote H3."
+}

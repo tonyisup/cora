@@ -1,0 +1,107 @@
+{
+  "mode": "h4_option_g_failure_analysis_post_hoc",
+  "source_result": "docs/evidence/2026-07-11-h4-option-g-expanded-local-closure-result.json",
+  "source_result_sha256": "5bbd7dfadbe85f02ad5b71748327bc82ce451fb1212c2be259188d2dd16a743d",
+  "candidate_configuration_changed": false,
+  "threshold_selected": false,
+  "spent_forward_points_replayed_descriptively": true,
+  "correlations": {
+    "error_vs_nearest_prototype_motor_distance": 0.21005446649695242,
+    "error_vs_boundary_margin": -0.16225544400987185,
+    "error_vs_constriction_magnitude": 0.41489881802879686
+  },
+  "boundary_margin_quartiles": [
+    {
+      "quartile": 1,
+      "margin_bounds": [
+        0.00029586551977440426,
+        0.08408567746175091
+      ],
+      "count": 128,
+      "mean_error": 0.3322049115266894
+    },
+    {
+      "quartile": 2,
+      "margin_bounds": [
+        0.08408567746175091,
+        0.19364345850548503
+      ],
+      "count": 128,
+      "mean_error": 0.3158422395964978
+    },
+    {
+      "quartile": 3,
+      "margin_bounds": [
+        0.19364345850548503,
+        0.30706719570126195
+      ],
+      "count": 128,
+      "mean_error": 0.2822390731230311
+    },
+    {
+      "quartile": 4,
+      "margin_bounds": [
+        0.30706719570126195,
+        0.6998659675789426
+      ],
+      "count": 128,
+      "mean_error": 0.2646583792830743
+    }
+  ],
+  "inverse_by_vowel": {
+    "a": {
+      "mean_acoustic_cycle_distance": 0.1595517880804523,
+      "mean_projected_motor_error": 0.2601978676056108,
+      "mean_formant_errors_hz": [
+        35.0,
+        150.0,
+        95.0
+      ],
+      "agreement_fraction": 0.0
+    },
+    "e": {
+      "mean_acoustic_cycle_distance": 0.13294570130358713,
+      "mean_projected_motor_error": 0.4731992922768467,
+      "mean_formant_errors_hz": [
+        10.0,
+        15.0,
+        165.0
+      ],
+      "agreement_fraction": 0.0
+    },
+    "i": {
+      "mean_acoustic_cycle_distance": 0.08590466213884526,
+      "mean_projected_motor_error": 0.1295427136204805,
+      "mean_formant_errors_hz": [
+        5.0,
+        60.0,
+        285.0
+      ],
+      "agreement_fraction": 1.0
+    },
+    "o": {
+      "mean_acoustic_cycle_distance": 0.06107372974163247,
+      "mean_projected_motor_error": 0.23078724255658314,
+      "mean_formant_errors_hz": [
+        20.0,
+        20.0,
+        10.0
+      ],
+      "agreement_fraction": 0.0
+    },
+    "u": {
+      "mean_acoustic_cycle_distance": 0.0721401885203744,
+      "mean_projected_motor_error": 0.06666661578632177,
+      "mean_formant_errors_hz": [
+        10.0,
+        25.0,
+        155.0
+      ],
+      "agreement_fraction": 1.0
+    }
+  },
+  "interpretation": "Hard winner boundaries and high-constriction curvature both contribute. This supports testing a smooth local partition-of-unity mechanism on disjoint points, not increasing Option G capacity or relaxing its gates.",
+  "recorded_audio_accessed": false,
+  "protected_data_accessed": false,
+  "promotion_allowed": false
+}

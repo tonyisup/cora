@@ -1,0 +1,1000 @@
+{
+  "mode": "spent_real_capture_workspace_binding_design",
+  "evidence_class": "spent_prior_art_real_capture_summary_features",
+  "promotion_allowed": false,
+  "implementation_sha256": "22c16822cc90d86f3a72cd6784681fd5844f28b4717f69f337d3b80932d82450",
+  "cli_sha256": "93fb75f44571b0689fb0ade17f40374a606c5120253305ece983ad1cf5fcac90",
+  "development_families": [
+    "m2_calibrated_matrix_20260429_092841",
+    "m2_energy_onset_matrix_20260429_093045"
+  ],
+  "evaluation_family": "m2_energy_forward_tol75_matrix_20260429_093302",
+  "world_control": "control_world-only_seed0_in3_out5_noise4_20260429_091828",
+  "thresholds": {
+    "self_identity_score": 0.11705233156681061,
+    "bottom_up_world_speech_ratio": 0.490625,
+    "selected_from_development_only": true
+  },
+  "capacity_sweep": {
+    "1": {
+      "flat": {
+        "strategy": "flat",
+        "capacity": 1,
+        "retained_bindings": [
+          "self_seed_2"
+        ],
+        "bounded_binding_slots": 1,
+        "threshold_scalars": 2,
+        "metrics": {
+          "tp": 4,
+          "fp": 3,
+          "tn": 0,
+          "fn": 0,
+          "precision": 0.5714285714285714,
+          "world_recall": 1,
+          "self_suppression_specificity": 0,
+          "f1": 0.7272727272727273
+        },
+        "decisions": [
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:self_only_seed0",
+            "efference_bound": false,
+            "self_present": false,
+            "bottom_up_world_evidence": false,
+            "expected_world_usable": false,
+            "predicted_world_usable": true
+          },
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:mixed_seed0",
+            "efference_bound": false,
+            "self_present": false,
+            "bottom_up_world_evidence": true,
+            "expected_world_usable": true,
+            "predicted_world_usable": true
+          },
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:self_only_seed1",
+            "efference_bound": false,
+            "self_present": false,
+            "bottom_up_world_evidence": false,
+            "expected_world_usable": false,
+            "predicted_world_usable": true
+          },
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:mixed_seed1",
+            "efference_bound": false,
+            "self_present": false,
+            "bottom_up_world_evidence": true,
+            "expected_world_usable": true,
+            "predicted_world_usable": true
+          },
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:self_only_seed2",
+            "efference_bound": true,
+            "self_present": true,
+            "bottom_up_world_evidence": false,
+            "expected_world_usable": false,
+            "predicted_world_usable": true
+          },
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:mixed_seed2",
+            "efference_bound": true,
+            "self_present": true,
+            "bottom_up_world_evidence": true,
+            "expected_world_usable": true,
+            "predicted_world_usable": true
+          },
+          {
+            "clip_id": "control_world-only_seed0_in3_out5_noise4_20260429_091828:world_only_seed0",
+            "efference_bound": false,
+            "self_present": false,
+            "bottom_up_world_evidence": true,
+            "expected_world_usable": true,
+            "predicted_world_usable": true
+          }
+        ]
+      },
+      "identity_only": {
+        "strategy": "identity_only",
+        "capacity": 1,
+        "retained_bindings": [
+          "self_seed_2"
+        ],
+        "bounded_binding_slots": 1,
+        "threshold_scalars": 2,
+        "metrics": {
+          "tp": 3,
+          "fp": 2,
+          "tn": 1,
+          "fn": 1,
+          "precision": 0.6,
+          "world_recall": 0.75,
+          "self_suppression_specificity": 0.3333333333333333,
+          "f1": 0.6666666666666666
+        },
+        "decisions": [
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:self_only_seed0",
+            "efference_bound": false,
+            "self_present": false,
+            "bottom_up_world_evidence": false,
+            "expected_world_usable": false,
+            "predicted_world_usable": true
+          },
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:mixed_seed0",
+            "efference_bound": false,
+            "self_present": false,
+            "bottom_up_world_evidence": true,
+            "expected_world_usable": true,
+            "predicted_world_usable": true
+          },
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:self_only_seed1",
+            "efference_bound": false,
+            "self_present": false,
+            "bottom_up_world_evidence": false,
+            "expected_world_usable": false,
+            "predicted_world_usable": true
+          },
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:mixed_seed1",
+            "efference_bound": false,
+            "self_present": false,
+            "bottom_up_world_evidence": true,
+            "expected_world_usable": true,
+            "predicted_world_usable": true
+          },
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:self_only_seed2",
+            "efference_bound": true,
+            "self_present": true,
+            "bottom_up_world_evidence": false,
+            "expected_world_usable": false,
+            "predicted_world_usable": false
+          },
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:mixed_seed2",
+            "efference_bound": true,
+            "self_present": true,
+            "bottom_up_world_evidence": true,
+            "expected_world_usable": true,
+            "predicted_world_usable": false
+          },
+          {
+            "clip_id": "control_world-only_seed0_in3_out5_noise4_20260429_091828:world_only_seed0",
+            "efference_bound": false,
+            "self_present": false,
+            "bottom_up_world_evidence": true,
+            "expected_world_usable": true,
+            "predicted_world_usable": true
+          }
+        ]
+      },
+      "identity_plus_world_evidence": {
+        "strategy": "identity_plus_world_evidence",
+        "capacity": 1,
+        "retained_bindings": [
+          "self_seed_2"
+        ],
+        "bounded_binding_slots": 1,
+        "threshold_scalars": 2,
+        "metrics": {
+          "tp": 4,
+          "fp": 2,
+          "tn": 1,
+          "fn": 0,
+          "precision": 0.6666666666666666,
+          "world_recall": 1,
+          "self_suppression_specificity": 0.3333333333333333,
+          "f1": 0.8
+        },
+        "decisions": [
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:self_only_seed0",
+            "efference_bound": false,
+            "self_present": false,
+            "bottom_up_world_evidence": false,
+            "expected_world_usable": false,
+            "predicted_world_usable": true
+          },
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:mixed_seed0",
+            "efference_bound": false,
+            "self_present": false,
+            "bottom_up_world_evidence": true,
+            "expected_world_usable": true,
+            "predicted_world_usable": true
+          },
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:self_only_seed1",
+            "efference_bound": false,
+            "self_present": false,
+            "bottom_up_world_evidence": false,
+            "expected_world_usable": false,
+            "predicted_world_usable": true
+          },
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:mixed_seed1",
+            "efference_bound": false,
+            "self_present": false,
+            "bottom_up_world_evidence": true,
+            "expected_world_usable": true,
+            "predicted_world_usable": true
+          },
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:self_only_seed2",
+            "efference_bound": true,
+            "self_present": true,
+            "bottom_up_world_evidence": false,
+            "expected_world_usable": false,
+            "predicted_world_usable": false
+          },
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:mixed_seed2",
+            "efference_bound": true,
+            "self_present": true,
+            "bottom_up_world_evidence": true,
+            "expected_world_usable": true,
+            "predicted_world_usable": true
+          },
+          {
+            "clip_id": "control_world-only_seed0_in3_out5_noise4_20260429_091828:world_only_seed0",
+            "efference_bound": false,
+            "self_present": false,
+            "bottom_up_world_evidence": true,
+            "expected_world_usable": true,
+            "predicted_world_usable": true
+          }
+        ]
+      }
+    },
+    "2": {
+      "flat": {
+        "strategy": "flat",
+        "capacity": 2,
+        "retained_bindings": [
+          "self_seed_1",
+          "self_seed_2"
+        ],
+        "bounded_binding_slots": 2,
+        "threshold_scalars": 2,
+        "metrics": {
+          "tp": 4,
+          "fp": 3,
+          "tn": 0,
+          "fn": 0,
+          "precision": 0.5714285714285714,
+          "world_recall": 1,
+          "self_suppression_specificity": 0,
+          "f1": 0.7272727272727273
+        },
+        "decisions": [
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:self_only_seed0",
+            "efference_bound": false,
+            "self_present": false,
+            "bottom_up_world_evidence": false,
+            "expected_world_usable": false,
+            "predicted_world_usable": true
+          },
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:mixed_seed0",
+            "efference_bound": false,
+            "self_present": false,
+            "bottom_up_world_evidence": true,
+            "expected_world_usable": true,
+            "predicted_world_usable": true
+          },
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:self_only_seed1",
+            "efference_bound": true,
+            "self_present": true,
+            "bottom_up_world_evidence": false,
+            "expected_world_usable": false,
+            "predicted_world_usable": true
+          },
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:mixed_seed1",
+            "efference_bound": true,
+            "self_present": true,
+            "bottom_up_world_evidence": true,
+            "expected_world_usable": true,
+            "predicted_world_usable": true
+          },
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:self_only_seed2",
+            "efference_bound": true,
+            "self_present": true,
+            "bottom_up_world_evidence": false,
+            "expected_world_usable": false,
+            "predicted_world_usable": true
+          },
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:mixed_seed2",
+            "efference_bound": true,
+            "self_present": true,
+            "bottom_up_world_evidence": true,
+            "expected_world_usable": true,
+            "predicted_world_usable": true
+          },
+          {
+            "clip_id": "control_world-only_seed0_in3_out5_noise4_20260429_091828:world_only_seed0",
+            "efference_bound": false,
+            "self_present": false,
+            "bottom_up_world_evidence": true,
+            "expected_world_usable": true,
+            "predicted_world_usable": true
+          }
+        ]
+      },
+      "identity_only": {
+        "strategy": "identity_only",
+        "capacity": 2,
+        "retained_bindings": [
+          "self_seed_1",
+          "self_seed_2"
+        ],
+        "bounded_binding_slots": 2,
+        "threshold_scalars": 2,
+        "metrics": {
+          "tp": 2,
+          "fp": 1,
+          "tn": 2,
+          "fn": 2,
+          "precision": 0.6666666666666666,
+          "world_recall": 0.5,
+          "self_suppression_specificity": 0.6666666666666666,
+          "f1": 0.5714285714285714
+        },
+        "decisions": [
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:self_only_seed0",
+            "efference_bound": false,
+            "self_present": false,
+            "bottom_up_world_evidence": false,
+            "expected_world_usable": false,
+            "predicted_world_usable": true
+          },
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:mixed_seed0",
+            "efference_bound": false,
+            "self_present": false,
+            "bottom_up_world_evidence": true,
+            "expected_world_usable": true,
+            "predicted_world_usable": true
+          },
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:self_only_seed1",
+            "efference_bound": true,
+            "self_present": true,
+            "bottom_up_world_evidence": false,
+            "expected_world_usable": false,
+            "predicted_world_usable": false
+          },
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:mixed_seed1",
+            "efference_bound": true,
+            "self_present": true,
+            "bottom_up_world_evidence": true,
+            "expected_world_usable": true,
+            "predicted_world_usable": false
+          },
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:self_only_seed2",
+            "efference_bound": true,
+            "self_present": true,
+            "bottom_up_world_evidence": false,
+            "expected_world_usable": false,
+            "predicted_world_usable": false
+          },
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:mixed_seed2",
+            "efference_bound": true,
+            "self_present": true,
+            "bottom_up_world_evidence": true,
+            "expected_world_usable": true,
+            "predicted_world_usable": false
+          },
+          {
+            "clip_id": "control_world-only_seed0_in3_out5_noise4_20260429_091828:world_only_seed0",
+            "efference_bound": false,
+            "self_present": false,
+            "bottom_up_world_evidence": true,
+            "expected_world_usable": true,
+            "predicted_world_usable": true
+          }
+        ]
+      },
+      "identity_plus_world_evidence": {
+        "strategy": "identity_plus_world_evidence",
+        "capacity": 2,
+        "retained_bindings": [
+          "self_seed_1",
+          "self_seed_2"
+        ],
+        "bounded_binding_slots": 2,
+        "threshold_scalars": 2,
+        "metrics": {
+          "tp": 4,
+          "fp": 1,
+          "tn": 2,
+          "fn": 0,
+          "precision": 0.8,
+          "world_recall": 1,
+          "self_suppression_specificity": 0.6666666666666666,
+          "f1": 0.8888888888888888
+        },
+        "decisions": [
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:self_only_seed0",
+            "efference_bound": false,
+            "self_present": false,
+            "bottom_up_world_evidence": false,
+            "expected_world_usable": false,
+            "predicted_world_usable": true
+          },
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:mixed_seed0",
+            "efference_bound": false,
+            "self_present": false,
+            "bottom_up_world_evidence": true,
+            "expected_world_usable": true,
+            "predicted_world_usable": true
+          },
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:self_only_seed1",
+            "efference_bound": true,
+            "self_present": true,
+            "bottom_up_world_evidence": false,
+            "expected_world_usable": false,
+            "predicted_world_usable": false
+          },
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:mixed_seed1",
+            "efference_bound": true,
+            "self_present": true,
+            "bottom_up_world_evidence": true,
+            "expected_world_usable": true,
+            "predicted_world_usable": true
+          },
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:self_only_seed2",
+            "efference_bound": true,
+            "self_present": true,
+            "bottom_up_world_evidence": false,
+            "expected_world_usable": false,
+            "predicted_world_usable": false
+          },
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:mixed_seed2",
+            "efference_bound": true,
+            "self_present": true,
+            "bottom_up_world_evidence": true,
+            "expected_world_usable": true,
+            "predicted_world_usable": true
+          },
+          {
+            "clip_id": "control_world-only_seed0_in3_out5_noise4_20260429_091828:world_only_seed0",
+            "efference_bound": false,
+            "self_present": false,
+            "bottom_up_world_evidence": true,
+            "expected_world_usable": true,
+            "predicted_world_usable": true
+          }
+        ]
+      }
+    },
+    "3": {
+      "flat": {
+        "strategy": "flat",
+        "capacity": 3,
+        "retained_bindings": [
+          "self_seed_0",
+          "self_seed_1",
+          "self_seed_2"
+        ],
+        "bounded_binding_slots": 3,
+        "threshold_scalars": 2,
+        "metrics": {
+          "tp": 4,
+          "fp": 3,
+          "tn": 0,
+          "fn": 0,
+          "precision": 0.5714285714285714,
+          "world_recall": 1,
+          "self_suppression_specificity": 0,
+          "f1": 0.7272727272727273
+        },
+        "decisions": [
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:self_only_seed0",
+            "efference_bound": true,
+            "self_present": true,
+            "bottom_up_world_evidence": false,
+            "expected_world_usable": false,
+            "predicted_world_usable": true
+          },
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:mixed_seed0",
+            "efference_bound": true,
+            "self_present": true,
+            "bottom_up_world_evidence": true,
+            "expected_world_usable": true,
+            "predicted_world_usable": true
+          },
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:self_only_seed1",
+            "efference_bound": true,
+            "self_present": true,
+            "bottom_up_world_evidence": false,
+            "expected_world_usable": false,
+            "predicted_world_usable": true
+          },
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:mixed_seed1",
+            "efference_bound": true,
+            "self_present": true,
+            "bottom_up_world_evidence": true,
+            "expected_world_usable": true,
+            "predicted_world_usable": true
+          },
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:self_only_seed2",
+            "efference_bound": true,
+            "self_present": true,
+            "bottom_up_world_evidence": false,
+            "expected_world_usable": false,
+            "predicted_world_usable": true
+          },
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:mixed_seed2",
+            "efference_bound": true,
+            "self_present": true,
+            "bottom_up_world_evidence": true,
+            "expected_world_usable": true,
+            "predicted_world_usable": true
+          },
+          {
+            "clip_id": "control_world-only_seed0_in3_out5_noise4_20260429_091828:world_only_seed0",
+            "efference_bound": false,
+            "self_present": false,
+            "bottom_up_world_evidence": true,
+            "expected_world_usable": true,
+            "predicted_world_usable": true
+          }
+        ]
+      },
+      "identity_only": {
+        "strategy": "identity_only",
+        "capacity": 3,
+        "retained_bindings": [
+          "self_seed_0",
+          "self_seed_1",
+          "self_seed_2"
+        ],
+        "bounded_binding_slots": 3,
+        "threshold_scalars": 2,
+        "metrics": {
+          "tp": 1,
+          "fp": 0,
+          "tn": 3,
+          "fn": 3,
+          "precision": 1,
+          "world_recall": 0.25,
+          "self_suppression_specificity": 1,
+          "f1": 0.4
+        },
+        "decisions": [
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:self_only_seed0",
+            "efference_bound": true,
+            "self_present": true,
+            "bottom_up_world_evidence": false,
+            "expected_world_usable": false,
+            "predicted_world_usable": false
+          },
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:mixed_seed0",
+            "efference_bound": true,
+            "self_present": true,
+            "bottom_up_world_evidence": true,
+            "expected_world_usable": true,
+            "predicted_world_usable": false
+          },
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:self_only_seed1",
+            "efference_bound": true,
+            "self_present": true,
+            "bottom_up_world_evidence": false,
+            "expected_world_usable": false,
+            "predicted_world_usable": false
+          },
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:mixed_seed1",
+            "efference_bound": true,
+            "self_present": true,
+            "bottom_up_world_evidence": true,
+            "expected_world_usable": true,
+            "predicted_world_usable": false
+          },
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:self_only_seed2",
+            "efference_bound": true,
+            "self_present": true,
+            "bottom_up_world_evidence": false,
+            "expected_world_usable": false,
+            "predicted_world_usable": false
+          },
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:mixed_seed2",
+            "efference_bound": true,
+            "self_present": true,
+            "bottom_up_world_evidence": true,
+            "expected_world_usable": true,
+            "predicted_world_usable": false
+          },
+          {
+            "clip_id": "control_world-only_seed0_in3_out5_noise4_20260429_091828:world_only_seed0",
+            "efference_bound": false,
+            "self_present": false,
+            "bottom_up_world_evidence": true,
+            "expected_world_usable": true,
+            "predicted_world_usable": true
+          }
+        ]
+      },
+      "identity_plus_world_evidence": {
+        "strategy": "identity_plus_world_evidence",
+        "capacity": 3,
+        "retained_bindings": [
+          "self_seed_0",
+          "self_seed_1",
+          "self_seed_2"
+        ],
+        "bounded_binding_slots": 3,
+        "threshold_scalars": 2,
+        "metrics": {
+          "tp": 4,
+          "fp": 0,
+          "tn": 3,
+          "fn": 0,
+          "precision": 1,
+          "world_recall": 1,
+          "self_suppression_specificity": 1,
+          "f1": 1
+        },
+        "decisions": [
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:self_only_seed0",
+            "efference_bound": true,
+            "self_present": true,
+            "bottom_up_world_evidence": false,
+            "expected_world_usable": false,
+            "predicted_world_usable": false
+          },
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:mixed_seed0",
+            "efference_bound": true,
+            "self_present": true,
+            "bottom_up_world_evidence": true,
+            "expected_world_usable": true,
+            "predicted_world_usable": true
+          },
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:self_only_seed1",
+            "efference_bound": true,
+            "self_present": true,
+            "bottom_up_world_evidence": false,
+            "expected_world_usable": false,
+            "predicted_world_usable": false
+          },
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:mixed_seed1",
+            "efference_bound": true,
+            "self_present": true,
+            "bottom_up_world_evidence": true,
+            "expected_world_usable": true,
+            "predicted_world_usable": true
+          },
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:self_only_seed2",
+            "efference_bound": true,
+            "self_present": true,
+            "bottom_up_world_evidence": false,
+            "expected_world_usable": false,
+            "predicted_world_usable": false
+          },
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:mixed_seed2",
+            "efference_bound": true,
+            "self_present": true,
+            "bottom_up_world_evidence": true,
+            "expected_world_usable": true,
+            "predicted_world_usable": true
+          },
+          {
+            "clip_id": "control_world-only_seed0_in3_out5_noise4_20260429_091828:world_only_seed0",
+            "efference_bound": false,
+            "self_present": false,
+            "bottom_up_world_evidence": true,
+            "expected_world_usable": true,
+            "predicted_world_usable": true
+          }
+        ]
+      }
+    },
+    "4": {
+      "flat": {
+        "strategy": "flat",
+        "capacity": 4,
+        "retained_bindings": [
+          "self_seed_0",
+          "self_seed_1",
+          "self_seed_2"
+        ],
+        "bounded_binding_slots": 4,
+        "threshold_scalars": 2,
+        "metrics": {
+          "tp": 4,
+          "fp": 3,
+          "tn": 0,
+          "fn": 0,
+          "precision": 0.5714285714285714,
+          "world_recall": 1,
+          "self_suppression_specificity": 0,
+          "f1": 0.7272727272727273
+        },
+        "decisions": [
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:self_only_seed0",
+            "efference_bound": true,
+            "self_present": true,
+            "bottom_up_world_evidence": false,
+            "expected_world_usable": false,
+            "predicted_world_usable": true
+          },
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:mixed_seed0",
+            "efference_bound": true,
+            "self_present": true,
+            "bottom_up_world_evidence": true,
+            "expected_world_usable": true,
+            "predicted_world_usable": true
+          },
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:self_only_seed1",
+            "efference_bound": true,
+            "self_present": true,
+            "bottom_up_world_evidence": false,
+            "expected_world_usable": false,
+            "predicted_world_usable": true
+          },
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:mixed_seed1",
+            "efference_bound": true,
+            "self_present": true,
+            "bottom_up_world_evidence": true,
+            "expected_world_usable": true,
+            "predicted_world_usable": true
+          },
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:self_only_seed2",
+            "efference_bound": true,
+            "self_present": true,
+            "bottom_up_world_evidence": false,
+            "expected_world_usable": false,
+            "predicted_world_usable": true
+          },
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:mixed_seed2",
+            "efference_bound": true,
+            "self_present": true,
+            "bottom_up_world_evidence": true,
+            "expected_world_usable": true,
+            "predicted_world_usable": true
+          },
+          {
+            "clip_id": "control_world-only_seed0_in3_out5_noise4_20260429_091828:world_only_seed0",
+            "efference_bound": false,
+            "self_present": false,
+            "bottom_up_world_evidence": true,
+            "expected_world_usable": true,
+            "predicted_world_usable": true
+          }
+        ]
+      },
+      "identity_only": {
+        "strategy": "identity_only",
+        "capacity": 4,
+        "retained_bindings": [
+          "self_seed_0",
+          "self_seed_1",
+          "self_seed_2"
+        ],
+        "bounded_binding_slots": 4,
+        "threshold_scalars": 2,
+        "metrics": {
+          "tp": 1,
+          "fp": 0,
+          "tn": 3,
+          "fn": 3,
+          "precision": 1,
+          "world_recall": 0.25,
+          "self_suppression_specificity": 1,
+          "f1": 0.4
+        },
+        "decisions": [
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:self_only_seed0",
+            "efference_bound": true,
+            "self_present": true,
+            "bottom_up_world_evidence": false,
+            "expected_world_usable": false,
+            "predicted_world_usable": false
+          },
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:mixed_seed0",
+            "efference_bound": true,
+            "self_present": true,
+            "bottom_up_world_evidence": true,
+            "expected_world_usable": true,
+            "predicted_world_usable": false
+          },
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:self_only_seed1",
+            "efference_bound": true,
+            "self_present": true,
+            "bottom_up_world_evidence": false,
+            "expected_world_usable": false,
+            "predicted_world_usable": false
+          },
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:mixed_seed1",
+            "efference_bound": true,
+            "self_present": true,
+            "bottom_up_world_evidence": true,
+            "expected_world_usable": true,
+            "predicted_world_usable": false
+          },
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:self_only_seed2",
+            "efference_bound": true,
+            "self_present": true,
+            "bottom_up_world_evidence": false,
+            "expected_world_usable": false,
+            "predicted_world_usable": false
+          },
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:mixed_seed2",
+            "efference_bound": true,
+            "self_present": true,
+            "bottom_up_world_evidence": true,
+            "expected_world_usable": true,
+            "predicted_world_usable": false
+          },
+          {
+            "clip_id": "control_world-only_seed0_in3_out5_noise4_20260429_091828:world_only_seed0",
+            "efference_bound": false,
+            "self_present": false,
+            "bottom_up_world_evidence": true,
+            "expected_world_usable": true,
+            "predicted_world_usable": true
+          }
+        ]
+      },
+      "identity_plus_world_evidence": {
+        "strategy": "identity_plus_world_evidence",
+        "capacity": 4,
+        "retained_bindings": [
+          "self_seed_0",
+          "self_seed_1",
+          "self_seed_2"
+        ],
+        "bounded_binding_slots": 4,
+        "threshold_scalars": 2,
+        "metrics": {
+          "tp": 4,
+          "fp": 0,
+          "tn": 3,
+          "fn": 0,
+          "precision": 1,
+          "world_recall": 1,
+          "self_suppression_specificity": 1,
+          "f1": 1
+        },
+        "decisions": [
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:self_only_seed0",
+            "efference_bound": true,
+            "self_present": true,
+            "bottom_up_world_evidence": false,
+            "expected_world_usable": false,
+            "predicted_world_usable": false
+          },
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:mixed_seed0",
+            "efference_bound": true,
+            "self_present": true,
+            "bottom_up_world_evidence": true,
+            "expected_world_usable": true,
+            "predicted_world_usable": true
+          },
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:self_only_seed1",
+            "efference_bound": true,
+            "self_present": true,
+            "bottom_up_world_evidence": false,
+            "expected_world_usable": false,
+            "predicted_world_usable": false
+          },
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:mixed_seed1",
+            "efference_bound": true,
+            "self_present": true,
+            "bottom_up_world_evidence": true,
+            "expected_world_usable": true,
+            "predicted_world_usable": true
+          },
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:self_only_seed2",
+            "efference_bound": true,
+            "self_present": true,
+            "bottom_up_world_evidence": false,
+            "expected_world_usable": false,
+            "predicted_world_usable": false
+          },
+          {
+            "clip_id": "m2_energy_forward_tol75_matrix_20260429_093302:mixed_seed2",
+            "efference_bound": true,
+            "self_present": true,
+            "bottom_up_world_evidence": true,
+            "expected_world_usable": true,
+            "predicted_world_usable": true
+          },
+          {
+            "clip_id": "control_world-only_seed0_in3_out5_noise4_20260429_091828:world_only_seed0",
+            "efference_bound": false,
+            "self_present": false,
+            "bottom_up_world_evidence": true,
+            "expected_world_usable": true,
+            "predicted_world_usable": true
+          }
+        ]
+      }
+    }
+  },
+  "selected_capacity": 3,
+  "criteria": {
+    "identity_plus_world_evidence_f1_at_least_0_90": true,
+    "f1_improves_over_flat_by_at_least_0_20": true,
+    "world_recall_at_least_0_90": true,
+    "self_suppression_specificity_at_least_0_90": true,
+    "identity_only_collision_failure_exposed": true,
+    "capacity_one_worse_than_capacity_three": true,
+    "capacity_three_plateaus_at_capacity_four": true
+  },
+  "all_design_criteria_passed": true,
+  "source_observed_sha256": {
+    "m2_calibrated_matrix_20260429_092841:self_only_seed0": "b958df3bc71ae642388287fcf2cc320ce774dbe7c67a8db611858e07df4d104c",
+    "m2_calibrated_matrix_20260429_092841:mixed_seed0": "110b59ecd071459bcfa784948f22da0f34f0a434f5591a44ed00e53c6e30feff",
+    "m2_calibrated_matrix_20260429_092841:self_only_seed1": "12b3016c16d2ab3490b1f4972900a971d0129e97790fb3ad48e9f1204e34e846",
+    "m2_calibrated_matrix_20260429_092841:mixed_seed1": "3c34df29c2dad5c8911d67573656865b7e1b4ddfabd7e155fc23f688280f155a",
+    "m2_calibrated_matrix_20260429_092841:self_only_seed2": "a0a30127e0d8c73d725e403e8ecd2746a35cceed01ecb4bca102215b41085f73",
+    "m2_calibrated_matrix_20260429_092841:mixed_seed2": "76e9880f549ac0808702092d6b590ba52284e430a1f2a38af0a7c193d35467f5",
+    "m2_energy_onset_matrix_20260429_093045:self_only_seed0": "110d3568d1e0b727901ce4b45d70874ef8f0f85e7d9ec7d391b08200f7dfd212",
+    "m2_energy_onset_matrix_20260429_093045:mixed_seed0": "b22820dfddc3b7dc9c044bee298f724740a6a464cbc18cc267db0762dfbd42c6",
+    "m2_energy_onset_matrix_20260429_093045:self_only_seed1": "5c5793429e369c4fe4e11eeedad9ccaa2d6c64d4b3bbb64d0859e60fc1bab2dc",
+    "m2_energy_onset_matrix_20260429_093045:mixed_seed1": "7d6b7a161fb8fca36c3bed38e9cc49c9f191e2d4af372a22c4e2601bb16b5070",
+    "m2_energy_onset_matrix_20260429_093045:self_only_seed2": "ffce9d242ceefeccb9470e4a29757db4b6de40e449027e4b32bb4476a9e49adb",
+    "m2_energy_onset_matrix_20260429_093045:mixed_seed2": "8d036c8c84b6c65529078951acbaa0329e4d9fc21f3a082bd5262beee90ba0f9",
+    "m2_energy_forward_tol75_matrix_20260429_093302:self_only_seed0": "e711432a2e527a99ca0de5850500f266ecdfd5ea5cf859317dc64727f9929512",
+    "m2_energy_forward_tol75_matrix_20260429_093302:mixed_seed0": "11a88ab0d8c04fd9082a726199dd5deb8d8e653b1dd1acf34b99db5fb6e232fc",
+    "m2_energy_forward_tol75_matrix_20260429_093302:self_only_seed1": "f2609f81096ad5c6750b5ef19796a48d5734b1f0e492732656e6a553a106e852",
+    "m2_energy_forward_tol75_matrix_20260429_093302:mixed_seed1": "d509bc227c777c9ba832a2a4150feb47e12348c9784cb190a662ce3df85a6146",
+    "m2_energy_forward_tol75_matrix_20260429_093302:self_only_seed2": "6529553a7c2fa14e7e05cdd4acad0d49ef580baa58ba494c80e6afe7e26fee2a",
+    "m2_energy_forward_tol75_matrix_20260429_093302:mixed_seed2": "ec109206f6a9b70e8d38ef81ada9aa39adcfe321e68fceacc03e347baabe9b09",
+    "control_world-only_seed0_in3_out5_noise4_20260429_091828:world_only_seed0": "69e8211184297ed285df44724555e02960a93ff3c8965644dbf61f2177d70ee6"
+  },
+  "claim_boundary": "Design evidence using Corollary-produced self-presence and speech summary features over retained real PCM. It does not recompute a signal residual, promote H3, or replace a fresh Cora playback/capture binding task."
+}

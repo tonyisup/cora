@@ -1,0 +1,44 @@
+{
+  "experiment": "expanded_spent_data_register_v6_fresh_fieldsites",
+  "registered_date": "2026-07-10",
+  "status": "registered_before_selected_audio_fetch",
+  "model_artifact": "2026-07-10-speaker-adaptive-register-model-v6.json",
+  "model_sha256": "43bcf7837f1a43ffed7b8459364c9dd5e678f21ddfdca5b182d3fd038f410d88",
+  "training_clip_count": 176,
+  "training_fieldsites": ["ACO", "ARA", "BEJ", "HAD", "JEN", "KRA", "LIM", "MBE", "MEN", "MES", "NYA", "QUE", "SPA", "TOP", "TSI", "VAN"],
+  "change_from_v5": "no new feature family; refit the same transparent model on every spent vocal fieldsite and select decision thresholds only from 16-fieldsite LOFO predictions",
+  "fresh_evaluation_fieldsites": {
+    "PNG": {
+      "society": "Enga",
+      "language_family": "Trans-New Guinea",
+      "participants": ["PNG01", "PNG04", "PNG06"]
+    },
+    "TUR": {
+      "society": "Turku",
+      "language_family": "Uralic and Indo-European",
+      "participants": ["TUR01", "TUR10", "TUR20"]
+    }
+  },
+  "required_conditions_per_participant": [
+    "infant_directed_song",
+    "infant_directed_speech",
+    "adult_directed_song",
+    "adult_directed_speech"
+  ],
+  "frozen_clip_level_baselines": {
+    "intensity_db_median": -46.522474966932535,
+    "pitch_confidence_median": 0.6157772178851884
+  },
+  "acceptance_rule": {
+    "minimum_pooled_f1": 0.65,
+    "minimum_f1_improvement_over_best_frozen_baseline": 0.10,
+    "maximum_pooled_false_positive_rate": 0.15,
+    "maximum_pooled_song_false_positive_rate": 0.15,
+    "minimum_each_fieldsite_f1": 0.50,
+    "minimum_vocal_recall": 0.95,
+    "all_speakers_must_be_calibrated": true,
+    "all_files_must_decode_and_produce_finite_features": true
+  },
+  "stop_rule": "If this two-fieldsite confirmation fails, do not consume WEL, USD, or TOR for another threshold/refit iteration of the same feature family.",
+  "claim_boundary": "A pass supports a larger-data, batch-calibrated five-second register scorer on two additional societies. It does not establish cold-start, causal, or universal parentese detection."
+}

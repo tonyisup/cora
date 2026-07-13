@@ -1,0 +1,82 @@
+{
+  "experiment": "music_lab_ids_vs_ads_confirmation",
+  "date": "2026-07-10",
+  "verdict": "narrow_participant_disjoint_gate_passed",
+  "evidence_kind": "real_audio",
+  "dataset": {
+    "doi": "10.5281/zenodo.5525161",
+    "license": "CC BY-NC-SA 4.0",
+    "archive": "IDS-corpus-edited.zip",
+    "archive_md5": "143cfcde407b123635b1fbe45b1fabe6",
+    "acquisition": "HTTP byte-range extraction; audio retained outside repository"
+  },
+  "protocol": {
+    "frame_ms": 250,
+    "threshold_selection": "max development F1, then minimum FPR, then accuracy",
+    "positive_label": "infant_directed_speech",
+    "development_participants": ["BEJ06", "BEJ07", "BEJ11", "BEJ21"],
+    "held_out_participants": ["BEJ01", "BEJ10"],
+    "pilot_participant_overlap_count": 0,
+    "participant_leakage_count": 0,
+    "rule_fixed_before_audio_fetch": {
+      "minimum_f1_improvement_over_peak_rms": 0.05,
+      "maximum_fpr_increase_over_peak_rms": 0.05
+    }
+  },
+  "held_out_metrics": {
+    "peak_rms": {
+      "threshold": 0.005898588836552925,
+      "precision": 0.46296296296296297,
+      "recall": 0.5681818181818182,
+      "f1": 0.5102040816326531,
+      "false_positive_rate": 0.5471698113207547
+    },
+    "pitch_confidence": {
+      "threshold": 0.6621557103908495,
+      "precision": 0.49193548387096775,
+      "recall": 0.6931818181818182,
+      "f1": 0.5754716981132075,
+      "false_positive_rate": 0.5943396226415094
+    },
+    "f1_improvement": 0.06526761648055445,
+    "fpr_increase": 0.04716981132075472
+  },
+  "predictive_probe": {
+    "within_beijing": {
+      "online_local_wins_per_feature": 0,
+      "pitch_confidence_phase_wins": "4/4",
+      "spectral_flux_phase_wins": "4/4"
+    },
+    "aco_development_to_beijing_held_out": {
+      "spectral_centroid_phase_wins": "3/4",
+      "spectral_centroid_rmse_improvement_fractions": [
+        0.010929213059942447,
+        0.12460554490555051,
+        0.02322140850077096,
+        -0.009914138812996028
+      ],
+      "other_features_passed": false
+    }
+  },
+  "limitations": [
+    "single-fieldsite saliency confirmation",
+    "high absolute false-positive rates",
+    "no music or environmental-noise controls",
+    "phase predictor is onset-relative rather than semantic",
+    "online local predictor did not beat baselines"
+  ],
+  "selected_file_sha256": {
+    "BEJ01B.wav": "a8144aea0c3b20ff01c7d7d894518b038ecc494384a554ad6f770bb1ffe140f3",
+    "BEJ01D.wav": "98edd12709f9bcd1630d73d788c4c3b354cd3130b6cddcbbeadac2c0bee79f1f",
+    "BEJ06B.wav": "ff0a6b4cb93f4a48444a168919139e19ebfb00714ad1175f1fda928e170834cb",
+    "BEJ06D.wav": "224e233ff3acf1b2ae51f6e9218ae9d87723f0803367540866c3f9ed99c24b01",
+    "BEJ07B.wav": "5e41291a9764cc3f841448d2bdd1535cb0d551d6d3582ad95b4bc76fcfe25c12",
+    "BEJ07D.wav": "962bf444f382b6ed1f3073bd5b990eb8690f94b7fa1002208d1c2957ea52cafe",
+    "BEJ10B.wav": "a4602e5b397c0296b5c684b19bc8ea2e21bd9aac38b3dedc767b7c3d454b0ec5",
+    "BEJ10D.wav": "eddc91e79a837b8fdd0f37a70d35fe15922b5904f3a8080d033bf50341461a76",
+    "BEJ11B.wav": "ffbcd069ca55356e837d0a8f771a729f66a664994da1320700c832772f53e919",
+    "BEJ11D.wav": "e871007eac5741ccdb638e1b429a7fcc9fe70b7ca812683db71649fd1386a20f",
+    "BEJ21B.wav": "5ce4f60062df97b10ae87833f6d0c2f09fb07ef0f5e6fa47e4e585d979005c4a",
+    "BEJ21D.wav": "ff15f107f3bbef1f100a6bcc5544efbd1de663cc276caad396f0af1e69494fbd"
+  }
+}

@@ -1,0 +1,82 @@
+{
+  "experiment": "music_lab_cross_fieldsite_saliency_with_song_controls",
+  "date": "2026-07-10",
+  "preregistration": "2026-07-10-cross-fieldsite-preregistration.json",
+  "verdict": "failed_on_both_unseen_fieldsites",
+  "dataset_doi": "10.5281/zenodo.5525161",
+  "license": "CC BY-NC-SA 4.0",
+  "audio_location": "temporary external storage; not committed",
+  "participant_leakage_count": 0,
+  "fieldsites": {
+    "KRA": {
+      "participant_count": 3,
+      "clip_count": 12,
+      "frame_count": 612,
+      "peak_rms": {
+        "f1": 0.3835978835978836,
+        "false_positive_rate": 0.9978586723768736
+      },
+      "pitch_confidence": {
+        "f1": 0.31210191082802546,
+        "false_positive_rate": 0.8244111349036403
+      },
+      "f1_improvement": -0.07149597276985814,
+      "fpr_increase": -0.17344753747323338,
+      "gate_passed": false,
+      "pitch_negative_activation_rate": {
+        "adult_directed_speech": 0.5238095238095238,
+        "infant_directed_song": 0.9170506912442397,
+        "adult_directed_song": 0.8554216867469879
+      }
+    },
+    "MBE": {
+      "participant_count": 3,
+      "clip_count": 12,
+      "frame_count": 609,
+      "peak_rms": {
+        "f1": 0.1491628614916286,
+        "false_positive_rate": 0.9982142857142857
+      },
+      "pitch_confidence": {
+        "f1": 0.1265377855887522,
+        "false_positive_rate": 0.8642857142857143
+      },
+      "f1_improvement": -0.022625075902876407,
+      "fpr_increase": -0.1339285714285714,
+      "gate_passed": false,
+      "pitch_negative_activation_rate": {
+        "adult_directed_speech": 0.8387096774193549,
+        "infant_directed_song": 0.7578125,
+        "adult_directed_song": 0.9054054054054054
+      }
+    }
+  },
+  "all_fieldsites_passed": false,
+  "interpretation": "The frozen Beijing pitch-confidence threshold does not generalize. Song is a dominant confound and absolute recording level makes the frozen RMS gate nearly always positive.",
+  "selected_file_sha256": {
+    "KRA01A.wav": "7d3b0c447edadc4d21633f2763ac7366eddab20edfb2bc1096146ea17515e6f9",
+    "KRA01B.wav": "8cd3712cb93a3978aabbe6ed20668198b0befc25ea44a10bb6fd7854f3844db7",
+    "KRA01C.wav": "65e042dea885d9dc4b2d5fe9bd756ef6834e345ad8529bfa089787366d9ed64c",
+    "KRA01D.wav": "8dd90d2bd1ca0322f0c55466439a2079f197d761b7081a966ed928b1ddd25a2c",
+    "KRA06A.wav": "7c5e461b62f4582dedd24aed0cf496e7cfe402f34d85d24580e5d9882feb608b",
+    "KRA06B.wav": "8d5a72479096487870eff99d5774a4401d5516e4d2702cd58c42561418e73094",
+    "KRA06C.wav": "d522ff8054d6e7a25ea3172bf23b873229f7fa434f1866ac9b6aaad23a7651fd",
+    "KRA06D.wav": "1601e8db49efe5216be02478420a06c6e15a5c7ed25e8cd8447b70c766bed249",
+    "KRA07A.wav": "8e10f4dcabf6db4df1eb297894e8280cc2ea272bd2b56677cedebe0c86f92dbb",
+    "KRA07B.wav": "e06bd3ccf1dfc93b3d0411819b6cf6ed3d2f67d292530f52b0f7601d7e6eb1ed",
+    "KRA07C.wav": "6e97381f7f09a657a03dda7748b5003d7815615b2cc339cd53127c20de055434",
+    "KRA07D.wav": "c75b517f138a200a644967ff1bb7282eea43b7a31b8ec3d365ac12bfa2211994",
+    "MBE02A.wav": "afe796d4fadccc1eff399021327dfad9095c4653a5dd28e707848209f9ab43ef",
+    "MBE02B.wav": "df5412fde22f6a32050992d7ece263b1dd6542a5b15b9c0234eb7262d139de2e",
+    "MBE02C.wav": "4f1d86a11a80fa04298b46867bb030850bc2492fae5cc9ad6005e46b3b99ee0e",
+    "MBE02D.wav": "1aa148625cf097e99c3fa3f92fbb586975b847775599750dab5d29850d94d6e9",
+    "MBE03A.wav": "b98fe1cd611594af61903ceb6f0b0ebda9bdf567b7db4661f75c6135d902d8a2",
+    "MBE03B.wav": "59d53416df9c7dd6713af79c982e920c67bf4948167f9cae9b542b44d4ecd903",
+    "MBE03C.wav": "8ea6011e8900cd8a8a07fcb03783c8148b78d7d506c7c12e887c3269ff4440f1",
+    "MBE03D.wav": "47f2acb9145a55ef93b58fec3d6e17ff0891dfc2ea93b5ead86b2fb30af6c31a",
+    "MBE05A.wav": "7f884ab72de06074cb40fb91f6ce2a4aa860ae69246448b59e844871bf7d9619",
+    "MBE05B.wav": "e360a94d9269916458b7cc8adf3fcf7b25ea13d461c604a8548f9c7f89b6a6b5",
+    "MBE05C.wav": "44da18000334dd562bc3b22758b500f31a40b6cfbd16c341bdd748f45f96ec30",
+    "MBE05D.wav": "02356e7670215b8788fc4c4374213eeee25ed6fa9b0dbad966f534d86ea6786b"
+  }
+}

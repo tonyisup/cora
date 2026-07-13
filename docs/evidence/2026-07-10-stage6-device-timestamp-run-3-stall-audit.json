@@ -1,0 +1,23 @@
+{
+  "experiment": "stage6_callback_device_timestamp_gate_run_3_stall_audit",
+  "date": "2026-07-10",
+  "status": "infrastructure_incomplete_retained",
+  "completed_eligible_replicates_before_stall": 2,
+  "failed_replicate": 3,
+  "expected_wall_seconds": 10,
+  "observed_wall_seconds_before_manual_termination_minimum": 70,
+  "stdout_received": false,
+  "process_terminated": true,
+  "diagnostic_followup": {
+    "duration_ms": 1000,
+    "frame_count": 40,
+    "completed": true,
+    "callback_status_count": 0,
+    "timestamp_discontinuity_count": 0,
+    "input_overflow_count": 0,
+    "device_frame_end_to_workspace_p95_ms": 10.258076748505118,
+    "interpretation": "The guarded short run did not reproduce a capture timeout. The intermittent stall is treated as callback stream shutdown/teardown risk."
+  },
+  "promotion_allowed": false,
+  "disposition": "Use PortAudio abort rather than drain-oriented stop for callback teardown, freeze the change before execution, and permit one replacement for the incomplete third replicate."
+}

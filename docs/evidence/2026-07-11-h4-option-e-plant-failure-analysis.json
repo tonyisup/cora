@@ -1,0 +1,257 @@
+{
+  "mode": "h4_option_e_plant_failure_analysis_post_hoc",
+  "source_result": "docs/evidence/2026-07-11-h4-option-e-plant-confirmation-result.json",
+  "source_result_sha256": "2bc66f6fffe7422b7241570532eff2da73d23040737dcf7d7e62388508bc4e9e",
+  "candidate_rerun": false,
+  "threshold_or_domain_selected": false,
+  "confirmation_points_are_spent": true,
+  "valid_count": 1015,
+  "missing_three_formant_count": 9,
+  "motor_coordinate_order": [
+    "jaw_aperture",
+    "constriction_magnitude",
+    "constriction_position",
+    "lip_aperture",
+    "lip_protrusion"
+  ],
+  "valid_motor_mean": [
+    0.49987486289639776,
+    0.4964582224314497,
+    0.49830336945812825,
+    0.4987724737024597,
+    0.5039831797001671
+  ],
+  "invalid_motor_mean": [
+    0.4655558268229167,
+    0.8855696116784365,
+    0.7252480000000001,
+    0.7150195355109974,
+    0.17020695307697561
+  ],
+  "invalid_motor_min": [
+    0.07623291015625,
+    0.7060407458212671,
+    0.4314880000000001,
+    0.23216516927470693,
+    0.05149921453452633
+  ],
+  "invalid_motor_max": [
+    0.95806884765625,
+    0.9982218157801147,
+    0.9306880000000001,
+    0.9606116499077765,
+    0.4414315962024452
+  ],
+  "missing_rows": [
+    {
+      "halton_index": 8273,
+      "motor": [
+        0.53912353515625,
+        0.7060407458212671,
+        0.7626880000000001,
+        0.9606116499077765,
+        0.12587937982378256
+      ],
+      "minimum_area_cm2": 0.45785143932378325,
+      "lip_area_cm2": 4.535144770277148,
+      "total_length_cm": 16.066457209207023,
+      "separated_peaks_80_3500_hz": [
+        475.0,
+        2110.0
+      ],
+      "separated_peaks_80_5000_hz": [
+        475.0,
+        2110.0,
+        3940.0,
+        4750.0
+      ]
+    },
+    {
+      "halton_index": 8294,
+      "motor": [
+        0.39849853515625,
+        0.7924604989076868,
+        0.9306880000000001,
+        0.8818944487415957,
+        0.05149921453452633
+      ],
+      "minimum_area_cm2": 0.3411167782982846,
+      "lip_area_cm2": 3.289312165227068,
+      "total_length_cm": 15.731746465405369,
+      "separated_peaks_80_3500_hz": [
+        390.0,
+        1975.0
+      ],
+      "separated_peaks_80_5000_hz": [
+        390.0,
+        1975.0,
+        3550.0,
+        4880.0
+      ]
+    },
+    {
+      "halton_index": 8504,
+      "motor": [
+        0.11138916015625,
+        0.9982218157801147,
+        0.805888,
+        0.9343725828523829,
+        0.11911754661566833
+      ],
+      "minimum_area_cm2": 0.17489097840181791,
+      "lip_area_cm2": 4.093980390295375,
+      "total_length_cm": 16.03602895977051,
+      "separated_peaks_80_3500_hz": [
+        345.0,
+        2205.0
+      ],
+      "separated_peaks_80_5000_hz": [
+        345.0,
+        2205.0,
+        3935.0,
+        4975.0
+      ]
+    },
+    {
+      "halton_index": 8573,
+      "motor": [
+        0.74420166015625,
+        0.8432149570695523,
+        0.7818880000000001,
+        0.8556553816862021,
+        0.4414315962024452
+      ],
+      "minimum_area_cm2": 0.31739479976470436,
+      "lip_area_cm2": 2.894707085668452,
+      "total_length_cm": 17.486442182911002,
+      "separated_peaks_80_3500_hz": [
+        370.0,
+        1995.0
+      ],
+      "separated_peaks_80_5000_hz": [
+        370.0,
+        1995.0,
+        3630.0,
+        4515.0
+      ]
+    },
+    {
+      "halton_index": 8648,
+      "motor": [
+        0.07623291015625,
+        0.921404257481075,
+        0.7674880000000001,
+        0.4945558398286428,
+        0.22730687794549553
+      ],
+      "minimum_area_cm2": 0.2076678851443718,
+      "lip_area_cm2": 1.5752156964735544,
+      "total_length_cm": 16.52288095075473,
+      "separated_peaks_80_3500_hz": [
+        355.0,
+        2040.0
+      ],
+      "separated_peaks_80_5000_hz": [
+        355.0,
+        2040.0,
+        3915.0,
+        4805.0
+      ]
+    },
+    {
+      "halton_index": 8657,
+      "motor": [
+        0.54498291015625,
+        0.958441294518112,
+        0.45548800000000006,
+        0.8006782888082344,
+        0.053753158937231066
+      ],
+      "minimum_area_cm2": 0.21193848066414187,
+      "lip_area_cm2": 3.5097665792576773,
+      "total_length_cm": 15.74188921521754,
+      "separated_peaks_80_3500_hz": [
+        550.0,
+        1255.0
+      ],
+      "separated_peaks_80_5000_hz": [
+        550.0,
+        1255.0,
+        3525.0
+      ]
+    },
+    {
+      "halton_index": 8702,
+      "motor": [
+        0.49810791015625,
+        0.9131738048061779,
+        0.4314880000000001,
+        0.23216516927470693,
+        0.1777201010859914
+      ],
+      "minimum_area_cm2": 0.27680706870881316,
+      "lip_area_cm2": 1.0152461524423007,
+      "total_length_cm": 16.29974045488696,
+      "separated_peaks_80_3500_hz": [
+        505.0,
+        960.0
+      ],
+      "separated_peaks_80_5000_hz": [
+        505.0,
+        960.0,
+        3555.0,
+        4885.0
+      ]
+    },
+    {
+      "halton_index": 8879,
+      "motor": [
+        0.95806884765625,
+        0.8685159782553471,
+        0.803008,
+        0.46831677277324923,
+        0.22054504473738135
+      ],
+      "minimum_area_cm2": 0.326699833329447,
+      "lip_area_cm2": 1.6106043324371524,
+      "total_length_cm": 16.492452701318214,
+      "separated_peaks_80_3500_hz": [
+        355.0,
+        2080.0
+      ],
+      "separated_peaks_80_5000_hz": [
+        355.0,
+        2080.0,
+        3790.0,
+        4840.0
+      ]
+    },
+    {
+      "halton_index": 9098,
+      "motor": [
+        0.31939697265625,
+        0.9686531524665954,
+        0.7886080000000001,
+        0.8069256857261853,
+        0.11460965781025886
+      ],
+      "minimum_area_cm2": 0.1930509277340618,
+      "lip_area_cm2": 3.2704531656759306,
+      "total_length_cm": 16.015743460146165,
+      "separated_peaks_80_3500_hz": [
+        355.0,
+        2235.0
+      ],
+      "separated_peaks_80_5000_hz": [
+        355.0,
+        2235.0,
+        3990.0,
+        4960.0
+      ]
+    }
+  ],
+  "interpretation": "The failure is sparse and concentrated in high-constriction states, but no rectangular motor bound separates failures from valid vowel targets. This analysis does not waive P0 or select a new admissible domain.",
+  "recorded_audio_accessed": false,
+  "protected_data_accessed": false,
+  "promotion_allowed": false
+}
