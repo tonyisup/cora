@@ -380,3 +380,44 @@ def test_v4_prehuman_fixture_is_not_human_evidence() -> None:
     assert result["production_runner_accepts_this_fixture_as_evidence"] is False
     assert result["criteria"]["development_associations_frozen_before_confirmation"] is True
     assert result["criteria"]["final_runner_matched_frozen_associations"] is True
+
+
+def test_v4_real_result_retains_bounded_pass_without_audio() -> None:
+    path = (
+        Path(__file__).resolve().parents[1]
+        / "docs/evidence/2026-07-13-vocal-imitation-v4-real-result.json"
+    )
+    result = json.loads(path.read_text())
+
+    assert result["status"] == (
+        "all_frozen_development_and_held_confirmation_gates_passed"
+    )
+    assert result["evidence_class"] == "project_owner_real_capture"
+    assert result["demo_passed"] is True
+    assert result["retention"]["raw_recordings_committed"] is False
+    assert result["retention"]["generated_wavs_committed"] is False
+    assert len(result["retention"]["full_result_sha256"]) == 64
+    assert result["repertoire"]["sha256"] == (
+        "fb07df5ede273436524d22dcb3198bae79907e0b7cf7abd57a14c177381fb0be"
+    )
+    assert all(row["passed"] for row in result["targets"].values())
+    assert all(
+        row["confirmation_improvement_ratio"] >= 0.15
+        and row["confirmation_learned_distance"] <= 0.45
+        for row in result["targets"].values()
+    )
+    positive_criteria = {
+        key: value
+        for key, value in result["criteria"].items()
+        if key
+        not in {
+            "external_corpus_accessed",
+            "protected_data_accessed",
+            "playback_executed_during_capture",
+        }
+    }
+    assert all(positive_criteria.values())
+    assert result["criteria"]["external_corpus_accessed"] is False
+    assert result["criteria"]["protected_data_accessed"] is False
+    assert result["criteria"]["playback_executed_during_capture"] is False
+    assert "not continuous inverse closure" in result["claim_boundary"]

@@ -1,7 +1,8 @@
 # Project-owner vocal-imitation protocol
 
-Status: v4 frozen after retained v1/v2 acquisition failures and the retained v3
-development failure, before any v4 project-owner recording.
+Status: v4 completed. All frozen development and held-confirmation gates passed
+on a fresh project-owner recording set on 2026-07-13. The result is retained in
+[`2026-07-13-vocal-imitation-v4-real-result.json`](evidence/2026-07-13-vocal-imitation-v4-real-result.json).
 
 V1 used a 1.8-second capture. Its first `/a/` development take contained no
 eligible vocal interval (RMS `0.00147`, peak `0.0131`, periodicity `0.297`) and
@@ -36,6 +37,14 @@ audio, the unchanged local learner reaches improvements of `30.7%`, `72.5%`,
 and `73.1%` for `/a/`, `/i/`, and `/u/`. That audit is design evidence only.
 V4 requires fresh recordings and preserves the cue, preprocessing, 12 attempts,
 memory capacity, thresholds, confirmation gates, and claim boundary.
+
+The fresh V4 session acquired exactly six development takes, froze all three
+associations before any confirmation capture, and then passed all three held
+confirmations. Confirmation improvement relative to the common rest prototype
+was `24.3%`, `71.5%`, and `69.2%` for `/a/`, `/i/`, and `/u/`; final held
+distances were `0.209`, `0.160`, and `0.108`. Confirmation did not change any
+association. Raw project-owner recordings and generated WAVs remain outside
+Git; the retained evidence identifies the private artifacts by SHA-256.
 
 This protocol advances the bounded synthetic speech-learning demo to a new,
 project-owner-recorded target. It is a demo-layer experiment, not a retry of

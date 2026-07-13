@@ -25,7 +25,7 @@ The operational procedure and stop rules are documented in
 
 - Clean Python 3.13 constrained installation: passed.
 - Hash-pinned operational readiness: passed.
-- Full hardware-safe suite: `487 passed, 3 skipped`.
+- Full hardware-safe suite: `488 passed, 3 skipped`.
 - After the XVF3800 was reconnected, read-only preflight passed the host, input,
   format, output-route, contract, and evidence checks.
 - Operational acceptance attempt 1 completed 400 frames with clean stream
@@ -115,3 +115,11 @@ phoneme recognition, or new H4 evidence.
   exactly six development takes must produce a passing, hash-pinned association
   freeze; confirmation capture refuses before it, and the final runner must
   reproduce all frozen target/prototype identifiers before held scoring.
+- On 2026-07-13, the fresh project-owner V4 run passed that complete contract.
+  Development improvements were `35.8%`, `68.0%`, and `67.3%`; held-confirmation
+  improvements were `24.3%`, `71.5%`, and `69.2%` for `/a/`, `/i/`, and `/u/`.
+  Confirmation final distances were `0.209`, `0.160`, and `0.108`, all below
+  the frozen `0.45` ceiling. The final runner verified the pre-confirmation
+  association freeze and changed no association. The bounded real-capture
+  [result](evidence/2026-07-13-vocal-imitation-v4-real-result.json) retains
+  metrics and hashes without committing the owner's raw or generated audio.

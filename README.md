@@ -127,6 +127,11 @@ This produces learned WAVs, `vocal-imitation-result.json`, and
 association to freeze before confirmation audio is decoded. This is a
 one-speaker demo boundary, not H4 or general speech-learning evidence.
 
+The fresh V4 project-owner run passed all development and held-confirmation
+gates. Its auditable metrics and artifact hashes are retained in
+[`docs/evidence/2026-07-13-vocal-imitation-v4-real-result.json`](docs/evidence/2026-07-13-vocal-imitation-v4-real-result.json);
+raw owner recordings and generated WAVs remain outside Git.
+
 Validate a future flat Stage 6 run summary against the named 10.5 ms operating
 point:
 

@@ -1,0 +1,81 @@
+{
+  "mode": "bounded_project_owner_vocal_imitation_v4_real_result",
+  "date": "2026-07-13",
+  "status": "all_frozen_development_and_held_confirmation_gates_passed",
+  "protocol": "docs/VOCAL_IMITATION_PROTOCOL.md v4",
+  "evidence_class": "project_owner_real_capture",
+  "session_path": "/private/tmp/cora-vocal-imitation-v4",
+  "retention": {
+    "raw_recordings_committed": false,
+    "generated_wavs_committed": false,
+    "private_session_retained_outside_git": true,
+    "manifest_sha256": "2607b6015162eaaeecca213132ca7f4483334f5395efd2fd4652dfabf724c37b",
+    "development_freeze_sha256": "d5f2f8b9d050b545b15481077cdfb0fa58b7c35bc222ff9d5765cbf8591c7241",
+    "full_result_sha256": "f5bbfba2aba438b90a9043098668a466ff1052001e81482239d8049e20a4f9f1",
+    "dashboard_sha256": "dc8cf7d153f5ac36beca589e2bcbb8412cf44a5bbe061f4f7d964e494c6c445b"
+  },
+  "repertoire": {
+    "count": 96,
+    "halton_start": 20011,
+    "halton_stride": 43,
+    "sha256": "fb07df5ede273436524d22dcb3198bae79907e0b7cf7abd57a14c177381fb0be"
+  },
+  "targets": {
+    "a": {
+      "development_take_distance": 0.09792935696001859,
+      "development_initial_distance": 0.292157515096395,
+      "development_final_distance": 0.1874803023788599,
+      "development_improvement_ratio": 0.3582903307587268,
+      "learned_prototype_id": "v4-babble-088",
+      "learned_halton_index": 23795,
+      "learned_wav_sha256": "6f783b3c008049f2bb3527f92e6a83dab6f5cd76fec9fd8e1b0de59378988a03",
+      "confirmation_rest_distance": 0.27577316934853036,
+      "confirmation_learned_distance": 0.20886727824268592,
+      "confirmation_improvement_ratio": 0.24261203968427683,
+      "passed": true
+    },
+    "i": {
+      "development_take_distance": 0.039516319644523526,
+      "development_initial_distance": 0.5577624473202538,
+      "development_final_distance": 0.17859141830206862,
+      "development_improvement_ratio": 0.6798073818699994,
+      "learned_prototype_id": "v4-babble-046",
+      "learned_halton_index": 21989,
+      "learned_wav_sha256": "6550b2c4e83e562d70569577b66097be929bba74a13d48cf17caf7ed11364bcf",
+      "confirmation_rest_distance": 0.5609417628529391,
+      "confirmation_learned_distance": 0.15969802586119441,
+      "confirmation_improvement_ratio": 0.7153037330489117,
+      "passed": true
+    },
+    "u": {
+      "development_take_distance": 0.03530780675958139,
+      "development_initial_distance": 0.3780874379833105,
+      "development_final_distance": 0.12362558408145656,
+      "development_improvement_ratio": 0.6730238255445196,
+      "learned_prototype_id": "v4-babble-003",
+      "learned_halton_index": 20140,
+      "learned_wav_sha256": "d3d347572940a903d26ff0436c013b4df014047539be03c1831aa36e20261abd",
+      "confirmation_rest_distance": 0.3491014518133147,
+      "confirmation_learned_distance": 0.10759727875943217,
+      "confirmation_improvement_ratio": 0.6917879367142511,
+      "passed": true
+    }
+  },
+  "criteria": {
+    "exactly_six_development_and_three_confirmation_takes": true,
+    "all_capture_quality_gates_passed": true,
+    "all_development_gates_passed": true,
+    "development_associations_frozen_before_confirmation": true,
+    "development_freeze_verified_by_final_runner": true,
+    "all_confirmation_gates_passed": true,
+    "confirmation_accessed_after_all_learning": true,
+    "confirmation_did_not_change_associations": true,
+    "learner_received_no_vowel_labels": true,
+    "association_memory_within_three": true,
+    "external_corpus_accessed": false,
+    "protected_data_accessed": false,
+    "playback_executed_during_capture": false
+  },
+  "demo_passed": true,
+  "claim_boundary": "Three target-specific acoustic associations for one known project owner and one XVF3800 capture setup; not continuous inverse closure, phoneme recognition, speaker identity, semantics, general human speech learning, or H4 evidence."
+}
