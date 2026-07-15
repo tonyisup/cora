@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 from pathlib import Path
 import threading
+import time
 import wave
 
 import numpy as np
@@ -12,6 +13,38 @@ import pytest
 
 from cora_infans.hero_demo import run_hero_demo
 from cora_infans.io.wav_frames import read_pcm_wav
+from cora_infans.product_session import score_product_session_directory
+
+
+def _write_product_session_wav(path: Path, samples: np.ndarray, sample_rate: int = 16000) -> None:
+    pcm = (np.clip(samples, -1.0, 1.0) * 32767.0).astype("<i2")
+    with wave.open(str(path), "wb") as handle:
+        handle.setnchannels(1)
+        handle.setsampwidth(2)
+        handle.setframerate(sample_rate)
+        handle.writeframes(pcm.tobytes())
+
+
+def _make_product_session_fixture(root: Path) -> Path:
+    session = root / "product-session"
+    session.mkdir()
+    sample_rate = 16000
+    time = np.arange(int(sample_rate * 0.8)) / sample_rate
+    samples = (0.25 * np.sin(2.0 * np.pi * 180.0 * time)).astype(np.float32)
+    for filename in (
+        "source_human.wav",
+        "target_captured.wav",
+        "agent_emitted.wav",
+        "response_captured.wav",
+        "self_prediction.wav",
+    ):
+        _write_product_session_wav(session / filename, samples, sample_rate)
+    score_product_session_directory(
+        session,
+        evidence_class="synthetic_fixture",
+        association_frozen_before_evaluation=True,
+    )
+    return session
 
 
 def test_replay_hero_exposes_learning_recall_and_workspace(tmp_path) -> None:
@@ -49,6 +82,52 @@ def test_replay_hero_exposes_learning_recall_and_workspace(tmp_path) -> None:
     assert "From hearing" in dashboard
     assert "Hear the journey" in dashboard
     assert "Honest boundary" in dashboard
+
+
+def test_product_session_hero_presents_verified_replay_evidence(tmp_path) -> None:
+    session = _make_product_session_fixture(tmp_path)
+
+    report = run_hero_demo(
+        output_dir=tmp_path / "presentation",
+        source="product-session",
+        session_dir=session,
+        mode="replay",
+    )
+
+    assert report["mode"] == "product_session_hero_replay"
+    assert report["evidence_class"] == "synthetic_fixture"
+    assert report["real_hardware"] is False
+    assert report["live_playback"] is False
+    assert report["product_session"]["manifest_verified"] is True
+    assert set(report["product_session"]["scores"]) == {
+        "imitation_fidelity",
+        "self_model_fidelity",
+    }
+    dashboard = (tmp_path / "presentation" / "hero-demo.html").read_text()
+    assert "Product session evidence" in dashboard
+    assert "REPLAY ONLY · NO NEW AUDIO CAPTURE" in dashboard
+    assert "Imitation fidelity" in dashboard
+    assert "Self-model fidelity" in dashboard
+    assert "RMS-envelope distance" in dashboard
+    assert "session-manifest.json" in dashboard
+
+
+def test_product_session_hero_rejects_tampered_manifest_before_copying_audio(tmp_path) -> None:
+    session = _make_product_session_fixture(tmp_path)
+    (session / "session-manifest.json").write_text(
+        '{"report_path":"report.json","report_sha256":"' + "0" * 64 + '"}'
+    )
+    presentation = tmp_path / "presentation"
+
+    with pytest.raises(ValueError, match="manifest does not verify report.json"):
+        run_hero_demo(
+            output_dir=presentation,
+            source="product-session",
+            session_dir=session,
+            mode="replay",
+        )
+
+    assert not list(presentation.glob("*.wav"))
 
 
 def test_replay_hero_is_deterministically_reproducible(tmp_path) -> None:
@@ -117,6 +196,10 @@ def test_injected_live_fixture_exercises_exact_routing_without_real_claim(
         capture_timeline["position_source"] = "synthetic_frame_count"
         ready_event.set()
         assert playback_started.wait(timeout=2.0)
+        # The injected playback callback is intentionally instantaneous. Keep this
+        # fake capture active long enough to model a real capture interval, so the
+        # production invariant (capture outlasts playback) is tested deterministically.
+        time.sleep(0.15)
 
         condition = Path(path).stem
         tracks = tmp_path / "tracks"

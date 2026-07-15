@@ -45,11 +45,12 @@ from .speech_learning_demo import (
 )
 from .structured_workspace_binding import play_workspace_tracks_concurrently
 from .vocal_imitation import build_waveform_repertoire
+from .product_session import REQUIRED_ARTIFACTS, validate_product_session_report
 
 
 HERO_SPECIFICATION = "docs/HERO_DEMO_SPEC.md v1"
 HERO_MODES = ("replay", "live")
-HERO_SOURCES = ("synthetic", "vocal-session")
+HERO_SOURCES = ("synthetic", "vocal-session", "product-session")
 CHIRP_MS = 100
 PRE_STIMULUS_MS = 150
 TAIL_MS = 150
@@ -715,6 +716,175 @@ document.querySelector('#journey').addEventListener('click',async()=>{{if(runnin
 </script></main></body></html>"""
 
 
+def _product_session_artifacts(
+    output: Path, session_dir: Path
+) -> tuple[dict[str, object], dict[str, object]]:
+    """Validate a completed offline product session and copy display-safe WAVs."""
+
+    root = session_dir.resolve()
+    report_path = root / "report.json"
+    manifest_path = root / "session-manifest.json"
+    if not report_path.is_file() or not manifest_path.is_file():
+        raise ValueError("product-session source requires report.json and session-manifest.json")
+    try:
+        product_report = validate_product_session_report(json.loads(report_path.read_text()))
+        manifest = json.loads(manifest_path.read_text())
+    except json.JSONDecodeError as exc:
+        raise ValueError("product-session source contains invalid JSON") from exc
+    if not isinstance(manifest, Mapping):
+        raise ValueError("product-session manifest must be a mapping")
+    if manifest.get("report_path") != report_path.name:
+        raise ValueError("product-session manifest names an unexpected report path")
+    report_sha256 = _sha256(report_path)
+    if manifest.get("report_sha256") != report_sha256:
+        raise ValueError("product-session manifest does not verify report.json")
+    artifacts = product_report["artifacts"]
+    if not isinstance(artifacts, Mapping):
+        raise ValueError("validated product-session report has invalid artifacts")
+
+    artifact_records: dict[str, object] = {}
+    displayed_names = {
+        "target_captured_wav",
+        "agent_emitted_wav",
+        "response_captured_wav",
+        "self_prediction_wav",
+    }
+    for name in sorted(REQUIRED_ARTIFACTS):
+        record = artifacts[name]
+        if not isinstance(record, Mapping):
+            raise ValueError(f"product-session artifact {name} is invalid")
+        relative_path = Path(str(record["path"]))
+        if relative_path.is_absolute() or ".." in relative_path.parts:
+            raise ValueError(f"product-session artifact {name} has an unsafe path")
+        if name == "report_json":
+            artifact_records[name] = {
+                "path": relative_path.as_posix(),
+                "sha256": report_sha256,
+                "integrity_source": manifest_path.name,
+            }
+            continue
+        source = root / relative_path
+        expected = str(record["sha256"])
+        if not source.is_file() or _sha256(source) != expected:
+            raise ValueError(f"product-session artifact hash mismatch: {name}")
+        rendered = {
+            "path": relative_path.as_posix(),
+            "sha256": expected,
+            "integrity_source": report_path.name,
+        }
+        if name in displayed_names:
+            destination = output / f"product-{name}.wav"
+            rendered["display_filename"] = _copy_verified(source, destination, expected)[
+                "filename"
+            ]
+        artifact_records[name] = rendered
+    return (
+        {
+            "evidence_class": product_report["evidence_class"],
+            "scores": product_report["scores"],
+            "artifacts": artifact_records,
+            "report_filename": report_path.name,
+            "report_sha256": report_sha256,
+            "manifest_filename": manifest_path.name,
+            "manifest_sha256": _sha256(manifest_path),
+            "manifest_verified": True,
+            "association_frozen_before_evaluation": product_report[
+                "association_frozen_before_evaluation"
+            ],
+            "v4_evidence_mutated": product_report["v4_evidence_mutated"],
+            "scoring_version": product_report.get("scoring_version", "unversioned"),
+        },
+        product_report,
+    )
+
+
+def _render_product_session_html(report: dict[str, object]) -> str:
+    session = report["product_session"]
+    scores = session["scores"]
+    artifacts = session["artifacts"]
+    score_labels = {
+        "imitation_fidelity": "Imitation fidelity",
+        "self_model_fidelity": "Self-model fidelity",
+    }
+    metric_labels = {
+        "onset_offset_alignment_ms": "Onset/offset alignment (ms)",
+        "duration_difference_ms": "Duration difference (ms)",
+        "rms_envelope_distance": "RMS-envelope distance",
+        "pitch_contour_distance_hz": "Pitch-contour distance (Hz)",
+        "cepstral_distance": "Cepstral distance",
+    }
+    score_cards = "".join(
+        "<section class='score-card'><h2>"
+        + html.escape(score_labels.get(family, family.replace("_", " ")))
+        + "</h2><dl>"
+        + "".join(
+            f"<div><dt>{html.escape(metric_labels.get(str(metric), str(metric).replace('_', ' ')))}</dt>"
+            f"<dd>{float(value):.6g}</dd></div>"
+            for metric, value in metrics.items()
+        )
+        + "</dl></section>"
+        for family, metrics in scores.items()
+    )
+    audio_labels = {
+        "target_captured_wav": "Captured target",
+        "agent_emitted_wav": "Agent emitted response",
+        "response_captured_wav": "Captured response",
+        "self_prediction_wav": "Self prediction",
+    }
+    audio_cards = "".join(
+        f"<section class='audio-card'><h2>{html.escape(label)}</h2>"
+        f"<audio controls src='{html.escape(str(artifacts[name]['display_filename']))}'></audio>"
+        f"<code>{html.escape(str(artifacts[name]['sha256']))}</code></section>"
+        for name, label in audio_labels.items()
+    )
+    provenance_rows = "".join(
+        f"<tr><th>{html.escape(name.replace('_', ' '))}</th>"
+        f"<td>{html.escape(str(row['path']))}</td>"
+        f"<td><code>{html.escape(str(row['sha256']))}</code></td>"
+        f"<td>{html.escape(str(row['integrity_source']))}</td></tr>"
+        for name, row in artifacts.items()
+    )
+    embedded = json.dumps(report, separators=(",", ":")).replace("</", "<\\/")
+    return f"""<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cora — product session evidence</title>
+<style>
+:root{{--bg:#071011;--panel:#101d20;--ink:#eff9fa;--muted:#a8bec1;--line:#294549;--lime:#b8f266;--cyan:#71dde3;--amber:#ffc857;color-scheme:dark;font-family:Inter,ui-sans-serif,system-ui,sans-serif}}*{{box-sizing:border-box}}body{{margin:0;background:radial-gradient(circle at 85% 0,#14383b 0,transparent 36rem),var(--bg);color:var(--ink)}}main{{max-width:1060px;margin:auto;padding:48px 20px 72px}}header{{display:grid;grid-template-columns:1fr auto;gap:28px;align-items:end;border-bottom:1px solid var(--line);padding-bottom:32px}}.kicker{{color:var(--lime);font:700 11px ui-monospace,monospace;letter-spacing:.14em}}h1{{font-size:clamp(42px,8vw,82px);line-height:.92;letter-spacing:-.055em;margin:12px 0}}.lede{{max-width:680px;color:var(--muted);font-size:18px;line-height:1.5}}.status{{border-left:1px solid var(--line);padding-left:22px;font:700 12px ui-monospace,monospace;color:var(--amber);line-height:1.7}}.grid{{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:24px}}section,.provenance{{border:1px solid var(--line);background:rgba(16,29,32,.9);border-radius:16px;padding:22px}}h2{{font-size:17px;margin:0 0 14px}}.notice{{grid-column:1/-1;border-color:#5f6633;background:#1d241b;color:#e5f4c4;font-weight:700;font-size:13px;letter-spacing:.03em}}dl{{margin:0}}dl div{{display:flex;justify-content:space-between;gap:16px;padding:10px 0;border-top:1px solid var(--line)}}dt{{color:var(--muted)}}dd{{margin:0;font:700 14px ui-monospace,monospace;color:var(--cyan)}}.audio-card audio{{width:100%;margin:8px 0 12px}}code{{display:block;overflow-wrap:anywhere;font:11px ui-monospace,monospace;color:var(--muted)}}.provenance{{margin-top:16px;overflow:auto}}table{{width:100%;border-collapse:collapse;font-size:13px}}th,td{{text-align:left;padding:11px 8px;border-top:1px solid var(--line);vertical-align:top}}th{{text-transform:capitalize;color:var(--ink)}}td{{color:var(--muted)}}footer{{margin-top:22px;color:var(--muted);font-size:13px;line-height:1.5}}footer strong{{color:var(--ink)}}@media(max-width:700px){{main{{padding-top:28px}}header,.grid{{grid-template-columns:1fr}}.status{{border-left:0;border-top:1px solid var(--line);padding:16px 0 0}}.notice{{grid-column:auto}}}}
+</style></head><body><main>
+<header><div><p class="kicker">CORA-INFANS · BOUNDED VOCAL IMITATION</p><h1>Product session evidence</h1><p class="lede">A replayable presentation of a completed, hash-verified session report. It separates imitation fidelity from self-model fidelity and preserves the source evidence class.</p></div><div class="status">EVIDENCE CLASS<br>{html.escape(str(report['evidence_class']))}<br>SCORER<br>{html.escape(str(session['scoring_version']))}</div></header>
+<div class="grid"><section class="notice">REPLAY ONLY · NO NEW AUDIO CAPTURE · NO DEVICE ACCESS · NO ASSOCIATION TRAINING</section>{score_cards}{audio_cards}</div>
+<section class="provenance"><h2>Verified provenance</h2><p class="lede">{html.escape(str(session['report_filename']))} is verified by {html.escape(str(session['manifest_filename']))}. The report is immutable in this presentation; copied audio is checked against its source hash.</p><table><thead><tr><th>Artifact</th><th>Source path</th><th>SHA-256</th><th>Integrity source</th></tr></thead><tbody>{provenance_rows}</tbody></table></section>
+<footer><strong>Honest boundary.</strong> {html.escape(str(report['claim_boundary']))}<br><a href="hero-demo.json">Inspect the presentation report</a></footer>
+<script type="application/json" id="hero-report">{embedded}</script></main></body></html>"""
+
+
+def _run_product_session_hero_demo(output: Path, session_dir: Path) -> dict[str, object]:
+    session, _source_report = _product_session_artifacts(output, session_dir)
+    report: dict[str, object] = {
+        "mode": "product_session_hero_replay",
+        "specification": HERO_SPECIFICATION,
+        "evidence_class": session["evidence_class"],
+        "real_hardware": False,
+        "live_playback": False,
+        "product_session": session,
+        "presentation_valid": True,
+        "claim_boundary": (
+            "Replay presentation of an existing, hash-verified bounded product-session "
+            "report; not a new capture, association-training event, perceptual-quality "
+            "guarantee, phoneme recognition claim, or evidence of generalized imitation."
+        ),
+    }
+    html_path = output / "hero-demo.html"
+    html_path.write_text(_render_product_session_html(report))
+    report["presentation"] = {
+        "html_filename": html_path.name,
+        "html_sha256": _sha256(html_path),
+        "offline_self_contained": True,
+    }
+    _write_json(output / "hero-demo.json", report)
+    return report
+
+
 def run_hero_demo(
     *,
     output_dir: str | Path,
@@ -738,8 +908,15 @@ def run_hero_demo(
         raise ValueError(f"unsupported hero source: {source}")
     if mode not in HERO_MODES:
         raise ValueError(f"unsupported hero mode: {mode}")
-    if source == "vocal-session" and session_dir is None:
-        raise ValueError("vocal-session source requires session_dir")
+    if source in {"vocal-session", "product-session"} and session_dir is None:
+        raise ValueError(f"{source} source requires session_dir")
+    if source == "product-session":
+        if mode != "replay":
+            raise ValueError("product-session hero source is replay-only")
+        output = Path(output_dir).resolve()
+        output.mkdir(parents=True, exist_ok=True)
+        assert session_dir is not None
+        return _run_product_session_hero_demo(output, Path(session_dir))
     live_preflight: dict[str, object] | None = None
     injected_live_io = any(
         callback is not None for callback in (self_playback, world_playback, capture_fn)

@@ -98,6 +98,12 @@ Every product-facing artifact must visibly state one of:
 
 The hero demo may summarize retained V4 evidence and render synthetic/replay fixtures. It must not independently capture audio, train associations, or imply that its replay path is live hardware evidence.
 
+### Product-session evidence presentation
+
+`--hero-demo --source product-session --session-dir DIR --mode replay` is a presentation-only path for a **completed** product-session directory. Before exposing any audio control, it validates `report.json`, verifies its final hash against `session-manifest.json`, and rechecks every audio artifact hash recorded in the report. It preserves the session’s evidence class and presents imitation fidelity and self-model fidelity separately with unaggregated component metrics and provenance rows.
+
+This source is replay-only. It rejects live mode, performs no recording, playback, device discovery, association selection, or training, and does not create a new product-session claim. The presenter copies only the four display artifacts (captured target, agent-emitted response, captured response, and self prediction) after hash verification; source-human audio remains provenance-only. Its frozen presentation boundary is recorded in [`2026-07-15-bounded-vocal-imitation-product-session-evidence-presentation-preregistration.json`](evidence/2026-07-15-bounded-vocal-imitation-product-session-evidence-presentation-preregistration.json).
+
 ## 8. Path to the next real product session
 
 Before any new project-owner recording, create and approve a separate versioned session protocol that freezes:

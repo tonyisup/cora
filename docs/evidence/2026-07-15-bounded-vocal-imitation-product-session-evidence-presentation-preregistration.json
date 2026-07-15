@@ -1,0 +1,48 @@
+{
+  "decision": "bounded_vocal_imitation_product_session_evidence_presentation",
+  "date": "2026-07-15",
+  "status": "authorized_offline_replay_presentation_only",
+  "entrypoint": "python -m cora_infans --hero-demo --source product-session --session-dir DIR --mode replay",
+  "source_requirements": {
+    "report": "report.json",
+    "manifest": "session-manifest.json",
+    "report_contract_validation": true,
+    "manifest_must_verify_final_report_hash": true,
+    "all_audio_artifact_hashes_reverified": true,
+    "association_frozen_before_evaluation_required": true
+  },
+  "presentation": {
+    "preserves_source_evidence_class": true,
+    "separates_score_families": [
+      "imitation_fidelity",
+      "self_model_fidelity"
+    ],
+    "displays_unaggregated_component_metrics": true,
+    "displays_provenance_rows": true,
+    "display_audio_artifacts": [
+      "target_captured_wav",
+      "agent_emitted_wav",
+      "response_captured_wav",
+      "self_prediction_wav"
+    ],
+    "source_human_audio_is_provenance_only": true
+  },
+  "frozen_boundaries": {
+    "replay_only": true,
+    "live_mode_authorized": false,
+    "recording_performed": false,
+    "playback_performed": false,
+    "device_discovery_performed": false,
+    "association_selection_or_training": false,
+    "v4_evidence_mutated": false,
+    "stage2_reopened": false,
+    "h4_reopened": false,
+    "protected_data_access_authorized": false
+  },
+  "nonclaims": [
+    "No new product-session result is created.",
+    "No component score is converted into a product threshold or qualitative quality claim.",
+    "No evidence class may be upgraded by this presentation.",
+    "No phoneme recognition, generalized imitation, or H4 closure claim is established."
+  ]
+}

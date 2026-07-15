@@ -28,15 +28,20 @@ The governing product boundary is [BOUNDED_VOCAL_IMITATION_PRODUCT_SPEC.md](BOUN
    pre-existing WAV artifacts, requires an explicit association-freeze
    attestation, emits unaggregated component metrics in both score families,
    and writes a report plus sibling integrity manifest.
-3. Extend the hero demo to show evidence class, provenance, and both score families without implying live behavior.
+3. The replay-only `product-session` hero source is implemented. It validates a
+   completed report/manifest pair before exposing audio, preserves evidence
+   class, renders the two score families separately, and displays provenance
+   without claiming live behavior.
 4. Draft and approve a new real-session protocol before any microphone or speaker operation.
 
 ## Verification
 
-- Product-session contract and offline replay scorer tests: `8 passed`.
-- Full local Python 3.13 suite after the scorer addition: `493 passed, 9 skipped`.
-- The scorer is statically verified as offline-only: it imports no live or
-  audio-device module; it reads pre-existing WAV artifacts through the offline
-  decoder only.
+- Product-session contract, offline scorer, and replay-presentation tests cover
+  hash verification, score-family separation, explicit evidence labeling,
+  replay-only behavior, and CLI validation.
+- Full local Python 3.13 suite after the presentation addition: `497 passed, 9 skipped`.
+- The scorer and presentation path are statically verified as offline-only: they
+  import no live or audio-device module; they read pre-existing WAV artifacts
+  through the offline decoder only.
 
 No new live recording or H4/Stage 2 experiment is authorized by this strategic direction alone.

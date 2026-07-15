@@ -70,9 +70,41 @@ def test_describe_command_prints_json_summary() -> None:
     )
 
 
+def test_hero_demo_cli_requires_product_session_dir(tmp_path) -> None:
+    import cora_infans.cli as cli
+
+    with pytest.raises(
+        ValueError, match="--hero-demo --source product-session requires --session-dir"
+    ):
+        cli.hero_demo_cli(
+            [
+                "--hero-demo",
+                "--output-dir",
+                str(tmp_path),
+                "--source",
+                "product-session",
+            ]
+        )
+
+
+def test_hero_demo_main_accepts_product_session_presentation(monkeypatch, capsys) -> None:
+    import cora_infans.cli as cli
+
+    monkeypatch.setattr(
+        cli,
+        "hero_demo_cli",
+        lambda _args: {
+            "mode": "product_session_hero_replay",
+            "presentation_valid": True,
+        },
+    )
+
+    assert cli.main(["--hero-demo"]) == 0
+    assert json.loads(capsys.readouterr().out)["presentation_valid"] is True
+
+
 def test_operational_contract_cli_and_stage6_validation(tmp_path) -> None:
     env = os.environ.copy()
-    env["PYTHONPATH"] = "src"
     contract = subprocess.run(
         [sys.executable, "-m", "cora_infans", "--show-operational-contract"],
         capture_output=True,

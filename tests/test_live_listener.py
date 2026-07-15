@@ -516,7 +516,10 @@ def test_motor_imitation_aligns_capture_to_measured_playback_offset(
         capture_timeline["frame_position_fn"] = lambda: len(pre_roll)
         capture_timeline["position_source"] = "synthetic_frame_count"
         ready_event.set()
-        time.sleep(0.15)
+        # The fixture writes a capture whose declared duration is duration_ms; keep
+        # the worker alive for that same interval so strict preroll ordering is not
+        # subject to host scheduling jitter.
+        time.sleep(duration_ms / 1000.0)
         return {"backend": "fake", "completed": True}
 
     trial = LiveListener()._motor_imitation_trial(
