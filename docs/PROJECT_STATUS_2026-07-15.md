@@ -32,14 +32,18 @@ The governing product boundary is [BOUNDED_VOCAL_IMITATION_PRODUCT_SPEC.md](BOUN
    completed report/manifest pair before exposing audio, preserves evidence
    class, renders the two score families separately, and displays provenance
    without claiming live behavior.
-4. Draft and approve a new real-session protocol before any microphone or speaker operation.
+4. A proposed V1 real-session protocol is documented but remains
+   `draft_not_authorized`: it fixes candidate capture/retention/score/repeatability
+   values while blocking hardware use until owner approval and runtime support.
+5. Implement and review the protocol's missing runtime gates only after that
+   explicit approval; no microphone or speaker operation is currently authorized.
 
 ## Verification
 
 - Product-session contract, offline scorer, and replay-presentation tests cover
   hash verification, score-family separation, explicit evidence labeling,
   replay-only behavior, and CLI validation.
-- Full local Python 3.13 suite after the presentation addition: `497 passed, 9 skipped`.
+- Full local Python 3.13 suite after the V1 protocol draft: `499 passed, 9 skipped`.
 - The scorer and presentation path are statically verified as offline-only: they
   import no live or audio-device module; they read pre-existing WAV artifacts
   through the offline decoder only.

@@ -1,0 +1,89 @@
+{
+  "decision": "bounded_vocal_imitation_product_session_v1",
+  "date": "2026-07-15",
+  "status": "draft_not_authorized",
+  "protocol_document": "docs/BOUNDED_VOCAL_IMITATION_SESSION_PROTOCOL_V1.md",
+  "protocol_version": "bounded-product-session-v1-draft",
+  "runtime_implementation_required_before_execution": true,
+  "explicit_owner_approval_required_before_execution": true,
+  "live_io_authorized_by_this_artifact": false,
+  "proposed_design": {
+    "targets": [
+      "/a/",
+      "/i/",
+      "/u/"
+    ],
+    "development_takes_per_target": 2,
+    "held_takes_per_target": 2,
+    "association_freeze_after_development_takes": 6,
+    "held_capture_count_after_freeze": 6,
+    "fresh_sessions_required_for_product_claim": 3,
+    "raw_audio_retention_days": 30,
+    "capture_window_seconds": 5.0,
+    "input_route": "XVF3800 :0, callback capture, 16000 Hz, two fused host channels",
+    "response_route": "Mac mini Speakers beneath XVF3800 at 4 cm, 20% system volume, PCM peak <= 0.10",
+    "fixed_repertoire": "96-entry Halton schedule start 20011 stride 43 last 24096"
+  },
+  "proposed_score_thresholds": {
+    "onset_offset_alignment_ms_max": 80.0,
+    "duration_difference_ms_max": 150.0,
+    "rms_envelope_distance_max": 0.05,
+    "pitch_contour_distance_hz_max": 30.0,
+    "cepstral_distance_max": 0.5
+  },
+  "all_component_thresholds_required_per_held_take": true,
+  "threshold_basis": "synthetic_engineering_calibration_not_perceptual_validation",
+  "capture_quality_gates": {
+    "selected_window_rms_min": 0.01,
+    "selected_window_peak_min": 0.03,
+    "selected_window_peak_max": 0.98,
+    "pitch_hz_min": 70.0,
+    "pitch_hz_max": 350.0,
+    "pitch_periodicity_min": 0.3,
+    "finite_samples_required": true,
+    "full_scale_samples_forbidden": true
+  },
+  "required_authorization_contents": [
+    "session identifier",
+    "owner is sole speaker",
+    "target set",
+    "protocol version",
+    "retention/deletion decision",
+    "one-session live-I/O authorization"
+  ],
+  "artifact_requirements": [
+    "source_human.wav",
+    "target_captured.wav",
+    "agent_emitted.wav",
+    "response_captured.wav",
+    "self_prediction.wav",
+    "report.json",
+    "session-manifest.json",
+    "frozen-vocal-associations.json"
+  ],
+  "frozen_boundaries": {
+    "v4_evidence_mutated": false,
+    "stage2_reopened": false,
+    "h4_reopened": false,
+    "protected_data_access_authorized": false,
+    "source_human_is_canonical_imitation_target": false,
+    "post_failure_retry_allowed": false,
+    "threshold_change_after_first_capture_allowed": false,
+    "association_change_after_freeze_allowed": false,
+    "live_execution_allowed": false
+  },
+  "implementation_gaps_blocking_execution": [
+    "two held takes per target",
+    "response playback/capture full-span evidence",
+    "route/preflight persistence",
+    "proposed manifest fields",
+    "no-retry state machine",
+    "proposed scoring and claim gates"
+  ],
+  "nonclaims": [
+    "No real session has been authorized or run.",
+    "The proposed thresholds are not perceptual-quality guarantees.",
+    "The draft does not establish a product claim, generalized imitation, phoneme recognition, or H4 closure.",
+    "V4 cannot be reused, rescored, or altered through this protocol."
+  ]
+}

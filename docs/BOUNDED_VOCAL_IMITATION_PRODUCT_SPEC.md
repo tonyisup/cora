@@ -117,3 +117,11 @@ Before any new project-owner recording, create and approve a separate versioned 
 - repeatability requirements across fresh sessions.
 
 That protocol is an operational product experiment. It is not permission to reuse V4 inputs, tune V4 after the fact, access protected data, or broaden Stage 2/H4 claims.
+
+A proposed, non-authorizing V1 draft is available in
+[`BOUNDED_VOCAL_IMITATION_SESSION_PROTOCOL_V1.md`](BOUNDED_VOCAL_IMITATION_SESSION_PROTOCOL_V1.md),
+with its matching machine-readable record in
+[`2026-07-15-bounded-vocal-imitation-session-v1-preregistration.json`](evidence/2026-07-15-bounded-vocal-imitation-session-v1-preregistration.json).
+It remains `draft_not_authorized`: it cannot permit recording, playback, device
+discovery, or a new product claim until the owner approves it and the required
+runtime support exists.
