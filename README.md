@@ -1,6 +1,8 @@
 # Cora-Infans
 
-Cora-Infans is a bounded local auditory system for environmental vocal-activity
+Cora-Infans is a bounded local auditory system whose primary product direction
+is authorized, target-specific project-owner vocal imitation over a fixed finite
+repertoire. Its supporting infrastructure includes environmental vocal-activity
 gating, predictive event tracking, exact-efference workspace binding, and
 deterministic synthetic-plant validation.
 
@@ -22,6 +24,7 @@ the repository.
 | Local predictive hierarchy | H2 supported within tested boundaries | Natural event transfer replicated across Wellington and MEN; a separate real room run with known efference masks retained four states through 10/15/20% dropout while improving vowels `+0.614` and tones `+0.474`. Unknown-timing world dropout and semantics remain outside scope |
 | Workspace binding | H3 supported within tested boundaries | Structured tones and exact-utterance natural speech passed at zero clipping. A later no-replay same-source forward model failed on three unseen commands at F1/recall/specificity `0.727/0.667/0.667`, so the exact-efference boundary remains |
 | Synthetic plant infrastructure | Plant supported; local inverse falsified | The deterministic five-gesture plant passed, while hard and smooth local learners preserved `20/20` vowel identities but failed continuous closure. The plant remains infrastructure; categorical or global inverse claims require a VISION revision |
+| Bounded vocal imitation | Primary product direction | The retained project-owner V4 result passed frozen development and held confirmation for `/a/`, `/i/`, and `/u/`. It supports finite target-specific association and recall only—not H4 closure, phoneme recognition, or speaker generalization |
 | Efficiency | H5 supported within tested boundary | A six-fieldsite speech panel kept salient p95 at 10.17–10.38 ms with clean playback intervals, but two runs clipped only in trailing quiet and failed whole-capture integrity. Same-host energy was 27.36 µJ/frame versus 11.08 µJ/frame for the simpler baseline |
 
 New to the terminology? Start with the [data dictionary](docs/DATA_DICTIONARY.md),
@@ -99,6 +102,22 @@ geometry. It requires both a passing read-only preflight and literal
 `--authorize-live-io`; do not use that flag for ordinary dashboard generation.
 The frozen [hero demo specification](docs/HERO_DEMO_SPEC.md) defines the control
 panel, playback bound, stop rules, and claim boundary.
+
+## Primary product: bounded vocal imitation
+
+The primary product direction is an authorized, target-specific project-owner
+vocal-imitation session over a fixed finite repertoire. The completed V4 result
+is retained evidence, not an open-ended model or a reusable training set.
+
+The product report will keep **imitation fidelity** (captured external target ↔
+captured agent response) separate from **self-model fidelity** (predicted agent
+capture ↔ actual agent response). It will visibly distinguish retained V4
+evidence, synthetic fixtures, and future explicitly authorized real sessions.
+
+Read [the bounded vocal-imitation product specification](docs/BOUNDED_VOCAL_IMITATION_PRODUCT_SPEC.md)
+before creating a future session. It preserves the Stage 2/H4 stops, protected
+corpus boundaries, raw-audio-outside-Git policy, and the requirement for a new
+versioned protocol before any new owner recording.
 
 ## Bounded speech-learning demo
 

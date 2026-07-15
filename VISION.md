@@ -146,6 +146,31 @@ Constraint:
   confirmation audio must remain selection-blind, protected corpora remain
   prohibited, and results must not be promoted to H4 evidence.
 
+#### Primary product direction — bounded vocal imitation
+
+Bounded project-owner vocal imitation is the primary product and engineering
+direction. It operationalizes the separately authorized finite-repertoire
+association boundary; it does not reopen Stage 2 or H4.
+
+- A product session may claim only target-specific association and recall for an
+  explicitly authorized project owner, named capture setup, and fixed finite
+  repertoire.
+- The completed V4 project-owner result is immutable retained evidence. It is
+  neither a reusable training set nor authorization to alter a frozen result.
+- Future product sessions require their own versioned protocol, explicit
+  recording authorization, fresh artifacts, a frozen association before held
+  evaluation, and a replayable provenance report.
+- Product reporting must distinguish imitation fidelity (captured external
+  target ↔ captured agent response) from self-model fidelity (predicted agent
+  capture ↔ actual agent response).
+- The product must not claim phoneme recognition, arbitrary human-speech
+  imitation, speaker generalization, semantics, infant learning, or continuous
+  perception-production closure.
+
+The full product boundary, artifact contract, evidence classes, and next-session
+authorization requirements are in
+[the bounded vocal-imitation product specification](docs/BOUNDED_VOCAL_IMITATION_PRODUCT_SPEC.md).
+
 ### Stage 6 — Hard efficiency operating point
 
 Requirement:
