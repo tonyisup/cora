@@ -72,6 +72,20 @@ Product reports must keep two score families separate:
 
 Both reports may include onset/offset alignment, duration difference, RMS-envelope distance, voiced pitch-contour distance, and mel/cepstral distance. Raw waveform MSE is diagnostic only because phase and timing shifts make it unsuitable as the principal perceptual score.
 
+### Offline replay scorer v1
+
+The currently implemented `offline-replay-v1` scorer is deterministic and reads pre-existing WAV files only. It emits the following unaggregated component distances in **both** score families:
+
+- `onset_offset_alignment_ms` — mean absolute onset/offset discrepancy measured on 20 ms RMS-envelope frames;
+- `duration_difference_ms` — absolute duration difference after resampling to 16 kHz;
+- `rms_envelope_distance` — RMS distance between time-normalized 20 ms energy envelopes;
+- `pitch_contour_distance_hz` — mean absolute difference between time-normalized voiced autocorrelation pitch contours; and
+- `cepstral_distance` — Euclidean distance between mean log-spectrum cepstral vectors.
+
+These are comparison signals, not product thresholds, perceptual quality guarantees, phoneme/word recognition, authorization evidence, or a substitute for a separately frozen real-session protocol. The scorer requires an explicit association-freeze attestation, writes `report.json` and a sibling `session-manifest.json`, and performs no capture, playback, device discovery, association selection, training, or V4 mutation.
+
+The frozen scorer preregistration is [`2026-07-15-bounded-vocal-imitation-offline-replay-scorer-preregistration.json`](evidence/2026-07-15-bounded-vocal-imitation-offline-replay-scorer-preregistration.json).
+
 The precise thresholds, aggregation rule, repeat count, and scoring implementation for a new product-session version must be frozen before its first capture. V4’s scientific thresholds are historical facts; they are not automatically product thresholds.
 
 ## 7. Evidence classes and presentation

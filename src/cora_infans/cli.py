@@ -28,6 +28,7 @@ from .vocal_imitation import (
     freeze_project_owner_development,
     run_project_owner_vocal_imitation,
 )
+from .product_session import score_product_session_directory
 from .io.live_listener import LiveListener
 from .benchmark import benchmark_event_pipeline
 from .energy_workload import run_sustained_energy_workload
@@ -2044,6 +2045,37 @@ def freeze_vocal_imitation_development_cli(args: list[str]) -> dict[str, object]
     return freeze_project_owner_development(session_dir=args[2])
 
 
+def score_vocal_imitation_session_cli(args: list[str]) -> dict[str, object]:
+    values: dict[str, str] = {}
+    association_frozen = False
+    index = 1
+    while index < len(args):
+        option = args[index]
+        if option == "--association-frozen-before-evaluation":
+            association_frozen = True
+            index += 1
+            continue
+        if option not in {"--session-dir", "--evidence-class"}:
+            raise ValueError(f"unknown option: {option}")
+        if index + 1 >= len(args):
+            raise ValueError(f"missing value for {option}")
+        values[option] = args[index + 1]
+        index += 2
+    if "--session-dir" not in values:
+        raise ValueError("--score-vocal-imitation-session requires --session-dir DIR")
+    if "--evidence-class" not in values:
+        raise ValueError("--score-vocal-imitation-session requires --evidence-class CLASS")
+    if not association_frozen:
+        raise ValueError(
+            "--score-vocal-imitation-session requires --association-frozen-before-evaluation"
+        )
+    return score_product_session_directory(
+        values["--session-dir"],
+        evidence_class=values["--evidence-class"],
+        association_frozen_before_evaluation=association_frozen,
+    )
+
+
 def prepare_ids_manifest_cli(args: list[str] | None = None) -> dict[str, object]:
     parsed = args or ["--prepare-ids-manifest"]
     root: str | None = None
@@ -2781,6 +2813,13 @@ def main(argv: list[str] | None = None) -> int:
         except (ValueError, OSError, KeyError, TypeError, AttributeError, json.JSONDecodeError) as exc:
             print(str(exc), file=sys.stderr)
             return 2
+    if args and args[0] == "--score-vocal-imitation-session":
+        try:
+            print(json.dumps(score_vocal_imitation_session_cli(args)))
+            return 0
+        except (ValueError, OSError, KeyError, TypeError, AttributeError) as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
     if args and args[0] == "--simulate-frame":
         try:
             simulation_params, output_mode = parse_simulation_cli_args(args)
@@ -3024,7 +3063,7 @@ def main(argv: list[str] | None = None) -> int:
             return 2
 
     print(
-        "usage: python -m cora_infans --describe | --show-operational-contract | --operational-readiness [--evidence-dir DIR] | --operational-preflight --manifest FILE.json | --run-operational-acceptance --manifest FILE.json --stimulus-wav FILE.wav --output-dir DIR --authorize-live-io | --demo-speech-learning --output-dir DIR [--scenario synthetic-mirror|cross-configuration] [--vowel a|i|u|all] | --hero-demo --output-dir DIR [--source synthetic|vocal-session] [--session-dir DIR] [--mode replay|live] [--vowel a|i|u] [--manifest FILE.json --authorize-live-io] | --capture-vocal-imitation --session-dir DIR --target a|i|u --role development|confirmation --take N --authorize-project-owner-recording | --freeze-vocal-imitation-development --session-dir DIR | --run-vocal-imitation --session-dir DIR [--output-dir DIR] | --validate-stage6-operating-point --report REPORT.json | --simulate-frame | --simulate-sequence "
+        "usage: python -m cora_infans --describe | --show-operational-contract | --operational-readiness [--evidence-dir DIR] | --operational-preflight --manifest FILE.json | --run-operational-acceptance --manifest FILE.json --stimulus-wav FILE.wav --output-dir DIR --authorize-live-io | --demo-speech-learning --output-dir DIR [--scenario synthetic-mirror|cross-configuration] [--vowel a|i|u|all] | --hero-demo --output-dir DIR [--source synthetic|vocal-session] [--session-dir DIR] [--mode replay|live] [--vowel a|i|u] [--manifest FILE.json --authorize-live-io] | --capture-vocal-imitation --session-dir DIR --target a|i|u --role development|confirmation --take N --authorize-project-owner-recording | --freeze-vocal-imitation-development --session-dir DIR | --run-vocal-imitation --session-dir DIR [--output-dir DIR] | --score-vocal-imitation-session --session-dir DIR --evidence-class retained_v4_evidence|synthetic_fixture|real_authorized_session --association-frozen-before-evaluation | --validate-stage6-operating-point --report REPORT.json | --simulate-frame | --simulate-sequence "
         "[--timestamp-ms N --dominant-frequency-hz F --channel-energies a,b,c,d --initial-prediction-hz F --mic-geometry l0,l1,l2,l3 --saliency-threshold F --output json|pretty] "
         "[--family sweep|zigzag|gap|multi_gap|delayed_recovery] [--with-scheduling] "
         "[--capture-live [--device :0] [--duration-ms N]] "

@@ -6,9 +6,16 @@ select prototypes, score waveforms, or modify retained V4 evidence.
 
 from __future__ import annotations
 
+import hashlib
+import json
 import math
 from collections.abc import Mapping
+from pathlib import Path
 from typing import Any
+
+import numpy as np
+
+from .io.wav_frames import read_pcm_wav
 
 
 PRODUCT_SESSION_REPORT_VERSION = 1
@@ -30,6 +37,8 @@ REQUIRED_ARTIFACTS = frozenset(
     }
 )
 REQUIRED_SCORE_FAMILIES = frozenset({"imitation_fidelity", "self_model_fidelity"})
+SCORING_VERSION = "offline-replay-v1"
+_SCORING_SAMPLE_RATE_HZ = 16000
 
 
 def _require_mapping(value: object, *, name: str) -> Mapping[str, object]:
@@ -135,3 +144,199 @@ def build_product_session_report(
     if operating_point is not None:
         report["operating_point"] = dict(operating_point)
     return validate_product_session_report(report)
+
+
+def _sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _resample(samples: np.ndarray, source_rate: int) -> np.ndarray:
+    if source_rate <= 0:
+        raise ValueError("WAV sample rate must be positive")
+    mono = np.asarray(samples, dtype=np.float64).reshape(-1)
+    if mono.size < 2:
+        raise ValueError("WAV must contain at least two samples")
+    if source_rate == _SCORING_SAMPLE_RATE_HZ:
+        return mono
+    output_count = max(2, int(round(mono.size * _SCORING_SAMPLE_RATE_HZ / source_rate)))
+    source_positions = np.arange(mono.size, dtype=np.float64) / source_rate
+    output_positions = np.arange(output_count, dtype=np.float64) / _SCORING_SAMPLE_RATE_HZ
+    return np.interp(output_positions, source_positions, mono)
+
+
+def _read_mono(path: Path) -> np.ndarray:
+    samples, sample_rate = read_pcm_wav(path)
+    if samples.ndim != 2 or samples.shape[0] < 2:
+        raise ValueError(f"scoring WAV has invalid sample geometry: {path.name}")
+    return _resample(np.mean(samples, axis=1), int(sample_rate))
+
+
+def _frame_rms(samples: np.ndarray, *, frame_samples: int = 320, hop_samples: int = 160) -> np.ndarray:
+    if samples.size < frame_samples:
+        raise ValueError("scoring WAV is shorter than one 20 ms analysis frame")
+    values = [
+        float(np.sqrt(np.mean(np.square(samples[offset : offset + frame_samples]))))
+        for offset in range(0, samples.size - frame_samples + 1, hop_samples)
+    ]
+    return np.asarray(values, dtype=np.float64)
+
+
+def _resample_vector(values: np.ndarray, count: int) -> np.ndarray:
+    if values.size == count:
+        return values.astype(np.float64, copy=False)
+    if values.size == 1:
+        return np.full(count, float(values[0]), dtype=np.float64)
+    return np.interp(
+        np.linspace(0.0, 1.0, count),
+        np.linspace(0.0, 1.0, values.size),
+        values,
+    )
+
+
+def _active_bounds(envelope: np.ndarray) -> tuple[int, int]:
+    threshold = max(float(np.max(envelope)) * 0.10, 1e-6)
+    active = np.flatnonzero(envelope >= threshold)
+    if active.size == 0:
+        raise ValueError("scoring WAV contains no active voiced interval")
+    return int(active[0]), int(active[-1] + 1)
+
+
+def _pitch_contour(samples: np.ndarray, envelope: np.ndarray) -> np.ndarray:
+    frame_samples = 512
+    hop_samples = 256
+    threshold = max(float(np.max(envelope)) * 0.10, 1e-6)
+    pitches: list[float] = []
+    for offset in range(0, samples.size - frame_samples + 1, hop_samples):
+        frame = samples[offset : offset + frame_samples]
+        if float(np.sqrt(np.mean(np.square(frame)))) < threshold:
+            continue
+        centered = frame - float(np.mean(frame))
+        energy = float(np.dot(centered, centered))
+        if energy <= 1e-10:
+            continue
+        correlation = np.correlate(centered, centered, mode="full")[frame_samples - 1 :]
+        minimum_lag = int(_SCORING_SAMPLE_RATE_HZ / 350.0)
+        maximum_lag = min(frame_samples - 1, int(_SCORING_SAMPLE_RATE_HZ / 70.0))
+        lag = minimum_lag + int(np.argmax(correlation[minimum_lag : maximum_lag + 1]))
+        if float(correlation[lag] / correlation[0]) >= 0.30:
+            pitches.append(float(_SCORING_SAMPLE_RATE_HZ / lag))
+    if not pitches:
+        raise ValueError("scoring WAV has no voiced pitch contour")
+    return np.asarray(pitches, dtype=np.float64)
+
+
+def _cepstral_vector(samples: np.ndarray) -> np.ndarray:
+    frame_samples = 512
+    hop_samples = 256
+    window = np.hanning(frame_samples)
+    vectors = []
+    for offset in range(0, samples.size - frame_samples + 1, hop_samples):
+        spectrum = np.log(np.square(np.abs(np.fft.rfft(samples[offset : offset + frame_samples] * window))) + 1e-12)
+        bins = np.arange(spectrum.size, dtype=np.float64) + 0.5
+        coefficients = np.arange(1, 14, dtype=np.float64)[:, None]
+        vectors.append((np.cos(np.pi * coefficients * bins / spectrum.size) @ spectrum) / spectrum.size)
+    if not vectors:
+        raise ValueError("scoring WAV has no complete cepstral frame")
+    return np.mean(np.stack(vectors), axis=0)
+
+
+def score_waveform_pair(reference: np.ndarray, observed: np.ndarray) -> dict[str, float]:
+    """Return deterministic, phase-robust distances for two microphone waveforms."""
+
+    reference_envelope = _frame_rms(reference)
+    observed_envelope = _frame_rms(observed)
+    reference_start, reference_end = _active_bounds(reference_envelope)
+    observed_start, observed_end = _active_bounds(observed_envelope)
+    common_count = max(reference_envelope.size, observed_envelope.size)
+    aligned_reference_envelope = _resample_vector(reference_envelope, common_count)
+    aligned_observed_envelope = _resample_vector(observed_envelope, common_count)
+    reference_pitch = _pitch_contour(reference, reference_envelope)
+    observed_pitch = _pitch_contour(observed, observed_envelope)
+    common_pitch_count = max(reference_pitch.size, observed_pitch.size)
+    return {
+        "onset_offset_alignment_ms": float(
+            10.0
+            * (
+                abs(reference_start - observed_start)
+                + abs(reference_end - observed_end)
+            )
+            / 2.0
+        ),
+        "duration_difference_ms": float(
+            abs(reference.size - observed.size) * 1000.0 / _SCORING_SAMPLE_RATE_HZ
+        ),
+        "rms_envelope_distance": float(
+            np.sqrt(np.mean(np.square(aligned_reference_envelope - aligned_observed_envelope)))
+        ),
+        "pitch_contour_distance_hz": float(
+            np.mean(
+                np.abs(
+                    _resample_vector(reference_pitch, common_pitch_count)
+                    - _resample_vector(observed_pitch, common_pitch_count)
+                )
+            )
+        ),
+        "cepstral_distance": float(
+            np.linalg.norm(_cepstral_vector(reference) - _cepstral_vector(observed))
+        ),
+    }
+
+
+def score_product_session_directory(
+    session_dir: str | Path,
+    *,
+    evidence_class: str,
+    association_frozen_before_evaluation: bool,
+) -> dict[str, object]:
+    """Score an existing session directory without any audio-device side effects."""
+
+    if association_frozen_before_evaluation is not True:
+        raise ValueError("association must be frozen before offline replay scoring")
+    root = Path(session_dir)
+    filenames = {
+        "source_human_wav": "source_human.wav",
+        "target_captured_wav": "target_captured.wav",
+        "agent_emitted_wav": "agent_emitted.wav",
+        "response_captured_wav": "response_captured.wav",
+        "self_prediction_wav": "self_prediction.wav",
+    }
+    paths = {name: root / filename for name, filename in filenames.items()}
+    missing = [path.name for path in paths.values() if not path.is_file()]
+    if missing:
+        raise ValueError(f"product session is missing required WAV artifacts: {sorted(missing)}")
+    audio = {name: _read_mono(path) for name, path in paths.items()}
+    artifacts: dict[str, object] = {
+        name: {"path": path.name, "sha256": _sha256(path)}
+        for name, path in paths.items()
+    }
+    artifacts["report_json"] = {"path": "report.json"}
+    report = build_product_session_report(
+        evidence_class=evidence_class,
+        artifacts=artifacts,
+        scores={
+            "imitation_fidelity": score_waveform_pair(
+                audio["target_captured_wav"], audio["response_captured_wav"]
+            ),
+            "self_model_fidelity": score_waveform_pair(
+                audio["self_prediction_wav"], audio["response_captured_wav"]
+            ),
+        },
+        association_frozen_before_evaluation=association_frozen_before_evaluation,
+    )
+    report["scoring_version"] = SCORING_VERSION
+    report_path = root / "report.json"
+    report_path.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n")
+    manifest = {
+        "schema_version": 1,
+        "report_path": report_path.name,
+        "report_sha256": _sha256(report_path),
+        "artifact_sha256": {
+            name: str(record["sha256"])
+            for name, record in artifacts.items()
+            if name != "report_json"
+        },
+    }
+    (root / "session-manifest.json").write_text(
+        json.dumps(manifest, indent=2, sort_keys=True) + "\n"
+    )
+    return report

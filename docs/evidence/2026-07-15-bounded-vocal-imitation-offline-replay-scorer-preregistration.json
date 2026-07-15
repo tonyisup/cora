@@ -1,0 +1,62 @@
+{
+  "decision": "bounded_vocal_imitation_offline_replay_scorer",
+  "date": "2026-07-15",
+  "status": "authorized_offline_replay_only",
+  "scope": {
+    "module": "src/cora_infans/product_session.py",
+    "cli": "python -m cora_infans --score-vocal-imitation-session --session-dir DIR --evidence-class CLASS",
+    "script": "scripts/run_bounded_vocal_imitation_replay.py",
+    "scoring_version": "offline-replay-v1"
+  },
+  "required_wav_artifacts": [
+    "source_human.wav",
+    "target_captured.wav",
+    "agent_emitted.wav",
+    "response_captured.wav",
+    "self_prediction.wav"
+  ],
+  "derived_artifacts": [
+    "report.json",
+    "session-manifest.json"
+  ],
+  "score_families": {
+    "imitation_fidelity": {
+      "reference": "target_captured.wav",
+      "observed": "response_captured.wav"
+    },
+    "self_model_fidelity": {
+      "reference": "self_prediction.wav",
+      "observed": "response_captured.wav"
+    }
+  },
+  "component_metrics": [
+    "onset_offset_alignment_ms",
+    "duration_difference_ms",
+    "rms_envelope_distance",
+    "pitch_contour_distance_hz",
+    "cepstral_distance"
+  ],
+  "integrity": {
+    "audio_artifacts_sha256": true,
+    "completed_report_sha256_in_sibling_manifest": true,
+    "report_json_self_hash": false
+  },
+  "frozen_boundaries": {
+    "association_freeze_must_be_explicitly_attested": true,
+    "live_io_authorized_by_this_artifact": false,
+    "device_discovery_performed": false,
+    "recording_performed": false,
+    "playback_performed": false,
+    "association_selected_or_trained": false,
+    "v4_evidence_mutated": false,
+    "stage2_reopened": false,
+    "h4_reopened": false,
+    "protected_data_access_authorized": false
+  },
+  "nonclaims": [
+    "No component metric is a product threshold or pass/fail aggregation.",
+    "No metric establishes perceptual quality, phoneme recognition, or word recognition.",
+    "No synthetic fixture may be presented as real-authorized evidence.",
+    "No real product session is authorized or performed."
+  ]
+}
