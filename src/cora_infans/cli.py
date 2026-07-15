@@ -22,6 +22,7 @@ from .operational_acceptance import (
     run_operational_acceptance,
 )
 from .speech_learning_demo import DEMO_VOWELS, run_speech_learning_demo
+from .hero_demo import run_hero_demo
 from .vocal_imitation import (
     capture_project_owner_take,
     freeze_project_owner_development,
@@ -163,6 +164,7 @@ def describe() -> dict[str, object]:
             "bounded_live_operational_acceptance",
             "bounded_offline_speech_learning_demo",
             "bounded_project_owner_vocal_imitation",
+            "integrated_progress_hero_demo",
             "synthetic_mic_array_front_end",
             "live_xvf3800_front_end",
             "native_coreaudio_continuous_front_end",
@@ -1945,6 +1947,48 @@ def speech_learning_demo_cli(
     )
 
 
+def hero_demo_cli(args: list[str]) -> dict[str, object]:
+    values: dict[str, str] = {}
+    authorized = False
+    index = 1
+    while index < len(args):
+        option = args[index]
+        if option == "--authorize-live-io":
+            authorized = True
+            index += 1
+            continue
+        if option not in {
+            "--output-dir",
+            "--source",
+            "--session-dir",
+            "--mode",
+            "--vowel",
+            "--manifest",
+        }:
+            raise ValueError(f"unknown option: {option}")
+        if index + 1 >= len(args):
+            raise ValueError(f"missing value for {option}")
+        values[option] = args[index + 1]
+        index += 2
+    if "--output-dir" not in values:
+        raise ValueError("--hero-demo requires --output-dir DIR")
+    source = values.get("--source", "synthetic")
+    if source == "vocal-session" and "--session-dir" not in values:
+        raise ValueError("--hero-demo --source vocal-session requires --session-dir")
+    mode = values.get("--mode", "replay")
+    if mode == "live" and "--manifest" not in values:
+        raise ValueError("--hero-demo --mode live requires --manifest")
+    return run_hero_demo(
+        output_dir=values["--output-dir"],
+        source=source,
+        session_dir=values.get("--session-dir"),
+        mode=mode,
+        vowel=values.get("--vowel", "a"),
+        authorized_live_io=authorized,
+        operating_manifest=values.get("--manifest"),
+    )
+
+
 def capture_vocal_imitation_cli(args: list[str]) -> dict[str, object]:
     values: dict[str, str] = {}
     authorized = False
@@ -2697,6 +2741,22 @@ def main(argv: list[str] | None = None) -> int:
         except (ValueError, OSError, KeyError, TypeError, AttributeError) as exc:
             print(str(exc), file=sys.stderr)
             return 2
+    if args and args[0] == "--hero-demo":
+        try:
+            report = hero_demo_cli(args)
+            print(json.dumps(report))
+            return 0 if report["demo_passed"] is True else 1
+        except (
+            ValueError,
+            OSError,
+            KeyError,
+            TypeError,
+            AttributeError,
+            json.JSONDecodeError,
+            LiveMicError,
+        ) as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
     if args and args[0] == "--capture-vocal-imitation":
         try:
             report = capture_vocal_imitation_cli(args)
@@ -2964,7 +3024,7 @@ def main(argv: list[str] | None = None) -> int:
             return 2
 
     print(
-        "usage: python -m cora_infans --describe | --show-operational-contract | --operational-readiness [--evidence-dir DIR] | --operational-preflight --manifest FILE.json | --run-operational-acceptance --manifest FILE.json --stimulus-wav FILE.wav --output-dir DIR --authorize-live-io | --demo-speech-learning --output-dir DIR [--scenario synthetic-mirror|cross-configuration] [--vowel a|i|u|all] | --capture-vocal-imitation --session-dir DIR --target a|i|u --role development|confirmation --take N --authorize-project-owner-recording | --freeze-vocal-imitation-development --session-dir DIR | --run-vocal-imitation --session-dir DIR [--output-dir DIR] | --validate-stage6-operating-point --report REPORT.json | --simulate-frame | --simulate-sequence "
+        "usage: python -m cora_infans --describe | --show-operational-contract | --operational-readiness [--evidence-dir DIR] | --operational-preflight --manifest FILE.json | --run-operational-acceptance --manifest FILE.json --stimulus-wav FILE.wav --output-dir DIR --authorize-live-io | --demo-speech-learning --output-dir DIR [--scenario synthetic-mirror|cross-configuration] [--vowel a|i|u|all] | --hero-demo --output-dir DIR [--source synthetic|vocal-session] [--session-dir DIR] [--mode replay|live] [--vowel a|i|u] [--manifest FILE.json --authorize-live-io] | --capture-vocal-imitation --session-dir DIR --target a|i|u --role development|confirmation --take N --authorize-project-owner-recording | --freeze-vocal-imitation-development --session-dir DIR | --run-vocal-imitation --session-dir DIR [--output-dir DIR] | --validate-stage6-operating-point --report REPORT.json | --simulate-frame | --simulate-sequence "
         "[--timestamp-ms N --dominant-frequency-hz F --channel-energies a,b,c,d --initial-prediction-hz F --mic-geometry l0,l1,l2,l3 --saliency-threshold F --output json|pretty] "
         "[--family sweep|zigzag|gap|multi_gap|delayed_recovery] [--with-scheduling] "
         "[--capture-live [--device :0] [--duration-ms N]] "

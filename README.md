@@ -62,6 +62,44 @@ the [operational runbook](docs/OPERATIONAL_RUNBOOK.md). Live acceptance requires
 an explicit `--authorize-live-io` flag and refuses before playback when
 preflight or stimulus provenance fails.
 
+## Integrated progress hero demo
+
+Generate the hardware-safe, deterministic version of the complete progress
+story:
+
+```bash
+python3 -m cora_infans --hero-demo \
+  --source synthetic \
+  --mode replay \
+  --vowel a \
+  --output-dir /private/tmp/cora-hero-demo
+```
+
+When the retained project-owner V4 session is available, use its real target,
+frozen learning curve, and learned association instead:
+
+```bash
+python3 -m cora_infans --hero-demo \
+  --source vocal-session \
+  --session-dir /private/tmp/cora-vocal-imitation-v4 \
+  --mode replay \
+  --vowel a \
+  --output-dir /private/tmp/cora-hero-demo-vocal
+```
+
+Open `hero-demo.html`. The five-act dashboard exposes the teacher and learned
+voices, all 12 motor attempts, the 96-prototype memory, final-three recall,
+exact-efference identity, self/world overlap, wrong-efference control, artifact
+hashes, and the retained Stage 6 latency. Replay mode uses a deterministic room
+fixture and is presentation evidence only; it never claims live hardware.
+
+The separately gated live adapter uses Mac mini Speakers as self device 3,
+External Headphones as world device 2, and XVF3800 input `:0` at the standing
+geometry. It requires both a passing read-only preflight and literal
+`--authorize-live-io`; do not use that flag for ordinary dashboard generation.
+The frozen [hero demo specification](docs/HERO_DEMO_SPEC.md) defines the control
+panel, playback bound, stop rules, and claim boundary.
+
 ## Bounded speech-learning demo
 
 Run the offline cross-configuration imitation demo:
@@ -86,9 +124,10 @@ evidence. It performs no live I/O and accesses no recorded or protected audio.
 
 ### Project-owner vocal targets
 
-The next bounded stage records two development takes and one untouched
-confirmation take for each of `/a/`, `/i/`, and `/u/`. For every capture, say a
-comfortable steady vowel for roughly two seconds:
+The completed bounded stage records two development takes and one untouched
+confirmation take for each of `/a/`, `/i/`, and `/u/`. To create a fresh
+successor session under its stop rules, say a comfortable steady vowel for
+roughly two seconds for every capture:
 
 ```bash
 python3 -m cora_infans --capture-vocal-imitation \
