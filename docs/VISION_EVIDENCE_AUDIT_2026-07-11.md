@@ -43,14 +43,16 @@ failed gate as partial promotion.
 
 ### Verification
 
-- Full suite: `487 passed, 3 skipped`.
+- Original audit suite: `487 passed, 3 skipped`. Latest local Python 3.13
+  verification after CI retirement: `485 passed, 9 skipped`.
 - The skips are intentional hardware/environment-dependent tests.
 - `python3 -m cora_infans --operational-readiness` verifies all required
   retained stage evidence against frozen SHA-256 pins and exits nonzero when
   evidence is missing, malformed, replaced, or fails a bounded gate.
-- `.github/workflows/ci.yml` makes readiness a required fail-fast workflow step
-  before the hardware-safe test suite; it grants only read access to repository
-  contents and does not execute live or protected-data runners.
+- The retained local verification procedure runs readiness before the
+  hardware-safe test suite and does not execute live or protected-data runners.
+  Remote CI was intentionally retired after this audit for the current
+  personal, local-only project scope.
 - The self-describing operating-point validator, read-only preflight, and
   explicitly authorized bounded acceptance command close the report/procedure
   gap. After reconnection, the XVF3800 and both output routes passed preflight.

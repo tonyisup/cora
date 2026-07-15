@@ -14,9 +14,10 @@ The bounded VISION is now implemented as an end-to-end engineering contract:
   evidence and the standing physical manifest;
 - a single explicitly authorized command performs one bounded ten-second
   Stage 6 acceptance run and retains raw plus normalized reports;
-- CI uses immutable action commit pins, Python `3.13.14`, an exact dependency
-  constraint set, read-only permissions, readiness before tests, and no live-I/O
-  flags.
+- Local verification uses Python `3.13`, the retained dependency constraints,
+  operational readiness before the hardware-safe suite, and no live-I/O flags.
+  Remote CI was intentionally retired because this is currently a personal,
+  local-only project.
 
 The operational procedure and stop rules are documented in
 [OPERATIONAL_RUNBOOK.md](OPERATIONAL_RUNBOOK.md).
@@ -25,7 +26,8 @@ The operational procedure and stop rules are documented in
 
 - Clean Python 3.13 constrained installation: passed.
 - Hash-pinned operational readiness: passed.
-- Full hardware-safe suite: `488 passed, 3 skipped`.
+- Original checkpoint suite: `488 passed, 3 skipped`. Latest local Python 3.13
+  verification after CI retirement: `485 passed, 9 skipped`.
 - After the XVF3800 was reconnected, read-only preflight passed the host, input,
   format, output-route, contract, and evidence checks.
 - Operational acceptance attempt 1 completed 400 frames with clean stream

@@ -43,9 +43,9 @@ and that every artifact matches its frozen SHA-256 pin:
 python3 -m cora_infans --operational-readiness
 ```
 
-GitHub Actions runs this readiness gate before the hardware-safe test suite on
-every push and pull request. Live hardware and protected corpora are never
-accessed by CI.
+This is a local-only project: run readiness and the hardware-safe suite before
+changing its operational claims. Remote CI is intentionally not configured;
+live hardware and protected corpora are never accessed by automated checks.
 
 Check the current host and XVF3800 without opening an audio stream:
 

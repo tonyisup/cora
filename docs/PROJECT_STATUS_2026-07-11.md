@@ -262,15 +262,17 @@ analog/device-front-end transient.
 
 ## Verification state
 
-At the 2026-07-12 operational-closure checkpoint the full test suite reports
-`487 passed, 3 skipped`. The
-skips are intentional hardware/environment-dependent tests, not hidden failures.
+At the 2026-07-12 operational-closure checkpoint the full test suite reported
+`487 passed, 3 skipped`. Latest local Python 3.13 verification after CI
+retirement reports `485 passed, 9 skipped`; the skips are intentional
+hardware/environment-dependent tests, not hidden failures.
 The bounded readiness command also validates every required retained stage
 artifact against its frozen SHA-256 pin and exits nonzero on a missing,
 malformed, replaced, or failed evidence gate.
-The read-only GitHub Actions workflow runs that gate before the hardware-safe
-suite on every push and pull request; a regression test enforces the order,
-permissions, timeout, and absence of live-I/O flags.
+The retained local verification procedure runs that gate before the
+hardware-safe suite and excludes live-I/O flags. Remote CI and its associated
+workflow regression test were intentionally retired after this checkpoint for
+the current personal, local-only project scope.
 The working branch is `codex/vision-evidence`; the latest research checkpoints
 include:
 

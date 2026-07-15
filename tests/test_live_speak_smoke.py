@@ -727,12 +727,12 @@ def test_capture_coordinator_waits_for_explicit_readiness(tmp_path) -> None:
 
     release = threading.Event()
     order: list[str] = []
-    capture_started = time.monotonic()
-
     def capture(path, *, sample_rate, duration_ms, ready_event, capture_timeline):
-        capture_timeline["frame_position_fn"] = lambda: int(
-            (time.monotonic() - capture_started) * sample_rate
-        )
+        # This fixture models the capture backend's sample cursor, not host-wall
+        # time. Thread scheduling before the coordinator invokes this callback is
+        # not audio elapsed time and must not perturb the alignment measurement.
+        expected_playback_offset_samples = int(0.150 * sample_rate)
+        capture_timeline["frame_position_fn"] = lambda: expected_playback_offset_samples
         capture_timeline["position_source"] = "synthetic_frame_count"
         time.sleep(0.05)
         order.append("capture_ready")
