@@ -41,6 +41,11 @@ A future product session has five distinct states:
 
 A missed quality, provenance, association-freeze, or score gate produces `blocked` or `failed`. It must not be reworded as qualitative success.
 
+The initial offline-only report contract is frozen in
+[`2026-07-15-bounded-vocal-imitation-product-session-preregistration.json`](evidence/2026-07-15-bounded-vocal-imitation-product-session-preregistration.json).
+It authorizes metadata validation only; it does not authorize live I/O, scoring,
+association selection, or a new recording.
+
 ## 5. Required session artifacts
 
 Each evaluated trial must identify the following artifacts, whether by local path plus SHA-256 or by a retained private manifest:
@@ -53,6 +58,8 @@ response_captured.wav   # agent response through Cora's microphone path
 self_prediction.wav     # predicted microphone consequence, if available
 report.json             # immutable metric, provenance, and verdict record
 ```
+
+Audio artifacts must carry their SHA-256 in the report. `report.json` names its own path but cannot honestly contain its final self-hash; a sibling immutable session manifest must attest the completed report hash when one is needed.
 
 A synthetic/replay fixture may substitute deterministic synthetic artifacts, but must use `evidence_class: synthetic_fixture`. It may never be displayed as live or real-authorized evidence.
 

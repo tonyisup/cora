@@ -20,9 +20,19 @@ The governing product boundary is [BOUNDED_VOCAL_IMITATION_PRODUCT_SPEC.md](BOUN
 
 ## Next engineering sequence
 
-1. Define a versioned product-session report/manifest contract.
+1. A versioned product-session report/manifest contract is implemented and
+   offline-only. It requires six named artifacts, separate imitation/self-model
+   score families, association freeze before evaluation, and explicit
+   authorization plus operating-point metadata for any future real session.
 2. Build an offline/replay scorer that separates imitation fidelity from self-model fidelity.
 3. Extend the hero demo to show evidence class, provenance, and both score families without implying live behavior.
 4. Draft and approve a new real-session protocol before any microphone or speaker operation.
+
+## Verification
+
+- Product-session contract tests: `3 passed`.
+- Full local Python 3.13 suite after the contract addition: `488 passed, 9 skipped`.
+- The contract module is statically verified as offline-only: it imports no
+  audio-device module and no waveform/scoring dependency.
 
 No new live recording or H4/Stage 2 experiment is authorized by this strategic direction alone.

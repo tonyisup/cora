@@ -1,0 +1,52 @@
+{
+  "decision": "bounded_vocal_imitation_product_session_contract",
+  "date": "2026-07-15",
+  "status": "authorized_offline_contract_only",
+  "scope": {
+    "module": "src/cora_infans/product_session.py",
+    "purpose": "Validate and construct JSON-safe product-session report metadata without audio capture, playback, association selection, waveform scoring, or retained-evidence mutation.",
+    "primary_product_claim": "Finite target-specific association and recall for an authorized project owner under a separately frozen session protocol."
+  },
+  "evidence_classes": [
+    "retained_v4_evidence",
+    "synthetic_fixture",
+    "real_authorized_session"
+  ],
+  "required_artifacts": [
+    "source_human_wav",
+    "target_captured_wav",
+    "agent_emitted_wav",
+    "response_captured_wav",
+    "self_prediction_wav",
+    "report_json"
+  ],
+  "integrity_rule": {
+    "audio_artifacts_require_sha256": true,
+    "report_json_self_hash_forbidden": true,
+    "completed_report_hash_may_be_attested_by_sibling_manifest": true
+  },
+  "required_score_families": [
+    "imitation_fidelity",
+    "self_model_fidelity"
+  ],
+  "real_session_gate": {
+    "requires_recording_authorized_true": true,
+    "requires_nonempty_protocol_version": true,
+    "requires_input_device": true,
+    "requires_positive_sample_rate_hz": true
+  },
+  "frozen_boundaries": {
+    "v4_evidence_mutated": false,
+    "association_must_freeze_before_evaluation": true,
+    "stage2_reopened": false,
+    "h4_reopened": false,
+    "protected_data_access_authorized": false,
+    "live_io_authorized_by_this_artifact": false
+  },
+  "nonclaims": [
+    "No waveform score is computed by this contract.",
+    "No recording, playback, or device discovery occurs.",
+    "No prototype is selected or association trained.",
+    "No product-session threshold or real-session protocol is established."
+  ]
+}
