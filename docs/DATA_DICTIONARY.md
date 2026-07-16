@@ -197,6 +197,23 @@ failed society.
 | **Winner-local update** | Only the nearest prototype changes for a training observation. It is a local competitive-learning rule, not global backpropagation. |
 | **Backpropagation** | Gradient-based credit assignment through multiple model layers. The bounded local codebook candidate did not use it. |
 
+## Bounded vocal-imitation product-session terms
+
+These terms describe the proposed product repeatability cohort. They are not
+the Stage 2 multi-speaker cohort-adaptation terminology above.
+
+| Term or status | Meaning in Cora-Infans |
+|---|---|
+| **Product-session cohort** | The five ordered, preregistered session slots used for the first product-level repeatability verdict. All five must be resolved and reported; at least three must pass. |
+| `owner_approved_not_executable` | The owner approved the protocol design and retention decision, but calibration, implementation, cohort registration, preflight, and fresh per-session live-I/O authorization are still missing. It permits no hardware use. |
+| `blocked_pre_io` | Preflight prevented live I/O before any audio sample was accepted. It is reported but does not consume the cohort slot. |
+| `technical_invalid` | A machine-detected hardware or transport-integrity fault after live I/O began, such as an underflow, overflow, callback discontinuity, route loss, or corrupt capture. It consumes the slot and cannot pass, but it is not behavioral-failure evidence. |
+| `behavioral_failed` | A technically valid session missed a quality, label-blind selection, contrastive, commitment, or waveform-score gate. |
+| `passed` | Every authorization, capture, selection, integrity, and score gate for the session passed. |
+| **Measured pilot** | One passed session. It is useful measured evidence but is not yet a product-level repeatability claim. |
+| **Behavioral repeatability** | Passed sessions divided by technically valid started sessions within the frozen five-slot cohort. |
+| **Operational reliability** | Technically valid sessions divided by all started session slots. It keeps hardware/transport reliability separate from behavioral scoring. |
+
 ## Predictive and workspace architecture
 
 | Term | Meaning |

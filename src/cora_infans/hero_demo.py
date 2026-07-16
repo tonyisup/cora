@@ -807,6 +807,7 @@ def _render_product_session_html(report: dict[str, object]) -> str:
         "self_model_fidelity": "Self-model fidelity",
     }
     metric_labels = {
+        "active_duration_difference_ms": "Active duration difference (ms)",
         "onset_offset_alignment_ms": "Onset/offset alignment (ms)",
         "duration_difference_ms": "Duration difference (ms)",
         "rms_envelope_distance": "RMS-envelope distance",

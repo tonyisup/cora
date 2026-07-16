@@ -22,6 +22,13 @@ def test_data_dictionary_covers_common_acronyms_and_official_fieldsite_names() -
         "RTF",
         "RSS",
         "XVF3800",
+        "Product-session cohort",
+        "blocked_pre_io",
+        "technical_invalid",
+        "behavioral_failed",
+        "Behavioral repeatability",
+        "Operational reliability",
+        "owner_approved_not_executable",
     ):
         assert term in dictionary
 

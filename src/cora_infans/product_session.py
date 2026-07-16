@@ -1,7 +1,8 @@
-"""Offline contract validation for bounded vocal-imitation product sessions.
+"""Offline validation and replay scoring for vocal-imitation product sessions.
 
-This module validates JSON-safe report metadata only. It does not capture audio,
-select prototypes, score waveforms, or modify retained V4 evidence.
+This module validates JSON-safe report metadata and scores pre-existing WAV
+artifacts. It does not capture audio, play audio, discover devices, select
+prototypes, train associations, or modify retained V4 evidence.
 """
 
 from __future__ import annotations
@@ -37,8 +38,10 @@ REQUIRED_ARTIFACTS = frozenset(
     }
 )
 REQUIRED_SCORE_FAMILIES = frozenset({"imitation_fidelity", "self_model_fidelity"})
-SCORING_VERSION = "offline-replay-v1"
+SCORING_VERSION = "offline-replay-v2"
 _SCORING_SAMPLE_RATE_HZ = 16000
+_ENVELOPE_FRAME_SAMPLES = 320
+_ENVELOPE_HOP_SAMPLES = 160
 
 
 def _require_mapping(value: object, *, name: str) -> Mapping[str, object]:
@@ -171,7 +174,12 @@ def _read_mono(path: Path) -> np.ndarray:
     return _resample(np.mean(samples, axis=1), int(sample_rate))
 
 
-def _frame_rms(samples: np.ndarray, *, frame_samples: int = 320, hop_samples: int = 160) -> np.ndarray:
+def _frame_rms(
+    samples: np.ndarray,
+    *,
+    frame_samples: int = _ENVELOPE_FRAME_SAMPLES,
+    hop_samples: int = _ENVELOPE_HOP_SAMPLES,
+) -> np.ndarray:
     if samples.size < frame_samples:
         raise ValueError("scoring WAV is shorter than one 20 ms analysis frame")
     values = [
@@ -199,6 +207,24 @@ def _active_bounds(envelope: np.ndarray) -> tuple[int, int]:
     if active.size == 0:
         raise ValueError("scoring WAV contains no active voiced interval")
     return int(active[0]), int(active[-1] + 1)
+
+
+def _active_samples(
+    samples: np.ndarray,
+    envelope_bounds: tuple[int, int],
+) -> np.ndarray:
+    """Return the detected vocal event independent of capture-window offset."""
+
+    start_frame, end_frame = envelope_bounds
+    start_sample = start_frame * _ENVELOPE_HOP_SAMPLES
+    end_sample = min(
+        samples.size,
+        (end_frame - 1) * _ENVELOPE_HOP_SAMPLES + _ENVELOPE_FRAME_SAMPLES,
+    )
+    active = samples[start_sample:end_sample]
+    if active.size < _ENVELOPE_FRAME_SAMPLES:
+        raise ValueError("scoring WAV active interval is shorter than one analysis frame")
+    return active
 
 
 def _pitch_contour(samples: np.ndarray, envelope: np.ndarray) -> np.ndarray:
@@ -241,29 +267,46 @@ def _cepstral_vector(samples: np.ndarray) -> np.ndarray:
 
 
 def score_waveform_pair(reference: np.ndarray, observed: np.ndarray) -> dict[str, float]:
-    """Return deterministic, phase-robust distances for two microphone waveforms."""
+    """Return capture-offset-independent distances for two microphone waveforms."""
 
     reference_envelope = _frame_rms(reference)
     observed_envelope = _frame_rms(observed)
-    reference_start, reference_end = _active_bounds(reference_envelope)
-    observed_start, observed_end = _active_bounds(observed_envelope)
-    common_count = max(reference_envelope.size, observed_envelope.size)
-    aligned_reference_envelope = _resample_vector(reference_envelope, common_count)
-    aligned_observed_envelope = _resample_vector(observed_envelope, common_count)
-    reference_pitch = _pitch_contour(reference, reference_envelope)
-    observed_pitch = _pitch_contour(observed, observed_envelope)
+    reference_bounds = _active_bounds(reference_envelope)
+    observed_bounds = _active_bounds(observed_envelope)
+    active_reference = _active_samples(reference, reference_bounds)
+    active_observed = _active_samples(observed, observed_bounds)
+    active_reference_envelope = reference_envelope[
+        reference_bounds[0] : reference_bounds[1]
+    ]
+    active_observed_envelope = observed_envelope[
+        observed_bounds[0] : observed_bounds[1]
+    ]
+    common_count = max(
+        active_reference_envelope.size,
+        active_observed_envelope.size,
+    )
+    aligned_reference_envelope = _resample_vector(
+        active_reference_envelope,
+        common_count,
+    )
+    aligned_observed_envelope = _resample_vector(
+        active_observed_envelope,
+        common_count,
+    )
+    reference_pitch = _pitch_contour(
+        active_reference,
+        active_reference_envelope,
+    )
+    observed_pitch = _pitch_contour(
+        active_observed,
+        active_observed_envelope,
+    )
     common_pitch_count = max(reference_pitch.size, observed_pitch.size)
     return {
-        "onset_offset_alignment_ms": float(
-            10.0
-            * (
-                abs(reference_start - observed_start)
-                + abs(reference_end - observed_end)
-            )
-            / 2.0
-        ),
-        "duration_difference_ms": float(
-            abs(reference.size - observed.size) * 1000.0 / _SCORING_SAMPLE_RATE_HZ
+        "active_duration_difference_ms": float(
+            abs(active_reference.size - active_observed.size)
+            * 1000.0
+            / _SCORING_SAMPLE_RATE_HZ
         ),
         "rms_envelope_distance": float(
             np.sqrt(np.mean(np.square(aligned_reference_envelope - aligned_observed_envelope)))
@@ -277,7 +320,10 @@ def score_waveform_pair(reference: np.ndarray, observed: np.ndarray) -> dict[str
             )
         ),
         "cepstral_distance": float(
-            np.linalg.norm(_cepstral_vector(reference) - _cepstral_vector(observed))
+            np.linalg.norm(
+                _cepstral_vector(active_reference)
+                - _cepstral_vector(active_observed)
+            )
         ),
     }
 

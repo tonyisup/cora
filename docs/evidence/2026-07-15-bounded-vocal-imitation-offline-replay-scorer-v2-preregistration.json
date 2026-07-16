@@ -1,0 +1,79 @@
+{
+  "decision": "bounded_vocal_imitation_offline_replay_scorer_v2",
+  "date": "2026-07-15",
+  "status": "authorized_offline_replay_only",
+  "supersedes_for_fixed_window_scoring": "offline-replay-v1",
+  "historical_v1_record_mutated": false,
+  "scope": {
+    "module": "src/cora_infans/product_session.py",
+    "cli": "python -m cora_infans --score-vocal-imitation-session --session-dir DIR --evidence-class CLASS",
+    "script": "scripts/run_bounded_vocal_imitation_replay.py",
+    "scoring_version": "offline-replay-v2"
+  },
+  "active_interval": {
+    "sample_rate_hz": 16000,
+    "rms_frame_ms": 20,
+    "rms_hop_ms": 10,
+    "threshold": "max(10% of each file's peak frame RMS, 1e-6)",
+    "start": "first active RMS frame",
+    "end": "end sample of last active RMS frame",
+    "independent_capture_window_offsets_removed_before_comparison": true
+  },
+  "required_wav_artifacts": [
+    "source_human.wav",
+    "target_captured.wav",
+    "agent_emitted.wav",
+    "response_captured.wav",
+    "self_prediction.wav"
+  ],
+  "derived_artifacts": [
+    "report.json",
+    "session-manifest.json"
+  ],
+  "score_families": {
+    "imitation_fidelity": {
+      "reference": "target_captured.wav",
+      "observed": "response_captured.wav"
+    },
+    "self_model_fidelity": {
+      "reference": "self_prediction.wav",
+      "observed": "response_captured.wav"
+    }
+  },
+  "component_metrics": [
+    "active_duration_difference_ms",
+    "rms_envelope_distance",
+    "pitch_contour_distance_hz",
+    "cepstral_distance"
+  ],
+  "corrected_v1_limitations": [
+    "Whole-file duration no longer makes equal fixed capture windows appear duration-identical.",
+    "Absolute onset and offset positions from independently anchored capture windows are no longer compared.",
+    "Envelope, pitch, and cepstral comparisons use detected active vocal intervals."
+  ],
+  "integrity": {
+    "audio_artifacts_sha256": true,
+    "completed_report_sha256_in_sibling_manifest": true,
+    "report_json_self_hash": false,
+    "external_manifest_attestation_created_by_offline_scorer": false
+  },
+  "frozen_boundaries": {
+    "association_freeze_must_be_explicitly_attested": true,
+    "live_io_authorized_by_this_artifact": false,
+    "device_discovery_performed": false,
+    "recording_performed": false,
+    "playback_performed": false,
+    "association_selected_or_trained": false,
+    "v4_evidence_mutated": false,
+    "stage2_reopened": false,
+    "h4_reopened": false,
+    "protected_data_access_authorized": false
+  },
+  "nonclaims": [
+    "No component metric is a product threshold or pass/fail aggregation.",
+    "No metric establishes perceptual quality, phoneme recognition, or word recognition.",
+    "The scorer does not prove label-blind selection, prediction precommitment, or external manifest anchoring.",
+    "No synthetic fixture may be presented as real-authorized evidence.",
+    "No real product session is authorized or performed."
+  ]
+}

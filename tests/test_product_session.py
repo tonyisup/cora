@@ -15,6 +15,7 @@ import pytest
 from cora_infans.product_session import (
     build_product_session_report,
     score_product_session_directory,
+    score_waveform_pair,
     validate_product_session_report,
 )
 
@@ -64,6 +65,22 @@ def _write_replay_fixture(root) -> None:
         "self_prediction.wav",
     ):
         _write_mono_wav(root / filename, samples, sample_rate)
+
+
+def _padded_tone(
+    *,
+    onset_seconds: float,
+    duration_seconds: float,
+    total_seconds: float = 5.0,
+    frequency_hz: float = 180.0,
+    sample_rate: int = 16000,
+) -> np.ndarray:
+    samples = np.zeros(int(sample_rate * total_seconds), dtype=np.float64)
+    start = int(round(onset_seconds * sample_rate))
+    stop = start + int(round(duration_seconds * sample_rate))
+    time = np.arange(stop - start, dtype=np.float64) / sample_rate
+    samples[start:stop] = 0.25 * np.sin(2.0 * np.pi * frequency_hz * time)
+    return samples
 
 
 def test_synthetic_fixture_report_has_required_artifacts_and_separate_scores() -> None:
@@ -148,8 +165,7 @@ def test_offline_replay_scores_identical_wavs_and_writes_manifest(tmp_path) -> N
     self_model = report["scores"]["self_model_fidelity"]
     assert imitation == pytest.approx(
         {
-            "onset_offset_alignment_ms": 0.0,
-            "duration_difference_ms": 0.0,
+            "active_duration_difference_ms": 0.0,
             "rms_envelope_distance": 0.0,
             "pitch_contour_distance_hz": 0.0,
             "cepstral_distance": 0.0,
@@ -157,7 +173,7 @@ def test_offline_replay_scores_identical_wavs_and_writes_manifest(tmp_path) -> N
         abs=1e-9,
     )
     assert self_model == pytest.approx(imitation, abs=1e-9)
-    assert report["scoring_version"] == "offline-replay-v1"
+    assert report["scoring_version"] == "offline-replay-v2"
     assert (tmp_path / "report.json").is_file()
     manifest = json.loads((tmp_path / "session-manifest.json").read_text())
     assert len(manifest["report_sha256"]) == 64
@@ -180,6 +196,34 @@ def test_offline_replay_distinguishes_changed_pitch_and_spectrum(tmp_path) -> No
     imitation = report["scores"]["imitation_fidelity"]
     assert imitation["pitch_contour_distance_hz"] > 0.0
     assert imitation["cepstral_distance"] > 0.0
+
+
+def test_offline_replay_uses_active_vocal_duration_inside_fixed_capture_windows() -> None:
+    reference = _padded_tone(onset_seconds=0.05, duration_seconds=1.0)
+    observed = _padded_tone(onset_seconds=0.25, duration_seconds=2.0)
+
+    scores = score_waveform_pair(reference, observed)
+
+    assert scores["active_duration_difference_ms"] == pytest.approx(1000.0, abs=20.0)
+    assert "duration_difference_ms" not in scores
+    assert "onset_offset_alignment_ms" not in scores
+
+
+def test_offline_replay_normalizes_independent_capture_time_origins() -> None:
+    reference = _padded_tone(onset_seconds=0.05, duration_seconds=1.0)
+    observed = _padded_tone(onset_seconds=0.75, duration_seconds=1.0)
+
+    scores = score_waveform_pair(reference, observed)
+
+    assert scores == pytest.approx(
+        {
+            "active_duration_difference_ms": 0.0,
+            "rms_envelope_distance": 0.0,
+            "pitch_contour_distance_hz": 0.0,
+            "cepstral_distance": 0.0,
+        },
+        abs=1e-9,
+    )
 
 
 def test_offline_replay_cli_scores_existing_session_without_live_io(tmp_path) -> None:
@@ -232,4 +276,4 @@ def test_replay_script_scores_existing_session_without_live_io(tmp_path) -> None
         env=env,
     )
 
-    assert json.loads(completed.stdout)["scoring_version"] == "offline-replay-v1"
+    assert json.loads(completed.stdout)["scoring_version"] == "offline-replay-v2"

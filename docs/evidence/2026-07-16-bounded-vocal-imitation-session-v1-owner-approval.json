@@ -1,0 +1,50 @@
+{
+  "decision": "bounded_vocal_imitation_product_session_v1_owner_approval",
+  "date": "2026-07-16",
+  "status": "owner_approved_protocol_design_not_live_io",
+  "owner_approval_signal": "approved",
+  "approved_protocol": {
+    "path": "docs/BOUNDED_VOCAL_IMITATION_SESSION_PROTOCOL_V1.md",
+    "sha256": "cc4adbef94469c93bda8bdd40ebc9311b29f4674c7bb8d895a443abb55048de2"
+  },
+  "approved_preregistration": {
+    "path": "docs/evidence/2026-07-15-bounded-vocal-imitation-session-v1-preregistration.json",
+    "sha256": "d5f3b47469fb3a96f3fa6380d2ecabea3002d599832c4e707c3b8bde618151c1"
+  },
+  "approval_scope": [
+    "V1 protocol design",
+    "30-day encrypted audio retention and cryptographic-erasure decision",
+    "label-blind selection and contrastive gates",
+    "offline-replay-v2 scoring boundary",
+    "five-slot cohort with a three-pass product-level threshold",
+    "separate technical-invalidity and behavioral-failure reporting"
+  ],
+  "execution_state": {
+    "protocol_design_approved": true,
+    "retention_decision_approved": true,
+    "threshold_calibration_complete": false,
+    "runtime_implementation_complete": false,
+    "runtime_review_complete": false,
+    "five_slot_cohort_registered": false,
+    "preflight_complete": false,
+    "execution_authorized": false,
+    "live_io_authorized": false
+  },
+  "remaining_execution_gates": [
+    "Create and pass the separate hashed threshold-calibration record.",
+    "Implement and review the fail-closed live session state machine.",
+    "Register the five ordered cohort session-slot identifiers.",
+    "Pass the named route and operating-point preflight.",
+    "Obtain a fresh one-session live-I/O authorization immediately before each session."
+  ],
+  "frozen_boundaries": {
+    "v4_evidence_mutated": false,
+    "stage2_reopened": false,
+    "h4_reopened": false,
+    "protected_data_access_authorized": false,
+    "recording_authorized": false,
+    "playback_authorized": false,
+    "device_discovery_authorized": false
+  },
+  "claim_boundary": "The owner approved the hash-pinned V1 protocol design and retention decision. This record does not authorize execution, microphone capture, playback, device discovery, a cohort result, or a product claim."
+}
