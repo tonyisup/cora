@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "protocol_version": "bounded-product-session-v1-approved",
+  "cohort_id": "bvips-v1-20260716-cohort-01",
+  "slot_statuses": [
+    {
+      "session_id": "bvips-v1-20260716-cohort-01-s01",
+      "status": "behavioral_failed"
+    },
+    {
+      "session_id": "bvips-v1-20260716-cohort-01-s02",
+      "status": "pending"
+    },
+    {
+      "session_id": "bvips-v1-20260716-cohort-01-s03",
+      "status": "pending"
+    },
+    {
+      "session_id": "bvips-v1-20260716-cohort-01-s04",
+      "status": "pending"
+    },
+    {
+      "session_id": "bvips-v1-20260716-cohort-01-s05",
+      "status": "pending"
+    }
+  ],
+  "started_slots": 1,
+  "technically_valid_started_sessions": 1,
+  "passed_sessions": 0,
+  "behavioral_repeatability": {
+    "numerator_passed": 0,
+    "denominator_technically_valid_started": 1,
+    "value": 0.0
+  },
+  "operational_reliability": {
+    "numerator_technically_valid": 1,
+    "denominator_started_slots": 1,
+    "value": 1.0
+  },
+  "pre_io_blocks": [
+    {
+      "session_id": "bvips-v1-20260716-cohort-01-s01",
+      "reason": "system volume measured 84% instead of 100%",
+      "resolved_before_io": true,
+      "consumed_slot": false
+    }
+  ],
+  "cohort_resolved": false,
+  "product_level_verdict_available": false,
+  "minimum_fully_passed_slots": 3,
+  "maximum_remaining_possible_passes": 4,
+  "product_level_pass_still_mathematically_possible": true,
+  "next_slot_requires_fresh_authorization": true,
+  "claim_boundary": "Interim cohort status after one of five registered slots. No aggregate product-level verdict is available until all five slots resolve."
+}

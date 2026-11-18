@@ -1,0 +1,37 @@
+{
+  "schema_version": 2,
+  "protocol_version": "bounded-product-session-v2-candidate",
+  "authorization_date": "2026-07-16",
+  "owner_statement": "Authorize V2 cue diagnostic.",
+  "authorized_action": "one exact UID-bound drain-confirmed cue playback",
+  "cue": {
+    "frequency_hz": 660.0,
+    "duration_ms": 100,
+    "amplitude": 0.08,
+    "sample_rate_hz": 48000
+  },
+  "output": {
+    "coreaudio_device_uid": "BuiltInSpeakerDevice",
+    "required_name": "Mac mini Speakers",
+    "system_volume_percent": 100
+  },
+  "native_player": {
+    "version": "cora-audioqueue-player-v1",
+    "binary_sha256": "ab6d421aac2388234aab439143257e1a7c544e22da74f3dee2e751c53d72cb3e"
+  },
+  "required_machine_gates": [
+    "zero-frame UID/name resolution",
+    "registered binary SHA-256 match",
+    "current-device UID readback match",
+    "returned-buffer callback",
+    "non-immediate stop",
+    "queue no longer running before return",
+    "elapsed playback covers at least 90% of WAV duration",
+    "non-immediate disposal"
+  ],
+  "owner_audibility_confirmation_required_after_playback": true,
+  "microphone_capture_authorized": false,
+  "cohort_registration_authorized": false,
+  "session_execution_authorized": false,
+  "claim_boundary": "Authorization for one V2 cue-only diagnostic. It does not authorize microphone capture, cohort registration, a session, or a product claim."
+}

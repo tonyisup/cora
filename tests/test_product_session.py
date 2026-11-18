@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import subprocess
@@ -13,9 +14,12 @@ import numpy as np
 import pytest
 
 from cora_infans.product_session import (
+    build_offline_replay_v2_calibration,
     build_product_session_report,
+    evaluate_contrastive_selection,
     score_product_session_directory,
     score_waveform_pair,
+    select_frozen_association,
     validate_product_session_report,
 )
 
@@ -224,6 +228,93 @@ def test_offline_replay_normalizes_independent_capture_time_origins() -> None:
         },
         abs=1e-9,
     )
+
+
+def test_label_blind_selection_rejects_ambiguity_and_far_targets() -> None:
+    basis = np.eye(30)
+    angle = 2.0 * np.arcsin(0.20)
+    close = np.cos(angle) * basis[0] + np.sin(angle) * basis[1]
+    centroids = {"opaque-a": basis[0], "opaque-i": close, "opaque-u": basis[2]}
+
+    clear = select_frozen_association(basis[0], centroids)
+    ambiguous = select_frozen_association(
+        np.cos(angle / 2.0) * basis[0] + np.sin(angle / 2.0) * basis[1],
+        centroids,
+    )
+    far = select_frozen_association(basis[3], centroids)
+
+    assert clear["selected_opaque_id"] == "opaque-a"
+    assert clear["selection_passed"] is True
+    assert ambiguous["selected_opaque_id"] == "opaque-a"
+    assert ambiguous["selection_passed"] is False
+    assert ambiguous["criteria"]["runner_up_margin_at_least_0_05"] is False
+    assert far["selection_passed"] is False
+    assert far["criteria"]["nearest_distance_at_most_0_30"] is False
+
+
+def test_contrastive_selection_requires_rest_and_off_target_margins() -> None:
+    basis = np.eye(30)
+    angle = 2.0 * np.arcsin(0.20)
+    close = np.cos(angle) * basis[0] + np.sin(angle) * basis[1]
+    midpoint = np.cos(angle / 2.0) * basis[0] + np.sin(angle / 2.0) * basis[1]
+
+    passed = evaluate_contrastive_selection(
+        basis[0],
+        selected_prototype=basis[0],
+        rest_prototype=-basis[0],
+        off_target_prototypes={"opaque-i": close, "opaque-u": basis[2]},
+    )
+    failed = evaluate_contrastive_selection(
+        midpoint,
+        selected_prototype=basis[0],
+        rest_prototype=-basis[0],
+        off_target_prototypes={"opaque-i": close, "opaque-u": basis[2]},
+    )
+
+    assert passed["contrastive_passed"] is True
+    assert failed["contrastive_passed"] is False
+    assert failed["criteria"][
+        "selected_margin_over_every_off_target_at_least_0_05"
+    ] is False
+
+
+def test_offline_replay_v2_calibration_passes_without_live_or_retained_audio() -> None:
+    calibration = build_offline_replay_v2_calibration()
+
+    assert calibration["calibration_passed"] is True
+    assert all(calibration["checks"].values())
+    assert calibration["audio_sources"] == "deterministic synthetic arrays only"
+    assert calibration["v4_audio_accessed"] is False
+    assert calibration["future_session_audio_accessed"] is False
+    assert calibration["live_io_performed"] is False
+    assert calibration["waveform_cases"]["duration_250ms_fail"][
+        "actual_failing_components"
+    ] == ["active_duration_difference_ms"]
+    assert calibration["selection_cases"]["ambiguous_runner_up_fail"][
+        "selection_passed"
+    ] is False
+
+
+def test_retained_threshold_calibration_matches_current_implementation() -> None:
+    root = Path(__file__).resolve().parents[1]
+    record = json.loads(
+        (
+            root
+            / "docs/evidence/2026-07-16-bounded-vocal-imitation-v1-threshold-calibration.json"
+        ).read_text()
+    )
+    calibration = build_offline_replay_v2_calibration()
+    canonical = (json.dumps(calibration, sort_keys=True, separators=(",", ":")) + "\n").encode()
+
+    assert record["status"] == "all_deterministic_calibration_gates_passed"
+    assert record["calibration_passed"] is True
+    assert record["canonical_calibration_result_sha256"] == hashlib.sha256(
+        canonical
+    ).hexdigest()
+    implementation = root / record["source_hashes"]["implementation"]["path"]
+    assert record["source_hashes"]["implementation"]["sha256"] == hashlib.sha256(
+        implementation.read_bytes()
+    ).hexdigest()
 
 
 def test_offline_replay_cli_scores_existing_session_without_live_io(tmp_path) -> None:

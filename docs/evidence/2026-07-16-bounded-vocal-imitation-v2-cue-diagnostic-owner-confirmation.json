@@ -1,0 +1,17 @@
+{
+  "schema_version": 2,
+  "protocol_version": "bounded-product-session-v2-candidate",
+  "owner_statement": "not heard",
+  "owner_heard_cue": false,
+  "machine_gate_passed": false,
+  "machine_failure": "AudioQueue drain completed without a buffer callback",
+  "microphone_opened": false,
+  "cohort_registered": false,
+  "session_executed": false,
+  "diagnostic_passed": false,
+  "native_binary_rejected": true,
+  "replay_authorized": false,
+  "implementation_revision_required": true,
+  "reapproval_required": true,
+  "claim_boundary": "Owner audibility result for the failed V2 diagnostic. It does not authorize another cue, microphone capture, cohort registration, or a session."
+}

@@ -167,6 +167,7 @@ def test_callback_stream_reblocks_pcm_and_preserves_adc_timestamp() -> None:
 
     array._native_input_callback(first, 200, TimeInfo(100.0), None)
     array._native_input_callback(second, 200, TimeInfo(100.0125), None)
+    assert array.callback_stream_frame_position() == 400
     frame = array.capture_frame(duration_ms=25)
     timing = array.device_frame_latency_at_decision()
 
@@ -181,6 +182,21 @@ def test_callback_stream_reblocks_pcm_and_preserves_adc_timestamp() -> None:
     assert array.clipped_sample_count == 0
     assert array.last_frame_peak_absolute == 0.5
     assert array.last_frame_clipped_sample_count == 0
+
+
+def test_callback_stream_cursor_survives_buffer_discard() -> None:
+    class TimeInfo:
+        def __init__(self, adc: float) -> None:
+            self.inputBufferAdcTime = adc
+
+    array = LiveMicArray(sample_rate=16000, stream_backend="callback")
+    array._callback_enabled = True
+    data = np.zeros((160, 2), dtype=np.float32)
+    array._native_input_callback(data, 160, TimeInfo(10.0), None)
+
+    assert array.discard_buffered_callback_audio() == 160
+    assert array._callback_available_frames == 0
+    assert array.callback_stream_frame_position() == 160
 
 
 def test_callback_stream_uses_non_draining_abort_on_close() -> None:

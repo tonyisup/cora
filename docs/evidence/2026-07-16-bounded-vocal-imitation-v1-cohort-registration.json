@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "cohort_id": "bvips-v1-20260716-cohort-01",
+  "protocol_version": "bounded-product-session-v1-approved",
+  "ordered_session_slot_ids": [
+    "bvips-v1-20260716-cohort-01-s01",
+    "bvips-v1-20260716-cohort-01-s02",
+    "bvips-v1-20260716-cohort-01-s03",
+    "bvips-v1-20260716-cohort-01-s04",
+    "bvips-v1-20260716-cohort-01-s05"
+  ],
+  "minimum_fully_passed_slots": 3,
+  "passes_must_be_consecutive": false,
+  "sixth_or_replacement_session_may_contribute": false,
+  "started_slot_consumption_point": "first accepted audio sample",
+  "session_statuses": [
+    "behavioral_failed",
+    "blocked_pre_io",
+    "passed",
+    "technical_invalid"
+  ],
+  "behavioral_repeatability_denominator": "technically valid started sessions",
+  "operational_reliability_denominator": "all started session slots",
+  "frozen_digests": {
+    "protocol": "cc4adbef94469c93bda8bdd40ebc9311b29f4674c7bb8d895a443abb55048de2",
+    "preregistration": "d5f3b47469fb3a96f3fa6380d2ecabea3002d599832c4e707c3b8bde618151c1",
+    "threshold_calibration": "5012600fe5f56613dbb402cc77b30806fdc81ac76d52281cd0a9f5cd92686580",
+    "representation_implementation": "9e55bcd64b50dc807b04ef569213b1534751d752e043ce6892efd565c89b872b",
+    "live_runner_implementation": "c82743987f754e33b61549d507a23eae4b6578fd71ba985101c5b373282290dc",
+    "private_storage_implementation": "11f7b45b03e165ab1aa1fce1bc8cc0c9e27e570b65a0a6ebdee2c4dea97a6644",
+    "operating_point": "04e4b29a56176d5833fd3bb657f72cfc6a524904f076b05b5bf54b61a5179895"
+  },
+  "capture_schedule": {
+    "development": ["a", "i", "u", "a", "i", "u"],
+    "held": ["a", "i", "u", "a", "i", "u"],
+    "capture_duration_ms": 5000
+  },
+  "registered_before_live_io": true,
+  "registration_date": "2026-07-16",
+  "live_io_performed_before_registration": false,
+  "claim_boundary": "This freezes one five-slot cohort. It is not a session result or product-level claim; all five slots must resolve before aggregation."
+}

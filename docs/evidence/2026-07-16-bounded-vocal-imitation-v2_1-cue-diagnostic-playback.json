@@ -1,0 +1,61 @@
+{
+  "schema_version": 2,
+  "protocol_version": "bounded-product-session-v2.1-candidate",
+  "authorization": {
+    "path": "docs/evidence/2026-07-16-bounded-vocal-imitation-v2_1-cue-diagnostic-authorization.json",
+    "sha256": "2420fc4961e7618dbe964f3fae530caaa8e3413b88ba10c4746bd9b571d8b828"
+  },
+  "authorized_playback_count": 1,
+  "performed_playback_count": 1,
+  "authorization_consumed": true,
+  "cue_sha256": "7478373ff640449b671c0c6a1cd116594191f285b923e1517fb220bd8116669f",
+  "native_player": {
+    "version": "cora-audioqueue-player-v2",
+    "binary_sha256": "1a9664db2f558bf514c390859815f86783f65b01a622fe8b6e92b22270e94189"
+  },
+  "read_only_preflight": {
+    "enumeration_mode": "coreaudio_property_read_only",
+    "audio_queue_created": false,
+    "audio_frames_sent": 0,
+    "self_uid": "BuiltInSpeakerDevice",
+    "self_name": "Mac mini Speakers",
+    "self_index_informational_only": 3,
+    "system_output_volume_percent": 100,
+    "output_muted": false,
+    "passed": true
+  },
+  "native_report": {
+    "schema_version": 2,
+    "player_version": "cora-audioqueue-player-v2",
+    "requested_device_uid": "BuiltInSpeakerDevice",
+    "device_uid_verified": true,
+    "audio_byte_count": 9600,
+    "sample_rate_hz": 48000,
+    "duration_seconds": 0.1,
+    "prepared_frames": 4800,
+    "buffer_callback_count": 1,
+    "callback_observed_before_stop": true,
+    "stop_requested_after_callback": true,
+    "queue_drain_confirmed": true,
+    "callback_elapsed_seconds": 0.153165,
+    "playback_elapsed_seconds": 0.243151
+  },
+  "machine_checks": {
+    "approved_binary_digest_matched": true,
+    "cue_digest_matched": true,
+    "device_uid_verified": true,
+    "buffer_callback_observed": true,
+    "callback_observed_before_stop": true,
+    "callback_elapsed_covers_90_percent_of_wav": true,
+    "stop_requested_after_callback": true,
+    "queue_drain_confirmed": true,
+    "playback_elapsed_covers_90_percent_of_wav": true,
+    "machine_playback_passed": true
+  },
+  "microphone_opened": false,
+  "cohort_registered": false,
+  "session_executed": false,
+  "owner_audibility_confirmation": "pending",
+  "further_playback_authorized": false,
+  "claim_boundary": "The single authorized V2.1 cue produced complete machine playback evidence. Owner audibility is still pending; no replay, microphone capture, cohort, session, or claim is authorized."
+}

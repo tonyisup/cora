@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "protocol_version": "bounded-product-session-v1-approved",
+  "cohort_id": "bvips-v1-20260716-cohort-01",
+  "diagnostic": "zero-frame ffmpeg AudioToolbox device enumeration",
+  "audio_frames_sent": 0,
+  "microphone_opened": false,
+  "observed_output_device_mapping": [
+    {"index": 0, "name": "ASUS PB287Q"},
+    {"index": 1, "name": "reSpeaker XVF3800 4-Mic Array"},
+    {"index": 2, "name": "BlackHole 16ch"},
+    {"index": 3, "name": "External Headphones"},
+    {"index": 4, "name": "Mac mini Speakers"}
+  ],
+  "frozen_route": {
+    "external_world_index": 2,
+    "external_world_name": "External Headphones",
+    "self_index": 3,
+    "self_name": "Mac mini Speakers"
+  },
+  "root_cause": "The ASUS PB287Q audio endpoint occupied AudioToolbox index 0, shifting External Headphones to index 3 and Mac mini Speakers to index 4. The runner sent the cue to frozen index 3, which was External Headphones, while asserting the frozen Mac mini Speakers name in metadata.",
+  "preflight_defect": "Preflight independently checked that Mac mini Speakers existed and that the frozen index equaled 3, but did not enumerate and bind AudioToolbox index 3 to its actual device name.",
+  "impact": {
+    "slot_04_owner_report": "No cue heard; no speech produced.",
+    "slot_05_exact_cue_diagnostic": "No cue heard.",
+    "slot_05_status": "blocked_pre_io",
+    "slot_05_consumed": false,
+    "prior_machine_statuses_rewritten": false
+  },
+  "frozen_route_change_allowed": false,
+  "using_device_4_under_v1_allowed": false,
+  "compliant_recovery_candidate": "Remove or disable the ASUS PB287Q audio endpoint, then use zero-frame enumeration to verify External Headphones=2 and Mac mini Speakers=3 before any further cue playback.",
+  "root_cause_confidence": "directly observed for the slot-5 diagnostic; prior-session impact is supported by their device-3 cue records but remains retrospective",
+  "claim_boundary": "Route-diagnostic root cause. It does not authorize device changes, playback, capture, status rewriting, a retry, or a product claim."
+}

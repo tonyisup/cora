@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "protocol_version": "bounded-product-session-v1-approved",
+  "cohort_id": "bvips-v1-20260716-cohort-01",
+  "slot_statuses": [
+    {
+      "session_id": "bvips-v1-20260716-cohort-01-s01",
+      "status": "behavioral_failed"
+    },
+    {
+      "session_id": "bvips-v1-20260716-cohort-01-s02",
+      "status": "behavioral_failed"
+    },
+    {
+      "session_id": "bvips-v1-20260716-cohort-01-s03",
+      "status": "behavioral_failed"
+    },
+    {
+      "session_id": "bvips-v1-20260716-cohort-01-s04",
+      "status": "pending"
+    },
+    {
+      "session_id": "bvips-v1-20260716-cohort-01-s05",
+      "status": "pending"
+    }
+  ],
+  "started_slots": 3,
+  "technically_valid_started_sessions": 3,
+  "passed_sessions": 0,
+  "behavioral_repeatability": {
+    "numerator_passed": 0,
+    "denominator_technically_valid_started": 3,
+    "value": 0.0
+  },
+  "operational_reliability": {
+    "numerator_technically_valid": 3,
+    "denominator_started_slots": 3,
+    "value": 1.0
+  },
+  "cohort_resolved": false,
+  "product_level_verdict_available": false,
+  "minimum_fully_passed_slots": 3,
+  "maximum_remaining_possible_passes": 2,
+  "product_level_pass_still_mathematically_possible": false,
+  "product_level_threshold_unreachable": true,
+  "all_five_slots_still_must_resolve": true,
+  "extra_or_replacement_sessions_may_rescue_cohort": false,
+  "next_slot_requires_fresh_authorization": true,
+  "claim_boundary": "Interim status after three of five slots. The frozen three-of-five threshold is now unreachable, but slots 4-5 must still resolve before the final cohort report."
+}

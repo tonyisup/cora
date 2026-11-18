@@ -1,0 +1,52 @@
+{
+  "schema_version": 2,
+  "protocol_version": "bounded-product-session-v2.1-candidate",
+  "authorization_date": "2026-07-16",
+  "owner_statement": "Authorize V2.1 cue diagnostic.",
+  "approved_design_record": {
+    "path": "docs/evidence/2026-07-16-bounded-vocal-imitation-v2_1-owner-approval.json",
+    "sha256": "41871b145f43ab3bbdf15cf1b19ddc8841a1343eb686c2ce2c04d53d7ce51207"
+  },
+  "authorized_action": "one exact UID-bound callback-before-stop cue playback",
+  "maximum_playback_count": 1,
+  "cue": {
+    "path_ephemeral": "/private/tmp/cora-slot5-exact-cue-02.wav",
+    "sha256": "7478373ff640449b671c0c6a1cd116594191f285b923e1517fb220bd8116669f",
+    "codec": "pcm_s16le",
+    "frequency_hz": 660.0,
+    "duration_ms": 100,
+    "amplitude_commanded": 0.08,
+    "measured_pcm_peak_absolute": 0.0799560546875,
+    "sample_rate_hz": 48000,
+    "channels": 1,
+    "frames": 4800
+  },
+  "output": {
+    "coreaudio_device_uid": "BuiltInSpeakerDevice",
+    "required_name": "Mac mini Speakers",
+    "required_system_volume_percent": 100,
+    "required_output_muted": false
+  },
+  "native_player": {
+    "storage_alias": "cora-app-support:cora-audioqueue-player-v2",
+    "version": "cora-audioqueue-player-v2",
+    "binary_sha256": "1a9664db2f558bf514c390859815f86783f65b01a622fe8b6e92b22270e94189"
+  },
+  "required_machine_gates": [
+    "read-only CoreAudio property UID/name resolution with no AudioQueue",
+    "system output volume 100 percent and not muted",
+    "approved native binary SHA-256 match",
+    "current-device UID readback match",
+    "returned-buffer callback observed before stop request",
+    "callback elapsed time covers at least 90 percent of WAV duration",
+    "non-immediate stop requested after callback",
+    "queue no longer running before return",
+    "total elapsed playback covers at least 90 percent of WAV duration",
+    "non-immediate disposal after success"
+  ],
+  "owner_audibility_confirmation_required_after_playback": true,
+  "microphone_capture_authorized": false,
+  "cohort_registration_authorized": false,
+  "session_execution_authorized": false,
+  "claim_boundary": "Authorization for one exact V2.1 cue-only diagnostic. It does not authorize microphone capture, cohort registration, a session, a replay, or a product claim."
+}

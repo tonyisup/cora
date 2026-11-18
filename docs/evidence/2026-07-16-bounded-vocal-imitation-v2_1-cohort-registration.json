@@ -1,0 +1,146 @@
+{
+  "schema_version": 2,
+  "cohort_id": "bvips-v2_1-20260716-cohort-01",
+  "protocol_version": "bounded-product-session-v2.1-owner-approved",
+  "registration_date": "2026-07-16",
+  "owner_instruction": "Register V2.1 cohort.",
+  "ordered_session_slot_ids": [
+    "bvips-v2_1-20260716-cohort-01-s01",
+    "bvips-v2_1-20260716-cohort-01-s02",
+    "bvips-v2_1-20260716-cohort-01-s03",
+    "bvips-v2_1-20260716-cohort-01-s04",
+    "bvips-v2_1-20260716-cohort-01-s05"
+  ],
+  "slot_ledger_at_registration": [
+    {
+      "slot_id": "bvips-v2_1-20260716-cohort-01-s01",
+      "ordered_slot_index": 1,
+      "state": "unstarted",
+      "status": null,
+      "consumed": false
+    },
+    {
+      "slot_id": "bvips-v2_1-20260716-cohort-01-s02",
+      "ordered_slot_index": 2,
+      "state": "unstarted",
+      "status": null,
+      "consumed": false
+    },
+    {
+      "slot_id": "bvips-v2_1-20260716-cohort-01-s03",
+      "ordered_slot_index": 3,
+      "state": "unstarted",
+      "status": null,
+      "consumed": false
+    },
+    {
+      "slot_id": "bvips-v2_1-20260716-cohort-01-s04",
+      "ordered_slot_index": 4,
+      "state": "unstarted",
+      "status": null,
+      "consumed": false
+    },
+    {
+      "slot_id": "bvips-v2_1-20260716-cohort-01-s05",
+      "ordered_slot_index": 5,
+      "state": "unstarted",
+      "status": null,
+      "consumed": false
+    }
+  ],
+  "minimum_fully_passed_slots": 3,
+  "passes_must_be_consecutive": false,
+  "all_five_slots_must_resolve_before_aggregation": true,
+  "sixth_or_replacement_session_may_contribute": false,
+  "started_slot_consumption_point": "first accepted audio sample",
+  "session_statuses": [
+    "behavioral_failed",
+    "blocked_pre_io",
+    "passed",
+    "technical_invalid"
+  ],
+  "behavioral_repeatability_denominator": "technically valid started sessions",
+  "operational_reliability_denominator": "all started session slots",
+  "frozen_artifacts": {
+    "protocol": {
+      "path": "docs/BOUNDED_VOCAL_IMITATION_SESSION_PROTOCOL_V2_1.md",
+      "sha256": "b450871ef149231465f5c9e3c3cbc5b151720532d5dda5d7108fb822d5ec9a2e"
+    },
+    "preregistration": {
+      "path": "docs/evidence/2026-07-16-bounded-vocal-imitation-v2_1-preregistration.json",
+      "sha256": "8afb28617f9aa06550f36d0af2a92f985f1e76450480f51862d5bc6d5c8ad929"
+    },
+    "implementation": {
+      "path": "docs/evidence/2026-07-16-bounded-vocal-imitation-v2_1-implementation.json",
+      "sha256": "aff77b35f658cdc9d1376aa940e4e1c5079f9b47a620ccd756607f7ee0abcd7f"
+    },
+    "owner_approval": {
+      "path": "docs/evidence/2026-07-16-bounded-vocal-imitation-v2_1-owner-approval.json",
+      "sha256": "41871b145f43ab3bbdf15cf1b19ddc8841a1343eb686c2ce2c04d53d7ce51207"
+    },
+    "cue_validation": {
+      "path": "docs/evidence/2026-07-16-bounded-vocal-imitation-v2_1-cue-diagnostic-owner-confirmation.json",
+      "sha256": "6e7b4be68c0ef66a552a2236c14a9b5f331c242217e9907cba112a76789656f9"
+    },
+    "threshold_calibration": {
+      "path": "docs/evidence/2026-07-16-bounded-vocal-imitation-v1-threshold-calibration.json",
+      "sha256": "5012600fe5f56613dbb402cc77b30806fdc81ac76d52281cd0a9f5cd92686580"
+    },
+    "representation_implementation": {
+      "path": "src/cora_infans/vocal_imitation.py",
+      "sha256": "9e55bcd64b50dc807b04ef569213b1534751d752e043ce6892efd565c89b872b"
+    },
+    "base_live_runner_implementation": {
+      "path": "src/cora_infans/product_session_live.py",
+      "sha256": "c82743987f754e33b61549d507a23eae4b6578fd71ba985101c5b373282290dc"
+    },
+    "v2_1_session_adapter": {
+      "path": "src/cora_infans/product_session_v2_1.py",
+      "sha256": "30c27e128b17d5f855446b3c5cd371eff7ca05ed77616ddcb1a86eb41a3ec57f"
+    },
+    "v2_1_playback_wrapper": {
+      "path": "src/cora_infans/drained_playback_v2_1.py",
+      "sha256": "b1ea24888a133696b1d4ec789eb0880dab7b4aaf690b791da1b0608718dee38e"
+    },
+    "native_player_source": {
+      "path": "src/cora_infans/native/audioqueue_player_v2.c",
+      "sha256": "afa0a0faaa24f35c6b35007f0eed3a7bfc2fc58912cf2ff4857441b27e324a68"
+    },
+    "native_player_binary": {
+      "storage_alias": "cora-app-support:cora-audioqueue-player-v2",
+      "sha256": "1a9664db2f558bf514c390859815f86783f65b01a622fe8b6e92b22270e94189"
+    },
+    "private_storage_implementation": {
+      "path": "src/cora_infans/private_session_storage.py",
+      "sha256": "11f7b45b03e165ab1aa1fce1bc8cc0c9e27e570b65a0a6ebdee2c4dea97a6644"
+    },
+    "operating_point": {
+      "path": "config/product-session-v2_1-operating-point.json",
+      "sha256": "4f4b091c9de8aeb660ba5e6dcaf606927b8c8625cafc98f5ce5149985cfbd2ca"
+    }
+  },
+  "capture_schedule": {
+    "development": ["a", "i", "u", "a", "i", "u"],
+    "held": ["a", "i", "u", "a", "i", "u"],
+    "capture_duration_ms": 5000,
+    "total_microphone_captures_per_session": 18
+  },
+  "registration_conditions": {
+    "owner_approved_exact_v2_1_artifacts": true,
+    "passed_cue_diagnostic_preceded_registration": true,
+    "session_live_io_performed_before_registration": false,
+    "microphone_io_performed_before_registration": false,
+    "registered_before_cohort_session_live_io": true,
+    "all_slots_are_fresh": true,
+    "v1_or_v2_slots_reused": false,
+    "v1_or_v2_audio_reused": false
+  },
+  "authorization_state": {
+    "cohort_registered": true,
+    "cue_replay_authorized": false,
+    "any_session_live_io_authorized": false,
+    "microphone_capture_authorized": false,
+    "next_authorizable_slot": "bvips-v2_1-20260716-cohort-01-s01"
+  },
+  "claim_boundary": "This freezes one fresh five-slot V2.1 cohort after passed cue validation. It is not session authorization, session evidence, an aggregate verdict, or a product claim."
+}

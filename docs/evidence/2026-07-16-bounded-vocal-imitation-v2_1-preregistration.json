@@ -1,0 +1,67 @@
+{
+  "schema_version": 2,
+  "decision": "bounded_vocal_imitation_product_session_v2_1_candidate",
+  "date": "2026-07-16",
+  "status": "offline_revision_not_owner_approved_not_executable",
+  "protocol_document": "docs/BOUNDED_VOCAL_IMITATION_SESSION_PROTOCOL_V2_1.md",
+  "protocol_version": "bounded-product-session-v2.1-candidate",
+  "predecessor_rejection": "docs/evidence/2026-07-16-bounded-vocal-imitation-v2-candidate-rejection.json",
+  "owner_protocol_approval_recorded": false,
+  "execution_authorized_by_this_artifact": false,
+  "live_io_authorized_by_this_artifact": false,
+  "new_cohort_registered": false,
+  "v2_1_change": {
+    "playback_implementation": "cora-audioqueue-player-v2",
+    "device_enumeration": "direct CoreAudio property read; no AudioQueue created; zero audio frames",
+    "enqueue_before_start": true,
+    "callback_must_be_observed_before_stop_request": true,
+    "callback_elapsed_fraction_min": 0.9,
+    "non_immediate_stop_after_callback": true,
+    "queue_not_running_before_return": true,
+    "non_immediate_dispose_after_success": true,
+    "elapsed_playback_fraction_min": 0.9,
+    "owner_confirmed_exact_cue_required": true
+  },
+  "unchanged_from_v2": {
+    "self_uid": "BuiltInSpeakerDevice",
+    "world_uid": "BuiltInHeadphoneOutputDevice",
+    "targets": ["/a/", "/i/", "/u/"],
+    "development_schedule": ["/a/", "/i/", "/u/", "/a/", "/i/", "/u/"],
+    "held_schedule": ["/a/", "/i/", "/u/", "/a/", "/i/", "/u/"],
+    "capture_duration_seconds": 5.0,
+    "total_microphone_captures_per_session": 18,
+    "representation": "v4-label-blind-30-band-auditory",
+    "fixed_repertoire": "96-entry Halton schedule start 20011 stride 43 last 24096",
+    "scoring_version": "offline-replay-v2",
+    "raw_audio_retention_days": 30,
+    "repeatability_slots": 5,
+    "minimum_passing_slots": 3,
+    "behavioral_or_score_threshold_changed": false
+  },
+  "score_thresholds": {
+    "active_duration_difference_ms_max": 150.0,
+    "rms_envelope_distance_max": 0.05,
+    "pitch_contour_distance_hz_max": 30.0,
+    "cepstral_distance_max": 0.5
+  },
+  "pre_execution_gates": [
+    "offline implementation and tests pass",
+    "exact V2.1 artifacts and native binary are hash-pinned",
+    "owner approves exact V2.1 artifacts and unchanged retention decision",
+    "owner separately authorizes one exact V2.1 cue diagnostic",
+    "machine callback-before-stop completion gates pass",
+    "owner immediately confirms audibility with microphone closed",
+    "new five-slot V2.1 cohort is registered",
+    "fresh one-session authorization is recorded before every session"
+  ],
+  "frozen_failures": {
+    "v2_approval_or_authorization_can_transfer": false,
+    "stop_can_be_requested_before_callback": false,
+    "exit_zero_can_replace_completion_evidence": false,
+    "numeric_index_can_define_device_identity": false,
+    "inaudible_cue_can_open_capture": false,
+    "predecessor_audio_or_slots_can_contribute": false,
+    "post_capture_threshold_change_allowed": false
+  },
+  "claim_boundary": "Offline V2.1 preregistration only. It grants no approval, playback, microphone capture, cohort, session, or product claim."
+}

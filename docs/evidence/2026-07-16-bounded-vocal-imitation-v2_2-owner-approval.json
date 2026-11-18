@@ -1,0 +1,125 @@
+{
+  "schema_version": 2,
+  "decision": "bounded_vocal_imitation_product_session_v2_2",
+  "approval_date": "2026-07-16",
+  "owner_statement": "Approve V2.2 protocol, unchanged retention, and carry forward the unchanged V2.1 cue-route validation evidence.",
+  "status": "owner_approved_protocol_design_retention_and_cue_route_evidence_not_live_io",
+  "approved_protocol": {
+    "path": "docs/BOUNDED_VOCAL_IMITATION_SESSION_PROTOCOL_V2_2.md",
+    "sha256": "4dc2077779556008e56f997920379e589ec65a68205bd8164e772c5f81a9ba0f"
+  },
+  "approved_preregistration": {
+    "path": "docs/evidence/2026-07-16-bounded-vocal-imitation-v2_2-preregistration.json",
+    "sha256": "8fbdc5f83508c6d95216da7d6dabb53d42985f6583a1d232216833eeb7433ca1"
+  },
+  "approved_implementation_record": {
+    "path": "docs/evidence/2026-07-16-bounded-vocal-imitation-v2_2-implementation.json",
+    "sha256": "cbd58dc64f938c1d978009cf3d0b2aae0bda51a1ba772f73c6bfd4cb73052129"
+  },
+  "approved_operating_point": {
+    "path": "config/product-session-v2_2-operating-point.json",
+    "sha256": "4f0cd541fef76481bdb3b48fce1c8a7fbc6a8223d221b8d39e6a336185e2e936"
+  },
+  "approved_predecessor_closure": {
+    "path": "docs/evidence/2026-07-16-bounded-vocal-imitation-v2_1-closure.json",
+    "sha256": "a381e6ba7d3d90caae170a3debd683c1d5a20e143599b6f85d9bb06a3fe4fd10"
+  },
+  "approved_deterministic_dry_run": {
+    "path": "docs/evidence/2026-07-16-bounded-vocal-imitation-v2_2-deterministic-dry-run.json",
+    "sha256": "62e6104bfb7494f78dae26cbd357074776751957044679d0aaa94684be9fb004"
+  },
+  "approved_native_player": {
+    "storage_alias": "cora-app-support:cora-audioqueue-player-v2",
+    "version": "cora-audioqueue-player-v2",
+    "binary_sha256": "1a9664db2f558bf514c390859815f86783f65b01a622fe8b6e92b22270e94189",
+    "binary_unchanged_from_v2_1": true,
+    "source": {
+      "path": "src/cora_infans/native/audioqueue_player_v2.c",
+      "sha256": "afa0a0faaa24f35c6b35007f0eed3a7bfc2fc58912cf2ff4857441b27e324a68"
+    },
+    "wrapper": {
+      "path": "src/cora_infans/drained_playback_v2_1.py",
+      "sha256": "b1ea24888a133696b1d4ec789eb0880dab7b4aaf690b791da1b0608718dee38e"
+    }
+  },
+  "approved_retention": {
+    "days": 30,
+    "unchanged_from_approved_v2_1": true,
+    "aes_256_per_session_sparse_bundle": true,
+    "per_session_key_required": true,
+    "backup_exclusion_or_inventory_required": true,
+    "cryptographic_erasure_required": true,
+    "private_storage_implementation": {
+      "path": "src/cora_infans/private_session_storage.py",
+      "sha256": "11f7b45b03e165ab1aa1fce1bc8cc0c9e27e570b65a0a6ebdee2c4dea97a6644"
+    }
+  },
+  "approved_v2_2_changes": [
+    "one scheduled machine-generated self-path calibration capture before all owner vocal targets",
+    "exact 120 ms 250-to-3500 Hz chirp at peak 0.08 after a 250 ms capture pre-roll",
+    "finite 128-sample causal FIR self model frozen and hash-pinned before development capture",
+    "owner vocal and self-response audio excluded from self-model fitting",
+    "19 total role-labelled microphone captures per session",
+    "distinct role-specific completion artifacts",
+    "storage-safe hyphenated session identifiers",
+    "complete 19-transition deterministic dry-run before approval"
+  ],
+  "cue_route_validation_carryforward": {
+    "approved": true,
+    "basis": "The owner approved carrying forward the unchanged V2.1 cue-route validation evidence; this is evidence continuity, not a new playback or live revalidation.",
+    "source_owner_confirmation": {
+      "path": "docs/evidence/2026-07-16-bounded-vocal-imitation-v2_1-cue-diagnostic-owner-confirmation.json",
+      "sha256": "6e7b4be68c0ef66a552a2236c14a9b5f331c242217e9907cba112a76789656f9"
+    },
+    "source_playback": {
+      "path": "docs/evidence/2026-07-16-bounded-vocal-imitation-v2_1-cue-diagnostic-playback.json",
+      "sha256": "7a5fa8a38cb9ac1e871c461dc18583e841d81b129f69ca50c7d803c7e89dc5ce"
+    },
+    "validated_route": {
+      "coreaudio_device_uid": "BuiltInSpeakerDevice",
+      "required_name": "Mac mini Speakers",
+      "system_volume_percent": 100,
+      "output_muted": false,
+      "placement": "centered directly below XVF3800",
+      "vertical_distance_cm": 4,
+      "native_player_binary_sha256": "1a9664db2f558bf514c390859815f86783f65b01a622fe8b6e92b22270e94189"
+    },
+    "invalidation_conditions": [
+      "native player binary change",
+      "output device change",
+      "audio driver change",
+      "display route change",
+      "mute or system-volume change",
+      "speaker placement change",
+      "room change"
+    ],
+    "fresh_read_only_preflight_still_required": true,
+    "new_cue_required_if_invalidated": true,
+    "cue_replay_authorized": false,
+    "microphone_capture_authorized": false,
+    "session_execution_authorized": false
+  },
+  "unchanged_behavioral_contract_approved": true,
+  "unchanged_score_thresholds_approved": true,
+  "execution_state": {
+    "protocol_design_approved": true,
+    "retention_decision_approved": true,
+    "cue_route_evidence_carried_forward": true,
+    "offline_implementation_complete": true,
+    "new_v2_2_cohort_registered": false,
+    "execution_authorized": false,
+    "live_io_authorized": false,
+    "calibration_playback_authorized": false,
+    "microphone_capture_authorized": false,
+    "owner_target_capture_authorized": false
+  },
+  "next_required_gates": [
+    "register a new storage-safe ordered five-slot V2.2 cohort",
+    "obtain fresh one-session authorization explicitly covering machine self calibration and owner targets",
+    "pass the read-only preflight before live I/O",
+    "if any cue-route carry-forward condition is invalidated, separately authorize and pass a new cue diagnostic before session capture"
+  ],
+  "historical_status_note": "The hash-pinned V2.2 protocol, preregistration, operating point, and implementation retain their preapproval status text as immutable approval inputs; this approval record supersedes those status fields without mutating the approved bytes.",
+  "authorization_non_transfer": "Prior V1, V2, or V2.1 session authorizations do not transfer. Cue-route evidence carry-forward does not transfer playback or capture authority.",
+  "claim_boundary": "Owner approval of the exact V2.2 design, offline implementation boundary, operating point, unchanged retention decision, and unchanged V2.1 cue-route evidence carry-forward. It does not authorize cue replay, calibration playback, microphone capture, cohort execution, a session result, or a product claim."
+}

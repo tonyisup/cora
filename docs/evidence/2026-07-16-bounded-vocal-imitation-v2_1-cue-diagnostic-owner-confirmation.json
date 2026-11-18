@@ -1,0 +1,50 @@
+{
+  "schema_version": 2,
+  "protocol_version": "bounded-product-session-v2.1-candidate",
+  "confirmation_date": "2026-07-16",
+  "owner_statement": "heard it!",
+  "owner_heard_cue": true,
+  "authorized_playback": {
+    "path": "docs/evidence/2026-07-16-bounded-vocal-imitation-v2_1-cue-diagnostic-playback.json",
+    "sha256": "7a5fa8a38cb9ac1e871c461dc18583e841d81b129f69ca50c7d803c7e89dc5ce"
+  },
+  "authorization": {
+    "path": "docs/evidence/2026-07-16-bounded-vocal-imitation-v2_1-cue-diagnostic-authorization.json",
+    "sha256": "2420fc4961e7618dbe964f3fae530caaa8e3413b88ba10c4746bd9b571d8b828"
+  },
+  "approved_design": {
+    "path": "docs/evidence/2026-07-16-bounded-vocal-imitation-v2_1-owner-approval.json",
+    "sha256": "41871b145f43ab3bbdf15cf1b19ddc8841a1343eb686c2ce2c04d53d7ce51207"
+  },
+  "machine_gate_passed": true,
+  "machine_evidence": {
+    "device_uid_verified": true,
+    "buffer_callback_count": 1,
+    "callback_observed_before_stop": true,
+    "stop_requested_after_callback": true,
+    "queue_drain_confirmed": true,
+    "callback_elapsed_seconds": 0.153165,
+    "playback_elapsed_seconds": 0.243151
+  },
+  "microphone_opened": false,
+  "cohort_registered": false,
+  "session_executed": false,
+  "diagnostic_passed": true,
+  "cue_route_validated_for_current_operating_point": true,
+  "authorization_consumed": true,
+  "replay_authorized": false,
+  "session_capture_authorized_by_this_record": false,
+  "next_required_gates": [
+    "register a new ordered five-slot V2.1 cohort",
+    "obtain fresh one-session live-I/O authorization immediately before each session"
+  ],
+  "invalidation_conditions": [
+    "output device change",
+    "audio driver change",
+    "display route change",
+    "mute or system-volume change",
+    "speaker placement change",
+    "room change"
+  ],
+  "claim_boundary": "Passed V2.1 cue-route validation at the current operating point. It does not authorize a replay, microphone capture, cohort registration, session execution, or a product claim."
+}

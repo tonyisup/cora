@@ -25,4 +25,4 @@ pythonpath = ["src"]
 testpaths = ["tests"]
 
 [tool.setuptools.package-data]
-cora_infans = ["operational_contract.json"]
+cora_infans = ["operational_contract.json", "native/*.c"]

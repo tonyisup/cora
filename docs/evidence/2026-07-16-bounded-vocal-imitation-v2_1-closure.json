@@ -1,0 +1,60 @@
+{
+  "schema_version": 2,
+  "protocol_version": "bounded-product-session-v2.1-owner-approved",
+  "date": "2026-07-16",
+  "status": "closed_for_execution_after_known_precondition_failure",
+  "effective_cohort_id": "bvips-v2-1-20260716-cohort-01",
+  "effective_registration": {
+    "path": "docs/evidence/2026-07-16-bounded-vocal-imitation-v2_1-cohort-registration-correction.json",
+    "sha256": "28a870824420ae3633de1154d3fdb3bbdcd7cdb32f34d897966ca600c20a1e39"
+  },
+  "slot_01_result": {
+    "path": "docs/evidence/2026-07-16-bounded-vocal-imitation-v2_1-corrected-session-01-result.json",
+    "sha256": "c51badd6e121e5a53447b3de87faa6b7a23d09bf667caa992a7398ffe20be2f6",
+    "status": "behavioral_failed",
+    "failure_attributable_to_owner_vocal_behavior": false
+  },
+  "last_cohort_status": {
+    "path": "docs/evidence/2026-07-16-bounded-vocal-imitation-v2_1-cohort-status-after-slot-01.json",
+    "sha256": "1758e46e1484378cb046d5eb3eef6016ae37dd462df506ca94178319e21cfbd3"
+  },
+  "slot_disposition": [
+    {
+      "session_id": "bvips-v2-1-20260716-cohort-01-s01",
+      "status": "behavioral_failed",
+      "consumed": true
+    },
+    {
+      "session_id": "bvips-v2-1-20260716-cohort-01-s02",
+      "status": "closed_unstarted",
+      "consumed": false
+    },
+    {
+      "session_id": "bvips-v2-1-20260716-cohort-01-s03",
+      "status": "closed_unstarted",
+      "consumed": false
+    },
+    {
+      "session_id": "bvips-v2-1-20260716-cohort-01-s04",
+      "status": "closed_unstarted",
+      "consumed": false
+    },
+    {
+      "session_id": "bvips-v2-1-20260716-cohort-01-s05",
+      "status": "closed_unstarted",
+      "consumed": false
+    }
+  ],
+  "started_slots": 1,
+  "consumed_slots": 1,
+  "passed_slots": 0,
+  "all_five_slots_resolved_under_original_rule": false,
+  "aggregate_product_verdict_valid": false,
+  "product_claim_allowed": false,
+  "closure_reason": "Every remaining V2.1 slot would encounter the same missing hash-pinned pre-development self-model precondition. Executing more slots would consume owner audio without a possible held-response completion path.",
+  "prior_statuses_rewritten": false,
+  "v2_1_audio_reusable_as_v2_2_confirmation": false,
+  "v2_1_audio_reusable_as_v2_2_development": false,
+  "v2_2_must_use_fresh_cohort_and_audio": true,
+  "claim_boundary": "V2.1 is closed to prevent repeated known failure. One consumed failure and four unstarted closed slots do not form a valid five-slot aggregate verdict or product claim."
+}

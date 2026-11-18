@@ -99,6 +99,7 @@ class LiveMicArray:
         self._callback_condition = threading.Condition()
         self._callback_chunks: deque[tuple[np.ndarray, float]] = deque()
         self._callback_available_frames = 0
+        self._callback_total_frames = 0
         self._callback_last_adc_end_time: float | None = None
         self.is_real_capture = True
         # Retained raw PCM of the most recent capture, so downstream consumers
@@ -164,6 +165,7 @@ class LiveMicArray:
             self._callback_closed = False
             self._callback_chunks.clear()
             self._callback_available_frames = 0
+            self._callback_total_frames = 0
             self._callback_last_adc_end_time = None
         self._callback_enabled = True
         stream = sd.InputStream(
@@ -211,7 +213,26 @@ class LiveMicArray:
             self._callback_last_adc_end_time = adc_end
             self._callback_chunks.append((data, adc_start))
             self._callback_available_frames += frames
+            self._callback_total_frames += frames
             self._callback_condition.notify_all()
+
+    def callback_stream_frame_position(self) -> int:
+        """Return the accepted callback-frame cursor for stream-coordinate anchors."""
+
+        with self._callback_condition:
+            if not self._callback_enabled:
+                raise LiveMicError("callback stream is not active")
+            return self._callback_total_frames
+
+    def discard_buffered_callback_audio(self) -> int:
+        """Discard queued callback audio and return the current stream-frame cursor."""
+
+        with self._callback_condition:
+            if not self._callback_enabled:
+                raise LiveMicError("callback stream is not active")
+            self._callback_chunks.clear()
+            self._callback_available_frames = 0
+            return self._callback_total_frames
 
     def _resolve_sounddevice_input(self, sounddevice_module: Any) -> int:
         devices = sounddevice_module.query_devices()

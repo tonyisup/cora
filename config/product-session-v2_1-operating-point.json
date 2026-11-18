@@ -1,0 +1,51 @@
+{
+  "schema_version": 2,
+  "status": "candidate_callback_before_stop_operating_point_not_approved",
+  "provenance": "V2.1 successor to the rejected V2 native-player candidate; changes callback/stop ordering while preserving UID binding, physical geometry, level, and behavioral contract.",
+  "operating_point": {
+    "host": {
+      "device_family": "Mac mini",
+      "operating_system": "macOS"
+    },
+    "input": {
+      "device": "reSpeaker XVF3800 4-Mic Array",
+      "device_selector": ":0",
+      "sample_rate_hz": 16000,
+      "host_channels": 2,
+      "capture_backend": "sounddevice_portaudio_coreaudio_callback"
+    },
+    "self_source": {
+      "coreaudio_device_uid": "BuiltInSpeakerDevice",
+      "device": "Mac mini Speakers",
+      "placement": "centered_directly_below_xvf3800",
+      "vertical_distance_cm": 4,
+      "system_volume_percent": 100,
+      "maximum_pcm_peak_absolute": 0.10
+    },
+    "world_source": {
+      "coreaudio_device_uid": "BuiltInHeadphoneOutputDevice",
+      "device": "External Headphones",
+      "angle_degrees": 180,
+      "distance_cm": 50,
+      "hardware_volume_percent_approximate": 50
+    },
+    "playback": {
+      "implementation": "cora-audioqueue-player-v2",
+      "device_enumeration": "coreaudio_property_read_only_no_audioqueue",
+      "device_binding": "coreaudio_uid_with_name_cross_check",
+      "enqueue_before_start_required": true,
+      "buffer_callback_before_stop_required": true,
+      "non_immediate_stop_required": true,
+      "queue_not_running_before_return_required": true,
+      "non_immediate_dispose_required": true,
+      "callback_elapsed_at_least_fraction_of_wav_duration": 0.9,
+      "elapsed_playback_at_least_fraction_of_wav_duration": 0.9
+    },
+    "operator_attestations": {
+      "self_source_geometry_confirmed": true,
+      "self_source_system_volume_confirmed": true,
+      "world_source_geometry_confirmed": true,
+      "world_source_hardware_volume_at_approximately_50_percent": true
+    }
+  }
+}

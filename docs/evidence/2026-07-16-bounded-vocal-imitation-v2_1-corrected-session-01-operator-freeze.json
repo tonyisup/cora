@@ -1,0 +1,32 @@
+{
+  "schema_version": 2,
+  "protocol_version": "bounded-product-session-v2.1-owner-approved",
+  "session_id": "bvips-v2-1-20260716-cohort-01-s01",
+  "status": "frozen_before_first_session_live_io",
+  "operator_wrapper": {
+    "private_session_path": "operator.py",
+    "ephemeral_source_path": "/private/tmp/cora_v2_1_slot1_operator.py",
+    "sha256": "f1144f9b1c4fef580a18c61e40dfd4ee0728c41e54171c29b22c04cd2d90cb7f",
+    "python_compile_passed": true
+  },
+  "composed_approved_primitives": {
+    "base_live_runner_sha256": "c82743987f754e33b61549d507a23eae4b6578fd71ba985101c5b373282290dc",
+    "v2_1_playback_wrapper_sha256": "b1ea24888a133696b1d4ec789eb0880dab7b4aaf690b791da1b0608718dee38e",
+    "v2_1_native_player_sha256": "1a9664db2f558bf514c390859815f86783f65b01a622fe8b6e92b22270e94189",
+    "representation_implementation_sha256": "9e55bcd64b50dc807b04ef569213b1534751d752e043ce6892efd565c89b872b"
+  },
+  "fail_closed_properties": {
+    "append_only_attempt_opened_before_io": true,
+    "next_frozen_trial_and_role_required": true,
+    "uid_bound_callback_before_stop_cue_required": true,
+    "callback_capture_backend_required": true,
+    "full_transport_telemetry_retained": true,
+    "technical_integrity_written_before_quality": true,
+    "quality_written_from_retained_wav": true,
+    "no_retry_after_accepted_audio": true
+  },
+  "audio_stream_opened_during_freeze": false,
+  "playback_performed_during_freeze": false,
+  "microphone_samples_captured_during_freeze": 0,
+  "claim_boundary": "Hash-pinned session operator composition before live I/O. It is not a capture, session result, or product claim."
+}

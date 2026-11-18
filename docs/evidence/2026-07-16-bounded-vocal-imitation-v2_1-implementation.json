@@ -1,0 +1,102 @@
+{
+  "schema_version": 2,
+  "protocol_version": "bounded-product-session-v2.1-candidate",
+  "date": "2026-07-16",
+  "status": "offline_implementation_passed_not_owner_approved_not_live_authorized",
+  "source_hashes": {
+    "native_audioqueue_player_v2": {
+      "path": "src/cora_infans/native/audioqueue_player_v2.c",
+      "sha256": "afa0a0faaa24f35c6b35007f0eed3a7bfc2fc58912cf2ff4857441b27e324a68"
+    },
+    "drained_playback_v2_1": {
+      "path": "src/cora_infans/drained_playback_v2_1.py",
+      "sha256": "b1ea24888a133696b1d4ec789eb0880dab7b4aaf690b791da1b0608718dee38e"
+    },
+    "product_session_v2_1": {
+      "path": "src/cora_infans/product_session_v2_1.py",
+      "sha256": "30c27e128b17d5f855446b3c5cd371eff7ca05ed77616ddcb1a86eb41a3ec57f"
+    },
+    "operating_point": {
+      "path": "config/product-session-v2_1-operating-point.json",
+      "sha256": "4f4b091c9de8aeb660ba5e6dcaf606927b8c8625cafc98f5ce5149985cfbd2ca"
+    },
+    "protocol": {
+      "path": "docs/BOUNDED_VOCAL_IMITATION_SESSION_PROTOCOL_V2_1.md",
+      "sha256": "b450871ef149231465f5c9e3c3cbc5b151720532d5dda5d7108fb822d5ec9a2e"
+    },
+    "preregistration": {
+      "path": "docs/evidence/2026-07-16-bounded-vocal-imitation-v2_1-preregistration.json",
+      "sha256": "8afb28617f9aa06550f36d0af2a92f985f1e76450480f51862d5bc6d5c8ad929"
+    },
+    "predecessor_rejection": {
+      "path": "docs/evidence/2026-07-16-bounded-vocal-imitation-v2-candidate-rejection.json",
+      "sha256": "af5294f6ef0797c3fdc4801b4fba5c09e5951436b2a4e5c75913205f9037377f"
+    },
+    "read_only_preflight": {
+      "path": "docs/evidence/2026-07-16-bounded-vocal-imitation-v2_1-read-only-preflight.json",
+      "sha256": "9e044b78f4cfba9339df15da4048d5d05c51025ac32bad4c71d70b1765a6d175"
+    }
+  },
+  "native_binary": {
+    "storage_alias": "cora-app-support:cora-audioqueue-player-v2",
+    "sha256": "1a9664db2f558bf514c390859815f86783f65b01a622fe8b6e92b22270e94189",
+    "player_version": "cora-audioqueue-player-v2",
+    "build_command": "clang -std=c11 -O2 -Wall -Wextra -Werror audioqueue_player_v2.c -framework AudioToolbox -framework CoreFoundation -framework CoreAudio -o cora-audioqueue-player-v2",
+    "compiler": "Apple clang 21.0.0 (clang-2100.1.1.101)",
+    "target": "arm64-apple-darwin25.5.0",
+    "same_basename_rebuild_sha256": "1a9664db2f558bf514c390859815f86783f65b01a622fe8b6e92b22270e94189",
+    "same_basename_reproducible": true,
+    "version_probe_opened_audio_device": false,
+    "device_listing_opened_audio_queue": false,
+    "device_listing_audio_frames_sent": 0
+  },
+  "offline_verification": {
+    "focused_tests": {
+      "passed": 22,
+      "failed": 0
+    },
+    "full_suite": {
+      "passed": 563,
+      "skipped": 9,
+      "failed": 0
+    },
+    "clang_strict_compile_passed": true,
+    "clang_static_syntax_passed": true,
+    "python_compileall_passed": true,
+    "git_diff_check_passed": true,
+    "same_basename_binary_reproducible": true,
+    "read_only_coreaudio_property_preflight_passed": true,
+    "preflight_audio_queue_created": false,
+    "preflight_audio_frames_sent": 0,
+    "preflight_microphone_opened": false
+  },
+  "v2_1_fix": {
+    "wait_for_returned_buffer_callback_before_stop": true,
+    "callback_elapsed_fraction_min": 0.9,
+    "request_non_immediate_stop_only_after_callback": true,
+    "wait_for_queue_not_running": true,
+    "non_immediate_dispose_after_success": true,
+    "read_only_enumeration_without_audioqueue": true,
+    "behavioral_or_score_threshold_changed": false,
+    "retention_changed": false
+  },
+  "governance": {
+    "owner_protocol_approval_recorded": false,
+    "retention_reapproval_recorded": false,
+    "cue_diagnostic_authorized": false,
+    "cue_diagnostic_performed": false,
+    "new_v2_1_cohort_registered": false,
+    "session_live_io_authorized": false,
+    "microphone_capture_authorized": false,
+    "v2_approval_or_authorization_inherited": false
+  },
+  "next_required_gates": [
+    "owner approves exact hash-pinned V2.1 artifacts and unchanged retention",
+    "owner separately authorizes one exact V2.1 cue diagnostic",
+    "machine callback-before-stop completion evidence passes",
+    "owner immediately confirms audibility with microphone closed",
+    "new five-slot V2.1 cohort is registered",
+    "fresh session authorization is obtained before every session"
+  ],
+  "claim_boundary": "Hash-pinned offline V2.1 implementation evidence only. It establishes no audible playback, approval, cue authorization, cohort, session, or product claim."
+}

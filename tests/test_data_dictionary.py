@@ -29,6 +29,16 @@ def test_data_dictionary_covers_common_acronyms_and_official_fieldsite_names() -
         "Behavioral repeatability",
         "Operational reliability",
         "owner_approved_not_executable",
+        "CoreAudio UID",
+        "UID-bound playback",
+        "Drain-confirmed playback",
+        "Callback-before-stop playback",
+        "Read-only CoreAudio enumeration",
+        "Pre-development self calibration",
+        "Role-specific completion artifact",
+        "Cue audibility confirmation",
+        "Closed for claims",
+        "AudioQueue",
     ):
         assert term in dictionary
 

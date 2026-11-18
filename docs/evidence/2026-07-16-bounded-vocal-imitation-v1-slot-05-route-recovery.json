@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "protocol_version": "bounded-product-session-v1-approved",
+  "cohort_id": "bvips-v1-20260716-cohort-01",
+  "prospective_session_id": "bvips-v1-20260716-cohort-01-s05",
+  "owner_statement": "BlackHole disabled",
+  "diagnostic": "zero-frame ffmpeg AudioToolbox device enumeration",
+  "audio_frames_sent": 0,
+  "microphone_opened": false,
+  "blackhole_active_hal_driver_present": false,
+  "blackhole_disabled_backup_present": true,
+  "observed_output_device_mapping": [
+    {"index": 0, "name": "ASUS PB287Q"},
+    {"index": 1, "name": "reSpeaker XVF3800 4-Mic Array"},
+    {"index": 2, "name": "External Headphones"},
+    {"index": 3, "name": "Mac mini Speakers"}
+  ],
+  "frozen_route_matches": true,
+  "external_world_route_matches": true,
+  "self_route_matches": true,
+  "slot_05_consumed": false,
+  "slot_05_session_authorized": false,
+  "cue_playback_authorized": false,
+  "next_gate": "Fresh authorization for one exact-cue audibility diagnostic, followed by immediate owner confirmation.",
+  "claim_boundary": "Zero-frame route-recovery verification only. It does not authorize playback, microphone capture, or slot-5 execution."
+}

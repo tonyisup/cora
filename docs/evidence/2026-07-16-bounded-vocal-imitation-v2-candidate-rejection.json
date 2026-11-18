@@ -1,0 +1,42 @@
+{
+  "schema_version": 2,
+  "protocol_version": "bounded-product-session-v2-candidate",
+  "date": "2026-07-16",
+  "status": "rejected_after_authorized_cue_diagnostic",
+  "authorized_diagnostic": {
+    "authorization_record": "docs/evidence/2026-07-16-bounded-vocal-imitation-v2-cue-diagnostic-authorization.json",
+    "failure_record": "docs/evidence/2026-07-16-bounded-vocal-imitation-v2-cue-diagnostic-failure.json",
+    "owner_confirmation_record": "docs/evidence/2026-07-16-bounded-vocal-imitation-v2-cue-diagnostic-owner-confirmation.json"
+  },
+  "result": {
+    "machine_gate_passed": false,
+    "failure_gate": "returned-buffer callback required",
+    "failure_message": "AudioQueue drain completed without a buffer callback",
+    "owner_heard_cue": false,
+    "microphone_opened": false,
+    "cohort_registered": false,
+    "session_executed": false,
+    "native_binary_rejected": true
+  },
+  "root_cause_hypothesis": "The player requested non-immediate stop immediately after AudioQueueStart, before observing buffer completion. The queue stopped without returning the buffer and no cue was audible.",
+  "required_successor_change": "Wait for the returned-buffer callback before requesting non-immediate stop, then verify the queue is no longer running before non-immediate disposal.",
+  "evidence_integrity_note": {
+    "approved_implementation_record_is_immutable": true,
+    "implementation_record_native_source_sha256": "987b2f2d185c2e1cc747778f8e606c5f7fb1c645b5c139638277ca8a98f32a2e",
+    "restored_v2_source_sha256": "9e5983929792de21e550c799a99870ad87fb52b5671429a2cc0432a85b4aafe7",
+    "source_digest_matches_record": false,
+    "restored_source_rebuild_sha256": "ab6d421aac2388234aab439143257e1a7c544e22da74f3dee2e751c53d72cb3e",
+    "approved_binary_sha256": "ab6d421aac2388234aab439143257e1a7c544e22da74f3dee2e751c53d72cb3e",
+    "rebuild_is_byte_identical_to_approved_binary": true,
+    "disposition": "The discrepancy is disclosed and not repaired in place. V2 remains rejected; no V2 claim depends on reconstructing the earlier source formatting. The successor uses new source, binary, records, and approval gates."
+  },
+  "governance": {
+    "v2_replay_authorized": false,
+    "v2_microphone_capture_authorized": false,
+    "v2_1_approval_inherited": false,
+    "v2_1_live_io_authorized": false,
+    "fresh_v2_1_owner_approval_required": true,
+    "fresh_v2_1_cue_authorization_required_after_approval": true
+  },
+  "claim_boundary": "Rejected V2 playback candidate and disclosed historical source-digest discrepancy. No playback validation, cohort, session result, or product claim is supported."
+}

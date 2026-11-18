@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "protocol_version": "bounded-product-session-v1-approved",
+  "cohort_id": "bvips-v1-20260716-cohort-01",
+  "prospective_session_id": "bvips-v1-20260716-cohort-01-s05",
+  "owner_statement": "no cue",
+  "owner_heard_cue": false,
+  "machine_playback_returncode": 0,
+  "cue_sha256": "7478373ff640449b671c0c6a1cd116594191f285b923e1517fb220bd8116669f",
+  "microphone_opened": false,
+  "audio_samples_captured": 0,
+  "slot_consumed": false,
+  "session_status": "blocked_pre_io",
+  "block_reason": "Exact frozen cue was not audible to the owner despite machine-side playback success.",
+  "slot_05_session_authorized": false,
+  "further_capture_allowed": false,
+  "claim_boundary": "Owner audibility confirmation for the cue-only diagnostic. It does not authorize slot-5 playback or capture."
+}

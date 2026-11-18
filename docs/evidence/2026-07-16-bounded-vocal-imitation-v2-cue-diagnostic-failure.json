@@ -1,0 +1,28 @@
+{
+  "schema_version": 2,
+  "protocol_version": "bounded-product-session-v2-candidate",
+  "authorized_action_completed": true,
+  "cue_sha256": "7478373ff640449b671c0c6a1cd116594191f285b923e1517fb220bd8116669f",
+  "output": {
+    "coreaudio_device_uid": "BuiltInSpeakerDevice",
+    "required_name": "Mac mini Speakers"
+  },
+  "native_player": {
+    "version": "cora-audioqueue-player-v1",
+    "binary_sha256": "ab6d421aac2388234aab439143257e1a7c544e22da74f3dee2e751c53d72cb3e"
+  },
+  "machine_result": "failed",
+  "failure_gate": "returned-buffer callback required",
+  "failure_message": "AudioQueue drain completed without a buffer callback",
+  "uid_resolution_passed_before_playback": true,
+  "binary_digest_passed_before_playback": true,
+  "microphone_opened": false,
+  "cohort_registered": false,
+  "session_executed": false,
+  "owner_audibility_confirmation": "pending",
+  "further_playback_authorized": false,
+  "implementation_revision_required": true,
+  "required_revision": "Wait for the returned-buffer callback before requesting non-immediate stop, then wait for kAudioQueueProperty_IsRunning to become false before non-immediate disposal.",
+  "reapproval_required_after_revision": true,
+  "claim_boundary": "Failed V2 cue diagnostic. It does not validate playback, authorize a retry, permit microphone capture, register a cohort, or support a product claim."
+}

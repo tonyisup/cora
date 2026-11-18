@@ -42,6 +42,17 @@ SCORING_VERSION = "offline-replay-v2"
 _SCORING_SAMPLE_RATE_HZ = 16000
 _ENVELOPE_FRAME_SAMPLES = 320
 _ENVELOPE_HOP_SAMPLES = 160
+PRODUCT_SCORE_THRESHOLDS = {
+    "active_duration_difference_ms": 150.0,
+    "rms_envelope_distance": 0.05,
+    "pitch_contour_distance_hz": 30.0,
+    "cepstral_distance": 0.50,
+}
+SELECTION_NEAREST_DISTANCE_MAX = 0.30
+SELECTION_RUNNER_UP_MARGIN_MIN = 0.05
+SELECTION_TIE_TOLERANCE = 1e-12
+CONTRASTIVE_REST_IMPROVEMENT_MIN = 0.15
+CONTRASTIVE_OFF_TARGET_MARGIN_MIN = 0.05
 
 
 def _require_mapping(value: object, *, name: str) -> Mapping[str, object]:
@@ -324,6 +335,287 @@ def score_waveform_pair(reference: np.ndarray, observed: np.ndarray) -> dict[str
                 _cepstral_vector(active_reference)
                 - _cepstral_vector(active_observed)
             )
+        ),
+    }
+
+
+def score_component_gates(scores: Mapping[str, object]) -> dict[str, bool]:
+    """Apply the proposed V1 product limits to one V2 score family."""
+
+    if set(scores) != set(PRODUCT_SCORE_THRESHOLDS):
+        raise ValueError("score family does not match offline-replay-v2 components")
+    gates = {}
+    for name, maximum in PRODUCT_SCORE_THRESHOLDS.items():
+        value = scores[name]
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            raise ValueError(f"score component is not numeric: {name}")
+        numeric = float(value)
+        if not math.isfinite(numeric) or numeric < 0.0:
+            raise ValueError(f"score component is not a finite distance: {name}")
+        gates[name] = numeric <= maximum
+    return gates
+
+
+def _unit_sensory(value: object, *, name: str) -> np.ndarray:
+    vector = np.asarray(value, dtype=np.float64).reshape(-1)
+    norm = float(np.linalg.norm(vector))
+    if vector.shape != (30,) or not np.all(np.isfinite(vector)) or norm <= 1e-12:
+        raise ValueError(f"{name} must contain 30 finite sensory values")
+    return vector / norm
+
+
+def _sensory_distance(left: object, right: object) -> float:
+    return float(
+        np.linalg.norm(
+            _unit_sensory(left, name="left sensory")
+            - _unit_sensory(right, name="right sensory")
+        )
+        / 2.0
+    )
+
+
+def select_frozen_association(
+    target_vector: object,
+    frozen_centroids: Mapping[str, object],
+) -> dict[str, object]:
+    """Select one opaque frozen centroid without target-label metadata."""
+
+    if len(frozen_centroids) != 3:
+        raise ValueError("label-blind selection requires exactly three centroids")
+    target = _unit_sensory(target_vector, name="held target")
+    distance_by_id = {
+        str(opaque_id): _sensory_distance(target, centroid)
+        for opaque_id, centroid in frozen_centroids.items()
+    }
+    distances = sorted(
+        ((distance, opaque_id) for opaque_id, distance in distance_by_id.items()),
+        key=lambda item: (item[0], item[1]),
+    )
+    nearest_distance = distances[0][0]
+    tied_ids = sorted(
+        opaque_id
+        for opaque_id, distance in distance_by_id.items()
+        if abs(distance - nearest_distance) <= SELECTION_TIE_TOLERANCE
+    )
+    selected_id = tied_ids[0]
+    runner_up_distance = distances[1][0]
+    margin = runner_up_distance - nearest_distance
+    tie_detected = len(tied_ids) > 1
+    criteria = {
+        "nearest_distance_at_most_0_30": (
+            nearest_distance <= SELECTION_NEAREST_DISTANCE_MAX
+        ),
+        "runner_up_margin_at_least_0_05": (
+            margin >= SELECTION_RUNNER_UP_MARGIN_MIN
+        ),
+        "no_distance_tie_within_1e_12": not tie_detected,
+    }
+    return {
+        "selected_opaque_id": selected_id,
+        "nearest_distance": nearest_distance,
+        "runner_up_distance": runner_up_distance,
+        "runner_up_margin": margin,
+        "distances": {opaque_id: distance for distance, opaque_id in distances},
+        "criteria": criteria,
+        "selection_passed": all(criteria.values()),
+    }
+
+
+def evaluate_contrastive_selection(
+    target_vector: object,
+    *,
+    selected_prototype: object,
+    rest_prototype: object,
+    off_target_prototypes: Mapping[str, object],
+) -> dict[str, object]:
+    """Gate the selected prototype against frozen rest and off-target controls."""
+
+    if len(off_target_prototypes) != 2:
+        raise ValueError("contrastive selection requires exactly two off-targets")
+    target = _unit_sensory(target_vector, name="held target")
+    selected_distance = _sensory_distance(target, selected_prototype)
+    rest_distance = _sensory_distance(target, rest_prototype)
+    rest_improvement = (
+        (rest_distance - selected_distance) / rest_distance
+        if rest_distance > 0.0
+        else 0.0
+    )
+    off_target_distances = {
+        str(opaque_id): _sensory_distance(target, prototype)
+        for opaque_id, prototype in off_target_prototypes.items()
+    }
+    minimum_off_target_margin = min(off_target_distances.values()) - selected_distance
+    criteria = {
+        "selected_improvement_over_rest_at_least_0_15": (
+            rest_improvement >= CONTRASTIVE_REST_IMPROVEMENT_MIN
+        ),
+        "selected_margin_over_every_off_target_at_least_0_05": (
+            minimum_off_target_margin >= CONTRASTIVE_OFF_TARGET_MARGIN_MIN
+        ),
+    }
+    return {
+        "selected_distance": selected_distance,
+        "rest_distance": rest_distance,
+        "rest_improvement": rest_improvement,
+        "off_target_distances": off_target_distances,
+        "minimum_off_target_margin": minimum_off_target_margin,
+        "criteria": criteria,
+        "contrastive_passed": all(criteria.values()),
+    }
+
+
+def _calibration_tone(
+    *,
+    onset_seconds: float = 0.4,
+    duration_seconds: float = 2.0,
+    frequency_hz: float = 180.0,
+    amplitude: float = 0.25,
+    second_harmonic_amplitude: float = 0.0,
+) -> np.ndarray:
+    samples = np.zeros(_SCORING_SAMPLE_RATE_HZ * 5, dtype=np.float64)
+    start = int(round(onset_seconds * _SCORING_SAMPLE_RATE_HZ))
+    count = int(round(duration_seconds * _SCORING_SAMPLE_RATE_HZ))
+    time_axis = np.arange(count, dtype=np.float64) / _SCORING_SAMPLE_RATE_HZ
+    samples[start : start + count] = (
+        amplitude * np.sin(2.0 * np.pi * frequency_hz * time_axis)
+        + second_harmonic_amplitude
+        * np.sin(4.0 * np.pi * frequency_hz * time_axis)
+    )
+    return samples
+
+
+def build_offline_replay_v2_calibration() -> dict[str, object]:
+    """Return deterministic scorer and selection threshold calibration evidence."""
+
+    reference = _calibration_tone()
+    waveform_cases = {
+        "independent_offset_pass": (
+            _calibration_tone(onset_seconds=1.0),
+            set(),
+        ),
+        "duration_100ms_pass": (
+            _calibration_tone(duration_seconds=2.1),
+            set(),
+        ),
+        "duration_250ms_fail": (
+            _calibration_tone(duration_seconds=2.25),
+            {"active_duration_difference_ms"},
+        ),
+        "pitch_20hz_pass": (
+            _calibration_tone(frequency_hz=200.0),
+            set(),
+        ),
+        "pitch_40hz_fail": (
+            _calibration_tone(frequency_hz=220.0),
+            {"pitch_contour_distance_hz", "cepstral_distance"},
+        ),
+        "energy_small_change_pass": (
+            _calibration_tone(amplitude=0.28),
+            set(),
+        ),
+        "energy_large_change_fail": (
+            _calibration_tone(amplitude=0.40),
+            {"rms_envelope_distance"},
+        ),
+        "spectrum_small_change_pass": (
+            _calibration_tone(second_harmonic_amplitude=0.03),
+            set(),
+        ),
+        "spectrum_large_change_fail": (
+            _calibration_tone(second_harmonic_amplitude=0.15),
+            {"cepstral_distance"},
+        ),
+    }
+    waveform_results = {}
+    for name, (observed, expected_failures) in waveform_cases.items():
+        scores = score_waveform_pair(reference, observed)
+        gates = score_component_gates(scores)
+        actual_failures = {metric for metric, passed in gates.items() if not passed}
+        waveform_results[name] = {
+            "scores": scores,
+            "component_gates": gates,
+            "expected_failing_components": sorted(expected_failures),
+            "actual_failing_components": sorted(actual_failures),
+            "expectation_met": actual_failures == expected_failures,
+        }
+    invalid_voicing_rejected = False
+    try:
+        score_waveform_pair(reference, np.zeros_like(reference))
+    except ValueError:
+        invalid_voicing_rejected = True
+
+    basis = np.eye(30, dtype=np.float64)
+    angle = 2.0 * math.asin(0.20)
+    close_centroid = math.cos(angle) * basis[0] + math.sin(angle) * basis[1]
+    centroids = {"opaque-a": basis[0], "opaque-i": close_centroid, "opaque-u": basis[2]}
+    midpoint = math.cos(angle / 2.0) * basis[0] + math.sin(angle / 2.0) * basis[1]
+    selection_cases = {
+        "clear_nearest_pass": (basis[0], True),
+        "ambiguous_runner_up_fail": (midpoint, False),
+        "far_target_fail": (basis[3], False),
+    }
+    selection_results = {}
+    for name, (target, expected_pass) in selection_cases.items():
+        result = select_frozen_association(target, centroids)
+        selection_results[name] = {
+            **result,
+            "expected_pass": expected_pass,
+            "expectation_met": result["selection_passed"] is expected_pass,
+        }
+    contrastive_cases = {
+        "clear_contrastive_pass": (basis[0], True),
+        "off_target_margin_fail": (midpoint, False),
+    }
+    contrastive_results = {}
+    for name, (target, expected_pass) in contrastive_cases.items():
+        result = evaluate_contrastive_selection(
+            target,
+            selected_prototype=basis[0],
+            rest_prototype=-basis[0],
+            off_target_prototypes={"opaque-i": close_centroid, "opaque-u": basis[2]},
+        )
+        contrastive_results[name] = {
+            **result,
+            "expected_pass": expected_pass,
+            "expectation_met": result["contrastive_passed"] is expected_pass,
+        }
+
+    checks = {
+        "all_waveform_expectations_met": all(
+            bool(row["expectation_met"]) for row in waveform_results.values()
+        ),
+        "invalid_voicing_rejected": invalid_voicing_rejected,
+        "all_selection_expectations_met": all(
+            bool(row["expectation_met"]) for row in selection_results.values()
+        ),
+        "all_contrastive_expectations_met": all(
+            bool(row["expectation_met"]) for row in contrastive_results.values()
+        ),
+    }
+    return {
+        "mode": "bounded_vocal_imitation_offline_replay_v2_threshold_calibration",
+        "scoring_version": SCORING_VERSION,
+        "sample_rate_hz": _SCORING_SAMPLE_RATE_HZ,
+        "waveform_thresholds": dict(PRODUCT_SCORE_THRESHOLDS),
+        "selection_thresholds": {
+            "nearest_distance_max": SELECTION_NEAREST_DISTANCE_MAX,
+            "runner_up_margin_min": SELECTION_RUNNER_UP_MARGIN_MIN,
+            "tie_tolerance": SELECTION_TIE_TOLERANCE,
+            "contrastive_rest_improvement_min": CONTRASTIVE_REST_IMPROVEMENT_MIN,
+            "contrastive_off_target_margin_min": CONTRASTIVE_OFF_TARGET_MARGIN_MIN,
+        },
+        "waveform_cases": waveform_results,
+        "selection_cases": selection_results,
+        "contrastive_cases": contrastive_results,
+        "checks": checks,
+        "calibration_passed": all(checks.values()),
+        "audio_sources": "deterministic synthetic arrays only",
+        "v4_audio_accessed": False,
+        "future_session_audio_accessed": False,
+        "live_io_performed": False,
+        "claim_boundary": (
+            "Deterministic engineering calibration only; not perceptual validation, "
+            "a real-session result, or live-I/O authorization"
         ),
     }
 

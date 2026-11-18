@@ -1,0 +1,36 @@
+{
+  "schema_version": 2,
+  "protocol_version": "bounded-product-session-v2.1-owner-approved",
+  "cohort_id": "bvips-v2_1-20260716-cohort-01",
+  "cohort_registration": {
+    "path": "docs/evidence/2026-07-16-bounded-vocal-imitation-v2_1-cohort-registration.json",
+    "sha256": "91ee1c344dca4261968081c5ba7f431f3d927a12802038a724f8686880e47524"
+  },
+  "session_id": "bvips-v2_1-20260716-cohort-01-s01",
+  "ordered_slot_index": 1,
+  "authorization_date": "2026-07-16",
+  "authorization_text": "Authorize V2.1 session bvips-v2_1-20260716-cohort-01-s01 execution and live I/O.",
+  "owner_is_sole_speaker": true,
+  "owner_may_stop_at_any_time": true,
+  "targets": ["/a/", "/i/", "/u/"],
+  "recording_authorized": true,
+  "playback_authorized": true,
+  "device_discovery_authorized": true,
+  "one_session_live_io_authorized": true,
+  "authorization_applies_to_other_slots": false,
+  "cue_validation_required_and_passed": true,
+  "cue_validation": {
+    "path": "docs/evidence/2026-07-16-bounded-vocal-imitation-v2_1-cue-diagnostic-owner-confirmation.json",
+    "sha256": "6e7b4be68c0ef66a552a2236c14a9b5f331c242217e9907cba112a76789656f9"
+  },
+  "storage_alias": "cora-private:bvips-v2_1-20260716-cohort-01-s01",
+  "raw_audio_outside_git": true,
+  "retention_days": 30,
+  "backup_exclusion_or_inventory_required": true,
+  "cryptographic_erasure_required": true,
+  "narrow_claim": "bounded label-blind target-specific association and recall for the authorized owner at the frozen operating point",
+  "live_io_performed_before_authorization": false,
+  "slot_state_before_authorization": "unstarted",
+  "slot_consumed_before_authorization": false,
+  "claim_boundary": "Fresh live-I/O authorization bound only to V2.1 cohort slot 1. It grants no authority for slots 2-5 and is not a session result or product claim."
+}

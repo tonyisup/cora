@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "protocol_version": "bounded-product-session-v1-approved",
+  "cohort_id": "bvips-v1-20260716-cohort-01",
+  "session_id": "bvips-v1-20260716-cohort-01-s04",
+  "reported_at": "2026-07-16T19:34:14.187117+00:00",
+  "owner_statement": "wait, I didn't hear any cue nor did I speak",
+  "incident": "operator-reported inaudible start cue and no owner vocalization",
+  "machine_cue_record": {
+    "backend": "ffmpeg_audiotoolbox",
+    "device_index": 3,
+    "asserted_output_device_name": "Mac mini Speakers",
+    "returncode": 0,
+    "amplitude": 0.08,
+    "duration_ms": 100
+  },
+  "host_output_state_after_report": {
+    "output_volume_percent": 100,
+    "output_muted": false,
+    "default_output": "Mac mini Speakers"
+  },
+  "evidence_gap": "The playback process reported success, but the runner did not acoustically verify cue arrival. Its output-device name was asserted from the frozen index mapping rather than measured from AudioToolbox during playback.",
+  "status_rewritten": false,
+  "status_rewrite_reason": "The frozen taxonomy forbids assigning technical invalidity from an operator report received after quality-score access.",
+  "behavioral_interpretation_caveat": "The quiet capture must not be interpreted as evidence about owner vocal behavior because the owner reports hearing no cue and producing no vowel.",
+  "original_private_manifest_sha256": "0c9a8afe661114e0c29ecbb8a6cb1f4e0fcfb0f047dc0a33d498cea4aaa33428",
+  "private_incident_sha256": "6729574eb130ff93629f406ded55745c0e2c93adbc896c5815b2e7b016f58931",
+  "private_supplemental_manifest_sha256": "cb00ccc995246bca669508791a19b25f118ab8f9fb0ef8d61cba27c6a8923827",
+  "further_live_io_blocked": true,
+  "required_before_slot_05": [
+    "fresh slot-5 live-I/O authorization",
+    "read-only route preflight",
+    "separately authorized exact-cue route check with immediate owner audibility confirmation before any slot-5 microphone capture"
+  ],
+  "claim_boundary": "Post-result incident addendum. It does not rewrite the frozen machine-derived status, establish a root cause, validate prior cues, or authorize further playback."
+}

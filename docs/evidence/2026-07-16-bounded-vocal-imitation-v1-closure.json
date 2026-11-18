@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "protocol_version": "bounded-product-session-v1-approved",
+  "cohort_id": "bvips-v1-20260716-cohort-01",
+  "closure_date": "2026-07-16",
+  "status": "closed_for_claims_with_unconsumed_blocked_slot",
+  "slot_statuses": [
+    {"session_id": "bvips-v1-20260716-cohort-01-s01", "status": "behavioral_failed"},
+    {"session_id": "bvips-v1-20260716-cohort-01-s02", "status": "behavioral_failed"},
+    {"session_id": "bvips-v1-20260716-cohort-01-s03", "status": "behavioral_failed"},
+    {"session_id": "bvips-v1-20260716-cohort-01-s04", "status": "behavioral_failed", "interpretation_caveat": "Owner later reported no audible cue and no vocalization."},
+    {"session_id": "bvips-v1-20260716-cohort-01-s05", "status": "blocked_pre_io", "consumed": false}
+  ],
+  "started_slots": 4,
+  "consumed_slots": 4,
+  "passed_slots": 0,
+  "minimum_passed_slots_required": 3,
+  "product_level_threshold_unreachable": true,
+  "all_five_slots_resolved": false,
+  "aggregate_product_verdict_valid_under_v1": false,
+  "product_claim_allowed": false,
+  "closure_reason": "V1's frozen ffmpeg AudioToolbox playback path could enqueue short cue samples and return success without proving audible drain. Slot 5 could not pass pre-I/O audibility without changing the frozen playback implementation.",
+  "root_cause_records": [
+    "docs/evidence/2026-07-16-bounded-vocal-imitation-v1-cue-route-root-cause.json",
+    "docs/evidence/2026-07-16-bounded-vocal-imitation-v1-cue-playback-drain-root-cause.json"
+  ],
+  "prior_statuses_rewritten": false,
+  "v1_audio_reusable_as_v2_evaluation": false,
+  "v1_slot_reusable_in_v2_cohort": false,
+  "v1_extra_or_replacement_session_allowed": false,
+  "successor_protocol_allowed": true,
+  "successor_must_use_new_version_and_new_cohort": true,
+  "claim_boundary": "Administrative closure after a frozen implementation defect. This is not a valid five-slot aggregate verdict, successful session, product claim, or authorization for V2 live I/O."
+}

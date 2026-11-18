@@ -1,0 +1,82 @@
+{
+  "schema_version": 2,
+  "decision": "bounded_vocal_imitation_product_session_v2_2_candidate",
+  "date": "2026-07-16",
+  "status": "offline_implemented_candidate_not_owner_approved_not_executable",
+  "protocol_document": "docs/BOUNDED_VOCAL_IMITATION_SESSION_PROTOCOL_V2_2.md",
+  "protocol_version": "bounded-product-session-v2.2-candidate",
+  "predecessor_closure": "docs/evidence/2026-07-16-bounded-vocal-imitation-v2_1-closure.json",
+  "owner_protocol_approval_recorded": false,
+  "execution_authorized_by_this_artifact": false,
+  "live_io_authorized_by_this_artifact": false,
+  "new_cohort_registered": false,
+  "v2_2_changes": {
+    "predevelopment_self_calibration_capture": true,
+    "self_calibration_trial_id": "calibration-01-self-chirp",
+    "self_calibration_capture_duration_ms": 1000,
+    "self_calibration_chirp": {
+      "sample_rate_hz": 16000,
+      "duration_ms": 120,
+      "f0_hz": 250.0,
+      "f1_hz": 3500.0,
+      "peak_absolute": 0.08
+    },
+    "self_path_fir_samples": 128,
+    "self_model_frozen_before_development_required": true,
+    "owner_audio_used_for_self_model": false,
+    "total_microphone_captures_per_session": 19,
+    "storage_safe_identifier_pattern": "[a-z0-9][a-z0-9-]{7,79}",
+    "role_specific_completion_artifacts": true,
+    "complete_held_response_dry_run_required": true
+  },
+  "unchanged_from_v2_1": {
+    "native_player": "cora-audioqueue-player-v2",
+    "self_uid": "BuiltInSpeakerDevice",
+    "world_uid": "BuiltInHeadphoneOutputDevice",
+    "targets": ["/a/", "/i/", "/u/"],
+    "development_schedule": ["/a/", "/i/", "/u/", "/a/", "/i/", "/u/"],
+    "held_schedule": ["/a/", "/i/", "/u/", "/a/", "/i/", "/u/"],
+    "owner_capture_duration_seconds": 5.0,
+    "owner_target_and_response_captures": 18,
+    "representation": "v4-label-blind-30-band-auditory",
+    "fixed_repertoire": "96-entry Halton schedule start 20011 stride 43 last 24096",
+    "scoring_version": "offline-replay-v2",
+    "raw_audio_retention_days": 30,
+    "repeatability_slots": 5,
+    "minimum_passing_slots": 3,
+    "behavioral_or_score_threshold_changed": false
+  },
+  "score_thresholds": {
+    "active_duration_difference_ms_max": 150.0,
+    "rms_envelope_distance_max": 0.05,
+    "pitch_contour_distance_hz_max": 30.0,
+    "cepstral_distance_max": 0.5
+  },
+  "self_calibration_failure_rules": {
+    "zero_sample_no_partial_file_startup_abort_may_retry_once": true,
+    "failure_after_accepted_sample_status": "technical_invalid",
+    "failure_after_accepted_sample_consumes_slot": true,
+    "post_development_model_creation_allowed": false,
+    "owner_vocal_or_response_audio_may_fit_model": false
+  },
+  "pre_execution_gates": [
+    "complete deterministic 19-transition dry-run passes without device access",
+    "focused and full regression suites pass",
+    "exact V2.2 artifacts are hash-pinned",
+    "owner approves exact V2.2 protocol and unchanged retention",
+    "cue-route evidence is valid or a new cue diagnostic is separately authorized and passed",
+    "new storage-safe five-slot V2.2 cohort is registered",
+    "fresh one-session authorization explicitly includes self calibration and owner captures",
+    "read-only session preflight passes"
+  ],
+  "frozen_failures": {
+    "v2_1_audio_or_slots_can_contribute": false,
+    "development_can_open_without_frozen_self_model": false,
+    "self_model_can_use_owner_vocal_or_response_audio": false,
+    "held_response_can_open_without_prediction_commitment": false,
+    "target_and_response_completion_can_overwrite_each_other": false,
+    "underscore_session_identifier_allowed": false,
+    "post_capture_model_or_threshold_change_allowed": false
+  },
+  "claim_boundary": "Offline V2.2 implementation and preregistration only. It grants no approval, playback, microphone capture, cohort, session, or product claim."
+}

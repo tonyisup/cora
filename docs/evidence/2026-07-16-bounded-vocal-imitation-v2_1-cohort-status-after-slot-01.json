@@ -1,0 +1,62 @@
+{
+  "schema_version": 2,
+  "protocol_version": "bounded-product-session-v2.1-owner-approved",
+  "cohort_id": "bvips-v2-1-20260716-cohort-01",
+  "effective_registration": {
+    "path": "docs/evidence/2026-07-16-bounded-vocal-imitation-v2_1-cohort-registration-correction.json",
+    "sha256": "28a870824420ae3633de1154d3fdb3bbdcd7cdb32f34d897966ca600c20a1e39"
+  },
+  "slot_statuses": [
+    {
+      "session_id": "bvips-v2-1-20260716-cohort-01-s01",
+      "status": "behavioral_failed"
+    },
+    {
+      "session_id": "bvips-v2-1-20260716-cohort-01-s02",
+      "status": "pending"
+    },
+    {
+      "session_id": "bvips-v2-1-20260716-cohort-01-s03",
+      "status": "pending"
+    },
+    {
+      "session_id": "bvips-v2-1-20260716-cohort-01-s04",
+      "status": "pending"
+    },
+    {
+      "session_id": "bvips-v2-1-20260716-cohort-01-s05",
+      "status": "pending"
+    }
+  ],
+  "started_slots": 1,
+  "technically_valid_started_sessions": 1,
+  "passed_sessions": 0,
+  "behavioral_repeatability": {
+    "numerator_passed": 0,
+    "denominator_technically_valid_started": 1,
+    "value": 0.0
+  },
+  "operational_reliability": {
+    "numerator_technically_valid": 1,
+    "denominator_started_slots": 1,
+    "value": 1.0
+  },
+  "registration_corrections": [
+    {
+      "voided_cohort_id": "bvips-v2_1-20260716-cohort-01",
+      "reason": "underscore identifiers rejected by approved encrypted storage",
+      "session_live_io_performed": false,
+      "slot_consumed": false,
+      "contributes_to_cohort": false
+    }
+  ],
+  "cohort_resolved": false,
+  "product_level_verdict_available": false,
+  "minimum_fully_passed_slots": 3,
+  "maximum_remaining_possible_passes": 4,
+  "product_level_pass_still_mathematically_possible": true,
+  "continuing_same_version_would_repeat_known_precondition_failure": true,
+  "next_slot_live_execution_recommended": false,
+  "successor_protocol_revision_required": true,
+  "claim_boundary": "Interim V2.1 cohort status after one consumed failure. Although three passes remain mathematically possible, slots 2-5 should not execute under the same known missing-self-model precondition. No aggregate product verdict is available."
+}

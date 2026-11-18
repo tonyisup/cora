@@ -1,0 +1,65 @@
+{
+  "schema_version": 2,
+  "decision": "bounded_vocal_imitation_product_session_v2",
+  "approval_date": "2026-07-16",
+  "owner_statement": "Approve V2 protocol and retention decision",
+  "status": "owner_approved_protocol_design_and_retention_not_live_io",
+  "approved_protocol": {
+    "path": "docs/BOUNDED_VOCAL_IMITATION_SESSION_PROTOCOL_V2.md",
+    "sha256": "3a86b300b35bd8250cabd5149d463c44518313c3e2a848f8a77cd80b77f715d7"
+  },
+  "approved_preregistration": {
+    "path": "docs/evidence/2026-07-16-bounded-vocal-imitation-v2-preregistration.json",
+    "sha256": "2965dd317b32eb0da5adc6c3bbcb4cd79f130ca26b6591fc7a3988c545478349"
+  },
+  "approved_implementation_record": {
+    "path": "docs/evidence/2026-07-16-bounded-vocal-imitation-v2-implementation.json",
+    "sha256": "e18e8497d5fe79722926fcaa7a972ad2e15cb2dc751ed3efd80fe72351ea46d4"
+  },
+  "approved_operating_point": {
+    "path": "config/product-session-v2-operating-point.json",
+    "sha256": "09351581a7e4797d547d1df66a6cec9d85b247d268d43ea22c44c7c585094871"
+  },
+  "approved_native_player": {
+    "storage_alias": "cora-app-support:cora-audioqueue-player-v1",
+    "version": "cora-audioqueue-player-v1",
+    "binary_sha256": "ab6d421aac2388234aab439143257e1a7c544e22da74f3dee2e751c53d72cb3e"
+  },
+  "approved_retention": {
+    "days": 30,
+    "aes_256_per_session_sparse_bundle": true,
+    "per_session_key_required": true,
+    "backup_exclusion_or_inventory_required": true,
+    "cryptographic_erasure_required": true,
+    "private_storage_implementation_sha256": "11f7b45b03e165ab1aa1fce1bc8cc0c9e27e570b65a0a6ebdee2c4dea97a6644"
+  },
+  "approved_v2_changes": [
+    "CoreAudio UID plus exact-name output binding",
+    "native AudioQueue enqueue-before-start playback",
+    "returned-buffer callback requirement",
+    "non-immediate stop and stopped-queue verification",
+    "non-immediate disposal after drain",
+    "mandatory native-binary SHA-256",
+    "owner-confirmed exact-cue audibility before session capture"
+  ],
+  "unchanged_behavioral_contract_approved": true,
+  "execution_state": {
+    "protocol_design_approved": true,
+    "retention_decision_approved": true,
+    "offline_implementation_complete": true,
+    "live_cue_validation_complete": false,
+    "new_v2_cohort_registered": false,
+    "execution_authorized": false,
+    "live_io_authorized": false,
+    "microphone_capture_authorized": false
+  },
+  "next_required_gates": [
+    "separate authorization for one exact V2 cue diagnostic",
+    "UID, binary, callback, drain, and elapsed-duration gates pass",
+    "owner immediately confirms cue audibility with microphone closed",
+    "register a new five-slot V2 cohort",
+    "obtain fresh one-session live-I/O authorization before each session"
+  ],
+  "historical_status_note": "The hash-pinned protocol and preregistration retain their preapproval status text as immutable approval inputs; this record supersedes those status fields without mutating the approved bytes.",
+  "claim_boundary": "Owner approval of exact V2 design, implementation boundary, operating point, and retention decision. It does not authorize playback, microphone capture, cohort execution, a session result, or a product claim."
+}

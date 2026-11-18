@@ -1,0 +1,82 @@
+{
+  "schema_version": 2,
+  "decision": "bounded_vocal_imitation_product_session_v2_1",
+  "approval_date": "2026-07-16",
+  "owner_statement": "Approve V2.1 protocol and unchanged retention decision",
+  "status": "owner_approved_protocol_design_and_retention_not_live_io",
+  "approved_protocol": {
+    "path": "docs/BOUNDED_VOCAL_IMITATION_SESSION_PROTOCOL_V2_1.md",
+    "sha256": "b450871ef149231465f5c9e3c3cbc5b151720532d5dda5d7108fb822d5ec9a2e"
+  },
+  "approved_preregistration": {
+    "path": "docs/evidence/2026-07-16-bounded-vocal-imitation-v2_1-preregistration.json",
+    "sha256": "8afb28617f9aa06550f36d0af2a92f985f1e76450480f51862d5bc6d5c8ad929"
+  },
+  "approved_implementation_record": {
+    "path": "docs/evidence/2026-07-16-bounded-vocal-imitation-v2_1-implementation.json",
+    "sha256": "aff77b35f658cdc9d1376aa940e4e1c5079f9b47a620ccd756607f7ee0abcd7f"
+  },
+  "approved_operating_point": {
+    "path": "config/product-session-v2_1-operating-point.json",
+    "sha256": "4f4b091c9de8aeb660ba5e6dcaf606927b8c8625cafc98f5ce5149985cfbd2ca"
+  },
+  "approved_predecessor_rejection": {
+    "path": "docs/evidence/2026-07-16-bounded-vocal-imitation-v2-candidate-rejection.json",
+    "sha256": "af5294f6ef0797c3fdc4801b4fba5c09e5951436b2a4e5c75913205f9037377f"
+  },
+  "approved_read_only_preflight": {
+    "path": "docs/evidence/2026-07-16-bounded-vocal-imitation-v2_1-read-only-preflight.json",
+    "sha256": "9e044b78f4cfba9339df15da4048d5d05c51025ac32bad4c71d70b1765a6d175"
+  },
+  "approved_native_player": {
+    "storage_alias": "cora-app-support:cora-audioqueue-player-v2",
+    "version": "cora-audioqueue-player-v2",
+    "binary_sha256": "1a9664db2f558bf514c390859815f86783f65b01a622fe8b6e92b22270e94189"
+  },
+  "approved_retention": {
+    "days": 30,
+    "unchanged_from_approved_v2": true,
+    "aes_256_per_session_sparse_bundle": true,
+    "per_session_key_required": true,
+    "backup_exclusion_or_inventory_required": true,
+    "cryptographic_erasure_required": true,
+    "private_storage_implementation": {
+      "path": "src/cora_infans/private_session_storage.py",
+      "sha256": "11f7b45b03e165ab1aa1fce1bc8cc0c9e27e570b65a0a6ebdee2c4dea97a6644"
+    }
+  },
+  "approved_v2_1_changes": [
+    "direct read-only CoreAudio property enumeration without creating an AudioQueue",
+    "CoreAudio UID plus exact-name output binding",
+    "native AudioQueue enqueue-before-start playback",
+    "returned-buffer callback observed before stop request",
+    "callback elapsed time covers at least 90 percent of WAV duration",
+    "non-immediate stop requested only after the callback",
+    "stopped-queue verification before return",
+    "non-immediate disposal after successful completion",
+    "mandatory native-binary SHA-256",
+    "owner-confirmed exact-cue audibility before any session capture"
+  ],
+  "unchanged_behavioral_contract_approved": true,
+  "unchanged_score_thresholds_approved": true,
+  "execution_state": {
+    "protocol_design_approved": true,
+    "retention_decision_approved": true,
+    "offline_implementation_complete": true,
+    "live_cue_validation_complete": false,
+    "new_v2_1_cohort_registered": false,
+    "execution_authorized": false,
+    "live_io_authorized": false,
+    "microphone_capture_authorized": false
+  },
+  "next_required_gates": [
+    "separate owner authorization for one exact V2.1 cue diagnostic",
+    "UID, binary, callback-before-stop, stopped-queue, and duration gates pass",
+    "owner immediately confirms cue audibility with microphone closed",
+    "register a new five-slot V2.1 cohort",
+    "obtain fresh one-session live-I/O authorization before each session"
+  ],
+  "historical_status_note": "The hash-pinned V2.1 protocol, preregistration, and implementation retain their preapproval status text as immutable approval inputs; this approval record supersedes those status fields without mutating the approved bytes.",
+  "authorization_non_transfer": "Prior V1/V2 playback or session authorizations do not transfer. This approval does not itself authorize a V2.1 cue diagnostic.",
+  "claim_boundary": "Owner approval of the exact V2.1 design, implementation boundary, operating point, predecessor disposition, and unchanged retention decision. It does not authorize playback, microphone capture, cohort execution, a session result, or a product claim."
+}

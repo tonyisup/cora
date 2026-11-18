@@ -1,0 +1,69 @@
+{
+  "mode": "bounded_vocal_imitation_offline_replay_v2_threshold_calibration",
+  "date": "2026-07-16",
+  "status": "all_deterministic_calibration_gates_passed",
+  "calibration_passed": true,
+  "scoring_version": "offline-replay-v2",
+  "sample_rate_hz": 16000,
+  "source_hashes": {
+    "implementation": {
+      "path": "src/cora_infans/product_session.py",
+      "sha256": "97d39ecfa5d9bf6fe0b61a3219b41af1f5f2824614c700211b299f019021537f"
+    },
+    "scorer_v2_preregistration": {
+      "path": "docs/evidence/2026-07-15-bounded-vocal-imitation-offline-replay-scorer-v2-preregistration.json",
+      "sha256": "20768fa17f1d3cbc867e8ceb4c7d6af64ee7e6fbc334195b6c31f1658f85ba2e"
+    },
+    "approved_protocol": {
+      "path": "docs/BOUNDED_VOCAL_IMITATION_SESSION_PROTOCOL_V1.md",
+      "sha256": "cc4adbef94469c93bda8bdd40ebc9311b29f4674c7bb8d895a443abb55048de2"
+    },
+    "approved_preregistration": {
+      "path": "docs/evidence/2026-07-15-bounded-vocal-imitation-session-v1-preregistration.json",
+      "sha256": "d5f3b47469fb3a96f3fa6380d2ecabea3002d599832c4e707c3b8bde618151c1"
+    }
+  },
+  "canonical_calibration_result_sha256": "acc2e6076d340dd50a3da39b297c6e19b575736d57826900af2beb21d908bcc5",
+  "waveform_thresholds": {
+    "active_duration_difference_ms_max": 150.0,
+    "rms_envelope_distance_max": 0.05,
+    "pitch_contour_distance_hz_max": 30.0,
+    "cepstral_distance_max": 0.5
+  },
+  "selection_thresholds": {
+    "nearest_distance_max": 0.3,
+    "runner_up_margin_min": 0.05,
+    "tie_tolerance": 1e-12,
+    "contrastive_rest_improvement_min": 0.15,
+    "contrastive_off_target_margin_min": 0.05
+  },
+  "waveform_cases": {
+    "independent_offset_pass": {"expected_failures": [], "actual_failures": []},
+    "duration_100ms_pass": {"expected_failures": [], "actual_failures": []},
+    "duration_250ms_fail": {"expected_failures": ["active_duration_difference_ms"], "actual_failures": ["active_duration_difference_ms"]},
+    "pitch_20hz_pass": {"expected_failures": [], "actual_failures": []},
+    "pitch_40hz_fail": {"expected_failures": ["cepstral_distance", "pitch_contour_distance_hz"], "actual_failures": ["cepstral_distance", "pitch_contour_distance_hz"]},
+    "energy_small_change_pass": {"expected_failures": [], "actual_failures": []},
+    "energy_large_change_fail": {"expected_failures": ["rms_envelope_distance"], "actual_failures": ["rms_envelope_distance"]},
+    "spectrum_small_change_pass": {"expected_failures": [], "actual_failures": []},
+    "spectrum_large_change_fail": {"expected_failures": ["cepstral_distance"], "actual_failures": ["cepstral_distance"]},
+    "invalid_voicing": {"expected": "rejected", "actual": "rejected"}
+  },
+  "selection_cases": {
+    "clear_nearest_pass": {"expected_pass": true, "actual_pass": true},
+    "ambiguous_runner_up_fail": {"expected_pass": false, "actual_pass": false},
+    "far_target_fail": {"expected_pass": false, "actual_pass": false},
+    "clear_contrastive_pass": {"expected_pass": true, "actual_pass": true},
+    "off_target_margin_fail": {"expected_pass": false, "actual_pass": false}
+  },
+  "checks": {
+    "all_waveform_expectations_met": true,
+    "invalid_voicing_rejected": true,
+    "all_selection_expectations_met": true,
+    "all_contrastive_expectations_met": true,
+    "v4_audio_accessed": false,
+    "future_session_audio_accessed": false,
+    "live_io_performed": false
+  },
+  "claim_boundary": "Deterministic synthetic engineering calibration only. It freezes scorer and selection thresholds but is not perceptual validation, a real-session result, or live-I/O evidence."
+}

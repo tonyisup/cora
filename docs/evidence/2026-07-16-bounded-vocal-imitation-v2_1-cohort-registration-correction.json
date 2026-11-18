@@ -1,0 +1,114 @@
+{
+  "schema_version": 2,
+  "status": "effective_corrected_cohort_registration",
+  "cohort_id": "bvips-v2-1-20260716-cohort-01",
+  "protocol_version": "bounded-product-session-v2.1-owner-approved",
+  "registration_date": "2026-07-16",
+  "owner_registration_instruction": "Register V2.1 cohort.",
+  "correction_authority": "Clerical correction within the owner's cohort-registration instruction; no scientific, behavioral, scoring, retention, or live-I/O rule changed.",
+  "supersedes": {
+    "path": "docs/evidence/2026-07-16-bounded-vocal-imitation-v2_1-cohort-registration.json",
+    "sha256": "91ee1c344dca4261968081c5ba7f431f3d927a12802038a724f8686880e47524",
+    "status": "void_for_execution",
+    "reason": "Underscores in its slot identifiers are rejected by the approved private-storage implementation."
+  },
+  "voided_authorization": {
+    "path": "docs/evidence/2026-07-16-bounded-vocal-imitation-v2_1-session-01-authorization.json",
+    "sha256": "e55aaa77175ea636d5d1e613b828435fd002c81c08dc56b7c0b4f5223ef927e7",
+    "authority_transferred": false
+  },
+  "preflight_block": {
+    "path": "docs/evidence/2026-07-16-bounded-vocal-imitation-v2_1-session-01-preflight-registration-block.json",
+    "side_effects_before_block": "none"
+  },
+  "frozen_artifact_set": {
+    "source_registration": "docs/evidence/2026-07-16-bounded-vocal-imitation-v2_1-cohort-registration.json",
+    "source_registration_sha256": "91ee1c344dca4261968081c5ba7f431f3d927a12802038a724f8686880e47524",
+    "artifact_digests_reverified_before_correction": true,
+    "artifact_bytes_changed": false,
+    "native_binary_changed": false
+  },
+  "ordered_session_slot_ids": [
+    "bvips-v2-1-20260716-cohort-01-s01",
+    "bvips-v2-1-20260716-cohort-01-s02",
+    "bvips-v2-1-20260716-cohort-01-s03",
+    "bvips-v2-1-20260716-cohort-01-s04",
+    "bvips-v2-1-20260716-cohort-01-s05"
+  ],
+  "slot_ledger_at_registration": [
+    {
+      "slot_id": "bvips-v2-1-20260716-cohort-01-s01",
+      "ordered_slot_index": 1,
+      "state": "unstarted",
+      "status": null,
+      "consumed": false
+    },
+    {
+      "slot_id": "bvips-v2-1-20260716-cohort-01-s02",
+      "ordered_slot_index": 2,
+      "state": "unstarted",
+      "status": null,
+      "consumed": false
+    },
+    {
+      "slot_id": "bvips-v2-1-20260716-cohort-01-s03",
+      "ordered_slot_index": 3,
+      "state": "unstarted",
+      "status": null,
+      "consumed": false
+    },
+    {
+      "slot_id": "bvips-v2-1-20260716-cohort-01-s04",
+      "ordered_slot_index": 4,
+      "state": "unstarted",
+      "status": null,
+      "consumed": false
+    },
+    {
+      "slot_id": "bvips-v2-1-20260716-cohort-01-s05",
+      "ordered_slot_index": 5,
+      "state": "unstarted",
+      "status": null,
+      "consumed": false
+    }
+  ],
+  "minimum_fully_passed_slots": 3,
+  "passes_must_be_consecutive": false,
+  "all_five_slots_must_resolve_before_aggregation": true,
+  "sixth_or_replacement_session_may_contribute": false,
+  "started_slot_consumption_point": "first accepted audio sample",
+  "session_statuses": [
+    "behavioral_failed",
+    "blocked_pre_io",
+    "passed",
+    "technical_invalid"
+  ],
+  "behavioral_repeatability_denominator": "technically valid started sessions",
+  "operational_reliability_denominator": "all started session slots",
+  "capture_schedule": {
+    "development": ["a", "i", "u", "a", "i", "u"],
+    "held": ["a", "i", "u", "a", "i", "u"],
+    "capture_duration_ms": 5000,
+    "total_microphone_captures_per_session": 18
+  },
+  "registration_conditions": {
+    "identifier_matches_approved_storage_pattern": true,
+    "owner_approved_exact_v2_1_artifacts": true,
+    "passed_cue_diagnostic_preceded_registration": true,
+    "session_live_io_performed_before_registration": false,
+    "microphone_io_performed_before_registration": false,
+    "registered_before_cohort_session_live_io": true,
+    "all_slots_are_fresh": true,
+    "v1_v2_or_voided_v2_1_slots_reused": false,
+    "v1_v2_or_voided_v2_1_audio_reused": false
+  },
+  "authorization_state": {
+    "cohort_registered": true,
+    "cue_replay_authorized": false,
+    "any_session_live_io_authorized": false,
+    "microphone_capture_authorized": false,
+    "fresh_authorization_required_after_correction": true,
+    "next_authorizable_slot": "bvips-v2-1-20260716-cohort-01-s01"
+  },
+  "claim_boundary": "Effective corrected five-slot V2.1 registration. The voided underscore cohort and authorization contribute no slot, audio, or authority. This record is not session authorization, evidence, an aggregate verdict, or a product claim."
+}

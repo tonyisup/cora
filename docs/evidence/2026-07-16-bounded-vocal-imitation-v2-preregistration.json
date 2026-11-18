@@ -1,0 +1,72 @@
+{
+  "schema_version": 2,
+  "decision": "bounded_vocal_imitation_product_session_v2_candidate",
+  "date": "2026-07-16",
+  "status": "implemented_candidate_not_owner_approved_not_executable",
+  "protocol_document": "docs/BOUNDED_VOCAL_IMITATION_SESSION_PROTOCOL_V2.md",
+  "protocol_version": "bounded-product-session-v2-candidate",
+  "owner_instruction_to_proceed_with_candidate": true,
+  "owner_protocol_approval_recorded": false,
+  "execution_authorized_by_this_artifact": false,
+  "live_io_authorized_by_this_artifact": false,
+  "new_cohort_registered": false,
+  "v1_relationship": {
+    "v1_cohort_closed_for_claims": true,
+    "v1_aggregate_verdict_valid": false,
+    "v1_audio_reused": false,
+    "v1_slots_reused": false,
+    "v1_statuses_rewritten": false,
+    "v1_product_claim_allowed": false
+  },
+  "v2_changes": {
+    "output_identity": "stable CoreAudio UID plus exact name cross-check",
+    "self_uid": "BuiltInSpeakerDevice",
+    "world_uid": "BuiltInHeadphoneOutputDevice",
+    "playback_implementation": "cora-audioqueue-player-v1",
+    "enqueue_before_start": true,
+    "buffer_callback_required": true,
+    "non_immediate_stop_required": true,
+    "queue_not_running_before_return_required": true,
+    "non_immediate_dispose_required": true,
+    "elapsed_playback_fraction_min": 0.9,
+    "owner_confirmed_cue_audibility_required": true
+  },
+  "unchanged_from_v1": {
+    "targets": ["/a/", "/i/", "/u/"],
+    "development_schedule": ["/a/", "/i/", "/u/", "/a/", "/i/", "/u/"],
+    "held_schedule": ["/a/", "/i/", "/u/", "/a/", "/i/", "/u/"],
+    "capture_duration_seconds": 5.0,
+    "total_microphone_captures_per_session": 18,
+    "representation": "v4-label-blind-30-band-auditory",
+    "fixed_repertoire": "96-entry Halton schedule start 20011 stride 43 last 24096",
+    "scoring_version": "offline-replay-v2",
+    "raw_audio_retention_days": 30,
+    "repeatability_slots": 5,
+    "minimum_passing_slots": 3,
+    "behavioral_or_score_threshold_changed": false
+  },
+  "score_thresholds": {
+    "active_duration_difference_ms_max": 150.0,
+    "rms_envelope_distance_max": 0.05,
+    "pitch_contour_distance_hz_max": 30.0,
+    "cepstral_distance_max": 0.5
+  },
+  "pre_execution_gates": [
+    "focused and full test suites pass",
+    "implementation and native-player binary are hash-pinned",
+    "owner approves exact V2 protocol and retention decision",
+    "separately authorized UID-bound cue diagnostic returns drain evidence",
+    "owner immediately confirms exact cue audibility with microphone closed",
+    "new five-slot V2 cohort is registered",
+    "fresh one-session authorization is recorded before each session"
+  ],
+  "frozen_failures": {
+    "exit_zero_without_drain_evidence_can_pass": false,
+    "numeric_index_can_define_device_identity": false,
+    "uid_name_mismatch_can_fallback": false,
+    "inaudible_cue_can_open_capture": false,
+    "v1_session_can_contribute_to_v2": false,
+    "post_capture_threshold_change_allowed": false
+  },
+  "claim_boundary": "Implemented V2 candidate and preregistration only. No owner approval of the exact V2 bytes, cue validation, cohort, session, live I/O, or product claim exists yet."
+}

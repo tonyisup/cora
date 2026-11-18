@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "protocol_version": "bounded-product-session-v1-approved",
+  "cohort_id": "bvips-v1-20260716-cohort-01",
+  "slot_statuses": [
+    {
+      "session_id": "bvips-v1-20260716-cohort-01-s01",
+      "status": "behavioral_failed"
+    },
+    {
+      "session_id": "bvips-v1-20260716-cohort-01-s02",
+      "status": "behavioral_failed"
+    },
+    {
+      "session_id": "bvips-v1-20260716-cohort-01-s03",
+      "status": "pending"
+    },
+    {
+      "session_id": "bvips-v1-20260716-cohort-01-s04",
+      "status": "pending"
+    },
+    {
+      "session_id": "bvips-v1-20260716-cohort-01-s05",
+      "status": "pending"
+    }
+  ],
+  "started_slots": 2,
+  "technically_valid_started_sessions": 2,
+  "passed_sessions": 0,
+  "behavioral_repeatability": {
+    "numerator_passed": 0,
+    "denominator_technically_valid_started": 2,
+    "value": 0.0
+  },
+  "operational_reliability": {
+    "numerator_technically_valid": 2,
+    "denominator_started_slots": 2,
+    "value": 1.0
+  },
+  "cohort_resolved": false,
+  "product_level_verdict_available": false,
+  "minimum_fully_passed_slots": 3,
+  "maximum_remaining_possible_passes": 3,
+  "product_level_pass_still_mathematically_possible": true,
+  "all_remaining_slots_must_pass_for_product_level_threshold": true,
+  "next_slot_requires_fresh_authorization": true,
+  "claim_boundary": "Interim cohort status after two of five registered slots. All three remaining slots must pass to reach the frozen three-of-five threshold."
+}

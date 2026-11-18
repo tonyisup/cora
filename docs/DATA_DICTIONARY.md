@@ -213,6 +213,15 @@ the Stage 2 multi-speaker cohort-adaptation terminology above.
 | **Measured pilot** | One passed session. It is useful measured evidence but is not yet a product-level repeatability claim. |
 | **Behavioral repeatability** | Passed sessions divided by technically valid started sessions within the frozen five-slot cohort. |
 | **Operational reliability** | Technically valid sessions divided by all started session slots. It keeps hardware/transport reliability separate from behavioral scoring. |
+| **CoreAudio UID** | Stable device identifier reported by CoreAudio, such as `BuiltInSpeakerDevice`. V2 resolves this UID and verifies its name; a numeric array index is transport metadata, not identity. |
+| **UID-bound playback** | Playback that selects exactly one frozen CoreAudio UID, cross-checks its human-readable name, and only then uses the currently resolved index. |
+| **Drain-confirmed playback** | Playback that does not treat process exit as success. V2 requires a returned-buffer callback, non-immediate stop, a queue no longer running, elapsed-duration coverage, and non-immediate disposal. |
+| **Callback-before-stop playback** | V2.1 completion ordering in which the AudioQueue must return the enqueued buffer before code may request a non-immediate stop. A callback observed only after requesting stop is insufficient. |
+| **Read-only CoreAudio enumeration** | V2.1 route discovery through CoreAudio device properties without creating or starting an AudioQueue and with zero audio frames sent. |
+| **Pre-development self calibration** | V2.2's one scheduled machine-generated chirp playback/capture used to freeze a local 128-sample self-path FIR before any owner target. It is not owner vocal data, and a model cannot be created or changed after development opens. |
+| **Role-specific completion artifact** | Durable V2.2 gate record whose filename includes `self_calibration`, `development_target`, `held_target`, or `held_response`, preventing two roles in one held trial from overwriting each other's completion evidence. |
+| **Cue audibility confirmation** | Immediate owner report after one separately authorized exact-cue diagnostic with the microphone closed. Both machine drain evidence and owner audibility are required before a V2 session can open capture. |
+| **Closed for claims** | A cohort that can no longer support its intended claim and will receive no rescue sessions. V1 closed this way with four consumed failures and one unconsumed `blocked_pre_io` slot; it did not produce a valid five-slot aggregate verdict. |
 
 ## Predictive and workspace architecture
 
@@ -287,6 +296,7 @@ The hypothesis number and stage number are separate systems.
 | **AGC** | Automatic gain control | Automatically changes input gain to stabilize level. |
 | **HPF** | High-pass filter | Attenuates low-frequency content below a cutoff. |
 | **CoreAudio** | Apple audio subsystem | macOS device layer used for playback and capture. |
+| **AudioQueue** | CoreAudio playback/recording queue API | V2.1 enqueues PCM, binds the queue to a CoreAudio UID, waits for a returned-buffer callback before requesting non-immediate stop, verifies the queue stopped, and disposes only after completion confirmation. |
 | **PortAudio** | Cross-platform audio I/O library | Accessed through Python `sounddevice`; its callback timestamps support current latency measurements. |
 | **Callback** | — | Function invoked by the audio system when a new sample block arrives. Cora reblocks variable callbacks into exact analysis frames. |
 | **CPU** | Central processing unit | Reports process compute usage; percentage semantics depend on the host OS. |
@@ -297,7 +307,7 @@ The hypothesis number and stage number are separate systems.
 | **Overflow** | — | Input samples were lost because capture could not keep up. |
 | **Fallback** | — | A secondary I/O path was used after the requested one failed. Real-evidence gates generally require no fallback. |
 | **Device `:0`** | — | Current macOS/ffmpeg-style selector for the XVF3800 input. It is host-specific, not a universal device ID. |
-| **Device `2`** | — | Current external-world playback output. Device indexes can change when hardware changes. |
+| **Device `2` / `3`** | — | Historical V1 external/self output indices. They are host-enumeration positions and can change when hardware or virtual drivers change; V2 does not use them as identity. |
 
 ## Evidence and data-governance words
 

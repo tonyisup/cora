@@ -27,6 +27,36 @@ OWNER_APPROVAL = (
     / "evidence"
     / "2026-07-16-bounded-vocal-imitation-session-v1-owner-approval.json"
 )
+THRESHOLD_CALIBRATION = (
+    ROOT
+    / "docs"
+    / "evidence"
+    / "2026-07-16-bounded-vocal-imitation-v1-threshold-calibration.json"
+)
+COHORT_REGISTRATION = (
+    ROOT
+    / "docs"
+    / "evidence"
+    / "2026-07-16-bounded-vocal-imitation-v1-cohort-registration.json"
+)
+SESSION_01_AUTHORIZATION = (
+    ROOT
+    / "docs"
+    / "evidence"
+    / "2026-07-16-bounded-vocal-imitation-v1-session-01-authorization.json"
+)
+SESSION_01_RESULT = (
+    ROOT
+    / "docs"
+    / "evidence"
+    / "2026-07-16-bounded-vocal-imitation-v1-session-01-result.json"
+)
+COHORT_STATUS_AFTER_SLOT_01 = (
+    ROOT
+    / "docs"
+    / "evidence"
+    / "2026-07-16-bounded-vocal-imitation-v1-cohort-status-after-slot-01.json"
+)
 
 
 def _sha256(path: Path) -> str:
@@ -176,3 +206,69 @@ def test_product_session_v1_protocol_explicitly_preserves_claim_and_data_boundar
         "per-session authorization",
     ):
         assert required_text in protocol
+
+
+def test_registered_cohort_hash_pins_runtime_before_live_io() -> None:
+    cohort = json.loads(COHORT_REGISTRATION.read_text())
+    digests = cohort["frozen_digests"]
+
+    assert cohort["registered_before_live_io"] is True
+    assert cohort["live_io_performed_before_registration"] is False
+    assert len(cohort["ordered_session_slot_ids"]) == 5
+    assert len(set(cohort["ordered_session_slot_ids"])) == 5
+    assert cohort["minimum_fully_passed_slots"] == 3
+    assert cohort["passes_must_be_consecutive"] is False
+    assert digests["protocol"] == _sha256(PROTOCOL)
+    assert digests["preregistration"] == _sha256(PREREGISTRATION)
+    assert digests["threshold_calibration"] == _sha256(THRESHOLD_CALIBRATION)
+    assert digests["representation_implementation"] == _sha256(
+        ROOT / "src" / "cora_infans" / "vocal_imitation.py"
+    )
+    assert digests["live_runner_implementation"] == _sha256(
+        ROOT / "src" / "cora_infans" / "product_session_live.py"
+    )
+    assert digests["private_storage_implementation"] == _sha256(
+        ROOT / "src" / "cora_infans" / "private_session_storage.py"
+    )
+    assert digests["operating_point"] == _sha256(
+        ROOT / "config" / "operational-point.json"
+    )
+
+
+def test_fresh_authorization_is_bound_only_to_first_registered_slot() -> None:
+    cohort = json.loads(COHORT_REGISTRATION.read_text())
+    authorization = json.loads(SESSION_01_AUTHORIZATION.read_text())
+
+    assert authorization["session_id"] == cohort["ordered_session_slot_ids"][0]
+    assert authorization["ordered_slot_index"] == 1
+    assert authorization["recording_authorized"] is True
+    assert authorization["playback_authorized"] is True
+    assert authorization["device_discovery_authorized"] is True
+    assert authorization["one_session_live_io_authorized"] is True
+    assert authorization["authorization_applies_to_other_slots"] is False
+    assert authorization["live_io_performed_before_authorization"] is False
+    assert authorization["retention_days"] == 30
+
+
+def test_slot_01_failure_preserves_behavioral_and_operational_denominators() -> None:
+    result = json.loads(SESSION_01_RESULT.read_text())
+    cohort = json.loads(COHORT_STATUS_AFTER_SLOT_01.read_text())
+
+    assert result["status"] == "behavioral_failed"
+    assert result["technical_valid"] is True
+    assert result["technical_failure_reasons"] == []
+    assert result["retry_permitted"] is False
+    assert result["held_evaluation_opened"] is False
+    assert result["waveform_scores_accessed"] is False
+    assert result["manifest_externally_anchored"] is False
+    assert result["retention_deadline"] == "2026-08-15"
+
+    assert cohort["started_slots"] == 1
+    assert cohort["technically_valid_started_sessions"] == 1
+    assert cohort["passed_sessions"] == 0
+    assert cohort["behavioral_repeatability"]["value"] == 0.0
+    assert cohort["operational_reliability"]["value"] == 1.0
+    assert cohort["cohort_resolved"] is False
+    assert cohort["product_level_verdict_available"] is False
+    assert cohort["product_level_pass_still_mathematically_possible"] is True
+    assert cohort["next_slot_requires_fresh_authorization"] is True

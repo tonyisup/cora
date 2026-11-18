@@ -1,0 +1,37 @@
+{
+  "schema_version": 2,
+  "protocol_version": "bounded-product-session-v2.2-candidate",
+  "date": "2026-07-16",
+  "status": "complete_offline_state_machine_dry_run_passed",
+  "implementation": {
+    "path": "src/cora_infans/product_session_v2_2.py",
+    "sha256": "2ef5e4721ca2888463832624aba65858ba7af8c53c130ecc13bbd6f7a886ee37"
+  },
+  "ephemeral_artifact_root": "/private/tmp/cora-v2-2-candidate-dry-run-final",
+  "device_accessed": false,
+  "microphone_opened": false,
+  "playback_performed": false,
+  "planned_capture_count": 19,
+  "opened_capture_count": 19,
+  "completion_artifact_count": 19,
+  "self_calibration_completion_count": 1,
+  "development_target_completion_count": 6,
+  "held_target_completion_count": 6,
+  "held_response_completion_count": 6,
+  "selection_commitment_count": 6,
+  "prediction_commitment_count": 6,
+  "held_score_report_count": 6,
+  "self_model_frozen_before_development": true,
+  "association_count": 3,
+  "three_distinct_prototype_ids": true,
+  "all_held_selection_prediction_and_score_gates_passed": true,
+  "role_specific_completion_artifacts_distinct": true,
+  "key_artifact_hashes": {
+    "self_model_json": "04601f31f88735f3afce0fefe66ad34d53e74f5b3733d222877676d870ecc47f",
+    "frozen_vocal_associations_json": "0b28d8454c7e0c41cbd2a218003d6b811fc4a23d9cde356ba552e1bc1f35d8db",
+    "evaluation_key_json": "e7472e178a1b690d1b000ef3d67c01ecff407d41313cafb69477405b94781bf4",
+    "attempts_jsonl": "db819402da0f5daca657a1d08ae48e0279c51eb4a429ead94eeb140283f22b45"
+  },
+  "fixture_boundary": "The synthetic passing waveforms are deterministic plumbing fixtures selected before the dry run. They are not owner audio, threshold calibration, scientific evidence, or a prediction of live success.",
+  "claim_boundary": "Complete device-free V2.2 state-machine proof only. It establishes no audible playback, hardware calibration, owner approval, cohort, live session, or product claim."
+}

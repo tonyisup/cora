@@ -1,0 +1,67 @@
+{
+  "schema_version": 2,
+  "protocol_version": "bounded-product-session-v2.1-candidate",
+  "date": "2026-07-16",
+  "status": "read_only_preflight_passed_no_live_audio",
+  "native_player": {
+    "storage_alias": "cora-app-support:cora-audioqueue-player-v2",
+    "version": "cora-audioqueue-player-v2",
+    "binary_sha256": "1a9664db2f558bf514c390859815f86783f65b01a622fe8b6e92b22270e94189",
+    "source_sha256": "afa0a0faaa24f35c6b35007f0eed3a7bfc2fc58912cf2ff4857441b27e324a68"
+  },
+  "enumeration": {
+    "mode": "coreaudio_property_read_only",
+    "audio_queue_created": false,
+    "audio_frames_sent": 0,
+    "microphone_opened": false,
+    "outputs": [
+      {
+        "index_informational_only": 0,
+        "name": "ASUS PB287Q",
+        "uid": "0469A328-0000-0000-0C1B-0103803E2278"
+      },
+      {
+        "index_informational_only": 1,
+        "name": "reSpeaker XVF3800 4-Mic Array",
+        "uid": "AppleUSBAudioEngine:Seeed Studio:reSpeaker XVF3800 4-Mic Array:101991441261601141:1,2"
+      },
+      {
+        "index_informational_only": 2,
+        "name": "External Headphones",
+        "uid": "BuiltInHeadphoneOutputDevice"
+      },
+      {
+        "index_informational_only": 3,
+        "name": "Mac mini Speakers",
+        "uid": "BuiltInSpeakerDevice"
+      }
+    ]
+  },
+  "resolved_outputs": {
+    "self": {
+      "uid": "BuiltInSpeakerDevice",
+      "name": "Mac mini Speakers",
+      "index_informational_only": 3
+    },
+    "world": {
+      "uid": "BuiltInHeadphoneOutputDevice",
+      "name": "External Headphones",
+      "index_informational_only": 2
+    }
+  },
+  "system_output": {
+    "volume_percent": 100,
+    "muted": false
+  },
+  "checks": {
+    "self_uid_and_name_match": true,
+    "world_uid_and_name_match": true,
+    "system_volume_is_100_percent": true,
+    "output_is_not_muted": true,
+    "audio_queue_not_created": true,
+    "zero_audio_frames_sent": true,
+    "microphone_remained_closed": true
+  },
+  "live_io_authorized_by_this_artifact": false,
+  "claim_boundary": "Read-only CoreAudio property and volume preflight only. It does not prove audible playback or authorize a cue, capture, cohort, session, or claim."
+}

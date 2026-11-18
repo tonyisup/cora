@@ -1,0 +1,117 @@
+{
+  "schema_version": 2,
+  "protocol_version": "bounded-product-session-v2.2-candidate",
+  "date": "2026-07-16",
+  "status": "offline_implementation_and_complete_dry_run_passed_not_owner_approved",
+  "source_hashes": {
+    "product_session_v2_2": {
+      "path": "src/cora_infans/product_session_v2_2.py",
+      "sha256": "2ef5e4721ca2888463832624aba65858ba7af8c53c130ecc13bbd6f7a886ee37"
+    },
+    "protocol": {
+      "path": "docs/BOUNDED_VOCAL_IMITATION_SESSION_PROTOCOL_V2_2.md",
+      "sha256": "4dc2077779556008e56f997920379e589ec65a68205bd8164e772c5f81a9ba0f"
+    },
+    "preregistration": {
+      "path": "docs/evidence/2026-07-16-bounded-vocal-imitation-v2_2-preregistration.json",
+      "sha256": "8fbdc5f83508c6d95216da7d6dabb53d42985f6583a1d232216833eeb7433ca1"
+    },
+    "operating_point": {
+      "path": "config/product-session-v2_2-operating-point.json",
+      "sha256": "4f0cd541fef76481bdb3b48fce1c8a7fbc6a8223d221b8d39e6a336185e2e936"
+    },
+    "v2_1_closure": {
+      "path": "docs/evidence/2026-07-16-bounded-vocal-imitation-v2_1-closure.json",
+      "sha256": "a381e6ba7d3d90caae170a3debd683c1d5a20e143599b6f85d9bb06a3fe4fd10"
+    },
+    "deterministic_dry_run": {
+      "path": "docs/evidence/2026-07-16-bounded-vocal-imitation-v2_2-deterministic-dry-run.json",
+      "sha256": "62e6104bfb7494f78dae26cbd357074776751957044679d0aaa94684be9fb004"
+    },
+    "v2_1_playback_wrapper": {
+      "path": "src/cora_infans/drained_playback_v2_1.py",
+      "sha256": "b1ea24888a133696b1d4ec789eb0880dab7b4aaf690b791da1b0608718dee38e"
+    },
+    "native_player_source": {
+      "path": "src/cora_infans/native/audioqueue_player_v2.c",
+      "sha256": "afa0a0faaa24f35c6b35007f0eed3a7bfc2fc58912cf2ff4857441b27e324a68"
+    },
+    "base_live_runner": {
+      "path": "src/cora_infans/product_session_live.py",
+      "sha256": "c82743987f754e33b61549d507a23eae4b6578fd71ba985101c5b373282290dc"
+    },
+    "private_storage": {
+      "path": "src/cora_infans/private_session_storage.py",
+      "sha256": "11f7b45b03e165ab1aa1fce1bc8cc0c9e27e570b65a0a6ebdee2c4dea97a6644"
+    },
+    "representation": {
+      "path": "src/cora_infans/vocal_imitation.py",
+      "sha256": "9e55bcd64b50dc807b04ef569213b1534751d752e043ce6892efd565c89b872b"
+    }
+  },
+  "native_binary": {
+    "storage_alias": "cora-app-support:cora-audioqueue-player-v2",
+    "version": "cora-audioqueue-player-v2",
+    "sha256": "1a9664db2f558bf514c390859815f86783f65b01a622fe8b6e92b22270e94189",
+    "same_basename_rebuild_sha256": "1a9664db2f558bf514c390859815f86783f65b01a622fe8b6e92b22270e94189",
+    "same_basename_reproducible": true,
+    "binary_changed_from_v2_1": false,
+    "version_probe_opened_audio_device": false
+  },
+  "deterministic_dry_run": {
+    "device_accessed": false,
+    "microphone_opened": false,
+    "playback_performed": false,
+    "planned_capture_count": 19,
+    "opened_capture_count": 19,
+    "role_specific_completion_count": 19,
+    "selection_commitment_count": 6,
+    "prediction_commitment_count": 6,
+    "held_score_report_count": 6,
+    "self_model_frozen_before_development": true,
+    "three_distinct_prototype_ids": true,
+    "all_held_selection_prediction_and_score_gates_passed": true
+  },
+  "offline_verification": {
+    "focused_tests": {
+      "passed": 19,
+      "failed": 0
+    },
+    "full_suite": {
+      "passed": 583,
+      "skipped": 9,
+      "failed": 0
+    },
+    "python_compileall_passed": true,
+    "clang_static_syntax_passed": true,
+    "same_basename_native_binary_reproducible": true,
+    "git_diff_check_passed": true
+  },
+  "fixed_predecessor_failures": {
+    "missing_hash_pinned_self_model": true,
+    "development_open_without_self_model": false,
+    "post_capture_self_model_choice": false,
+    "self_model_uses_owner_vocal_or_response_audio": false,
+    "underscore_identifier_reaches_storage": false,
+    "held_target_completion_overwritten_by_response": false,
+    "dry_run_stops_before_held_response": false,
+    "v2_1_protocol_brand_leaks_into_v2_2_freeze": false
+  },
+  "governance": {
+    "owner_protocol_approval_recorded": false,
+    "retention_reapproval_recorded": false,
+    "cue_replay_authorized": false,
+    "self_calibration_live_io_authorized": false,
+    "owner_target_capture_authorized": false,
+    "new_v2_2_cohort_registered": false,
+    "v2_1_audio_or_slot_reused": false
+  },
+  "next_required_gates": [
+    "owner approves exact V2.2 artifacts and unchanged retention",
+    "owner decides whether unchanged V2.1 cue-route evidence may carry forward",
+    "fresh storage-safe five-slot V2.2 cohort is registered",
+    "fresh per-session authorization explicitly covers self calibration and owner targets",
+    "read-only preflight passes before live I/O"
+  ],
+  "claim_boundary": "Hash-pinned offline V2.2 implementation and complete deterministic state-machine proof only. It establishes no hardware calibration, owner approval, live authorization, cohort, session, or product claim."
+}

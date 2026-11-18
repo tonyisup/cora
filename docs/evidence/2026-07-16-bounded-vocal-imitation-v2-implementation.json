@@ -1,0 +1,94 @@
+{
+  "schema_version": 2,
+  "protocol_version": "bounded-product-session-v2-candidate",
+  "date": "2026-07-16",
+  "status": "offline_implementation_and_contract_tests_passed_live_validation_pending",
+  "source_hashes": {
+    "native_audioqueue_player": {
+      "path": "src/cora_infans/native/audioqueue_player.c",
+      "sha256": "987b2f2d185c2e1cc747778f8e606c5f7fb1c645b5c139638277ca8a98f32a2e"
+    },
+    "drained_playback": {
+      "path": "src/cora_infans/drained_playback.py",
+      "sha256": "6e099d54c5d3c5dc61fd0d31cbb11288c1e25528dd6bb3fdc14a5ea1de828010"
+    },
+    "product_session_v2": {
+      "path": "src/cora_infans/product_session_v2.py",
+      "sha256": "73be7c4d9eb5d06d4b8810fa2990679c4a45e5a6ed0821b936509b1295b3cc94"
+    },
+    "operating_point": {
+      "path": "config/product-session-v2-operating-point.json",
+      "sha256": "09351581a7e4797d547d1df66a6cec9d85b247d268d43ea22c44c7c585094871"
+    },
+    "protocol": {
+      "path": "docs/BOUNDED_VOCAL_IMITATION_SESSION_PROTOCOL_V2.md",
+      "sha256": "3a86b300b35bd8250cabd5149d463c44518313c3e2a848f8a77cd80b77f715d7"
+    },
+    "preregistration": {
+      "path": "docs/evidence/2026-07-16-bounded-vocal-imitation-v2-preregistration.json",
+      "sha256": "2965dd317b32eb0da5adc6c3bbcb4cd79f130ca26b6591fc7a3988c545478349"
+    },
+    "v1_closure": {
+      "path": "docs/evidence/2026-07-16-bounded-vocal-imitation-v1-closure.json",
+      "sha256": "e7f7eedea9e0229214174dc313cd2601e1b8c7efcc1e5cd31be73a6bb384e6fe"
+    }
+  },
+  "native_binary": {
+    "storage_alias": "cora-app-support:cora-audioqueue-player-v1",
+    "sha256": "ab6d421aac2388234aab439143257e1a7c544e22da74f3dee2e751c53d72cb3e",
+    "player_version": "cora-audioqueue-player-v1",
+    "build_command": "clang -std=c11 -O2 -Wall -Wextra -Werror audioqueue_player.c -framework AudioToolbox -framework CoreFoundation -o cora-audioqueue-player-v1",
+    "compiler": "Apple clang 21.0.0 (clang-2100.1.1.101)",
+    "target": "arm64-apple-darwin25.5.0",
+    "same_basename_rebuild_sha256": "ab6d421aac2388234aab439143257e1a7c544e22da74f3dee2e751c53d72cb3e",
+    "same_basename_reproducible": true,
+    "version_probe_opened_audio_device": false
+  },
+  "offline_verification": {
+    "focused_tests": {
+      "passed": 20,
+      "failed": 0
+    },
+    "full_suite": {
+      "passed": 548,
+      "skipped": 9,
+      "failed": 0
+    },
+    "clang_static_analysis_passed": true,
+    "python_compileall_passed": true,
+    "git_diff_check_passed": true,
+    "zero_frame_uid_preflight_passed": true,
+    "zero_frame_preflight_audio_frames_sent": 0,
+    "zero_frame_preflight_microphone_opened": false
+  },
+  "zero_frame_resolved_outputs": {
+    "self": {
+      "uid": "BuiltInSpeakerDevice",
+      "name": "Mac mini Speakers",
+      "index_informational_only": 3
+    },
+    "world": {
+      "uid": "BuiltInHeadphoneOutputDevice",
+      "name": "External Headphones",
+      "index_informational_only": 2
+    }
+  },
+  "required_live_validation": {
+    "authorized": false,
+    "performed": false,
+    "exact_cue_required": true,
+    "uid_verified_native_player_required": true,
+    "buffer_callback_required": true,
+    "queue_drain_required": true,
+    "owner_audibility_confirmation_required": true,
+    "microphone_must_remain_closed": true
+  },
+  "governance": {
+    "owner_protocol_approval_recorded": false,
+    "retention_decision_reapproved_for_v2": false,
+    "new_v2_cohort_registered": false,
+    "session_live_io_authorized": false,
+    "v1_evidence_mutated": false
+  },
+  "claim_boundary": "Hash-pinned offline implementation evidence only. It does not establish audible playback, owner approval, session execution, a V2 cohort, or a product claim."
+}

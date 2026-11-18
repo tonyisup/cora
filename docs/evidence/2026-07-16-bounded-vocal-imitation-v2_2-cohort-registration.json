@@ -1,0 +1,184 @@
+{
+  "schema_version": 2,
+  "status": "registered_fresh_v2_2_cohort",
+  "cohort_id": "bvips-v2-2-20260716-cohort-01",
+  "protocol_version": "bounded-product-session-v2.2-owner-approved",
+  "registration_date": "2026-07-16",
+  "owner_instruction": "Register V2.2 cohort.",
+  "ordered_session_slot_ids": [
+    "bvips-v2-2-20260716-cohort-01-s01",
+    "bvips-v2-2-20260716-cohort-01-s02",
+    "bvips-v2-2-20260716-cohort-01-s03",
+    "bvips-v2-2-20260716-cohort-01-s04",
+    "bvips-v2-2-20260716-cohort-01-s05"
+  ],
+  "slot_ledger_at_registration": [
+    {
+      "slot_id": "bvips-v2-2-20260716-cohort-01-s01",
+      "ordered_slot_index": 1,
+      "state": "unstarted",
+      "status": null,
+      "consumed": false
+    },
+    {
+      "slot_id": "bvips-v2-2-20260716-cohort-01-s02",
+      "ordered_slot_index": 2,
+      "state": "unstarted",
+      "status": null,
+      "consumed": false
+    },
+    {
+      "slot_id": "bvips-v2-2-20260716-cohort-01-s03",
+      "ordered_slot_index": 3,
+      "state": "unstarted",
+      "status": null,
+      "consumed": false
+    },
+    {
+      "slot_id": "bvips-v2-2-20260716-cohort-01-s04",
+      "ordered_slot_index": 4,
+      "state": "unstarted",
+      "status": null,
+      "consumed": false
+    },
+    {
+      "slot_id": "bvips-v2-2-20260716-cohort-01-s05",
+      "ordered_slot_index": 5,
+      "state": "unstarted",
+      "status": null,
+      "consumed": false
+    }
+  ],
+  "minimum_fully_passed_slots": 3,
+  "passes_must_be_consecutive": false,
+  "all_five_slots_must_resolve_before_aggregation": true,
+  "sixth_or_replacement_session_may_contribute": false,
+  "started_slot_consumption_point": "first accepted self-calibration audio sample",
+  "session_statuses": [
+    "behavioral_failed",
+    "blocked_pre_io",
+    "passed",
+    "technical_invalid"
+  ],
+  "behavioral_repeatability_denominator": "technically valid started sessions",
+  "operational_reliability_denominator": "all started session slots",
+  "frozen_artifacts": {
+    "protocol": {
+      "path": "docs/BOUNDED_VOCAL_IMITATION_SESSION_PROTOCOL_V2_2.md",
+      "sha256": "4dc2077779556008e56f997920379e589ec65a68205bd8164e772c5f81a9ba0f"
+    },
+    "preregistration": {
+      "path": "docs/evidence/2026-07-16-bounded-vocal-imitation-v2_2-preregistration.json",
+      "sha256": "8fbdc5f83508c6d95216da7d6dabb53d42985f6583a1d232216833eeb7433ca1"
+    },
+    "implementation": {
+      "path": "docs/evidence/2026-07-16-bounded-vocal-imitation-v2_2-implementation.json",
+      "sha256": "cbd58dc64f938c1d978009cf3d0b2aae0bda51a1ba772f73c6bfd4cb73052129"
+    },
+    "owner_approval": {
+      "path": "docs/evidence/2026-07-16-bounded-vocal-imitation-v2_2-owner-approval.json",
+      "sha256": "0fa5d7bd42cc3c0d3d5669a5fb52620b046f0287ee48bb3f3d60dbaf8135cede"
+    },
+    "deterministic_dry_run": {
+      "path": "docs/evidence/2026-07-16-bounded-vocal-imitation-v2_2-deterministic-dry-run.json",
+      "sha256": "62e6104bfb7494f78dae26cbd357074776751957044679d0aaa94684be9fb004"
+    },
+    "predecessor_closure": {
+      "path": "docs/evidence/2026-07-16-bounded-vocal-imitation-v2_1-closure.json",
+      "sha256": "a381e6ba7d3d90caae170a3debd683c1d5a20e143599b6f85d9bb06a3fe4fd10"
+    },
+    "carried_cue_validation": {
+      "path": "docs/evidence/2026-07-16-bounded-vocal-imitation-v2_1-cue-diagnostic-owner-confirmation.json",
+      "sha256": "6e7b4be68c0ef66a552a2236c14a9b5f331c242217e9907cba112a76789656f9"
+    },
+    "carried_cue_playback_evidence": {
+      "path": "docs/evidence/2026-07-16-bounded-vocal-imitation-v2_1-cue-diagnostic-playback.json",
+      "sha256": "7a5fa8a38cb9ac1e871c461dc18583e841d81b129f69ca50c7d803c7e89dc5ce"
+    },
+    "threshold_calibration": {
+      "path": "docs/evidence/2026-07-16-bounded-vocal-imitation-v1-threshold-calibration.json",
+      "sha256": "5012600fe5f56613dbb402cc77b30806fdc81ac76d52281cd0a9f5cd92686580"
+    },
+    "representation_implementation": {
+      "path": "src/cora_infans/vocal_imitation.py",
+      "sha256": "9e55bcd64b50dc807b04ef569213b1534751d752e043ce6892efd565c89b872b"
+    },
+    "base_live_runner_implementation": {
+      "path": "src/cora_infans/product_session_live.py",
+      "sha256": "c82743987f754e33b61549d507a23eae4b6578fd71ba985101c5b373282290dc"
+    },
+    "v2_2_session_adapter": {
+      "path": "src/cora_infans/product_session_v2_2.py",
+      "sha256": "2ef5e4721ca2888463832624aba65858ba7af8c53c130ecc13bbd6f7a886ee37"
+    },
+    "v2_1_playback_wrapper": {
+      "path": "src/cora_infans/drained_playback_v2_1.py",
+      "sha256": "b1ea24888a133696b1d4ec789eb0880dab7b4aaf690b791da1b0608718dee38e"
+    },
+    "native_player_source": {
+      "path": "src/cora_infans/native/audioqueue_player_v2.c",
+      "sha256": "afa0a0faaa24f35c6b35007f0eed3a7bfc2fc58912cf2ff4857441b27e324a68"
+    },
+    "native_player_binary": {
+      "storage_alias": "cora-app-support:cora-audioqueue-player-v2",
+      "sha256": "1a9664db2f558bf514c390859815f86783f65b01a622fe8b6e92b22270e94189"
+    },
+    "private_storage_implementation": {
+      "path": "src/cora_infans/private_session_storage.py",
+      "sha256": "11f7b45b03e165ab1aa1fce1bc8cc0c9e27e570b65a0a6ebdee2c4dea97a6644"
+    },
+    "operating_point": {
+      "path": "config/product-session-v2_2-operating-point.json",
+      "sha256": "4f0cd541fef76481bdb3b48fce1c8a7fbc6a8223d221b8d39e6a336185e2e936"
+    }
+  },
+  "capture_schedule": {
+    "self_calibration": {
+      "trial_id": "calibration-01-self-chirp",
+      "capture_role": "self_calibration",
+      "capture_duration_ms": 1000,
+      "pre_roll_ms": 250,
+      "chirp_duration_ms": 120,
+      "chirp_f0_hz": 250.0,
+      "chirp_f1_hz": 3500.0,
+      "chirp_peak_absolute": 0.08,
+      "fir_samples": 128
+    },
+    "development": ["a", "i", "u", "a", "i", "u"],
+    "held": ["a", "i", "u", "a", "i", "u"],
+    "owner_capture_duration_ms": 5000,
+    "self_calibration_captures": 1,
+    "owner_development_target_captures": 6,
+    "owner_held_target_captures": 6,
+    "self_response_captures": 6,
+    "total_microphone_captures_per_session": 19
+  },
+  "registration_conditions": {
+    "identifier_pattern": "[a-z0-9][a-z0-9-]{7,79}",
+    "all_identifiers_match_approved_storage_pattern": true,
+    "owner_approved_exact_v2_2_artifacts": true,
+    "owner_approved_unchanged_retention": true,
+    "owner_approved_cue_route_evidence_carryforward": true,
+    "fresh_read_only_preflight_still_required": true,
+    "new_cue_required_if_route_evidence_invalidated": true,
+    "session_live_io_performed_before_registration": false,
+    "calibration_playback_performed_before_registration": false,
+    "microphone_io_performed_before_registration": false,
+    "registered_before_cohort_session_live_io": true,
+    "all_slots_are_fresh": true,
+    "v1_v2_or_v2_1_slots_reused": false,
+    "v1_v2_or_v2_1_audio_reused": false,
+    "v2_1_self_model_or_associations_reused": false
+  },
+  "authorization_state": {
+    "cohort_registered": true,
+    "cue_replay_authorized": false,
+    "calibration_playback_authorized": false,
+    "any_session_live_io_authorized": false,
+    "microphone_capture_authorized": false,
+    "owner_target_capture_authorized": false,
+    "fresh_per_session_authorization_required": true,
+    "next_authorizable_slot": "bvips-v2-2-20260716-cohort-01-s01"
+  },
+  "claim_boundary": "This freezes one fresh storage-safe five-slot V2.2 cohort after owner approval and approved cue-route evidence carry-forward. It is not cue replay authority, calibration or microphone authority, session authorization, session evidence, an aggregate verdict, or a product claim."
+}

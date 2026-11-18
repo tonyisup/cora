@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "protocol_version": "bounded-product-session-v1-approved",
+  "cohort_id": "bvips-v1-20260716-cohort-01",
+  "slot_statuses": [
+    {"session_id": "bvips-v1-20260716-cohort-01-s01", "status": "behavioral_failed"},
+    {"session_id": "bvips-v1-20260716-cohort-01-s02", "status": "behavioral_failed"},
+    {"session_id": "bvips-v1-20260716-cohort-01-s03", "status": "behavioral_failed"},
+    {"session_id": "bvips-v1-20260716-cohort-01-s04", "status": "behavioral_failed", "interpretation_caveat": "Owner later reported no audible cue and no vocalization."},
+    {"session_id": "bvips-v1-20260716-cohort-01-s05", "status": "blocked_pre_io", "consumed": false}
+  ],
+  "started_slots": 4,
+  "technically_valid_started_sessions": 4,
+  "passed_sessions": 0,
+  "behavioral_repeatability": 0.0,
+  "operational_reliability": 1.0,
+  "cohort_resolved": false,
+  "product_level_threshold_unreachable": true,
+  "slot_05_may_resume_after_preflight_succeeds": true,
+  "fresh_slot_05_authorization_still_required": true,
+  "claim_boundary": "Slot 5 is blocked before session I/O and does not consume its registered slot. The cohort remains unresolved and already cannot reach three passes."
+}

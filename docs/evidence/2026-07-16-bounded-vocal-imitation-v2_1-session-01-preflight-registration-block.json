@@ -1,0 +1,50 @@
+{
+  "schema_version": 2,
+  "protocol_version": "bounded-product-session-v2.1-owner-approved",
+  "date": "2026-07-16",
+  "status": "registration_identifier_invalid_before_live_io",
+  "cohort_id": "bvips-v2_1-20260716-cohort-01",
+  "session_id": "bvips-v2_1-20260716-cohort-01-s01",
+  "authorization": {
+    "path": "docs/evidence/2026-07-16-bounded-vocal-imitation-v2_1-session-01-authorization.json",
+    "sha256": "e55aaa77175ea636d5d1e613b828435fd002c81c08dc56b7c0b4f5223ef927e7"
+  },
+  "passed_read_only_checks": {
+    "all_registered_artifact_hashes_match": true,
+    "host_is_macos": true,
+    "host_is_mac_mini": true,
+    "self_uid_and_name_match": true,
+    "world_uid_and_name_match": true,
+    "system_output_volume_percent": 100,
+    "output_muted": false,
+    "xvf3800_unique_match": true,
+    "xvf3800_portaudio_index": 1,
+    "xvf3800_16000hz_two_channel_float32_supported": true
+  },
+  "blocking_check": {
+    "name": "session_identifier_accepted_by_approved_private_storage",
+    "passed": false,
+    "attempted_identifier": "bvips-v2_1-20260716-cohort-01-s01",
+    "approved_storage_identifier_pattern": "[a-z0-9][a-z0-9-]{7,79}",
+    "failure": "session_id must be 8-80 lowercase letters, digits, or hyphens",
+    "cause": "The registered identifier contained an underscore."
+  },
+  "side_effect_audit": {
+    "encrypted_sparsebundle_created": false,
+    "per_session_key_created": false,
+    "mountpoint_created": false,
+    "audio_stream_opened": false,
+    "playback_performed": false,
+    "microphone_samples_captured": 0,
+    "session_artifact_created_in_private_storage": false
+  },
+  "disposition": {
+    "cohort_registration_valid_for_execution": false,
+    "authorization_valid_for_execution": false,
+    "authorization_transferable_to_corrected_identifier": false,
+    "slot_status_assigned": false,
+    "slot_consumed": false,
+    "cohort_and_authorization_must_be_superseded": true
+  },
+  "claim_boundary": "Fail-closed registration defect found before storage creation or live I/O. It is not a started slot, blocked cohort result, session result, retry, or product claim."
+}

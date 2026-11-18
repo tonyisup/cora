@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "protocol_version": "bounded-product-session-v1-approved",
+  "cohort_id": "bvips-v1-20260716-cohort-01",
+  "prospective_session_id": "bvips-v1-20260716-cohort-01-s05",
+  "owner_observations": [
+    "The exact cue WAV is audible when played through VLC.",
+    "The exact cue is not audible through ffmpeg's AudioToolbox output muxer even after the output-device mapping was corrected."
+  ],
+  "owner_ffmpeg_trace": {
+    "input_duration_seconds": 0.1,
+    "decoded_samples": 4800,
+    "encoded_frames": 2,
+    "muxed_packets": 2,
+    "muxed_audio_bytes": 9600,
+    "elapsed_seconds": 0.14,
+    "exit_code": 0
+  },
+  "upstream_implementation": {
+    "source": "FFmpeg libavdevice/audiotoolbox.m",
+    "queue_started_in_write_header": true,
+    "audio_packets_enqueued_in_write_packet": true,
+    "write_trailer_calls_audio_queue_flush": true,
+    "write_trailer_calls_audio_queue_dispose_immediate_true": true
+  },
+  "apple_api_semantics": {
+    "audio_queue_dispose_true": "Dispose synchronously and immediately.",
+    "audio_queue_dispose_false": "Defer disposal until all enqueued buffers are processed."
+  },
+  "root_cause": "The ffmpeg AudioToolbox output muxer accepts and enqueues the 100 ms cue, then reaches EOF and immediately flushes/disposes the queue without proving that the short buffers reached audible hardware output.",
+  "machine_returncode_proves_audible_playback": false,
+  "vlc_result_confirms_wav_is_valid": true,
+  "candidate_successor_fixes": [
+    "Pace input in real time so the queue remains alive through the cue and settle interval.",
+    "Use a playback API that exposes completion/drain confirmation before disposal."
+  ],
+  "candidate_fixes_validated": false,
+  "candidate_fixes_allowed_under_v1": false,
+  "reason_change_is_forbidden": "Playback implementation and live route behavior were frozen before the first cohort session and cannot change after session results.",
+  "slot_05_status": "blocked_pre_io",
+  "slot_05_consumed": false,
+  "prior_session_statuses_rewritten": false,
+  "v1_product_threshold_unreachable": true,
+  "claim_boundary": "Playback-drain root-cause record. It does not authorize a workaround, modify V1, validate a successor implementation, rewrite prior statuses, or support a product claim."
+}
